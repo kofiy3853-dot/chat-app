@@ -3,11 +3,12 @@ const prisma = require('../prisma/client');
 // Get user's conversations
 exports.getConversations = async (req, res) => {
   try {
+    const userId = req.user.id;
     const conversations = await prisma.conversation.findMany({
       where: {
         participants: {
           some: {
-            userId: req.user.id
+            userId: userId
           }
         },
         isActive: true
@@ -37,7 +38,7 @@ exports.getConversations = async (req, res) => {
             },
             readReceipts: {
               where: {
-                userId: req.user.id
+                userId: userId
               }
             }
           }
@@ -55,7 +56,30 @@ exports.getConversations = async (req, res) => {
       }
     });
 
-    res.json({ conversations });
+    const conversationIds = conversations.map(c => c.id);
+    const unreadCounts = await prisma.message.groupBy({
+      by: ['conversationId'],
+      where: {
+        conversationId: { in: conversationIds },
+        senderId: { not: userId },
+        readReceipts: {
+          none: {
+            userId: userId
+          }
+        }
+      },
+      _count: true
+    });
+
+    const conversationsWithUnread = conversations.map(conv => {
+      const countObj = unreadCounts.find(c => c.conversationId === conv.id);
+      return {
+        ...conv,
+        unreadCount: countObj ? countObj._count : 0
+      };
+    });
+
+    res.json({ conversations: conversationsWithUnread });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

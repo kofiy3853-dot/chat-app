@@ -49,36 +49,67 @@ export default function ChatList() {
   useEffect(() => {
     fetchConversations();
 
-    // Real-time: update conversation list when new message arrives
     const socket = getSocket();
     if (socket) {
+      // 1. Real-time: update conversation list when new message arrives
       const handleNewMessage = (data) => {
         setConversations(prev => {
           const updated = prev.map(conv => {
             if (conv.id === data.conversationId) {
+              const isFromMe = data.message.senderId === currentUser?.id;
               return {
                 ...conv,
                 lastMessage: data.message,
-                lastMessageAt: data.message.createdAt
+                lastMessageAt: data.message.createdAt,
+                unreadCount: isFromMe ? (conv.unreadCount || 0) : (conv.unreadCount || 0) + 1
               };
             }
             return conv;
           });
-          // Re-sort by latest message
+          
+          // Re-sort current conversations list by latest message
           return [...updated].sort((a, b) =>
             new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0)
           );
         });
       };
 
-      socket.off('new-message', handleNewMessage);
+      // 2. Real-time: update online/offline status
+      const handleStatusChange = (data) => {
+        setConversations(prev => prev.map(conv => {
+          const participants = conv.participants?.map(p => {
+            if (p.userId === data.userId) {
+              return { 
+                ...p, 
+                user: { ...p.user, isOnline: data.isOnline, lastSeen: data.lastSeen } 
+              };
+            }
+            return p;
+          });
+          return { ...conv, participants };
+        }));
+      };
+
+      // 3. Real-time: reset unread count when messages are marked as read
+      const handleMessagesRead = (data) => {
+        if (data.userId === currentUser?.id) {
+          setConversations(prev => prev.map(conv => 
+            conv.id === data.conversationId ? { ...conv, unreadCount: 0 } : conv
+          ));
+        }
+      };
+
       socket.on('new-message', handleNewMessage);
+      socket.on('user-status-changed', handleStatusChange);
+      socket.on('messages-read', handleMessagesRead);
 
       return () => {
         socket.off('new-message', handleNewMessage);
+        socket.off('user-status-changed', handleStatusChange);
+        socket.off('messages-read', handleMessagesRead);
       };
     }
-  }, [fetchConversations]);
+  }, [fetchConversations, currentUser]);
 
   const getConversationName = useCallback((conversation) => {
     if (conversation.name) return conversation.name;
@@ -99,24 +130,15 @@ export default function ChatList() {
   };
 
   const isConversationUnread = (conv) => {
-    if (!conv.lastMessage || !currentUser) return false;
-    // If we sent the last message, it's NOT unread for us
-    if (conv.lastMessage.senderId === currentUser.id) return false;
-    
-    // For fresh messages arriving via socket, readReceipts might be missing or empty.
-    // If it's missing altogether OR it's an empty array, it's unread.
-    const receipts = conv.lastMessage.readReceipts;
-    if (!receipts || receipts.length === 0) return true;
-    
-    // Double check: if receipts exist, did we (the current user) read it?
-    return !receipts.some(r => r.userId === currentUser.id);
+    return (conv.unreadCount || 0) > 0;
   };
 
   const filteredConversations = useMemo(() => {
     return conversations.filter(conv => {
       // 1. Search filter
       const name = getConversationName(conv).toLowerCase();
-      if (search && !name.includes(search.toLowerCase())) return false;
+      const lastMsg = (conv.lastMessage?.content || '').toLowerCase();
+      if (search && !(name.includes(search.toLowerCase()) || lastMsg.includes(search.toLowerCase()))) return false;
 
       // 2. Category filter
       if (filter === 'UNREAD') return isConversationUnread(conv);
@@ -152,7 +174,7 @@ export default function ChatList() {
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input 
             type="text" 
-            placeholder="Search messages..." 
+            placeholder="Search name or message..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-gray-50 border-none rounded-2xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-100 transition-all outline-none"
@@ -191,52 +213,66 @@ export default function ChatList() {
           filteredConversations.map((conversation) => {
             const isUnread = isConversationUnread(conversation);
             const isFav = favorites.includes(conversation.id);
+            const unreadCount = conversation.unreadCount || 0;
             
             return (
               <Link
                 key={conversation.id}
                 href={`/chat/${conversation.id}`}
-                className={`block p-4 hover:bg-gray-50 transition-all border-l-4 group relative ${isUnread ? 'border-blue-500 bg-blue-50/30' : 'border-transparent'}`}
+                className={`block p-4 hover:bg-gray-50 transition-all border-l-4 group relative ${isUnread ? 'border-blue-600 bg-blue-50/30' : 'border-transparent'}`}
               >
                 <div className="flex items-center space-x-3">
-                  {/* Avatar */}
+                  {/* Avatar Section */}
                   <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-sm group-hover:scale-105 transition-transform duration-200">
-                      {getConversationName(conversation).charAt(0).toUpperCase()}
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-sm group-hover:scale-105 transition-transform duration-200 overflow-hidden">
+                      {conversation.avatar ? (
+                        <img src={conversation.avatar} alt={getConversationName(conversation)} className="w-full h-full object-cover" />
+                      ) : (
+                        getConversationName(conversation).charAt(0).toUpperCase()
+                      )}
                     </div>
+                    {/* Online status indicator */}
                     {conversation.type === 'DIRECT' && conversation.participants?.find(p => p.userId !== currentUser?.id)?.user?.isOnline && (
                       <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
                     )}
                   </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0 pr-6">
+                  {/* Content Section */}
+                  <div className="flex-1 min-w-0 pr-10">
                     <div className="flex justify-between items-start">
-                      <h3 className={`text-sm truncate ${isUnread ? 'font-black text-blue-900' : 'font-bold text-gray-900'}`}>
+                      <h3 className={`text-sm truncate pr-2 ${isUnread ? 'font-black text-blue-900' : 'font-bold text-gray-900'}`}>
                         {getConversationName(conversation)}
                       </h3>
                       {conversation.lastMessageAt && (
-                        <span className={`text-[10px] font-medium ${isUnread ? 'text-blue-600' : 'text-gray-400'}`}>
+                        <span className={`text-[10px] font-medium whitespace-nowrap mt-0.5 ${isUnread ? 'text-blue-600' : 'text-gray-400'}`}>
                           {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
                         </span>
                       )}
                     </div>
-                    <p className={`text-xs truncate mt-1 transition-colors ${isUnread ? 'font-semibold text-blue-800' : 'text-gray-500 group-hover:text-gray-900'}`}>
-                      {getLastMessagePreview(conversation)}
-                    </p>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className={`text-xs truncate transition-colors mr-2 ${isUnread ? 'font-semibold text-blue-800' : 'text-gray-500 group-hover:text-gray-900'}`}>
+                        {getLastMessagePreview(conversation)}
+                      </p>
+                      {/* Unread Badge */}
+                      {unreadCount > 0 && (
+                        <span className="flex-shrink-0 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Favorite Star (Absolute positioned on right side) */}
+                {/* Favorite Toggle Button */}
                 <button 
                   onClick={(e) => toggleFavorite(e, conversation.id)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full text-gray-300 hover:text-yellow-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                  className="absolute right-4 top-4 p-1.5 rounded-full text-gray-300 hover:text-yellow-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
                 >
                   {isFav ? <StarIconSolid className="w-5 h-5 text-yellow-400 opacity-100" /> : <StarIcon className="w-5 h-5" />}
                 </button>
-                {/* Keep star always visible if favorited, outside opacity hover */}
+                {/* Always-visible Favorite indicator (unless hovering for toggle) */}
                 {isFav && (
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 p-2 pointer-events-none group-hover:hidden">
+                  <div className="absolute right-4 top-4 p-1.5 pointer-events-none group-hover:hidden">
                     <StarIconSolid className="w-5 h-5 text-yellow-400" />
                   </div>
                 )}

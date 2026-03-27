@@ -16,6 +16,13 @@ const setupChatSockets = (io) => {
         socketId: socket.id,
         lastSeen: new Date()
       }
+    }).then(user => {
+      // Broadcast user online status
+      io.emit('user-status-changed', {
+        userId: user.id,
+        isOnline: true,
+        lastSeen: user.lastSeen
+      });
     }).catch(err => console.error('Error updating status:', err));
 
     // Join personal room for notifications
@@ -259,8 +266,8 @@ const setupChatSockets = (io) => {
           io.to(`user:${socket.user.id}`).emit('unread-count', { count: newCount });
         }
 
-        // Notify other participants
-        socket.to(`conversation:${conversationId}`).emit('messages-read', {
+        // Notify all participants in the conversation (including the sender's other devices)
+        io.to(`conversation:${conversationId}`).emit('messages-read', {
           userId: socket.user.id,
           conversationId
         });
@@ -324,6 +331,13 @@ const setupChatSockets = (io) => {
           socketId: null,
           lastSeen: new Date()
         }
+      }).then(user => {
+        // Broadcast user offline status
+        io.emit('user-status-changed', {
+          userId: user.id,
+          isOnline: false,
+          lastSeen: user.lastSeen
+        });
       }).catch(err => console.error('Error updating status on disconnect:', err));
 
       // Notify all rooms user was in
