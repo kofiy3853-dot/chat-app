@@ -379,11 +379,20 @@ export default function ChatBox({ conversationId }) {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       transition={{ duration: 0.2 }}
                       key={message.id || message.tempId}
-                      className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+                      className={`flex items-end mb-4 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'} space-x-2`}
                     >
-                      <div className={`flex flex-col max-w-[80%] ${isMine ? 'items-end' : 'items-start'}`}>
-                        {showSender && (
-                          <span className="text-[10px] font-bold text-gray-400 mb-1 ml-1 uppercase tracking-tight">
+                      {/* Interaction Badge / Avatar */}
+                      {!isMine && (
+                        <div className={`flex-shrink-0 mb-1 transition-opacity ${showSender ? 'opacity-100' : 'opacity-0'}`}>
+                           <div className={`w-8 h-8 rounded-[11px] bg-gradient-to-tr ${getAvatarColor(message.sender?.name || 'User')} flex items-center justify-center text-white text-[10px] font-black shadow-sm`}>
+                             {getInitials(message.sender?.name || 'U')}
+                           </div>
+                        </div>
+                      )}
+
+                      <div className={`flex flex-col max-w-[75%] ${isMine ? 'items-end' : 'items-start'}`}>
+                        {showSender && !isMine && (
+                          <span className="text-[10px] font-black text-slate-400 mb-1 ml-1 uppercase tracking-tight">
                             {message.sender?.name}
                           </span>
                         )}
@@ -400,18 +409,18 @@ export default function ChatBox({ conversationId }) {
                           ) : (message.type === 'IMAGE' || message.type === 'FILE') ? (
                             <AttachmentBubble message={message} />
                           ) : (
-                            <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                            <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap font-medium">{message.content}</p>
                           )}
                           
                           <div className={`flex items-center space-x-1 mt-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
-                            <span className={`text-[9px] font-medium ${isMine ? 'text-primary-100' : 'text-slate-400'}`}>
+                            <span className={`text-[9px] font-bold tracking-tighter ${isMine ? 'text-primary-100' : 'text-slate-400'}`}>
                               {format(new Date(message.createdAt), 'h:mm a')}
                             </span>
                             {isMine && message.status === 'sending' && (
                               <ArrowPathIcon className="w-2.5 h-2.5 animate-spin text-primary-200" />
                             )}
                             {isMine && message.status !== 'sending' && (
-                              <CheckIcon className={`w-3 h-3 ${message.isRead ? 'text-blue-200 fill-blue-200' : 'text-primary-200'}`} />
+                              <CheckIcon className={`w-3 h-3 ${message.isRead ? 'text-emerald-300' : 'text-primary-200'}`} />
                             )}
                           </div>
                         </div>
