@@ -1,0 +1,79 @@
+
+Compares the database schema from two arbitrary sources, and outputs the differences either as a human-readable summary (by default) or an executable script.
+
+prisma migrate diff is a read-only command that does not write to your datasource(s).
+prisma db execute can be used to execute its --script output.
+
+The command takes a source --from-... and a destination --to-....
+The source and destination must use the same provider,
+e.g. a diff using 2 different providers like PostgreSQL and SQLite is not supported.
+
+It compares the source with the destination to generate a diff.
+The diff can be interpreted as generating a migration that brings the source schema (from) to the shape of the destination schema (to).
+The default output is a human readable diff, it can be rendered as SQL using `--script` on SQL databases.
+
+See the documentation for more information https://pris.ly/d/migrate-diff
+
+Usage
+
+  $ prisma migrate diff [options]
+
+Options
+
+  -h, --help               Display this help message
+  --config                 Custom path to your Prisma config file
+  -o, --output             Writes to a file instead of stdout
+
+From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):
+  --from-empty             Flag to assume from or to is an empty datamodel
+  --to-empty
+
+  --from-schema            Path to a Prisma schema file, uses the datamodel for the diff
+  --to-schema
+
+  --from-migrations        Path to the Prisma Migrate migrations directory
+  --to-migrations
+
+  --from-config-datasource Flag to use the datasource from the Prisma config file
+  --to-config-datasource
+
+Flags
+
+  --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
+  --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+
+Examples
+
+  From the configured database to a Prisma datamodel
+    e.g. roll forward after a migration failed in the middle
+  $ prisma migrate diff \
+    --from-config-datasource \
+    --to-schema=next_datamodel.prisma \
+    --script
+
+  From a Prisma datamodel to the configured database
+    e.g. roll forward after a migration failed in the middle
+  $ prisma migrate diff \
+    --from-schema=next_datamodel.prisma \
+    --to-config-datasource \
+    --script
+
+  From a Prisma Migrate `migrations` directory to the configured database
+    e.g. generate a migration for a hotfix already applied on production
+  $ prisma migrate diff \
+    --from-migrations ./migrations \
+    --to-config-datasource \
+    --script
+
+  Execute the --script output with `prisma db execute` using bash pipe `|`
+  $ prisma migrate diff \
+    --from-[...] \
+    --to-[...] \
+    --script | prisma db execute --stdin --url="$DATABASE_URL"
+
+  Detect if both sources are in sync, it will exit with exit code 2 if changes are detected
+  $ prisma migrate diff \
+    --exit-code \
+    --from-[...] \
+    --to-[...]
+

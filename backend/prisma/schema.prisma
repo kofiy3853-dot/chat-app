@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  name          String
+  avatar        String?
+  role          Role      @default(STUDENT)
+  studentId     String?   @unique
+  department    String?
+  isOnline      Boolean   @default(false)
+  lastSeen      DateTime  @default(now())
+  socketId      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sentMessages      Message[]
+  reactions         Reaction[]
+  readReceipts      ReadReceipt[]
+  notifications     Notification[]
+  courseInstructor  Course[]      @relation("CourseInstructor")
+  courses           Course[]      @relation("CourseStudents")
+  conversations     ConversationParticipant[]
+
+  @@map("users")
+}
+
+model Conversation {
+  id                String           @id @default(uuid())
+  type              ConversationType
+  name              String?
+  avatar            String?
+  lastMessageAt     DateTime         @default(now())
+  isActive          Boolean          @default(true)
+  allowFileSharing  Boolean          @default(true)
+  allowReactions    Boolean          @default(true)
+  onlyAdminsCanPost Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  courseId      String?   @unique
+  course        Course?   @relation(fields: [courseId], references: [id])
+  participants  ConversationParticipant[]
+  messages      Message[]
+  lastMessage   Message?  @relation("LastMessage", fields: [lastMessageId], references: [id])
+  lastMessageId String?   @unique
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String          @id @default(uuid())
+  role           ParticipantRole @default(MEMBER)
+  joinedAt       DateTime        @default(now())
+
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, conversationId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  content        String?
+  type           MessageType @default(TEXT)
+  fileUrl        String?
+  fileName       String?
+  fileSize       Int?
+  editedAt       DateTime?
+  isDeleted      Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  replyToId      String?
+  replyTo        Message?     @relation("ReplyTo", fields: [replyToId], references: [id])
+  replies        Message[]    @relation("ReplyTo")
+  reactions      Reaction[]
+  readReceipts   ReadReceipt[]
+  lastMessageIn  Conversation? @relation("LastMessage")
+  notifications  Notification[]
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model Reaction {
+  id        String   @id @default(uuid())
+  emoji     String
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, messageId])
+  @@map("reactions")
+}
+
+model ReadReceipt {
+  id        String   @id @default(uuid())
+  readAt    DateTime @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, messageId])
+  @@map("read_receipts")
+}
+
+model Course {
+  id               String   @id @default(uuid())
+  code             String   @unique
+  name             String
+  description      String?
+  semester         String
+  year             Int
+  department       String?
+  isActive         Boolean  @default(true)
+  allowStudentChat Boolean  @default(true)
+  allowFileSharing Boolean  @default(true)
+  announcementsOnly Boolean @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  instructorId String
+  instructor   User         @relation("CourseInstructor", fields: [instructorId], references: [id])
+  students     User[]       @relation("CourseStudents")
+  conversation Conversation?
+
+  @@map("courses")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  title     String
+  content   String?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  actionUrl String?
+  createdAt DateTime         @default(now())
+
+  recipientId String
+  recipient   User     @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  senderId    String?
+  messageId   String?
+  message     Message? @relation(fields: [messageId], references: [id])
+  courseId    String?
+
+  @@index([recipientId, isRead])
+  @@index([recipientId, createdAt])
+  @@map("notifications")
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+  COURSE
+}
+
+enum ParticipantRole {
+  MEMBER
+  ADMIN
+  OWNER
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  VOICE
+  ANNOUNCEMENT
+  SYSTEM
+}
+
+enum NotificationType {
+  MESSAGE
+  ANNOUNCEMENT
+  COURSE_INVITE
+  MENTION
+  SYSTEM
+}

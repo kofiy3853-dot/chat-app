@@ -1,0 +1,11 @@
+{
+  "name": "campus-chat",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npx next dev -H 0.0.0.0 --prefix frontend\"",
+    "start": "npm start --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
