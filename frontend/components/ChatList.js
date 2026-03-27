@@ -4,8 +4,16 @@ import { formatDistanceToNow } from 'date-fns';
 import { chatAPI } from '../services/api';
 import { getSocket } from '../services/socket';
 import { getCurrentUser } from '../utils/helpers';
-import { MagnifyingGlassIcon, StarIcon } from '@heroicons/react/24/outline';
+import { 
+  MagnifyingGlassIcon, 
+  StarIcon, 
+  ArchiveBoxIcon, 
+  TrashIcon, 
+  CheckIcon,
+  CheckBadgeIcon
+} from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ChatList() {
   const [conversations, setConversations] = useState([]);
@@ -13,11 +21,12 @@ export default function ChatList() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('ALL'); // ALL, UNREAD, FAVORITES, GROUPS
   const [favorites, setFavorites] = useState([]);
+  const [typingInConvs, setTypingInConvs] = useState({}); // { [id]: { [userId]: userName } }
 
-  // Memoize currentUser — localStorage read is slow if called on every render
+  // Memoize currentUser
   const currentUser = useMemo(() => getCurrentUser(), []);
 
-  // Load favorites from local storage on mount
+  // Load favorites
   useEffect(() => {
     try {
       const favs = JSON.parse(localStorage.getItem('chat_favorites') || '[]');
@@ -46,12 +55,62 @@ export default function ChatList() {
     }
   }, []);
 
+  const handleArchive = async (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await chatAPI.archiveConversation(id);
+      fetchConversations();
+    } catch (e) {
+      console.error('Failed to archive:', e);
+    }
+  };
+
+  const handleDelete = async (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm('Are you sure you want to delete this conversation? This will hide it for you.')) {
+      try {
+        await chatAPI.deleteConversation(id);
+        setConversations(prev => prev.filter(c => c.id !== id));
+      } catch (e) {
+        console.error('Failed to delete:', e);
+      }
+    }
+  };
+
   useEffect(() => {
     fetchConversations();
 
     const socket = getSocket();
     if (socket) {
-      // 1. Real-time: update conversation list when new message arrives
+      // Listen for typing events across all conversations
+      socket.emit('join-conversations'); // Ensure we get join feedback
+
+      const handleUserTyping = (data) => {
+        setTypingInConvs(prev => {
+          const newTyping = { ...prev };
+          const convId = data.conversationId;
+          const uId = data.userId;
+          const uName = data.userName;
+
+          if (data.isTyping && uId !== currentUser?.id) {
+            newTyping[convId] = { ...(newTyping[convId] || {}), [uId]: uName };
+          } else {
+            if (newTyping[convId]) {
+              const updated = { ...newTyping[convId] };
+              delete updated[uId];
+              if (Object.keys(updated).length === 0) {
+                delete newTyping[convId];
+              } else {
+                newTyping[convId] = updated;
+              }
+            }
+          }
+          return newTyping;
+        });
+      };
+
       const handleNewMessage = (data) => {
         setConversations(prev => {
           const updated = prev.map(conv => {
@@ -66,23 +125,15 @@ export default function ChatList() {
             }
             return conv;
           });
-          
-          // Re-sort current conversations list by latest message
-          return [...updated].sort((a, b) =>
-            new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0)
-          );
+          return [...updated].sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
         });
       };
 
-      // 2. Real-time: update online/offline status
       const handleStatusChange = (data) => {
         setConversations(prev => prev.map(conv => {
           const participants = conv.participants?.map(p => {
             if (p.userId === data.userId) {
-              return { 
-                ...p, 
-                user: { ...p.user, isOnline: data.isOnline, lastSeen: data.lastSeen } 
-              };
+              return { ...p, user: { ...p.user, isOnline: data.isOnline, lastSeen: data.lastSeen } };
             }
             return p;
           });
@@ -90,36 +141,70 @@ export default function ChatList() {
         }));
       };
 
-      // 3. Real-time: reset unread count when messages are marked as read
       const handleMessagesRead = (data) => {
-        if (data.userId === currentUser?.id) {
-          setConversations(prev => prev.map(conv => 
-            conv.id === data.conversationId ? { ...conv, unreadCount: 0 } : conv
-          ));
-        }
+        // If someone read the messages, update our list to show "Seen" status
+        setConversations(prev => prev.map(conv => {
+          if (conv.id === data.conversationId) {
+            const updated = { ...conv };
+            if (data.userId === currentUser?.id) {
+              updated.unreadCount = 0;
+            }
+            // Update lastMessage readReceipts if they exist
+            if (updated.lastMessage) {
+               const alreadyExists = updated.lastMessage.readReceipts?.some(r => r.userId === data.userId);
+               if (!alreadyExists) {
+                 updated.lastMessage = {
+                   ...updated.lastMessage,
+                   readReceipts: [...(updated.lastMessage.readReceipts || []), { userId: data.userId }]
+                 };
+               }
+            }
+            return updated;
+          }
+          return conv;
+        }));
       };
 
+      socket.on('user-typing', handleUserTyping);
       socket.on('new-message', handleNewMessage);
       socket.on('user-status-changed', handleStatusChange);
       socket.on('messages-read', handleMessagesRead);
 
       return () => {
-        socket.off('new-message', handleNewMessage);
-        socket.off('user-status-changed', handleStatusChange);
-        socket.off('messages-read', handleMessagesRead);
+        socket.off('user-typing');
+        socket.off('new-message');
+        socket.off('user-status-changed');
+        socket.off('messages-read');
       };
     }
   }, [fetchConversations, currentUser]);
 
   const getConversationName = useCallback((conversation) => {
     if (conversation.name) return conversation.name;
-    const otherParticipant = conversation.participants?.find(
-      p => p.userId !== currentUser?.id
-    );
+    const otherParticipant = conversation.participants?.find(p => p.userId !== currentUser?.id);
     return otherParticipant?.user?.name || 'Unknown User';
   }, [currentUser]);
 
+  const getMessageStatus = (conversation) => {
+    const msg = conversation.lastMessage;
+    if (!msg || msg.senderId !== currentUser?.id) return null;
+    
+    // Check if anyone else read it
+    const isRead = msg.readReceipts?.some(r => r.userId !== currentUser?.id);
+    return isRead ? (
+      <CheckBadgeIcon className="w-3.5 h-3.5 text-blue-500" />
+    ) : (
+      <CheckIcon className="w-3.5 h-3.5 text-gray-300" />
+    );
+  };
+
   const getLastMessagePreview = (conversation) => {
+    const typingUsers = typingInConvs[conversation.id];
+    if (typingUsers) {
+      const names = Object.values(typingUsers);
+      return <span className="text-blue-600 font-black animate-pulse">{names[0]} is typing...</span>;
+    }
+
     if (!conversation.lastMessage) return 'No messages yet';
     const { content, type } = conversation.lastMessage;
     if (type === 'VOICE') return '🎙️ Voice memo';
@@ -129,55 +214,46 @@ export default function ChatList() {
     return content.length > 40 ? content.substring(0, 40) + '...' : content;
   };
 
-  const isConversationUnread = (conv) => {
-    return (conv.unreadCount || 0) > 0;
-  };
-
   const filteredConversations = useMemo(() => {
     return conversations.filter(conv => {
-      // 1. Search filter
       const name = getConversationName(conv).toLowerCase();
       const lastMsg = (conv.lastMessage?.content || '').toLowerCase();
       if (search && !(name.includes(search.toLowerCase()) || lastMsg.includes(search.toLowerCase()))) return false;
-
-      // 2. Category filter
-      if (filter === 'UNREAD') return isConversationUnread(conv);
+      if (filter === 'UNREAD') return (conv.unreadCount || 0) > 0;
       if (filter === 'FAVORITES') return favorites.includes(conv.id);
-      if (filter === 'GROUPS') return conv.type === 'GROUP' || conv.type === 'COURSE';
-      if (filter === 'READ') return !isConversationUnread(conv);
-      
-      return true; // ALL
+      if (filter === 'GROUPS') return conv.type !== 'DIRECT';
+      if (filter === 'READ') return (conv.unreadCount || 0) === 0;
+      return true;
     });
   }, [conversations, search, filter, favorites, getConversationName]);
 
   if (loading) {
-    return (
-      <div className="p-4 space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="animate-pulse flex space-x-4">
-            <div className="rounded-full bg-gray-200 h-12 w-12"></div>
-            <div className="flex-1 space-y-2 py-1">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+     return (
+        <div className="p-4 space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse flex space-x-4">
+              <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+              <div className="flex-1 space-y-2 py-1">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-    );
+          ))}
+        </div>
+      );
   }
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Search & Filters */}
-      <div className="p-4 border-b border-gray-100 flex flex-col space-y-3 bg-white sticky top-0 z-10">
-        <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+    <div className="flex flex-col h-full bg-white max-w-xl mx-auto border-x border-gray-50">
+      <div className="p-4 border-b border-gray-100 flex flex-col space-y-3 bg-white/80 backdrop-blur-xl sticky top-0 z-20">
+        <div className="relative group">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
           <input 
             type="text" 
-            placeholder="Search name or message..." 
+            placeholder="Search messages..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-50 border-none rounded-2xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-100 transition-all outline-none"
+            className="w-full bg-gray-50 border-none rounded-2xl py-3 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-100 transition-all outline-none"
           />
         </div>
         <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide pb-1">
@@ -185,10 +261,10 @@ export default function ChatList() {
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+              className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
                 filter === tab 
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' 
-                  : 'bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-800'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' 
+                  : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
               }`}
             >
               {tab}
@@ -197,90 +273,105 @@ export default function ChatList() {
         </div>
       </div>
 
-      {/* List */}
-      <div className="divide-y divide-gray-50 flex-1 overflow-y-auto">
-        {filteredConversations.length === 0 ? (
-          <div className="p-12 text-center text-gray-500 bg-white">
-            <div className="w-16 h-16 bg-blue-50 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4">
-               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a.596.596 0 0 1-.474-.065.503.503 0 0 1-.209-.435 5.106 5.106 0 0 1 .358-1.585 9.049 9.049 0 0 1-2.113-21.366C4.42 2.33 8.01 1.5 12 1.5c4.97 0 9 3.694 9 8.25Z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900">No conversations found</h3>
-            <p className="text-sm mt-1 text-gray-400">Try adjusting your filters or search</p>
-          </div>
-        ) : (
-          filteredConversations.map((conversation) => {
-            const isUnread = isConversationUnread(conversation);
-            const isFav = favorites.includes(conversation.id);
-            const unreadCount = conversation.unreadCount || 0;
-            
-            return (
+      <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+        <AnimatePresence>
+          {filteredConversations.map((conversation) => (
+            <SwipeableItem 
+              key={conversation.id} 
+              onArchive={(e) => handleArchive(e, conversation.id)}
+              onDelete={(e) => handleDelete(e, conversation.id)}
+            >
               <Link
-                key={conversation.id}
                 href={`/chat/${conversation.id}`}
-                className={`block p-4 hover:bg-gray-50 transition-all border-l-4 group relative ${isUnread ? 'border-blue-600 bg-blue-50/30' : 'border-transparent'}`}
+                className={`flex items-center p-4 space-x-3 hover:bg-gray-50 transition-all group relative border-l-4 ${
+                  (conversation.unreadCount > 0) ? 'border-blue-500 bg-blue-50/20' : 'border-transparent'
+                }`}
               >
-                <div className="flex items-center space-x-3">
-                  {/* Avatar Section */}
-                  <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-sm group-hover:scale-105 transition-transform duration-200 overflow-hidden">
-                      {conversation.avatar ? (
-                        <img src={conversation.avatar} alt={getConversationName(conversation)} className="w-full h-full object-cover" />
-                      ) : (
-                        getConversationName(conversation).charAt(0).toUpperCase()
-                      )}
-                    </div>
-                    {/* Online status indicator */}
-                    {conversation.type === 'DIRECT' && conversation.participants?.find(p => p.userId !== currentUser?.id)?.user?.isOnline && (
-                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
-                    )}
+                <div className="relative flex-shrink-0">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-sm group-hover:scale-105 transition-transform duration-300">
+                    {getConversationName(conversation).charAt(0).toUpperCase()}
                   </div>
+                  {conversation.type === 'DIRECT' && conversation.participants?.find(p => p.userId !== currentUser?.id)?.user?.isOnline && (
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                  )}
+                </div>
 
-                  {/* Content Section */}
-                  <div className="flex-1 min-w-0 pr-10">
-                    <div className="flex justify-between items-start">
-                      <h3 className={`text-sm truncate pr-2 ${isUnread ? 'font-black text-blue-900' : 'font-bold text-gray-900'}`}>
-                        {getConversationName(conversation)}
-                      </h3>
-                      {conversation.lastMessageAt && (
-                        <span className={`text-[10px] font-medium whitespace-nowrap mt-0.5 ${isUnread ? 'text-blue-600' : 'text-gray-400'}`}>
-                          {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className={`text-xs truncate transition-colors mr-2 ${isUnread ? 'font-semibold text-blue-800' : 'text-gray-500 group-hover:text-gray-900'}`}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-baseline mb-1">
+                    <h3 className={`text-sm truncate pr-2 ${conversation.unreadCount > 0 ? 'font-black text-slate-900' : 'font-bold text-slate-700'}`}>
+                      {getConversationName(conversation)}
+                    </h3>
+                    <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
+                      {conversation.lastMessageAt ? formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: false }) : ''}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-1.5 min-w-0 flex-1">
+                      {getMessageStatus(conversation)}
+                      <p className={`text-xs truncate transition-colors ${conversation.unreadCount > 0 ? 'font-bold text-blue-900' : 'text-gray-500'}`}>
                         {getLastMessagePreview(conversation)}
                       </p>
-                      {/* Unread Badge */}
-                      {unreadCount > 0 && (
-                        <span className="flex-shrink-0 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                      )}
                     </div>
+                    {conversation.unreadCount > 0 && (
+                      <span className="bg-blue-600 text-white text-[10px] font-black h-5 min-w-[20px] px-1.5 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        {conversation.unreadCount}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Favorite Toggle Button */}
                 <button 
                   onClick={(e) => toggleFavorite(e, conversation.id)}
-                  className="absolute right-4 top-4 p-1.5 rounded-full text-gray-300 hover:text-yellow-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                  className="absolute right-2 top-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  {isFav ? <StarIconSolid className="w-5 h-5 text-yellow-400 opacity-100" /> : <StarIcon className="w-5 h-5" />}
+                  {favorites.includes(conversation.id) ? 
+                    <StarIconSolid className="w-5 h-5 text-yellow-400" /> : 
+                    <StarIcon className="w-5 h-5 text-gray-300" />
+                  }
                 </button>
-                {/* Always-visible Favorite indicator (unless hovering for toggle) */}
-                {isFav && (
-                  <div className="absolute right-4 top-4 p-1.5 pointer-events-none group-hover:hidden">
-                    <StarIconSolid className="w-5 h-5 text-yellow-400" />
-                  </div>
-                )}
               </Link>
-            );
-          })
-        )}
+            </SwipeableItem>
+          ))}
+        </AnimatePresence>
       </div>
+    </div>
+  );
+}
+
+function SwipeableItem({ children, onArchive, onDelete }) {
+  return (
+    <div className="relative bg-gray-100 overflow-hidden">
+      {/* Background Actions */}
+      <div className="absolute inset-0 flex justify-between">
+        <button 
+          onClick={onArchive}
+          className="flex flex-col items-center justify-center w-24 bg-indigo-500 text-white transition-all hover:bg-indigo-600"
+        >
+          <ArchiveBoxIcon className="w-6 h-6 mb-1" />
+          <span className="text-[10px] font-black uppercase tracking-tighter">Archive</span>
+        </button>
+        <button 
+          onClick={onDelete}
+          className="flex flex-col items-center justify-center w-24 bg-red-500 text-white transition-all hover:bg-red-600"
+        >
+          <TrashIcon className="w-6 h-6 mb-1" />
+          <span className="text-[10px] font-black uppercase tracking-tighter">Delete</span>
+        </button>
+      </div>
+
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: -96, right: 96 }}
+        dragElastic={0.05}
+        onDragEnd={(e, info) => {
+          if (info.offset.x < -80) onDelete(e);
+          if (info.offset.x > 80) onArchive(e);
+        }}
+        className="relative bg-white z-10"
+      >
+        {children}
+      </motion.div>
     </div>
   );
 }

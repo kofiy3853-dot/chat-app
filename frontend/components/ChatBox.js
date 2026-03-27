@@ -244,15 +244,8 @@ export default function ChatBox({ conversationId }) {
 
       const response = await chatAPI.uploadMessageAttachment(formData);
       
-      // Emit via socket for real-time
-      const socket = getSocket();
-      if (socket) {
-        socket.emit('send-message', {
-          conversationId,
-          message: response.data.message,
-          tempId
-        });
-      }
+      // Removed redundant socket.emit('send-message') because the backend already 
+      // broadcasts 'new-message' to the conversation room upon successful upload.
 
     } catch (err) {
       setMessages(prev => prev.map(m => 

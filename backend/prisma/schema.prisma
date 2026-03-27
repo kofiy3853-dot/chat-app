@@ -60,6 +60,9 @@ model ConversationParticipant {
   role           ParticipantRole @default(MEMBER)
   joinedAt       DateTime        @default(now())
 
+  isArchived     Boolean         @default(false)
+  isDeleted      Boolean         @default(false)
+
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   conversationId String

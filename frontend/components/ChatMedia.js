@@ -14,7 +14,7 @@ import { formatFileSize } from '../utils/helpers';
 export const AttachmentBubble = ({ message }) => {
   const isImage = message.type === 'IMAGE' || (message.fileName && /\.(jpg|jpeg|png|gif)$/i.test(message.fileName));
   const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
-  const fullUrl = `${baseUrl}${message.fileUrl}`;
+  const fullUrl = message.fileUrl ? `${baseUrl}${message.fileUrl}` : null;
 
   if (isImage) {
     return (
@@ -57,7 +57,7 @@ export const AttachmentBubble = ({ message }) => {
 
 export const VoiceBubble = ({ message }) => {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
-  const fullUrl = `${baseUrl}${message.fileUrl}`;
+  const fullUrl = message.fileUrl ? `${baseUrl}${message.fileUrl}` : null;
   
   return (
     <div className="mt-1 flex items-center space-x-3 bg-primary-500/20 backdrop-blur-md p-3 rounded-2xl border border-white/10 min-w-[180px]">

@@ -80,7 +80,9 @@ export const chatAPI = {
   uploadMessageAttachment: (formData) => 
     api.post('/chat/messages/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    }),
+  archiveConversation: (id) => api.put(`/chat/conversations/${id}/archive`),
+  deleteConversation: (id) => api.delete(`/chat/conversations/${id}`)
 };
 
 // Course API

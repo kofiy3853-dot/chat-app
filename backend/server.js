@@ -1,5 +1,7 @@
 require('dotenv').config();
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
@@ -12,6 +14,14 @@ const { setupChatSockets } = require('./sockets/chatSockets');
 const { setupCourseSockets } = require('./sockets/courseSockets');
 
 const app = express();
+
+// Ensure upload directories exist
+const uploadDirs = ['uploads', 'uploads/files', 'uploads/voice'];
+uploadDirs.forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
 const corsOptions = {
   origin: [

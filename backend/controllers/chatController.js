@@ -8,7 +8,8 @@ exports.getConversations = async (req, res) => {
       where: {
         participants: {
           some: {
-            userId: userId
+            userId: userId,
+            isDeleted: false
           }
         },
         isActive: true
@@ -36,11 +37,7 @@ exports.getConversations = async (req, res) => {
                 avatar: true
               }
             },
-            readReceipts: {
-              where: {
-                userId: userId
-              }
-            }
+            readReceipts: true
           }
         },
         course: {
@@ -539,3 +536,48 @@ exports.uploadAttachment = async (req, res) => {
 };
 
 
+// Archive conversation (toggle)
+exports.archiveConversation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { userId_conversationId: { userId, conversationId: id } }
+    });
+
+    if (!participant) return res.status(404).json({ message: 'Participant not found' });
+
+    await prisma.conversationParticipant.update({
+      where: { id: participant.id },
+      data: { isArchived: !participant.isArchived }
+    });
+
+    res.json({ message: `Conversation ${participant.isArchived ? 'unarchived' : 'archived'}` });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Delete conversation (soft delete for user)
+exports.deleteConversation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { userId_conversationId: { userId, conversationId: id } }
+    });
+
+    if (!participant) return res.status(404).json({ message: 'Participant not found' });
+
+    await prisma.conversationParticipant.update({
+      where: { id: participant.id },
+      data: { isDeleted: true }
+    });
+
+    res.json({ message: 'Conversation deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
