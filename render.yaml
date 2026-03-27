@@ -2,7 +2,7 @@ services:
   # Backend Web Service
   - type: web
     name: campus-chat-backend
-    env: node
+    runtime: node
     plan: free
     rootDir: backend
     buildCommand: npm install && npx prisma generate
@@ -25,7 +25,7 @@ services:
   # Frontend Web Service (Next.js)
   - type: web
     name: campus-chat-frontend
-    env: node
+    runtime: node
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
