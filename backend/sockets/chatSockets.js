@@ -131,9 +131,9 @@ const setupChatSockets = (io) => {
           return m;
         });
 
-        // Broadcast to conversation room
+        // Broadcast to conversation room (including tempId so the sender recognizes it)
         io.to(`conversation:${conversationId}`).emit('new-message', {
-          message,
+          message: { ...message, tempId: data.tempId },
           conversationId
         });
 
