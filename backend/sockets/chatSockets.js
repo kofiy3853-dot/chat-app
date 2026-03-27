@@ -215,22 +215,23 @@ const setupChatSockets = (io) => {
           });
         }
 
-        // Also mark related UI notifications as read
-        const notificationsToMark = await prisma.notification.findMany({
+        // Also mark related UI notifications as read for this user
+        const updatedNotifications = await prisma.notification.updateMany({
           where: {
             recipientId: socket.user.id,
             isRead: false,
-            message: { conversationId }
+            // Find notifications for messages in this conversation
+            messageId: {
+              in: (await prisma.message.findMany({
+                where: { conversationId },
+                select: { id: true }
+              })).map(m => m.id)
+            }
           },
-          select: { id: true }
+          data: { isRead: true, readAt: new Date() }
         });
 
-        if (notificationsToMark.length > 0) {
-          await prisma.notification.updateMany({
-            where: { id: { in: notificationsToMark.map(n => n.id) } },
-            data: { isRead: true, readAt: new Date() }
-          });
-
+        if (updatedNotifications.count > 0) {
           // Send updated count to the user's navbar badge
           const newCount = await prisma.notification.count({
             where: { recipientId: socket.user.id, isRead: false }
