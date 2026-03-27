@@ -9,11 +9,14 @@ services:
     startCommand: npm start
     envVars:
       - key: DATABASE_URL
-        fromConfig: DATABASE_URL
+        value: postgresql://postgres.pkfysnbnfjjybxrsxsiu:CampusChatPassword123!@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true
       - key: JWT_SECRET
         generateValue: true
       - key: FRONTEND_URL
-        fromConfig: FRONTEND_URL # We'll fix this manually after frontend is deployed or use a variable
+        fromService:
+          name: campus-chat-frontend
+          type: web
+          property: host
       - key: PORT
         value: 5000
       - key: NODE_ENV
@@ -29,6 +32,9 @@ services:
     startCommand: npm start
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        fromConfig: BACKEND_URL # We'll fix this manually or use a variable
+        fromService:
+          name: campus-chat-backend
+          type: web
+          property: host
       - key: NODE_ENV
         value: production
