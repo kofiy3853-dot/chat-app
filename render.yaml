@@ -1,0 +1,34 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: campus-chat-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        fromConfig: DATABASE_URL
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        fromConfig: FRONTEND_URL # We'll fix this manually after frontend is deployed or use a variable
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+
+  # Frontend Web Service (Next.js)
+  - type: web
+    name: campus-chat-frontend
+    env: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromConfig: BACKEND_URL # We'll fix this manually or use a variable
+      - key: NODE_ENV
+        value: production
