@@ -70,12 +70,12 @@ export default function ChatPage() {
         <title>{name} | Campus Chat</title>
       </Head>
 
-      <div className="max-w-xl mx-auto min-h-screen flex flex-col bg-white overflow-hidden shadow-2xl relative">
+      <div className="max-w-xl mx-auto min-h-screen flex flex-col bg-white shadow-2xl relative">
         {/* Header */}
-        <motion.div 
+        <motion.header 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="sticky top-0 bg-white/90 backdrop-blur-xl border-b border-slate-100 px-4 py-3 z-30 flex items-center justify-between"
+          className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-slate-100 px-4 py-3 z-[100] flex items-center justify-between"
         >
           <div className="flex items-center space-x-3 min-w-0">
             <Link 
@@ -119,7 +119,7 @@ export default function ChatPage() {
               <EllipsisVerticalIcon className="w-5 h-5" />
             </button>
           </div>
-        </motion.div>
+        </motion.header>
 
         {/* Chat Component */}
         <ChatBox conversationId={id} />
