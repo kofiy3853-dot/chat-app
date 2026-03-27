@@ -170,8 +170,10 @@ const setupChatSockets = (io) => {
           });
         }
 
-        // Send confirmation to sender
-        socket.emit('message-sent', { message });
+        // Send confirmation to sender with their original tempId
+        socket.emit('message-sent', { 
+          message: { ...message, tempId: data.tempId } 
+        });
       } catch (error) {
         socket.emit('error', { message: error.message });
       }
