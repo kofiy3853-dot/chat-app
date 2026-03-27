@@ -52,6 +52,13 @@ export default function ChatBox({ conversationId }) {
     if (conversationId) {
       setLoading(true);
       setError(null);
+      
+      // Real-time: Join the conversation room
+      const socket = getSocket();
+      if (socket) {
+        socket.emit('join-conversation', conversationId);
+      }
+
       fetchMessages();
       setupSocketListeners();
       markAsRead(conversationId);
@@ -60,6 +67,9 @@ export default function ChatBox({ conversationId }) {
     return () => {
       const socket = getSocket();
       if (socket) {
+        // Leave room
+        socket.emit('leave-conversation', conversationId);
+        // Remove listeners
         socket.off('new-message');
         socket.off('user-typing');
         socket.off('message-sent');
