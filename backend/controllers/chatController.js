@@ -437,6 +437,11 @@ exports.uploadAttachment = async (req, res) => {
     const { conversationId, type } = req.body;
     const userId = req.user.id;
 
+    if (!req.files || (!req.files.file && !req.files.voice)) {
+      console.error('Upload failed: No files received');
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
     // Verify participant
     const participant = await prisma.conversationParticipant.findUnique({
       where: {
@@ -455,14 +460,16 @@ exports.uploadAttachment = async (req, res) => {
     let fileName = '';
     let fileSize = 0;
 
-    if (req.files.file) {
+    if (req.files.file && req.files.file.length > 0) {
       fileUrl = `/uploads/files/${req.files.file[0].filename}`;
       fileName = req.files.file[0].originalname;
       fileSize = req.files.file[0].size;
-    } else if (req.files.voice) {
+    } else if (req.files.voice && req.files.voice.length > 0) {
       fileUrl = `/uploads/voice/${req.files.voice[0].filename}`;
       fileName = 'Voice Note';
       fileSize = req.files.voice[0].size;
+    } else {
+      return res.status(400).json({ message: 'No valid file data received' });
     }
 
     const message = await prisma.message.create({

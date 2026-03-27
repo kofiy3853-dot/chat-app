@@ -27,17 +27,15 @@ const fileFilter = (req, file, cb) => {
       cb(new Error('Only audio files are allowed for voice notes'), false);
     }
   } else {
-    // Allow images, docs, pdfs
-    const allowedMimeTypes = [
-      'image/jpeg', 'image/png', 'image/gif', 
-      'application/pdf', 'application/msword', 
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/plain'
-    ];
-    if (allowedMimeTypes.includes(file.mimetype)) {
+    // Allow all images, docs, pdfs, and generic common files
+    if (file.mimetype.startsWith('image/') || 
+        file.mimetype.startsWith('application/pdf') ||
+        file.mimetype.includes('word') ||
+        file.mimetype.includes('officedocument') ||
+        file.mimetype.startsWith('text/')) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type'), false);
+      cb(new Error(`Invalid file type: ${file.mimetype}`), false);
     }
   }
 };
