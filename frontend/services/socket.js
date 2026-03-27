@@ -18,8 +18,9 @@ export const initSocket = () => {
     transports: ['polling', 'websocket'],
     autoConnect: true,
     reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000
+    reconnectionAttempts: 10,
+    reconnectionDelay: 5000,
+    timeout: 45000
   });
 
   socket.on('connect', () => {
