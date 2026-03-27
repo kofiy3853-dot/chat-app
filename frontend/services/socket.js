@@ -15,16 +15,23 @@ export const initSocket = () => {
 
   socket = io(socketUrl, {
     auth: { token },
-    transports: ['websocket'],
-    autoConnect: true
+    transports: ['polling', 'websocket'],
+    autoConnect: true,
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000
   });
 
   socket.on('connect', () => {
     console.log('Socket connected');
   });
 
-  socket.on('disconnect', () => {
-    console.log('Socket disconnected');
+  socket.on('disconnect', (reason) => {
+    console.log('Socket disconnected:', reason);
+    if (reason === 'io server disconnect') {
+      // the disconnection was initiated by the server, you need to reconnect manually
+      socket.connect();
+    }
   });
 
   socket.on('connect_error', (error) => {
@@ -55,61 +62,45 @@ export const disconnectSocket = () => {
 
 export const joinConversation = (conversationId) => {
   const socket = getSocket();
-  socket.emit('join-conversation', conversationId);
+  if (socket) socket.emit('join-conversation', conversationId);
 };
 
 export const leaveConversation = (conversationId) => {
   const socket = getSocket();
-  socket.emit('leave-conversation', conversationId);
+  if (socket) socket.emit('leave-conversation', conversationId);
 };
 
 export const sendMessage = (data) => {
   const socket = getSocket();
-  socket.emit('send-message', data);
+  if (socket) socket.emit('send-message', data);
 };
 
 export const sendTyping = (conversationId, isTyping) => {
   const socket = getSocket();
-  socket.emit('typing', { conversationId, isTyping });
+  if (socket) socket.emit('typing', { conversationId, isTyping });
 };
 
 export const markAsRead = (conversationId) => {
   const socket = getSocket();
-  socket.emit('mark-read', { conversationId });
+  if (socket) socket.emit('mark-read', { conversationId });
 };
 
 export const addReaction = (messageId, emoji) => {
   const socket = getSocket();
-  socket.emit('add-reaction', { messageId, emoji });
+  if (socket) socket.emit('add-reaction', { messageId, emoji });
 };
 
 export const joinCourse = (courseId) => {
   const socket = getSocket();
-  socket.emit('join-course', courseId);
+  if (socket) socket.emit('join-course', courseId);
 };
 
 export const leaveCourse = (courseId) => {
   const socket = getSocket();
-  socket.emit('leave-course', courseId);
+  if (socket) socket.emit('leave-course', courseId);
 };
 
 export const sendAnnouncement = (data) => {
   const socket = getSocket();
-  socket.emit('send-announcement', data);
+  if (socket) socket.emit('send-announcement', data);
 };
-
-export default {
-  initSocket,
-  getSocket,
-  disconnectSocket,
-  joinConversation,
-  leaveConversation,
-  sendMessage,
-  sendTyping,
-  markAsRead,
-  addReaction,
-  joinCourse,
-  leaveCourse,
-  sendAnnouncement
-};
-
