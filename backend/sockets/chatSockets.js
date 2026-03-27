@@ -146,28 +146,46 @@ const setupChatSockets = (io) => {
         const recipients = chatParticipants.filter(p => p.userId !== socket.user.id);
 
         for (const recipient of recipients) {
-          // Check if user is in the room
-          const isUserInRoom = io.sockets.adapter.rooms.get(`conversation:${conversationId}`)?.has(recipient.userId); // This check is simplified, real check needs tracking
+          // Senior Implementation: Check if recipient is active in the room using socket mapping
+          const room = io.sockets.adapter.rooms.get(`conversation:${conversationId}`);
+          let isRecipientActiveInRoom = false;
           
-          const notificationContent = content || (type === 'VOICE' ? 'Voice memo' : fileName || 'File attachment');
-
-          // Create notification in DB
-          const notification = await prisma.notification.create({
-            data: {
-              type: 'MESSAGE',
-              title: `New message from ${socket.user.name}`,
-              content: notificationContent.length > 50 ? notificationContent.substring(0, 50) + '...' : notificationContent,
-              recipientId: recipient.userId,
-              senderId: socket.user.id,
-              messageId: message.id
+          if (room) {
+            for (const socketId of room) {
+              const activeSocket = io.sockets.sockets.get(socketId);
+              if (activeSocket?.user?.id === recipient.userId) {
+                isRecipientActiveInRoom = true;
+                break;
+              }
             }
-          });
+          }
+          
+          // Only create notification if user is NOT looking at the chat
+          if (!isRecipientActiveInRoom) {
+            const notificationContent = content || (type === 'VOICE' ? 'Voice memo' : fileName || 'File attachment');
 
-          // Emit to recipient's private room
-          io.to(`user:${recipient.userId}`).emit('new-notification', {
-            notification,
-            unreadCount: await prisma.notification.count({ where: { recipientId: recipient.userId, isRead: false } })
-          });
+            // Create notification in DB
+            const notification = await prisma.notification.create({
+              data: {
+                type: 'MESSAGE',
+                title: `New message from ${socket.user.name}`,
+                content: notificationContent.length > 50 ? notificationContent.substring(0, 50) + '...' : notificationContent,
+                recipientId: recipient.userId,
+                senderId: socket.user.id,
+                messageId: message.id
+              }
+            });
+
+            // Global Signaling (user:ID): Multi-device sync
+            const totalUnreadCount = await prisma.notification.count({ 
+              where: { recipientId: recipient.userId, isRead: false } 
+            });
+
+            io.to(`user:${recipient.userId}`).emit('new-notification', {
+              notification,
+              unreadCount: totalUnreadCount
+            });
+          }
         }
 
         // Send confirmation to sender with their original tempId
