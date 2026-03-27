@@ -56,17 +56,24 @@ export default function ChatBox({ conversationId }) {
       // Real-time: Join the conversation room
       const socket = getSocket();
       if (socket) {
-        socket.emit('join-conversation', conversationId);
+        const joinAndSync = () => {
+          socket.emit('join-conversation', conversationId);
+          markAsRead(conversationId);
+        };
+
+        joinAndSync();
+        // If the socket drops and reconnects, we MUST rejoin the room
+        socket.on('connect', joinAndSync);
       }
 
       fetchMessages();
       setupSocketListeners();
-      markAsRead(conversationId);
     }
 
     return () => {
       const socket = getSocket();
       if (socket) {
+        socket.off('connect'); // Clean up the rejoin listener
         // Leave room
         socket.emit('leave-conversation', conversationId);
         // Remove listeners
