@@ -4,37 +4,27 @@ services:
     name: campus-chat-backend
     runtime: node
     plan: free
-    rootDir: backend
-    buildCommand: npm install && npx prisma generate
-    startCommand: npm start
+    region: ohio
+    buildCommand: cd backend && npm install && npx prisma generate
+    startCommand: cd backend && npm start
     envVars:
       - key: DATABASE_URL
-        value: postgresql://postgres.pkfysnbnfjjybxrsxsiu:CampusChatPassword123!@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true
+        fromDatabase:
+          name: campus-chat-db
+          property: connectionString
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://social-networking-mu.vercel.app
       - key: JWT_SECRET
         generateValue: true
-      - key: FRONTEND_URL
-        fromService:
-          name: campus-chat-frontend
-          type: web
-          property: host
-      - key: PORT
-        value: 5000
-      - key: NODE_ENV
-        value: production
 
-  # Frontend Web Service (Next.js)
-  - type: web
-    name: campus-chat-frontend
-    runtime: node
+databases:
+  # Managed PostgreSQL Database
+  - name: campus-chat-db
     plan: free
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    startCommand: npm start
-    envVars:
-      - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: campus-chat-backend
-          type: web
-          property: host
-      - key: NODE_ENV
-        value: production
+    region: ohio
+    databaseName: campuschat
+    user: kofi
