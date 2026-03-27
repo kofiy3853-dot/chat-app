@@ -15,21 +15,23 @@ const app = express();
 
 const corsOptions = {
   origin: [
-    process.env.FRONTEND_URL,
-    'https://social-networking-mu.vercel.app',
-    'http://localhost:3000'
+    process.env.FRONTEND_URL, 
+    'https://chat-app-kappa-rose.vercel.app', // Current production URL
+    'https://social-networking-mu.vercel.app', // Previous production URL (optional)
+    'http://localhost:3000',
+    'http://127.0.0.1:3000'
   ].filter(Boolean),
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
+app.use(cors(corsOptions));
 const server = http.createServer(app);
 const io = new Server(server, { 
   cors: corsOptions,
   transports: ['websocket', 'polling']
 });
-
-// Middleware
-app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
