@@ -4,44 +4,51 @@ const { protect } = require('../middleware/auth');
 
 /**
  * GET /api/turn/credentials
- * Returns fresh ICE server config (STUN + dynamic TURN credentials).
- * Requires METERED_API_KEY and METERED_APP_NAME in backend .env
- *
- * Sign up free at: https://www.metered.ca/tools/openrelay
+ * Returns ICE server config with STUN + TURN credentials from environment variables.
+ * 
+ * Required env vars:
+ *   TURN_SERVER_URL  = turn:free.expressturn.com:3478
+ *   TURN_USERNAME    = your_username
+ *   TURN_CREDENTIAL  = your_password
  */
 router.get('/credentials', protect, async (req, res) => {
   try {
-    const apiKey  = process.env.METERED_API_KEY;
-    const appName = process.env.METERED_APP_NAME;
+    const turnUrl        = process.env.TURN_SERVER_URL;
+    const turnUsername   = process.env.TURN_USERNAME;
+    const turnCredential = process.env.TURN_CREDENTIAL;
 
-    // If Metered is configured, fetch live credentials
-    if (apiKey && appName) {
-      const response = await fetch(
-        `https://${appName}.metered.live/api/v1/turn/credentials?apiKey=${apiKey}`
-      );
+    const iceServers = [
+      // STUN — always include as first attempt
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+    ];
 
-      if (!response.ok) throw new Error('Metered API error: ' + response.status);
+    // Add TURN server if credentials are configured
+    if (turnUrl && turnUsername && turnCredential) {
+      console.log('[TURN] Using configured TURN server:', turnUrl);
 
-      const iceServers = await response.json();
-      return res.json({ iceServers });
+      // UDP (primary)
+      iceServers.push({
+        urls: turnUrl,
+        username: turnUsername,
+        credential: turnCredential,
+      });
+
+      // TCP transport variant (punches through strict firewalls)
+      iceServers.push({
+        urls: `${turnUrl}?transport=tcp`,
+        username: turnUsername,
+        credential: turnCredential,
+      });
+    } else {
+      console.warn('[TURN] No TURN env vars set — returning STUN only');
     }
 
-    // Fallback: static TURN servers when env vars not set (for local dev)
-    console.warn('[TURN] METERED_API_KEY not set — using static fallback TURN servers');
-    return res.json({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'turn:openrelay.metered.ca:80',              username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:openrelay.metered.ca:443',             username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:openrelay.metered.ca:443?transport=tcp',username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:freestun.net:3478', username: 'free', credential: 'free' },
-      ],
-    });
+    return res.json({ iceServers });
+
   } catch (error) {
-    console.error('[TURN] Failed to fetch credentials:', error.message);
-    res.status(500).json({ message: 'Could not fetch TURN credentials', error: error.message });
+    console.error('[TURN] Error building credentials:', error.message);
+    res.status(500).json({ message: 'Could not build ICE server config', error: error.message });
   }
 });
 
