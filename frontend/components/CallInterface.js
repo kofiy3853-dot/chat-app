@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useCall } from '../context/CallContext';
 import { 
   PhoneIcon, 
@@ -27,6 +27,18 @@ export default function CallInterface() {
     isMuted,
     isVideoOff
   } = useCall();
+
+  // Reactive stream syncing to ensure video/audio elements always have the track
+  useEffect(() => {
+    if (callAccepted && !callEnded) {
+      if (userVideo.current && remoteStream) {
+        userVideo.current.srcObject = remoteStream;
+      }
+      if (myVideo.current && stream) {
+        myVideo.current.srcObject = stream;
+      }
+    }
+  }, [callAccepted, callEnded, remoteStream, stream]);
 
   // Outgoing call (Caller's 'Calling...' screen)
   if (call.isCalling && !callAccepted) {
@@ -98,7 +110,7 @@ export default function CallInterface() {
   if (callAccepted && !callEnded) {
     return (
       <div className="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center">
-        {/* Remote Video (Fullscreen) */}
+        {/* Remote Video/Audio */}
         {call.type === 'VIDEO' ? (
           <video 
             playsInline 
@@ -108,10 +120,15 @@ export default function CallInterface() {
           />
         ) : (
           <div className="flex flex-col items-center space-y-6">
+            <video 
+              playsInline 
+              ref={userVideo} 
+              autoPlay 
+              className="hidden" 
+            />
             <div className="w-32 h-32 rounded-full bg-primary-600/20 border-2 border-primary-500 flex items-center justify-center relative">
                <div className="absolute inset-0 rounded-full border-4 border-white animate-ping opacity-20"></div>
                <div className="w-24 h-24 rounded-full bg-primary-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-xl">
-                 {/* Show the OTHER person's initial — works for both caller and callee */}
                  {(call.from?.name || call.to?.name)?.charAt(0) || 'U'}
                </div>
             </div>
@@ -141,7 +158,7 @@ export default function CallInterface() {
             onClick={toggleMute}
             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-500 text-white' : 'bg-white/20 text-white hover:bg-white/40'}`}
           >
-            {isMuted ? <MicrophoneIcon className="w-6 h-6" /> : <SpeakerWaveIcon className="w-6 h-6" />}
+            {isMuted ? <MicrophoneIcon className="w-6 h-6" /> : <SpeakerWaveIcon className="get-6 h-6" />}
           </button>
           
           <button 
