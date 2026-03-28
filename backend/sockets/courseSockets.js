@@ -79,22 +79,6 @@ const setupCourseSockets = (io) => {
             }
           });
 
-          // Create notifications for all students
-          const notifications = course.students.map(student => ({
-            recipientId: student.id,
-            type: 'ANNOUNCEMENT',
-            title: `New announcement in ${course.code}`,
-            content: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
-            senderId: socket.user.id,
-            courseId: courseId,
-            messageId: m.id,
-            actionUrl: `/courses/${courseId}`
-          }));
-
-          await tx.notification.createMany({
-            data: notifications
-          });
-
           return m;
         });
 
@@ -194,8 +178,5 @@ const setupCourseSockets = (io) => {
 
   });
 };
-
-module.exports = { setupCourseSockets };
-
 
 module.exports = { setupCourseSockets };

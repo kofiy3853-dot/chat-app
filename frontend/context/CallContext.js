@@ -32,31 +32,63 @@ export const CallProvider = ({ children }) => {
     if (!socket) return;
 
     socket.on('incoming-call', ({ from, offer, type }) => {
+      // Don't show incoming call if already in a call
+      if (call.isReceivingCall || callAccepted) {
+        socket.emit('reject-call', { targetUserId: from.id });
+        return;
+      }
       setCall({ isReceivingCall: true, from, offer, type });
     });
 
     socket.on('call-ended', () => {
-      setCallEnded(true);
-      if (connectionRef.current) {
-        connectionRef.current.close();
-      }
-      window.location.reload(); // Quick reset
+      handleCleanup();
+    });
+
+    socket.on('call-rejected', () => {
+      alert('Call rejected or user busy');
+      handleCleanup();
     });
 
     return () => {
       socket.off('incoming-call');
       socket.off('call-ended');
+      socket.off('call-rejected');
     };
-  }, []);
+  }, [call, callAccepted]);
+
+  const handleCleanup = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    if (connectionRef.current) {
+      connectionRef.current.close();
+      connectionRef.current = null;
+    }
+    setStream(null);
+    setRemoteStream(null);
+    setCall({});
+    setCallAccepted(false);
+    setCallEnded(false);
+    setIsMuted(false);
+    setIsVideoOff(false);
+  };
 
   const answerCall = async () => {
     setCallAccepted(true);
     const socket = getSocket();
     
-    const localStream = await navigator.mediaDevices.getUserMedia({ 
-      video: call.type === 'VIDEO', 
-      audio: true 
-    });
+    let localStream;
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ 
+        video: call.type === 'VIDEO', 
+        audio: true 
+      });
+    } catch (err) {
+      console.error('Media access error:', err);
+      alert('Could not access camera or microphone. Please check permissions.');
+      return;
+    }
+    
     setStream(localStream);
     if (myVideo.current) myVideo.current.srcObject = localStream;
 
@@ -86,8 +118,11 @@ export const CallProvider = ({ children }) => {
 
     socket.emit('answer-call', { targetUserId: call.from.id, answer });
 
+    socket.off('ice-candidate'); // Clear any previous listener
     socket.on('ice-candidate', ({ candidate }) => {
-      peer.addIceCandidate(new RTCIceCandidate(candidate));
+      if (peer.remoteDescription) {
+        peer.addIceCandidate(new RTCIceCandidate(candidate));
+      }
     });
 
     connectionRef.current = peer;
@@ -97,10 +132,18 @@ export const CallProvider = ({ children }) => {
     const socket = getSocket();
     const currentUser = getCurrentUser();
 
-    const localStream = await navigator.mediaDevices.getUserMedia({ 
-      video: type === 'VIDEO', 
-      audio: true 
-    });
+    let localStream;
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ 
+        video: type === 'VIDEO', 
+        audio: true 
+      });
+    } catch (err) {
+      console.error('Media access error:', err);
+      alert('Could not access camera or microphone. Please check permissions.');
+      return;
+    }
+    
     setStream(localStream);
     if (myVideo.current) myVideo.current.srcObject = localStream;
 
@@ -134,36 +177,30 @@ export const CallProvider = ({ children }) => {
       type
     });
 
+    socket.off('call-accepted');
     socket.on('call-accepted', ({ answer }) => {
       setCallAccepted(true);
       peer.setRemoteDescription(new RTCSessionDescription(answer));
     });
 
+    socket.off('ice-candidate');
     socket.on('ice-candidate', ({ candidate }) => {
-      peer.addIceCandidate(new RTCIceCandidate(candidate));
-    });
-    
-    socket.on('call-rejected', () => {
-      alert('Call rejected');
-      leaveCall();
+      if (peer.remoteDescription) {
+        peer.addIceCandidate(new RTCIceCandidate(candidate));
+      }
     });
 
     connectionRef.current = peer;
   };
 
   const leaveCall = () => {
-    setCallEnded(true);
-    if (connectionRef.current) {
-      connectionRef.current.close();
-    }
-    
     const socket = getSocket();
     const targetId = call.from?.id;
     if (socket && targetId) {
       socket.emit('end-call', { targetUserId: targetId });
     }
 
-    window.location.reload();
+    handleCleanup();
   };
 
   const rejectCall = () => {

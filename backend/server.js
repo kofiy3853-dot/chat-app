@@ -40,7 +40,9 @@ app.use(cors(corsOptions));
 const server = http.createServer(app);
 const io = new Server(server, { 
   cors: corsOptions,
-  transports: ['websocket', 'polling']
+  transports: ['polling', 'websocket'],
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

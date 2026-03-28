@@ -349,20 +349,26 @@ const setupChatSockets = (io) => {
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${socket.user.name} (${socket.user.id})`);
       
-      await prisma.user.update({
-        where: { id: socket.user.id },
-        data: {
-          isOnline: false,
-          socketId: null,
-          lastSeen: new Date()
-        }
-      }).then(user => {
-        io.emit('user-status-changed', {
-          userId: user.id,
-          isOnline: false,
-          lastSeen: user.lastSeen
-        });
-      }).catch(err => console.error('Error updating status on disconnect:', err));
+      // Multi-device: Only mark as offline if no sockets remain in the user's personal room
+      const userRoom = `user:${socket.user.id}`;
+      const remainingSockets = io.sockets.adapter.rooms.get(userRoom);
+      
+      if (!remainingSockets || remainingSockets.size === 0) {
+        await prisma.user.update({
+          where: { id: socket.user.id },
+          data: {
+            isOnline: false,
+            socketId: null,
+            lastSeen: new Date()
+          }
+        }).then(user => {
+          io.emit('user-status-changed', {
+            userId: user.id,
+            isOnline: false,
+            lastSeen: user.lastSeen
+          });
+        }).catch(err => console.error('Error updating status on disconnect:', err));
+      }
     });
   });
 };

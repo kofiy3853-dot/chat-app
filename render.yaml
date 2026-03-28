@@ -17,7 +17,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL
-        value: https://social-networking-mu.vercel.app
+        value: https://chat-app-kappa-rose.vercel.app
       - key: JWT_SECRET
         generateValue: true
 

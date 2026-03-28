@@ -21,10 +21,22 @@ export default function CourseRoom({ courseId }) {
   useEffect(() => {
     if (courseId) {
       fetchCourse();
-      joinCourse(courseId);
+      
+      const socket = getSocket();
+      const joinAndSync = () => {
+        joinCourse(courseId);
+      };
+
+      joinAndSync();
+      if (socket) {
+        socket.on('connect', joinAndSync);
+      }
 
       return () => {
         leaveCourse(courseId);
+        if (socket) {
+          socket.off('connect', joinAndSync);
+        }
       };
     }
   }, [courseId]);
