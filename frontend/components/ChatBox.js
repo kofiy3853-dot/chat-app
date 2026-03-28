@@ -48,6 +48,9 @@ export default function ChatBox({ conversationId }) {
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const [mediaFile, setMediaFile] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const audioChunksRef = useRef([]);
 
   // --- 2. Refs ---
   const messagesEndRef = useRef(null);
@@ -182,6 +185,70 @@ export default function ChatBox({ conversationId }) {
       }
     } catch (err) {
       console.error('[DEBUG] Send error:', err);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await sendVoiceNote(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Error starting recording:', err);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setMediaRecorder(null);
+    }
+  };
+
+  const sendVoiceNote = async (blob) => {
+    const tempId = `temp-${Date.now()}`;
+    const voiceFile = new File([blob], 'voicenote.webm', { type: 'audio/webm' });
+    
+    const msgData = {
+      id: tempId,
+      tempId,
+      senderId: currentUser.id,
+      sender: currentUser,
+      content: 'Voice memo',
+      createdAt: new Date().toISOString(),
+      type: 'VOICE',
+      fileUrl: URL.createObjectURL(blob)
+    };
+    
+    setMessages(prev => [...prev, msgData]);
+    setIsSending(true);
+
+    try {
+      const fd = new FormData();
+      fd.append('voice', voiceFile);
+      fd.append('conversationId', conversationId);
+      fd.append('type', 'VOICE');
+      fd.append('tempId', tempId);
+      await chatAPI.uploadMessageAttachment(fd);
+    } catch (err) {
+      console.error('Error sending voice note:', err);
     } finally {
       setIsSending(false);
     }
@@ -412,29 +479,57 @@ export default function ChatBox({ conversationId }) {
           )}
 
           <div className="flex items-end space-x-2">
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-2xl transition-all">
-              <PaperClipIcon className="w-5 h-5 stroke-[2.5px]" />
-              <input type="file" ref={fileInputRef} className="hidden" onChange={e => setMediaFile(e.target.files[0])} />
-            </button>
-            
-            <div className="flex-1 bg-slate-100 rounded-[22px] border border-transparent focus-within:bg-white focus-within:border-slate-200 transition-all p-1">
-              <textarea
-                value={newMessage}
-                onChange={e => { setNewMessage(e.target.value); sendTyping(conversationId); }}
-                placeholder="Message..."
-                className="w-full bg-transparent border-none text-sm py-2 px-3 max-h-32 resize-none focus:ring-0 font-medium"
-                rows={1}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-              />
-            </div>
+            {!isRecording ? (
+              <>
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-2xl transition-all">
+                  <PaperClipIcon className="w-5 h-5 stroke-[2.5px]" />
+                  <input type="file" ref={fileInputRef} className="hidden" onChange={e => setMediaFile(e.target.files[0])} />
+                </button>
+                
+                <div className="flex-1 bg-slate-100 rounded-[22px] border border-transparent focus-within:bg-white focus-within:border-slate-200 transition-all p-1">
+                  <textarea
+                    value={newMessage}
+                    onChange={e => { setNewMessage(e.target.value); sendTyping(conversationId); }}
+                    placeholder="Message..."
+                    className="w-full bg-transparent border-none text-sm py-2 px-3 max-h-32 resize-none focus:ring-0 font-medium"
+                    rows={1}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+                  />
+                </div>
 
-            <button 
-              type="submit" 
-              disabled={(!newMessage.trim() && !mediaFile) || isSending}
-              className="p-3 bg-primary-600 text-white rounded-[18px] shadow-lg shadow-primary-600/30 hover:scale-105 active:scale-95 disabled:opacity-30 transition-all"
-            >
-              {isSending ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <PaperAirplaneIcon className="w-5 h-5 -rotate-45" />}
-            </button>
+                {newMessage.trim() || mediaFile ? (
+                  <button 
+                    type="submit" 
+                    disabled={isSending}
+                    className="p-3 bg-primary-600 text-white rounded-[18px] shadow-lg shadow-primary-600/30 hover:scale-105 active:scale-95 disabled:opacity-30 transition-all"
+                  >
+                    {isSending ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <PaperAirplaneIcon className="w-5 h-5 -rotate-45" />}
+                  </button>
+                ) : (
+                  <button 
+                    type="button"
+                    onClick={startRecording}
+                    className="p-3 text-primary-600 hover:bg-primary-50 rounded-[18px] transition-all"
+                  >
+                    <MicrophoneIcon className="w-6 h-6" />
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-between bg-red-50 p-2 rounded-2xl border border-red-100 animate-pulse">
+                <div className="flex items-center space-x-3 px-2">
+                  <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-ping" />
+                  <span className="text-xs font-black text-red-600 tracking-tighter uppercase">Recording Voice Note...</span>
+                </div>
+                <button 
+                  type="button"
+                  onClick={stopRecording}
+                  className="p-2 bg-red-600 text-white rounded-xl shadow-lg shadow-red-600/20"
+                >
+                  <StopCircleIcon className="w-6 h-6" />
+                </button>
+              </div>
+            )}
           </div>
         </form>
       </div>
