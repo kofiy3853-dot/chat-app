@@ -3,13 +3,15 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { courseAPI } from '../services/api';
 import CourseCard from '../components/courses/CourseCard';
+import CreateCourseForm from '../components/courses/CreateCourseForm';
+import { getCurrentUser } from '../utils/helpers';
 import { 
   PlusIcon, 
   MagnifyingGlassIcon, 
   AcademicCapIcon, 
-  InboxIcon,
-  AdjustmentsVerticalIcon,
-  XMarkIcon
+  XMarkIcon,
+  UserPlusIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,12 +19,22 @@ export default function Courses() {
   const router = useRouter();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('ALL'); // ALL, ONGOING, COMPLETED
+  const [filter, setFilter] = useState('ALL'); 
   const [showModal, setShowModal] = useState(false);
+  const [modalTab, setModalTab] = useState('JOIN'); // JOIN or CREATE
   const [joinCode, setJoinCode] = useState('');
 
   useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+    
+    // Set default tab based on role
+    if (currentUser?.role === 'INSTRUCTOR' || currentUser?.role === 'ADMIN') {
+      setModalTab('CREATE');
+    }
+
     fetchCourses();
   }, []);
 
@@ -76,6 +88,8 @@ export default function Courses() {
     );
   }
 
+  const isEducator = user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN';
+
   return (
     <>
       <Head>
@@ -98,7 +112,6 @@ export default function Courses() {
             </button>
           </div>
 
-          {/* Search & Filter */}
           <div className="space-y-4">
             <div className="relative group">
               <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
@@ -141,14 +154,14 @@ export default function Courses() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6">
-              {filteredCourses.map((course, idx) => (
+              {filteredCourses.map((course) => (
                 <CourseCard key={course.id} course={course} />
               ))}
             </div>
           )}
         </main>
 
-        {/* Join Modal Overlay */}
+        {/* Unified Modal Overlay */}
         <AnimatePresence>
           {showModal && (
             <motion.div 
@@ -161,15 +174,19 @@ export default function Courses() {
                 initial={{ scale: 0.9, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.9, y: 20 }}
-                className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden"
+                className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary-50 rounded-full -mr-16 -mt-16 z-0 opacity-50"></div>
                 
                 <div className="relative z-10">
-                  <div className="flex justify-between items-start mb-6">
+                  <div className="flex justify-between items-start mb-8">
                     <div>
-                      <h2 className="text-2xl font-black text-slate-900 leading-none">Join Course</h2>
-                      <p className="text-[10px] font-bold text-primary-600 uppercase tracking-widest mt-2">Enter your access code</p>
+                      <h2 className="text-2xl font-black text-slate-900 leading-none">
+                        {modalTab === 'CREATE' ? 'New Course' : 'Join Course'}
+                      </h2>
+                      <p className="text-[10px] font-bold text-primary-600 uppercase tracking-widest mt-2">
+                        {modalTab === 'CREATE' ? 'Create a virtual classroom' : 'Enter your enrollment code'}
+                      </p>
                     </div>
                     <button 
                       onClick={() => setShowModal(false)}
@@ -179,29 +196,69 @@ export default function Courses() {
                     </button>
                   </div>
 
-                  <form onSubmit={handleJoinCourse} className="space-y-4">
-                    <input
-                      type="text"
-                      placeholder="e.g. CS50-2024"
-                      value={joinCode}
-                      onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                      className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 px-6 py-4 rounded-2xl text-center text-lg font-black tracking-[0.1em] placeholder:text-slate-300 focus:ring-4 focus:ring-primary-500/10 transition-all"
-                      autoFocus
-                    />
-                    <button
-                      type="submit"
-                      disabled={!joinCode.trim()}
-                      className="w-full bg-primary-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary-500/30 hover:bg-primary-700 active:scale-95 transition-all duration-300"
-                    >
-                      Enroll Now
-                    </button>
-                  </form>
-                  
-                  <div className="mt-8 pt-6 border-t border-slate-100">
-                    <button className="w-full text-slate-400 hover:text-slate-600 text-xs font-bold uppercase tracking-widest transition-colors">
-                      Need help finding your code?
-                    </button>
-                  </div>
+                  {/* Tab Switcher if Instructor */}
+                  {isEducator && (
+                    <div className="flex bg-slate-100 p-1 rounded-2xl mb-8">
+                      <button 
+                        onClick={() => setModalTab('CREATE')}
+                        className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${modalTab === 'CREATE' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                      >
+                        <SparklesIcon className="w-4 h-4" />
+                        <span>Create</span>
+                      </button>
+                      <button 
+                        onClick={() => setModalTab('JOIN')}
+                        className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${modalTab === 'JOIN' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                      >
+                        <UserPlusIcon className="w-4 h-4" />
+                        <span>Join</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <AnimatePresence mode="wait">
+                    {modalTab === 'JOIN' ? (
+                      <motion.form 
+                        key="join"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        onSubmit={handleJoinCourse} 
+                        className="space-y-4"
+                      >
+                        <input
+                          type="text"
+                          placeholder="CS50-2024"
+                          value={joinCode}
+                          onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                          className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 px-6 py-5 rounded-2xl text-center text-2xl font-black tracking-[0.2em] placeholder:text-slate-200 focus:ring-4 focus:ring-primary-500/10 transition-all font-mono"
+                          autoFocus
+                        />
+                        <button
+                          type="submit"
+                          disabled={!joinCode.trim()}
+                          className="w-full bg-primary-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary-500/30 hover:bg-primary-700 active:scale-95 transition-all duration-300"
+                        >
+                          Enroll Now
+                        </button>
+                      </motion.form>
+                    ) : (
+                      <motion.div
+                        key="create"
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                      >
+                        <CreateCourseForm 
+                          onSuccess={() => {
+                            setShowModal(false);
+                            fetchCourses();
+                          }}
+                          onCancel={() => setShowModal(false)}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             </motion.div>
