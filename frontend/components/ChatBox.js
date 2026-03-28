@@ -16,7 +16,8 @@ import {
   ChatBubbleLeftIcon,
   PencilIcon,
   TrashIcon,
-  EllipsisHorizontalIcon
+  EllipsisHorizontalIcon,
+  DocumentDuplicateIcon
 } from '@heroicons/react/24/outline';
 import { getCurrentUser, groupMessagesByDate, getInitials, getAvatarColor } from '../utils/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -212,6 +213,18 @@ export default function ChatBox({ conversationId }) {
 
   const handleAddReaction = (messageId, emoji) => {
     addReaction(messageId, emoji);
+    setActiveMenuId(null);
+  };
+
+  const handleCopyMessage = (text) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        console.log('Message copied to clipboard');
+      })
+      .catch(err => {
+        console.error('Failed to copy message:', err);
+      });
     setActiveMenuId(null);
   };
 
@@ -576,28 +589,37 @@ export default function ChatBox({ conversationId }) {
                                   ))}
                                 </div>
                                 <div className="p-1">
-                                  {isMine && (
                                     <>
                                       <button 
-                                        onClick={() => {
-                                          setEditingMessageId(message.id);
-                                          setEditingContent(message.content);
-                                          setActiveMenuId(null);
-                                        }}
+                                        onClick={() => handleCopyMessage(message.content)}
                                         className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
                                       >
-                                        <PencilIcon className="w-4 h-4" />
-                                        <span>Edit Message</span>
+                                        <DocumentDuplicateIcon className="w-4 h-4" />
+                                        <span>Copy Text</span>
                                       </button>
-                                      <button 
-                                        onClick={() => handleDeleteMessage(message.id)}
-                                        className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                                      >
-                                        <TrashIcon className="w-4 h-4" />
-                                        <span>Delete</span>
-                                      </button>
+                                      {isMine && (
+                                        <>
+                                          <button 
+                                            onClick={() => {
+                                              setEditingMessageId(message.id);
+                                              setEditingContent(message.content);
+                                              setActiveMenuId(null);
+                                            }}
+                                            className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
+                                          >
+                                            <PencilIcon className="w-4 h-4" />
+                                            <span>Edit Message</span>
+                                          </button>
+                                          <button 
+                                            onClick={() => handleDeleteMessage(message.id)}
+                                            className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                                          >
+                                            <TrashIcon className="w-4 h-4" />
+                                            <span>Delete</span>
+                                          </button>
+                                        </>
+                                      )}
                                     </>
-                                  )}
                                   <button 
                                     className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
                                     onClick={() => setActiveMenuId(null)}
