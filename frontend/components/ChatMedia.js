@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatFileSize } from '../utils/helpers';
+import React, { useState, useRef } from 'react';
 
 export const AttachmentBubble = ({ message }) => {
   const isImage = message.type === 'IMAGE' || (message.fileName && /\.(jpg|jpeg|png|gif)$/i.test(message.fileName));
@@ -56,24 +57,46 @@ export const AttachmentBubble = ({ message }) => {
 };
 
 export const VoiceBubble = ({ message }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
   const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
   const fullUrl = message.fileUrl ? `${baseUrl}${message.fileUrl}` : null;
-  
+
+  const handlePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(e => console.error("Playback failed:", e));
+    }
+    setIsPlaying(!isPlaying);
+  };
+
   return (
     <div className="mt-1 flex items-center space-x-3 bg-primary-500/20 backdrop-blur-md p-3 rounded-2xl border border-white/10 min-w-[180px]">
-      <button className="w-10 h-10 flex items-center justify-center bg-white text-primary-600 rounded-full shadow-lg transform active:scale-90 transition-all">
-        <PlayIcon className="w-5 h-5 fill-current" />
+      <button 
+        onClick={handlePlay}
+        className="w-10 h-10 flex items-center justify-center bg-white text-primary-600 rounded-full shadow-lg transform active:scale-90 transition-all"
+      >
+        {isPlaying ? <PauseIcon className="w-5 h-5 fill-current" /> : <PlayIcon className="w-5 h-5 fill-current" />}
       </button>
       <div className="flex-1 space-y-1">
         <div className="flex items-center space-x-1">
           {[1,2,3,4,5,6,7,8].map(i => (
-            <div key={i} className={`h-4 w-1 bg-white/40 rounded-full animate-pulse`} style={{ animationDelay: `${i*0.1}s` }}></div>
+            <div 
+              key={i} 
+              className={`h-4 w-1 bg-white/40 rounded-full ${isPlaying ? 'animate-pulse' : ''}`} 
+              style={{ animationDelay: `${i*0.1}s` }}
+            ></div>
           ))}
         </div>
-        <audio controls className="hidden">
-           <source src={fullUrl} type="audio/mpeg" />
-        </audio>
-        <p className="text-[10px] text-white/70 font-black uppercase tracking-widest leading-none">Voice Memo • 0:12</p>
+        <audio 
+          ref={audioRef}
+          src={fullUrl} 
+          onEnded={() => setIsPlaying(false)}
+          className="hidden" 
+        />
+        <p className="text-[10px] text-white/70 font-black uppercase tracking-widest leading-none">Voice Memo</p>
       </div>
     </div>
   );
