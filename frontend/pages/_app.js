@@ -17,6 +17,46 @@ function MyApp({ Component, pageProps }) {
   // Must start as false for SSR/hydration compatibility (localStorage not available server-side)
   const [authorized, setAuthorized] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    // 1. Service Worker Registration
+    if (typeof window !== 'undefined' && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").then((reg) => {
+          console.log('SW Registered', reg.scope);
+          
+          // Request Push Notification Permission gracefully
+          if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission().then(permission => {
+              if (permission === 'granted') console.log('Push notifications enabled!');
+            });
+          }
+        }).catch(err => console.error('SW Registration failed', err));
+      });
+    }
+
+    // 2. Offline UX Listeners
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    if (typeof navigator !== 'undefined') setIsOffline(!navigator.onLine);
+
+    // 3. Install Prompt UX
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
 
   useEffect(() => {
     const authCheck = (url) => {
@@ -55,6 +95,29 @@ function MyApp({ Component, pageProps }) {
     <CallProvider>
       <div className="min-h-screen bg-gray-50">
         <main className={shouldHideNavbar ? '' : 'pb-20'}>
+          {isOffline && (
+            <div className="bg-rose-500 text-white text-center py-2 text-sm font-medium sticky top-0 z-50 shadow-sm shadow-rose-500/20">
+              You are offline. Some features may be unavailable.
+            </div>
+          )}
+          {deferredPrompt && (
+            <div className="bg-primary-600 text-white text-center py-3 px-4 text-sm font-medium sticky top-0 z-50 flex justify-center items-center gap-4 shadow-sm shadow-primary-600/20 animate-fade-in-down">
+              <span>Install Campus Chat as an App!</span>
+              <button 
+                onClick={() => {
+                  deferredPrompt.prompt();
+                  deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                      setDeferredPrompt(null);
+                    }
+                  });
+                }}
+                className="bg-white/20 hover:bg-white/30 text-white px-4 py-1.5 rounded-full font-bold text-xs backdrop-blur-sm transition-all shadow-sm"
+              >
+                Install
+              </button>
+            </div>
+          )}
           <Component {...pageProps} />
         </main>
         {authorized && !shouldHideNavbar && <Navbar />}
