@@ -11,6 +11,12 @@ const servers = {
     {
       urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
     },
+    // IMPORTANT: In production, include TURN servers here for reliable connectivity
+    // {
+    //   urls: 'turn:your-turn-server.com',
+    //   username: 'user',
+    //   credential: 'password'
+    // }
   ],
 };
 
@@ -25,48 +31,43 @@ export const CallProvider = ({ children }) => {
   const ringtoneRef = useRef(null);
 
   useEffect(() => {
-    // Initialize ringtone - Using Cloudflare CDN for reliability
+    // Initialize ringtone
     ringtoneRef.current = new Audio('https://cdnjs.cloudflare.com/ajax/libs/ion-sound/3.0.7/sounds/bell_ring.mp3');
     ringtoneRef.current.loop = true;
-    ringtoneRef.current.onerror = (e) => console.log('Ringtone failed to load:', e);
   }, []);
 
   const myVideo = useRef();
   const userVideo = useRef();
   const connectionRef = useRef();
-  const streamRef = useRef(null);       // ref so cleanup always has latest stream
-  const pendingCandidates = useRef([]); // queue ICE candidates before remote desc
-  const callTargetId = useRef(null);    // tracks who we're calling (both sides)
+  const streamRef = useRef(null);
+  const pendingCandidates = useRef([]);
+  const callTargetId = useRef(null);
 
-  // Socket listeners — set up once on mount with stable refs
+  // Socket listeners
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
 
     const onIncomingCall = ({ from, offer, type }) => {
-      // Don't show incoming call if already in a call
+      console.log('[WebRTC] Incoming call from:', from.name);
       if (connectionRef.current) {
         socket.emit('reject-call', { targetUserId: from.id });
         return;
       }
       callTargetId.current = from.id;
       setCall({ isReceivingCall: true, from, offer, type });
-      
-      // Start ringtone
-      ringtoneRef.current?.play().catch(e => console.log('Ringtone autoplay blocked', e));
+      ringtoneRef.current?.play().catch(e => console.log('[WebRTC] Ringtone blocked', e));
     };
 
     const onCallEnded = () => {
-      ringtoneRef.current?.pause();
-      if (ringtoneRef.current) ringtoneRef.current.currentTime = 0;
+      console.log('[WebRTC] Call ended by remote');
       handleCleanup();
     };
 
     const onCallRejected = () => {
-      ringtoneRef.current?.pause();
-      if (ringtoneRef.current) ringtoneRef.current.currentTime = 0;
-      alert('Call rejected or user busy');
+      console.log('[WebRTC] Call rejected by remote');
       handleCleanup();
+      alert('Call rejected or user busy');
     };
 
     socket.on('incoming-call', onIncomingCall);
@@ -78,7 +79,7 @@ export const CallProvider = ({ children }) => {
       socket.off('call-ended', onCallEnded);
       socket.off('call-rejected', onCallRejected);
     };
-  }, []); // ✅ Empty deps — never re-registers
+  }, []);
 
   const handleCleanup = () => {
     const socket = getSocket();
@@ -87,9 +88,11 @@ export const CallProvider = ({ children }) => {
       socket.off('call-accepted');
     }
 
-    // Use ref to always get the latest stream (avoids stale closure bug)
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(track => {
+        console.log('[WebRTC] Stopping local track:', track.kind);
+        track.stop();
+      });
       streamRef.current = null;
     }
     if (connectionRef.current) {
@@ -109,14 +112,13 @@ export const CallProvider = ({ children }) => {
     setCallEnded(false);
     setIsMuted(false);
     setIsVideoOff(false);
-    console.log('[WebRTC] Cleanup complete');
+    console.log('[WebRTC] Cleanup finished');
   };
 
   const answerCall = async () => {
-    console.log('[WebRTC] Answering call from:', call.from?.id);
+    console.log('[WebRTC] Answering call...');
     const socket = getSocket();
     
-    // Stop ringtone immediately
     if (ringtoneRef.current) {
       ringtoneRef.current.pause();
       ringtoneRef.current.currentTime = 0;
@@ -126,7 +128,6 @@ export const CallProvider = ({ children }) => {
     
     let localStream;
     try {
-      // Robust audio constraints for production
       localStream = await navigator.mediaDevices.getUserMedia({ 
         video: call.type === 'VIDEO', 
         audio: {
@@ -135,11 +136,11 @@ export const CallProvider = ({ children }) => {
           autoGainControl: true
         } 
       });
-      console.log('[WebRTC] Local stream acquired');
+      console.log('[WebRTC] Local stream acquired. Tracks:', localStream.getTracks().map(t => t.kind));
     } catch (err) {
-      console.error('[WebRTC] Media access error:', err);
-      alert('Could not access camera or microphone. Please check permissions.');
-      setCallAccepted(false);
+      console.error('[WebRTC] getUserMedia error:', err);
+      alert('Could not access microphone/camera.');
+      handleCleanup();
       return;
     }
     
@@ -147,16 +148,15 @@ export const CallProvider = ({ children }) => {
     setStream(localStream);
     if (myVideo.current) {
       myVideo.current.srcObject = localStream;
-      myVideo.current.muted = true; // Essential to prevent local echo
+      myVideo.current.muted = true;
     }
 
     const peer = new RTCPeerConnection(servers);
 
-    // Monitoring connection state
     peer.onconnectionstatechange = () => {
-      console.log('[WebRTC] Connection state changed to:', peer.connectionState);
-      if (peer.connectionState === 'failed') {
-        console.error('[WebRTC] Connection failed. Check network/NAT.');
+      console.log('[WebRTC] Connection state:', peer.connectionState);
+      if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed') {
+        handleCleanup();
       }
     };
 
@@ -170,50 +170,62 @@ export const CallProvider = ({ children }) => {
     };
 
     peer.ontrack = (event) => {
-      console.log('[WebRTC] Remote track received:', event.track.kind);
-      const [remote] = event.streams;
-      setRemoteStream(remote);
-      
-      if (userVideo.current) {
-        userVideo.current.srcObject = remote;
-        // Explicit play() to handle autopaly restrictions
-        userVideo.current.play().catch(e => console.warn('[WebRTC] Auto-play blocked or failed:', e));
+      console.log('[WebRTC] Remote track detected:', event.track.kind);
+      // More robust way to handle remote stream
+      if (event.streams && event.streams[0]) {
+        console.log('[WebRTC] Using remote stream from event');
+        setRemoteStream(event.streams[0]);
+        if (userVideo.current) {
+          userVideo.current.srcObject = event.streams[0];
+        }
+      } else {
+        console.log('[WebRTC] Creating new MediaStream for track');
+        setRemoteStream(prev => {
+          const newStream = prev || new MediaStream();
+          newStream.addTrack(event.track);
+          if (userVideo.current) {
+            userVideo.current.srcObject = newStream;
+          }
+          return newStream;
+        });
       }
+
+      // Important: Force play the remote media element
+      setTimeout(() => {
+        if (userVideo.current) {
+          userVideo.current.play().catch(err => console.error('[WebRTC] Remote playback failed:', err));
+        }
+      }, 500);
     };
 
     localStream.getTracks().forEach((track) => {
-      console.log('[WebRTC] Adding local track:', track.kind);
+      console.log('[WebRTC] Adding local track to peer:', track.kind);
       peer.addTrack(track, localStream);
     });
 
     try {
       await peer.setRemoteDescription(new RTCSessionDescription(call.offer));
-      console.log('[WebRTC] Remote description (offer) set successfully');
+      console.log('[WebRTC] Remote offer set');
 
-      // Flush candidates
       for (const c of pendingCandidates.current) {
-        await peer.addIceCandidate(new RTCIceCandidate(c)).catch(e => console.warn('[WebRTC] Failed to add cached ICE candidate:', e));
+        await peer.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
       }
       pendingCandidates.current = [];
 
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
-      console.log('[WebRTC] Local description (answer) created and set');
+      console.log('[WebRTC] Local answer set');
 
       socket.emit('answer-call', { targetUserId: call.from.id, answer });
     } catch (error) {
-      console.error('[WebRTC] Error during answer flow:', error);
+      console.error('[WebRTC] Answer flow error:', error);
       handleCleanup();
     }
 
     socket.off('ice-candidate');
     socket.on('ice-candidate', ({ candidate }) => {
-      if (peer.signalingState === 'closed') return;
-      
       if (peer.remoteDescription) {
-        peer.addIceCandidate(new RTCIceCandidate(candidate)).catch(err => {
-          if (peer.signalingState !== 'closed') console.warn('[WebRTC] ICE candidate error:', err);
-        });
+        peer.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
       } else {
         pendingCandidates.current.push(candidate);
       }
@@ -223,7 +235,7 @@ export const CallProvider = ({ children }) => {
   };
 
   const callUser = async (id, userName, type) => {
-    console.log('[WebRTC] Initiating call to:', userName, `(${id})`);
+    console.log('[WebRTC] Calling:', userName);
     const socket = getSocket();
     const currentUser = getCurrentUser();
 
@@ -237,10 +249,10 @@ export const CallProvider = ({ children }) => {
           autoGainControl: true
         } 
       });
-      console.log('[WebRTC] Local stream acquired for caller');
+      console.log('[WebRTC] Caller stream acquired. Tracks:', localStream.getTracks().map(t => t.kind));
     } catch (err) {
-      console.error('[WebRTC] Media access error:', err);
-      alert('Could not access camera or microphone. Please check permissions.');
+      console.error('[WebRTC] getUserMedia error:', err);
+      alert('Could not access microphone/camera.');
       return;
     }
     
@@ -257,74 +269,85 @@ export const CallProvider = ({ children }) => {
     const peer = new RTCPeerConnection(servers);
 
     peer.onconnectionstatechange = () => {
-      console.log('[WebRTC] Connection state changed to:', peer.connectionState);
+      console.log('[WebRTC] Connection state:', peer.connectionState);
+      if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed') {
+        handleCleanup();
+      }
     };
 
     peer.onicecandidate = (event) => {
       if (event.candidate) {
-        socket.emit('ice-candidate', { 
-          targetUserId: id, 
-          candidate: event.candidate 
-        });
+        socket.emit('ice-candidate', { targetUserId: id, candidate: event.candidate });
       }
     };
 
     peer.ontrack = (event) => {
-      console.log('[WebRTC] Remote track received:', event.track.kind);
-      const [remote] = event.streams;
-      setRemoteStream(remote);
-      if (userVideo.current) {
-        userVideo.current.srcObject = remote;
-        userVideo.current.play().catch(e => console.warn('[WebRTC] Auto-play blocked or failed:', e));
+      console.log('[WebRTC] Remote track detected:', event.track.kind);
+      if (event.streams && event.streams[0]) {
+        console.log('[WebRTC] Using remote stream from event');
+        setRemoteStream(event.streams[0]);
+        if (userVideo.current) {
+          userVideo.current.srcObject = event.streams[0];
+        }
+      } else {
+        console.log('[WebRTC] Creating new MediaStream for track');
+        setRemoteStream(prev => {
+          const newStream = prev || new MediaStream();
+          newStream.addTrack(event.track);
+          if (userVideo.current) {
+            userVideo.current.srcObject = newStream;
+          }
+          return newStream;
+        });
       }
+
+      setTimeout(() => {
+        if (userVideo.current) {
+          userVideo.current.play().catch(err => console.error('[WebRTC] Remote playback failed:', err));
+        }
+      }, 500);
     };
 
     localStream.getTracks().forEach((track) => {
-      console.log('[WebRTC] Adding local track:', track.kind);
+      console.log('[WebRTC] Adding local track to peer:', track.kind);
       peer.addTrack(track, localStream);
     });
 
     try {
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
-      console.log('[WebRTC] Local description (offer) set for caller');
+      console.log('[WebRTC] Local offer set');
 
       socket.emit('call-user', {
         targetUserId: id,
         offer: offer,
-        from: { id: currentUser.id, name: currentUser.name, avatar: currentUser.avatar },
+        from: { id: currentUser.id, name: currentUser.name },
         type
       });
     } catch (error) {
-      console.error('[WebRTC] Error during call initiation flow:', error);
+      console.error('[WebRTC] Offer flow error:', error);
       handleCleanup();
     }
 
     socket.off('call-accepted');
     socket.on('call-accepted', async ({ answer }) => {
-      console.log('[WebRTC] Call accepted by remote user');
+      console.log('[WebRTC] Call accepted');
       setCallAccepted(true);
       try {
         await peer.setRemoteDescription(new RTCSessionDescription(answer));
-        
-        // Flush candidates
         for (const c of pendingCandidates.current) {
-          await peer.addIceCandidate(new RTCIceCandidate(c)).catch(e => console.warn('[WebRTC] Failed to add cached ICE candidate:', e));
+          await peer.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
         }
         pendingCandidates.current = [];
       } catch (err) {
-        console.error('[WebRTC] Error setting remote description (answer):', err);
+        console.error('[WebRTC] Remote answer error:', err);
       }
     });
 
     socket.off('ice-candidate');
     socket.on('ice-candidate', ({ candidate }) => {
-      if (peer.signalingState === 'closed') return;
-
       if (peer.remoteDescription) {
-        peer.addIceCandidate(new RTCIceCandidate(candidate)).catch(err => {
-          if (peer.signalingState !== 'closed') console.warn('[WebRTC] ICE candidate error:', err);
-        });
+        peer.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
       } else {
         pendingCandidates.current.push(candidate);
       }
@@ -335,9 +358,9 @@ export const CallProvider = ({ children }) => {
 
   const leaveCall = () => {
     const socket = getSocket();
-    // ✅ Use ref to correctly get target for BOTH caller and callee
     const targetId = callTargetId.current;
     if (socket && targetId) {
+      // If we are the ones who started the call and it wasn't accepted yet, mark it as missed for the receiver
       if (call.isCalling && !callAccepted) {
         socket.emit('missed-call', { targetUserId: targetId, type: call.type });
       }
@@ -348,20 +371,20 @@ export const CallProvider = ({ children }) => {
 
   const rejectCall = () => {
     const socket = getSocket();
-    socket.emit('reject-call', { targetUserId: call.from.id });
-    // Stop ringtone when rejecting
-    if (ringtoneRef.current) {
-      ringtoneRef.current.pause();
-      ringtoneRef.current.currentTime = 0;
+    if (call.from?.id) {
+      socket.emit('reject-call', { targetUserId: call.from.id });
     }
-    setCall({});
+    handleCleanup();
   };
 
   const toggleMute = () => {
     if (stream) {
       const audioTrack = stream.getAudioTracks()[0];
-      audioTrack.enabled = !audioTrack.enabled;
-      setIsMuted(!audioTrack.enabled);
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setIsMuted(!audioTrack.enabled);
+        console.log('[WebRTC] Local audio muted:', !audioTrack.enabled);
+      }
     }
   };
 
@@ -371,27 +394,15 @@ export const CallProvider = ({ children }) => {
       if (videoTrack) {
         videoTrack.enabled = !videoTrack.enabled;
         setIsVideoOff(!videoTrack.enabled);
+        console.log('[WebRTC] Local video off:', !videoTrack.enabled);
       }
     }
   };
 
   return (
     <CallContext.Provider value={{
-      call,
-      callAccepted,
-      myVideo,
-      userVideo,
-      stream,
-      remoteStream,
-      callEnded,
-      callUser,
-      leaveCall,
-      answerCall,
-      rejectCall,
-      toggleMute,
-      toggleVideo,
-      isMuted,
-      isVideoOff
+      call, callAccepted, myVideo, userVideo, stream, remoteStream, callEnded,
+      callUser, leaveCall, answerCall, rejectCall, toggleMute, toggleVideo, isMuted, isVideoOff
     }}>
       {children}
     </CallContext.Provider>

@@ -98,7 +98,26 @@ export const courseAPI = {
   updateCourseSettings: (id, settings) => 
     api.put(`/courses/${id}/settings`, { settings }),
   removeStudent: (id, studentId) => 
-    api.delete(`/courses/${id}/students/${studentId}`)
+    api.delete(`/courses/${id}/students/${studentId}`),
+  
+  // Materials
+  getMaterials: (id) => api.get(`/courses/${id}/materials`),
+  addMaterial: (id, data) => api.post(`/courses/${id}/materials`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  deleteMaterial: (courseId, materialId) => 
+    api.delete(`/courses/${courseId}/materials/${materialId}`),
+  
+  // Assignments
+  getAssignments: (id) => api.get(`/courses/${id}/assignments`),
+  createAssignment: (id, data) => api.post(`/courses/${id}/assignments`, data),
+  submitAssignment: (assignmentId, data) => 
+    api.post(`/courses/assignments/${assignmentId}/submit`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+  getSubmissions: (assignmentId) => 
+    api.get(`/courses/assignments/${assignmentId}/submissions`),
+  postAnnouncement: (id, content) => api.post(`/courses/${id}/announcements`, { content })
 };
 
 export default api;

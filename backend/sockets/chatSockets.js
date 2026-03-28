@@ -113,6 +113,31 @@ const setupChatSockets = (io) => {
       console.log(`[NOTIF DEBUG] User ${socket.user.id} LEFT viewing conv:${conversationId}`);
     });
 
+    // Join course room for real-time updates (materials, assignments)
+    socket.on('join-course', async (courseId) => {
+      try {
+        const course = await prisma.course.findUnique({
+          where: { id: courseId },
+          include: { students: { select: { id: true } } }
+        });
+
+        if (course && (course.instructorId === socket.user.id || course.students.some(s => s.id === socket.user.id))) {
+          socket.join(`course:${courseId}`);
+          socket.emit('joined-course', { courseId });
+          console.log(`[COURSE DEBUG] User ${socket.user.id} joined course room: course:${courseId}`);
+        }
+      } catch (error) {
+        socket.emit('error', { message: error.message });
+      }
+    });
+
+    // Leave course room
+    socket.on('leave-course', (courseId) => {
+      socket.leave(`course:${courseId}`);
+      socket.emit('left-course', { courseId });
+      console.log(`[COURSE DEBUG] User ${socket.user.id} left course room: course:${courseId}`);
+    });
+
     // Send message
     socket.on('send-message', async (data) => {
       try {

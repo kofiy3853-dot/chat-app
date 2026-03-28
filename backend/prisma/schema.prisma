@@ -28,6 +28,8 @@ model User {
   courseInstructor  Course[]      @relation("CourseInstructor")
   courses           Course[]      @relation("CourseStudents")
   conversations     ConversationParticipant[]
+  uploadedMaterials Material[]    @relation("MaterialUploader")
+  submissions       Submission[]
 
   @@map("users")
 }
@@ -146,8 +148,66 @@ model Course {
   instructor   User         @relation("CourseInstructor", fields: [instructorId], references: [id])
   students     User[]       @relation("CourseStudents")
   conversation Conversation?
+  materials    Material[]
+  assignments  Assignment[]
 
   @@map("courses")
+}
+
+model Material {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  fileUrl     String
+  fileName    String
+  fileSize    Int?
+  topic       String?
+  week        Int?
+  isPinned    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  uploaderId  String
+  uploader    User     @relation("MaterialUploader", fields: [uploaderId], references: [id])
+
+  @@map("materials")
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  deadline    DateTime
+  points      Int      @default(100)
+  attachments String?  // JSON string of file URLs
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+
+  @@map("assignments")
+}
+
+model Submission {
+  id          String   @id @default(uuid())
+  content     String?
+  fileUrl     String?
+  fileName    String?
+  submittedAt DateTime @default(now())
+  grade       String?
+  feedback    String?
+
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, studentId])
+  @@map("submissions")
 }
 
 model Notification {
@@ -197,6 +257,8 @@ enum MessageType {
   VOICE
   ANNOUNCEMENT
   SYSTEM
+  ASSIGNMENT
+  MATERIAL
 }
 
 enum NotificationType {

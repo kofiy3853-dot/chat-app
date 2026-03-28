@@ -5,44 +5,54 @@ import {
   MegaphoneIcon, 
   UserPlusIcon,
   BellIcon,
-  CheckIcon
+  CheckIcon,
+  PhoneIcon
 } from '@heroicons/react/24/outline';
 
 export default function NotificationList({ notifications = [], onMarkAsRead }) {
   const getNotificationIcon = (type) => {
-    switch (type) {
+    const normalizedType = type?.toLowerCase();
+    switch (normalizedType) {
       case 'message':
         return ChatBubbleLeftIcon;
       case 'announcement':
         return MegaphoneIcon;
       case 'course_invite':
         return UserPlusIcon;
+      case 'system':
+        return PhoneIcon;
       default:
         return BellIcon;
     }
   };
 
   const getNotificationColor = (type) => {
-    switch (type) {
+    const normalizedType = type?.toLowerCase();
+    switch (normalizedType) {
       case 'message':
         return 'bg-blue-100 text-blue-600';
       case 'announcement':
         return 'bg-purple-100 text-purple-600';
       case 'course_invite':
         return 'bg-green-100 text-green-600';
+      case 'system':
+        return 'bg-rose-100 text-rose-600';
       default:
         return 'bg-gray-100 text-gray-600';
     }
   };
 
   const getNotificationTitle = (notification) => {
-    switch (notification.type) {
+    const normalizedType = notification.type?.toLowerCase();
+    switch (normalizedType) {
       case 'message':
         return `New message from ${notification.sender?.name || 'someone'}`;
       case 'announcement':
         return `Announcement in ${notification.course?.code || 'course'}`;
       case 'course_invite':
         return 'Course invitation';
+      case 'system':
+        return notification.title;
       default:
         return notification.title;
     }

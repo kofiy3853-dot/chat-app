@@ -300,3 +300,239 @@ exports.removeStudent = async (req, res) => {
   }
 };
 
+// Get materials for course
+exports.getMaterials = async (req, res) => {
+  try {
+    const materials = await prisma.material.findMany({
+      where: { courseId: req.params.id },
+      include: { 
+        uploader: { select: { id: true, name: true, avatar: true } } 
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ materials });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Add material to course (instructor only)
+exports.addMaterial = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, topic, week } = req.body;
+    const userId = req.user.id;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const course = await prisma.course.findUnique({
+      where: { id },
+      include: { students: true }
+    });
+
+    if (course.instructorId !== userId && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Only instructors can add materials' });
+    }
+
+    const material = await prisma.material.create({
+      data: {
+        title,
+        description,
+        topic,
+        week: week ? parseInt(week) : null,
+        fileUrl: `/uploads/files/${req.file.filename}`,
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        courseId: id,
+        uploaderId: userId
+      },
+      include: { 
+        uploader: { select: { id: true, name: true, avatar: true } } 
+      }
+    });
+
+    // Notify students via socket
+    if (req.io) {
+      req.io.to(`course:${id}`).emit('new-material', { material, courseId: id });
+    }
+
+    res.status(201).json({ material });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Delete material
+exports.deleteMaterial = async (req, res) => {
+  try {
+    const { materialId } = req.params;
+    const material = await prisma.material.findUnique({ where: { id: materialId } });
+
+    if (!material) return res.status(404).json({ message: 'Material not found' });
+    if (material.uploaderId !== req.user.id && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    await prisma.material.delete({ where: { id: materialId } });
+    res.json({ message: 'Material deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Get assignments
+exports.getAssignments = async (req, res) => {
+  try {
+    const assignments = await prisma.assignment.findMany({
+      where: { courseId: req.params.id },
+      include: {
+        submissions: {
+          where: { studentId: req.user.id }
+        }
+      },
+      orderBy: { deadline: 'asc' }
+    });
+    res.json({ assignments });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Create assignment (instructor only)
+exports.createAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, deadline, points } = req.body;
+
+    const course = await prisma.course.findUnique({ where: { id } });
+    if (course.instructorId !== req.user.id && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const assignment = await prisma.assignment.create({
+      data: {
+        title,
+        description,
+        deadline: new Date(deadline),
+        points: parseInt(points),
+        courseId: id
+      }
+    });
+
+    // Notify students
+    if (req.io) {
+       req.io.to(`course:${id}`).emit('new-assignment', { assignment, courseId: id });
+    }
+
+    res.status(201).json({ assignment });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Submit assignment
+exports.submitAssignment = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const { content } = req.body;
+    const userId = req.user.id;
+
+    const submission = await prisma.submission.upsert({
+      where: {
+        assignmentId_studentId: {
+          assignmentId,
+          studentId: userId
+        }
+      },
+      update: {
+        content,
+        fileUrl: req.file ? `/uploads/submissions/${req.file.filename}` : undefined,
+        fileName: req.file ? req.file.originalname : undefined,
+        submittedAt: new Date()
+      },
+      create: {
+        assignmentId,
+        studentId: userId,
+        content,
+        fileUrl: req.file ? `/uploads/submissions/${req.file.filename}` : undefined,
+        fileName: req.file ? req.file.originalname : undefined,
+      }
+    });
+
+    res.status(201).json({ submission });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Get submissions (instructor only)
+exports.getSubmissions = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      include: { course: true }
+    });
+
+    if (assignment.course.instructorId !== req.user.id && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const submissions = await prisma.submission.findMany({
+      where: { assignmentId },
+      include: {
+        student: { select: { id: true, name: true, avatar: true, studentId: true } }
+      }
+    });
+
+    res.json({ submissions });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Post announcement (instructor only)
+exports.postAnnouncement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+    const userId = req.user.id;
+
+    const course = await prisma.course.findUnique({
+      where: { id },
+      include: { conversation: true }
+    });
+
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+    if (course.instructorId !== userId && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Only instructors can post announcements' });
+    }
+
+    if (!course.conversation) {
+       return res.status(400).json({ message: 'Course conversation not found' });
+    }
+
+    const announcement = await prisma.message.create({
+      data: {
+        content,
+        type: 'ANNOUNCEMENT',
+        senderId: userId,
+        conversationId: course.conversation.id
+      },
+      include: {
+        sender: { select: { id: true, name: true, avatar: true } }
+      }
+    });
+
+    // Notify students via socket
+    if (req.io) {
+      req.io.to(`course:${id}`).emit('new-announcement', { announcement, courseId: id });
+    }
+
+    res.status(201).json({ message: announcement });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};

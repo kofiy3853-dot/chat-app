@@ -1,48 +1,175 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
-import { courseAPI } from '../../services/api';
-import ChatBox from '../../components/ChatBox';
 import { 
-  ArrowLeftIcon, 
-  EllipsisVerticalIcon, 
-  ChatBubbleBottomCenterTextIcon, 
+  AcademicCapIcon, 
+  ChatBubbleLeftRightIcon, 
   MegaphoneIcon, 
-  FolderIcon, 
+  BookOpenIcon, 
+  ClipboardDocumentCheckIcon, 
   UsersIcon,
-  AcademicCapIcon,
-  QrCodeIcon
+  VideoCameraIcon,
+  ArrowLeftIcon,
+  PlusIcon,
+  DocumentArrowUpIcon,
+  CalendarIcon,
+  XMarkIcon,
+  ClockIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getAvatarColor, getInitials } from '../../utils/helpers';
+import { courseAPI } from '../../services/api';
+import Navbar from '../../components/Navbar';
+import ChatBox from '../../components/ChatBox';
+import { getCurrentUser, getInitials, getAvatarColor, formatFileSize } from '../../utils/helpers';
+import { useCall } from '../../context/CallContext';
+import { getSocket } from '../../services/socket';
 
 const TABS = [
-  { id: 'CHAT', label: 'Chat', icon: ChatBubbleBottomCenterTextIcon },
-  { id: 'ANNOUNCEMENTS', label: 'Alerts', icon: MegaphoneIcon },
-  { id: 'MATERIALS', label: 'Files', icon: FolderIcon },
-  { id: 'MEMBERS', label: 'Class', icon: UsersIcon }
+  { id: 'overview', name: 'Overview', icon: InformationCircleIcon },
+  { id: 'chat', name: 'Discussion', icon: ChatBubbleLeftRightIcon },
+  { id: 'announcements', name: 'Alerts', icon: MegaphoneIcon },
+  { id: 'materials', name: 'Resources', icon: BookOpenIcon },
+  { id: 'assignments', name: 'Tasks', icon: ClipboardDocumentCheckIcon },
+  { id: 'members', name: 'Community', icon: UsersIcon }
 ];
 
-export default function CourseDetails() {
+export default function CoursePage() {
   const router = useRouter();
   const { id } = router.query;
+  const { callUser } = useCall();
+  const [activeTab, setActiveTab] = useState('overview');
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('CHAT');
+  const [isInstructor, setIsInstructor] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  
+  // Data States
+  const [materials, setMaterials] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  
+  // Modal States
+  const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  
+  // Form States
+  const [materialForm, setMaterialForm] = useState({ title: '', week: '', topic: '', file: null });
+  const [assignmentForm, setAssignmentForm] = useState({ title: '', description: '', points: 100, deadline: '' });
+  const [announcementContent, setAnnouncementContent] = useState('');
 
   useEffect(() => {
-    if (id) fetchCourse();
+    const userResult = getCurrentUser();
+    setCurrentUser(userResult);
+  }, []);
+
+  useEffect(() => {
+    if (id) {
+      fetchCourseData();
+      fetchCourseContent();
+      
+      const socket = getSocket();
+      if (socket) {
+        socket.emit('join-course', id);
+        
+        socket.on('new-material', (data) => {
+          if (data.courseId === id) setMaterials(prev => [data.material, ...prev]);
+        });
+        
+        socket.on('new-assignment', (data) => {
+          if (data.courseId === id) setAssignments(prev => [data.assignment, ...prev]);
+        });
+
+        socket.on('new-announcement', (data) => {
+          if (data.courseId === id) setAnnouncements(prev => [data.announcement, ...prev]);
+        });
+
+        return () => {
+          socket.emit('leave-course', id);
+          socket.off('new-material');
+          socket.off('new-assignment');
+          socket.off('new-announcement');
+        };
+      }
+    }
   }, [id]);
 
-  const fetchCourse = async () => {
+  useEffect(() => {
+    if (course && currentUser) {
+      setIsInstructor(course.instructorId === currentUser.id);
+    }
+  }, [course, currentUser]);
+
+  const fetchCourseData = async () => {
     try {
       const response = await courseAPI.getCourseById(id);
       setCourse(response.data.course);
     } catch (error) {
-      console.error('Failed to fetch course details:', error);
+      console.error('Failed to fetch course:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCourseContent = async () => {
+    try {
+      const [matRes, assignRes] = await Promise.all([
+        courseAPI.getMaterials(id),
+        courseAPI.getAssignments(id)
+      ]);
+      setMaterials(matRes.data.materials || []);
+      setAssignments(assignRes.data.assignments || []);
+      // Announcements are actually messages of type ANNOUNCEMENT
+      // For now, we'll let the ChatBox handle them as messages, 
+      // but if we want a separate list, we'd fetch them here.
+    } catch (e) {
+      console.error("Content fetch failed", e);
+    }
+  };
+
+  const handleAddMaterial = async (e) => {
+    e.preventDefault();
+    if (!materialForm.file || !materialForm.title) return;
+    
+    const formData = new FormData();
+    formData.append('title', materialForm.title);
+    formData.append('week', materialForm.week);
+    formData.append('topic', materialForm.topic);
+    formData.append('file', materialForm.file);
+
+    try {
+      await courseAPI.addMaterial(id, formData);
+      setIsMaterialModalOpen(false);
+      setMaterialForm({ title: '', week: '', topic: '', file: null });
+      fetchCourseContent();
+    } catch (err) {
+      alert('Failed to upload material');
+    }
+  };
+
+  const handleCreateAssignment = async (e) => {
+    e.preventDefault();
+    try {
+      await courseAPI.createAssignment(id, assignmentForm);
+      setIsAssignmentModalOpen(false);
+      setAssignmentForm({ title: '', description: '', points: 100, deadline: '' });
+      fetchCourseContent();
+    } catch (err) {
+      alert('Failed to create assignment');
+    }
+  };
+
+  const handlePostAnnouncement = async (e) => {
+    e.preventDefault();
+    if (!announcementContent.trim()) return;
+    try {
+      const res = await courseAPI.postAnnouncement(id, announcementContent);
+      setIsAnnouncementModalOpen(false);
+      setAnnouncementContent('');
+      setAnnouncements(prev => [res.data.message, ...prev]);
+    } catch (err) {
+      alert('Failed to post announcement');
     }
   };
 
@@ -60,176 +187,527 @@ export default function CourseDetails() {
   if (!course) return null;
 
   return (
-    <>
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row pb-20 md:pb-0">
       <Head>
-        <title>{course.name} | Campus Chat</title>
+        <title>{course.code} | {course.name}</title>
       </Head>
 
-      <div className="max-w-xl mx-auto min-h-screen flex flex-col bg-white shadow-2xl relative overflow-hidden">
-        {/* Header Section */}
-        <header className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-slate-100 z-30 pt-4 px-4 pb-2">
-          <div className="flex items-center justify-between mb-4">
-            <Link 
-              href="/courses"
-              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-2xl transition-all"
+      {/* Sidebar - Desktop Only */}
+      <aside className="hidden md:flex flex-col w-72 bg-white border-r border-slate-200 sticky top-0 h-screen z-40 overflow-hidden shadow-2xl shadow-slate-200/50">
+        <div className="p-8 border-b border-slate-100 flex flex-col">
+          <button 
+            onClick={() => router.push('/courses')} 
+            className="flex items-center text-slate-400 hover:text-primary-600 mb-6 transition-all group"
+          >
+            <div className="p-2 mr-3 bg-slate-50 rounded-xl group-hover:bg-primary-50">
+              <ArrowLeftIcon className="w-4 h-4" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[.2em]">Back to Courses</span>
+          </button>
+          
+          <div className={`w-14 h-14 bg-gradient-to-tr ${getAvatarColor(course.code)} rounded-3xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-primary-500/20 mb-4 transform -rotate-3`}>
+            {course.code.substring(0, 2)}
+          </div>
+          <h1 className="font-black text-2xl text-slate-900 tracking-tight leading-none mb-2">{course.name}</h1>
+          <div className="flex items-center space-x-2">
+            <span className="text-[10px] font-black text-primary-600 uppercase tracking-widest px-2 py-0.5 bg-primary-50 rounded-lg">{course.code}</span>
+            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">•</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{course.semester} {course.year}</span>
+          </div>
+        </div>
+
+        <nav className="flex-1 p-6 space-y-2 overflow-y-auto no-scrollbar">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 ${
+                activeTab === tab.id 
+                  ? 'bg-primary-600 text-white shadow-xl shadow-primary-600/30 -translate-y-0.5' 
+                  : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
+              }`}
             >
-              <ArrowLeftIcon className="w-6 h-6 stroke-[2.5px]" />
-            </Link>
-            
-            <div className="flex items-center space-x-2">
-              <button className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-2xl transition-all">
-                <QrCodeIcon className="w-5 h-5" />
-              </button>
-              <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-2xl transition-all">
-                <EllipsisVerticalIcon className="w-6 h-6" />
-              </button>
-            </div>
+              <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+              <span className={`text-sm font-black uppercase tracking-widest ${activeTab === tab.id ? 'opacity-100' : 'opacity-70'}`}>{tab.name}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="p-6 border-t border-slate-100">
+          <div className="bg-slate-50/50 rounded-3xl p-5 border border-slate-100">
+             <div className="flex items-center space-x-4 mb-4">
+                <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${getAvatarColor(course.instructor?.name)} flex items-center justify-center text-white font-black text-xs`}>
+                  {getInitials(course.instructor?.name)}
+                </div>
+                <div>
+                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-1">Instructor</p>
+                   <p className="text-xs font-black text-slate-800">{course.instructor?.name}</p>
+                </div>
+             </div>
+             <button 
+                onClick={() => callUser(course.instructor?.id, course.instructor?.name, 'VIDEO')} 
+                className="w-full py-3 bg-white border-2 border-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-primary-100 hover:text-primary-600 transition-all flex items-center justify-center space-x-2"
+             >
+                <VideoCameraIcon className="w-4 h-4" />
+                <span>Join Office Hours</span>
+             </button>
           </div>
+        </div>
+      </aside>
 
-          <div className="px-2 mb-6">
-            <div className="flex items-center space-x-3 mb-2">
-              <span className="px-3 py-1 bg-primary-50 text-primary-600 text-[10px] font-black uppercase tracking-widest rounded-full">
-                {course.code}
-              </span>
-              <span className="flex items-center space-x-1.5 px-2.5 py-1 bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-widest rounded-full">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                <span>Ongoing</span>
-              </span>
+      {/* Mobile Header */}
+      <header className="md:hidden bg-white/90 backdrop-blur-xl border-b border-slate-100 p-6 sticky top-0 z-30">
+         <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+               <div className={`w-12 h-12 bg-gradient-to-tr ${getAvatarColor(course.code)} rounded-2xl flex items-center justify-center text-white font-black text-xl`}>
+                  {course.code.substring(0, 2)}
+               </div>
+               <div>
+                  <h1 className="text-base font-black text-slate-900 leading-none">{course.name}</h1>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase mt-1.5 tracking-widest">{course.code} • {course.semester} {course.year}</p>
+               </div>
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">
-              {course.name}
-            </h1>
-          </div>
+            <button 
+              onClick={() => callUser(course.instructor?.id, course.instructor?.name, 'VIDEO')}
+              className="p-3 bg-primary-100 rounded-2xl text-primary-600 hover:bg-primary-600 hover:text-white transition-all shadow-sm"
+            >
+               <VideoCameraIcon className="w-6 h-6" />
+            </button>
+         </div>
+         <div className="flex overflow-x-auto space-x-8 mt-6 no-scrollbar border-t border-slate-50 pt-4">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-shrink-0 text-[10px] font-black uppercase tracking-[.2em] pb-3 border-b-2 transition-all ${
+                  activeTab === tab.id ? 'text-primary-600 border-primary-600' : 'text-slate-300 border-transparent'
+                }`}
+              >
+                {tab.name}
+              </button>
+            ))}
+         </div>
+      </header>
 
-          {/* Navigation Tabs */}
-          <nav className="flex space-x-1 p-1 bg-slate-50 rounded-[1.5rem] overflow-x-auto scrollbar-hide">
-            {TABS.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 flex items-center justify-center space-x-2 min-w-[100px] py-2.5 px-4 rounded-xl transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-white text-primary-600 shadow-md ring-1 ring-slate-100' 
-                      : 'text-slate-400 hover:text-slate-600'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${isActive ? '' : 'opacity-80'}`}>
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </nav>
-        </header>
-
-        {/* Dynamic Content Area */}
-        <main className="flex-1 overflow-hidden flex flex-col relative bg-[#F8FAFC]">
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col h-screen md:h-screen overflow-hidden relative">
+        <div className="flex-1 overflow-y-auto bg-slate-50/30 md:bg-transparent no-scrollbar relative z-10">
           <AnimatePresence mode="wait">
-            {activeTab === 'CHAT' && (
-              <motion.div 
-                key="chat"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                className="flex-1 flex flex-col min-h-0"
-              >
-                <ChatBox conversationId={course.conversation?.id} />
-              </motion.div>
-            )}
-
-            {activeTab === 'ANNOUNCEMENTS' && (
-              <motion.div 
-                key="announcements"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="flex-1 flex flex-col items-center justify-center py-20 px-8 text-center"
-              >
-                <div className="w-24 h-24 bg-white rounded-[2rem] shadow-xl flex items-center justify-center mb-8 rotate-6 transition-transform hover:rotate-0 duration-500">
-                  <MegaphoneIcon className="w-12 h-12 text-primary-500" />
+            {activeTab === 'overview' && (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-6 md:p-12 max-w-5xl mx-auto space-y-10 pb-32">
+                <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-64 h-64 bg-primary-50 rounded-full -mr-32 -mt-32 opacity-30 z-0"></div>
+                   <div className="relative z-10">
+                    <h2 className="text-3xl font-black text-slate-900 mb-6 tracking-tight">Course Journey</h2>
+                    <p className="text-slate-500 leading-relaxed font-medium text-lg max-w-2xl">
+                      {course.description || "No description provided for this course. Contact your instructor for more information."}
+                    </p>
+                   </div>
                 </div>
-                <h3 className="text-2xl font-black text-slate-800 tracking-tight">Stay Alerts!</h3>
-                <p className="text-sm text-slate-400 mt-3 font-medium max-w-[240px] leading-relaxed italic">Your professor hasn't posted any announcements yet.</p>
-              </motion.div>
-            )}
 
-            {activeTab === 'MATERIALS' && (
-              <motion.div 
-                key="materials"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="flex-1 flex flex-col items-center justify-center p-8 space-y-4"
-              >
-                <div className="w-20 h-20 bg-primary-100 rounded-3xl flex items-center justify-center mb-4">
-                  <FolderIcon className="w-10 h-10 text-primary-600" />
-                </div>
-                <h3 className="text-lg font-black text-slate-800">No resources yet</h3>
-                <p className="text-sm text-slate-400 text-center font-medium">Shared PDFs, slides, and notes will appear here once uploaded by the instructor.</p>
-                <button className="mt-8 px-6 py-3 bg-white text-slate-400 border-2 border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-primary-100 hover:text-primary-600 transition-all">
-                  Request Materials
-                </button>
-              </motion.div>
-            )}
-
-            {activeTab === 'MEMBERS' && (
-              <motion.div 
-                key="members"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex-1 flex flex-col bg-white"
-              >
-                <div className="px-6 py-4 flex items-center justify-between border-b border-slate-50">
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Class Statistics</h3>
-                  <span className="px-3 py-1 bg-slate-900 text-white text-[10px] font-black rounded-lg">{course.students?.length || 0} Members</span>
-                </div>
-                <div className="flex-1 overflow-y-auto px-6 py-4 divide-y divide-slate-50">
-                   {/* Instructor first */}
-                   <div className="py-4 flex items-center justify-between group">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${getAvatarColor(course.instructor?.name)} flex items-center justify-center text-white text-sm font-black shadow-lg transition-transform group-hover:rotate-6`}>
-                        {getInitials(course.instructor?.name)}
-                      </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                   <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col space-y-4 hover:shadow-xl transition-all duration-500 group">
+                      <div className="p-4 w-16 h-16 bg-primary-50 rounded-2xl text-primary-600 group-hover:rotate-12 transition-transform duration-500"><ClockIcon className="w-8 h-8" /></div>
                       <div>
-                        <h4 className="font-black text-slate-900 leading-none">{course.instructor?.name}</h4>
-                        <p className="text-[10px] font-bold text-primary-600 uppercase tracking-widest mt-1.5 flex items-center space-x-1">
-                          <AcademicCapIcon className="w-3 h-3" />
-                          <span>Instructor</span>
-                        </p>
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Schedule</p>
+                         <p className="text-base font-black text-slate-800 mt-1">Monday, Wednesday • 10:00 AM</p>
+                      </div>
+                   </div>
+                   <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col space-y-4 hover:shadow-xl transition-all duration-500 group">
+                      <div className="p-4 w-16 h-16 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:-rotate-12 transition-transform duration-500"><AcademicCapIcon className="w-8 h-8" /></div>
+                      <div>
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Class Size</p>
+                         <p className="text-base font-black text-slate-800 mt-1">{course.students?.length || 0} Registered Scholars</p>
+                      </div>
+                   </div>
+                   <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col space-y-4 hover:shadow-xl transition-all duration-500 group">
+                      <div className="p-4 w-16 h-16 bg-orange-50 rounded-2xl text-orange-600 group-hover:rotate-6 transition-transform duration-500"><UsersIcon className="w-8 h-8" /></div>
+                      <div>
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Department</p>
+                         <p className="text-base font-black text-slate-800 mt-1">{course.department || "Faculty of Engineering"}</p>
+                      </div>
+                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'chat' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-col md:p-6 pb-24 md:pb-6">
+                 <div className="flex-1 flex flex-col min-h-0 bg-white md:rounded-[3rem] shadow-2xl relative overflow-hidden border border-slate-100">
+                    <ChatBox conversationId={course.conversation?.id} />
+                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'announcements' && (
+               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-6 md:p-12 max-w-4xl mx-auto space-y-10 pb-32">
+                 <div className="flex justify-between items-center mb-4">
+                   <div>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Broadcasts</h2>
+                    <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest mt-2">Latest updates from your instructor</p>
+                   </div>
+                   {isInstructor && (
+                     <button 
+                      onClick={() => setIsAnnouncementModalOpen(true)}
+                      className="flex items-center space-x-3 px-6 py-4 bg-primary-600 text-white rounded-[1.5rem] text-xs font-black shadow-2xl shadow-primary-600/30 hover:bg-primary-700 active:scale-95 transition-all"
+                     >
+                       <PlusIcon className="w-5 h-5 stroke-[2.5px]" /> <span>Post Update</span>
+                     </button>
+                   )}
+                 </div>
+                 
+                 <div className="space-y-6">
+                  {announcements.length > 0 ? announcements.map((ann, i) => (
+                    <motion.div 
+                      key={ann.id} 
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-xl transition-all duration-300"
+                    >
+                      <div className="absolute top-0 left-0 w-2 h-full bg-primary-600"></div>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-8 h-8 rounded-lg bg-gradient-to-tr ${getAvatarColor(course.instructor?.name)} flex items-center justify-center text-white text-[10px] font-black`}>
+                            {getInitials(course.instructor?.name)}
+                          </div>
+                          <span className="text-[10px] font-black text-slate-900 tracking-widest uppercase">{course.instructor?.name}</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{new Date(ann.createdAt).toLocaleDateString()} at {new Date(ann.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <p className="text-slate-600 text-base font-semibold leading-relaxed">{ann.content}</p>
+                    </motion.div>
+                  )) : (
+                    <div className="p-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center">
+                      <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+                        <MegaphoneIcon className="w-10 h-10 text-slate-200" />
+                      </div>
+                      <h3 className="text-xl font-black text-slate-800">Clear Skies</h3>
+                      <p className="text-sm text-slate-400 mt-2 font-medium">No official broadcasts have been transmitted yet.</p>
+                    </div>
+                  )}
+                 </div>
+               </motion.div>
+            )}
+
+            {activeTab === 'materials' && (
+               <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="p-6 md:p-12 max-w-6xl mx-auto space-y-12 pb-32">
+                 <div className="flex justify-between items-center">
+                   <div>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Resource Hub</h2>
+                    <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest mt-2">Curated library for your success</p>
+                   </div>
+                   {isInstructor && (
+                     <button 
+                        onClick={() => setIsMaterialModalOpen(true)}
+                        className="flex items-center space-x-3 px-6 py-4 bg-slate-900 text-white rounded-[1.5rem] text-xs font-black shadow-2xl hover:bg-slate-800 transition-all"
+                     >
+                       <DocumentArrowUpIcon className="w-5 h-5 stroke-[2.5px]" /> <span>Upload Resource</span>
+                     </button>
+                   )}
+                 </div>
+
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                   {materials.length > 0 ? materials.map((material, i) => (
+                     <motion.div 
+                        key={material.id} 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group hover:border-primary-100 hover:shadow-2xl hover:shadow-primary-600/5 transition-all duration-500"
+                     >
+                       <div className="p-6 border-b border-slate-50 flex justify-between items-start">
+                         <div className="flex-1 min-w-0 pr-4">
+                            <p className="text-[9px] font-black text-primary-500 uppercase tracking-[.2em] mb-2 leading-none">
+                               {material.week ? `Week ${material.week}` : (material.topic || 'General Resources')}
+                            </p>
+                            <h3 className="text-base font-black text-slate-800 truncate leading-none">{material.title}</h3>
+                         </div>
+                         <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors duration-500 text-slate-300">
+                            <BookOpenIcon className="w-6 h-6 stroke-2" />
+                         </div>
+                       </div>
+                       <div className="p-4">
+                          <a 
+                            href={`${process.env.NEXT_PUBLIC_API_URL}${material.fileUrl}`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 group-hover:bg-primary-50/50 transition-colors cursor-pointer"
+                          >
+                             <div className="flex items-center space-x-4 overflow-hidden">
+                                <DocumentArrowUpIcon className="w-5 h-5 text-slate-400 group-hover:text-primary-600 transition-colors" />
+                                <div className="min-w-0">
+                                  <span className="block text-xs font-black text-slate-600 truncate">{material.fileName}</span>
+                                  <span className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{formatFileSize(material.fileSize)}</span>
+                                </div>
+                             </div>
+                             <div className="p-2 bg-white rounded-xl shadow-sm group-hover:shadow-primary-500/10">
+                              <PlusIcon className="w-4 h-4 text-primary-600 rotate-45" />
+                             </div>
+                          </a>
+                       </div>
+                     </motion.div>
+                   )) : (
+                    <div className="col-span-full p-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center">
+                      <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+                        <BookOpenIcon className="w-10 h-10 text-slate-200" />
+                      </div>
+                      <h3 className="text-xl font-black text-slate-800">Shelves are Empty</h3>
+                      <p className="text-sm text-slate-400 mt-2 font-medium">Resources will appear here once published by your instructor.</p>
+                    </div>
+                   )}
+                 </div>
+               </motion.div>
+            )}
+
+            {activeTab === 'assignments' && (
+               <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-6 md:p-12 max-w-4xl mx-auto space-y-10 pb-32">
+                 <div className="flex justify-between items-end mb-4">
+                   <div>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Active Tasks</h2>
+                    <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest mt-2">Manage your academic milestones</p>
+                   </div>
+                   {isInstructor && (
+                     <button 
+                        onClick={() => setIsAssignmentModalOpen(true)}
+                        className="flex items-center space-x-3 px-6 py-4 bg-emerald-600 text-white rounded-[1.5rem] text-xs font-black shadow-2xl shadow-emerald-500/20 hover:bg-emerald-700 transition-all"
+                     >
+                       <PlusIcon className="w-5 h-5 stroke-[2.5px]" /> <span>Create Task</span>
+                     </button>
+                   )}
+                 </div>
+                 
+                 <div className="space-y-8">
+                  {assignments.length > 0 ? assignments.map((assignment, i) => (
+                     <motion.div 
+                        key={assignment.id} 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="bg-white rounded-[3rem] border-2 border-slate-100 shadow-sm overflow-hidden p-10 flex flex-col lg:flex-row lg:items-center justify-between space-y-8 lg:space-y-0 relative group hover:border-primary-500/20 transition-all duration-500"
+                     >
+                        <div className={`absolute top-0 left-0 w-3 h-full ${new Date(assignment.deadline) < new Date() ? 'bg-rose-500' : 'bg-primary-600'}`}></div>
+                        <div className="flex-1">
+                           <div className="flex items-center space-x-3 mb-4">
+                              <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${new Date(assignment.deadline) < new Date() ? 'bg-rose-50 text-rose-600' : 'bg-primary-50 text-primary-600'}`}>
+                                 {new Date(assignment.deadline) < new Date() ? 'Deadline Passed' : `Due in ${Math.ceil((new Date(assignment.deadline) - new Date()) / (1000 * 60 * 60 * 24))} Days`}
+                              </span>
+                              <span className="text-[9px] font-black bg-slate-100 text-slate-500 px-3 py-1 rounded-full uppercase tracking-widest">
+                                 {assignment.points} Points Available
+                              </span>
+                           </div>
+                           <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">{assignment.title}</h3>
+                           <p className="text-slate-500 font-medium text-sm line-clamp-2 mb-6 max-w-xl">{assignment.description}</p>
+                           <div className="flex items-center space-x-8 text-slate-400">
+                              <div className="flex items-center space-x-2.5">
+                                <CalendarIcon className="w-5 h-5 text-slate-300" />
+                                <span className="text-[10px] font-black uppercase tracking-tight">{new Date(assignment.deadline).toLocaleDateString()}</span>
+                              </div>
+                              <div className="flex items-center space-x-2.5">
+                                <UsersIcon className="w-5 h-5 text-slate-300" />
+                                <span className="text-[10px] font-black uppercase tracking-tight">{assignment.submissions?.length || 0} Submissions</span>
+                              </div>
+                           </div>
+                        </div>
+                        <button className="px-12 py-5 bg-slate-900 text-white rounded-[1.5rem] text-sm font-black hover:bg-slate-800 transition-all shadow-[0_20px_40px_rgba(15,23,42,0.2)] active:scale-95">
+                           {assignment.submissions?.length > 0 ? 'Review Work' : 'Launch Task'}
+                        </button>
+                     </motion.div>
+                  )) : (
+                    <div className="p-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center">
+                      <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+                        <ClipboardDocumentCheckIcon className="w-10 h-10 text-slate-200" />
+                      </div>
+                      <h3 className="text-xl font-black text-slate-800">Relax!</h3>
+                      <p className="text-sm text-slate-400 mt-2 font-medium">No pending tasks found for this course.</p>
+                    </div>
+                  )}
+                 </div>
+               </motion.div>
+            )}
+
+            {activeTab === 'members' && (
+               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 md:p-12 max-w-5xl mx-auto pb-32">
+                 <div className="mb-10">
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Learning Community</h2>
+                  <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest mt-2">Connect with your peers</p>
+                 </div>
+
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Instructor Highlight */}
+                    <div className="bg-primary-600 rounded-[2.5rem] p-8 shadow-2xl shadow-primary-600/20 flex flex-col items-center text-center relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
+                        <div className={`w-20 h-20 rounded-[2rem] bg-white flex items-center justify-center text-primary-600 font-black text-2xl shadow-inner mb-6`}>
+                          {getInitials(course.instructor?.name)}
+                        </div>
+                        <h4 className="text-xl font-black text-white leading-none">{course.instructor?.name}</h4>
+                        <p className="text-[10px] font-black text-white/60 uppercase tracking-[.3em] mt-3">Course Instructor</p>
+                        <button className="mt-8 px-6 py-3 bg-white/10 hover:bg-white text-white hover:text-primary-600 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">
+                          Contact Professor
+                        </button>
+                    </div>
+
+                    {/* Students */}
+                    {course.students?.map((student, i) => (
+                      <motion.div 
+                        key={student.id} 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col items-center text-center hover:shadow-xl transition-all duration-500 group"
+                      >
+                         <div className={`w-16 h-16 rounded-[1.5rem] bg-gradient-to-tr ${getAvatarColor(student.name)} flex items-center justify-center text-white font-black text-lg shadow-lg group-hover:rotate-6 transition-transform`}>
+                           {getInitials(student.name)}
+                         </div>
+                         <div className="mt-6">
+                            <h4 className="text-lg font-black text-slate-800 leading-none">{student.name}</h4>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mt-2">ID: {student.studentId || 'STUDENT'}</p>
+                         </div>
+                         <div className="mt-6 flex space-x-2">
+                           <button className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-primary-600 hover:bg-primary-50 transition-all">
+                             <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                           </button>
+                           <button className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-primary-600 hover:bg-primary-50 transition-all">
+                             <AcademicCapIcon className="w-4 h-4" />
+                           </button>
+                         </div>
+                      </motion.div>
+                    ))}
+                 </div>
+               </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Global Action Buttons (Fixed Bottom for Mobile) */}
+        <div className="md:hidden fixed bottom-24 right-6 z-40 flex flex-col space-y-4">
+          {isInstructor && activeTab === 'materials' && (
+            <button 
+              onClick={() => setIsMaterialModalOpen(true)}
+              className="w-14 h-14 bg-slate-900 text-white rounded-2xl shadow-2xl flex items-center justify-center active:scale-90 transition-all"
+            >
+              <PlusIcon className="w-8 h-8 stroke-[3px]" />
+            </button>
+          )}
+        </div>
+      </main>
+
+      {/* Material Upload Modal */}
+      <AnimatePresence>
+        {isMaterialModalOpen && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-white rounded-[3rem] w-full max-w-xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden">
+               <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-900 leading-none">Resource Registry</h3>
+                    <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest mt-2">Upload study artifacts</p>
+                  </div>
+                  <button onClick={() => setIsMaterialModalOpen(false)} className="p-3 hover:bg-slate-100 rounded-2xl transition-all"><XMarkIcon className="w-6 h-6 text-slate-400" /></button>
+               </div>
+               <form onSubmit={handleAddMaterial} className="p-10 space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[.3em] pl-1">Title of artifact</label>
+                    <input required value={materialForm.title} onChange={e => setMaterialForm({...materialForm, title: e.target.value})} className="w-full bg-slate-50 border-2 border-transparent focus:border-primary-100 rounded-2xl px-6 py-4 text-sm font-black focus:ring-4 focus:ring-primary-500/5 transition-all" placeholder="e.g. Advanced Thermodynamics Part 1" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[.3em] pl-1">Curriculum Week</label>
+                      <input type="number" value={materialForm.week} onChange={e => setMaterialForm({...materialForm, week: e.target.value})} className="w-full bg-slate-50 border-2 border-transparent focus:border-primary-100 rounded-2xl px-6 py-4 text-sm font-black focus:ring-4 focus:ring-primary-500/5 transition-all" placeholder="1" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[.3em] pl-1">Thematic Topic</label>
+                      <input value={materialForm.topic} onChange={e => setMaterialForm({...materialForm, topic: e.target.value})} className="w-full bg-slate-50 border-2 border-transparent focus:border-primary-100 rounded-2xl px-6 py-4 text-sm font-black focus:ring-4 focus:ring-primary-500/5 transition-all" placeholder="Atomic Theory" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[.3em] pl-1">Payload (File)</label>
+                    <div className="relative group">
+                      <input type="file" required onChange={e => setMaterialForm({...materialForm, file: e.target.files[0]})} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                      <div className="bg-slate-50 border-4 border-dashed border-slate-100 rounded-[2rem] p-10 flex flex-col items-center justify-center text-slate-300 group-hover:border-primary-500/30 group-hover:bg-primary-50 transition-all duration-300">
+                        <DocumentArrowUpIcon className="w-12 h-12 mb-4 group-hover:scale-110 transition-transform text-slate-200 group-hover:text-primary-500" />
+                        <span className="text-xs font-black uppercase tracking-widest">{materialForm.file ? materialForm.file.name : "Select PDF, SLIDES, or DOC"}</span>
+                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter mt-2">Max payload size: 25MB</p>
                       </div>
                     </div>
                   </div>
+                  <button type="submit" className="w-full py-5 bg-primary-600 text-white rounded-3xl text-sm font-black shadow-[0_25px_50px_-12px_rgba(37,99,235,0.4)] hover:shadow-[0_25px_50px_-12px_rgba(37,99,235,0.6)] hover:bg-primary-700 active:scale-95 transition-all duration-500">Deploy Resource</button>
+               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
-                  {/* Students */}
-                  {course.students?.map((student) => (
-                    <div key={student.id} className="py-4 flex items-center justify-between group">
-                      <div className="flex items-center space-x-4">
-                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${getAvatarColor(student.name)} flex items-center justify-center text-white text-sm font-black shadow-sm group-hover:scale-105 transition-all`}>
-                          {getInitials(student.name)}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-slate-800 leading-none">{student.name}</h4>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">Reg No. {student.studentId || 'XXXXXX'}</p>
-                        </div>
-                      </div>
+      {/* Assignment Modal */}
+      <AnimatePresence>
+        {isAssignmentModalOpen && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden">
+               <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-emerald-50/30">
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-900 leading-none">Task Initialization</h3>
+                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-2">Define new academic objective</p>
+                  </div>
+                  <button onClick={() => setIsAssignmentModalOpen(false)} className="p-3 hover:bg-white rounded-2xl transition-all"><XMarkIcon className="w-6 h-6 text-slate-400" /></button>
+               </div>
+               <form onSubmit={handleCreateAssignment} className="p-10 space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[.3em] pl-1">Title of task</label>
+                    <input required value={assignmentForm.title} onChange={e => setAssignmentForm({...assignmentForm, title: e.target.value})} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-black focus:ring-2 focus:ring-emerald-500/20" placeholder="Assignment 1 - Theoretical Physics" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[.3em] pl-1">Specification</label>
+                    <textarea required value={assignmentForm.description} onChange={e => setAssignmentForm({...assignmentForm, description: e.target.value})} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold h-32 resize-none focus:ring-2 focus:ring-emerald-500/20" placeholder="Elaborate on the task details..." />
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[.3em] pl-1">Reward (Max Points)</label>
+                      <input type="number" required value={assignmentForm.points} onChange={e => setAssignmentForm({...assignmentForm, points: e.target.value})} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-black focus:ring-2 focus:ring-emerald-500/20" />
                     </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </main>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[.3em] pl-1">Deadline Sequence</label>
+                      <input type="datetime-local" required value={assignmentForm.deadline} onChange={e => setAssignmentForm({...assignmentForm, deadline: e.target.value})} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-black focus:ring-2 focus:ring-emerald-500/20" />
+                    </div>
+                  </div>
+                  <button type="submit" className="w-full py-5 bg-emerald-600 text-white rounded-3xl text-sm font-black shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all duration-500">Publish to Class</button>
+               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Announcement Modal */}
+      <AnimatePresence>
+        {isAnnouncementModalOpen && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden">
+               <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-orange-50/30">
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-900 leading-none">Broadcast Modulation</h3>
+                    <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mt-2">Transmit message to all scholars</p>
+                  </div>
+                  <button onClick={() => setIsAnnouncementModalOpen(false)} className="p-3 rounded-2xl transition-all"><XMarkIcon className="w-6 h-6 text-slate-400" /></button>
+               </div>
+               <form onSubmit={handlePostAnnouncement} className="p-10 space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[.3em] pl-1">Transmission Data</label>
+                    <textarea required value={announcementContent} onChange={e => setAnnouncementContent(e.target.value)} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold h-48 resize-none focus:ring-2 focus:ring-orange-500/20" placeholder="Important course update..." />
+                  </div>
+                  <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-3xl text-sm font-black shadow-2xl hover:bg-slate-800 transition-all">Transmit Globally</button>
+               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Sticky Nav Component if needed - using the built in one */}
+      <div className="md:hidden">
+        <Navbar />
       </div>
 
       <style jsx global>{`
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
-    </>
+    </div>
   );
 }
