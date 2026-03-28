@@ -8,35 +8,23 @@ export const useCall = () => useContext(CallContext);
 
 const servers = {
   iceServers: [
-    // STUN servers — help discover public IP, but fail behind symmetric NAT
-    {
-      urls: [
-        'stun:stun.l.google.com:19302',
-        'stun:stun1.l.google.com:19302',
-        'stun:stun2.l.google.com:19302',
-      ],
-    },
-    // TURN servers — relay media through firewalls/NAT (required for real-world calls)
-    {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:80?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
+    // STUN — NAT traversal without relay
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun.relay.metered.ca:80' },
+
+    // TURN — Open Relay (free, no signup)
+    { urls: 'turn:openrelay.metered.ca:80',             username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443',            username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+
+    // TURN — Numb (backup, widely tested)
+    { urls: 'turn:numb.viagenie.ca', username: 'webrtc@live.com', credential: 'muazkh' },
+
+    // TURN — FreeSTUN (additional backup)
+    { urls: 'turn:freestun.net:3478', username: 'free', credential: 'free' },
+    { urls: 'turn:freestun.net:5349', username: 'free', credential: 'free' },
   ],
   iceCandidatePoolSize: 10,
 };
@@ -178,17 +166,42 @@ export const CallProvider = ({ children }) => {
 
     peer.onconnectionstatechange = () => {
       console.log('[WebRTC] Connection state:', peer.connectionState);
-      if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed') {
-        handleCleanup();
+      if (peer.connectionState === 'failed') {
+        console.warn('[WebRTC] Connection failed — attempting ICE restart...');
+        // Attempt ICE restart before giving up
+        if (peer.signalingState !== 'closed') {
+          peer.restartIce();
+          // Give it 8 seconds to recover, then clean up
+          setTimeout(() => {
+            if (connectionRef.current && 
+               (connectionRef.current.connectionState === 'failed' ||
+                connectionRef.current.connectionState === 'disconnected')) {
+              console.error('[WebRTC] ICE restart failed. Ending call.');
+              handleCleanup();
+            }
+          }, 8000);
+        } else {
+          handleCleanup();
+        }
+      } else if (peer.connectionState === 'disconnected') {
+        console.warn('[WebRTC] Disconnected — waiting before cleanup...');
+        setTimeout(() => {
+          if (connectionRef.current?.connectionState === 'disconnected') {
+            handleCleanup();
+          }
+        }, 5000);
       }
     };
 
     peer.onicecandidate = (event) => {
       if (event.candidate) {
+        console.log('[WebRTC] Gathered ICE candidate type:', event.candidate.type, event.candidate.protocol);
         socket.emit('ice-candidate', { 
           targetUserId: call.from.id, 
           candidate: event.candidate 
         });
+      } else {
+        console.log('[WebRTC] ICE gathering complete');
       }
     };
 
