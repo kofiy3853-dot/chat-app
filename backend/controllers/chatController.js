@@ -647,25 +647,43 @@ exports.clearChat = async (req, res) => {
       where: { id },
       data: {
         lastMessageId: null,
-        lastMessageAt: null
+        lastMessageAt: new Date()
       }
     });
 
-    // 2. Delete all notifications associated with messages in this conversation
-    // Notification has a messageId field but no Cascade delete on the Message relation
-    await prisma.notification.deleteMany({
-      where: {
-        message: {
-          conversationId: id
+    // 2. Nullify replyToId for all messages in this conversation 
+    // This prevents foreign key constraint errors when deleting messages that are replied to
+    await prisma.message.updateMany({
+      where: { conversationId: id },
+      data: { replyToId: null }
+    });
+
+    // 3. Delete all notifications associated with messages in this conversation
+    // We use a join-less filter to be as safe as possible with different Prisma versions
+    const messageIds = (await prisma.message.findMany({
+      where: { conversationId: id },
+      select: { id: true }
+    })).map(m => m.id);
+
+    if (messageIds.length > 0) {
+      await prisma.notification.deleteMany({
+        where: {
+          messageId: {
+            in: messageIds
+          }
         }
-      }
-    });
+      });
 
-    // 3. Global clear for this conversation (deletes all messages)
-    // Dependencies like Reactions and ReadReceipts HAVE onDelete: Cascade in schema
-    await prisma.message.deleteMany({
-      where: { conversationId: id }
-    });
+      // 4. Global hard delete for this conversation's messages
+      // Reactions and ReadReceipts have onDelete: Cascade in the schema
+      await prisma.message.deleteMany({
+        where: {
+          id: {
+            in: messageIds
+          }
+        }
+      });
+    }
 
     // Notify other participants via socket to clear UI
     if (req.io) {
