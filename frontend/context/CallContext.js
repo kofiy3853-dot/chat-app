@@ -80,6 +80,12 @@ export const CallProvider = ({ children }) => {
   }, []); // ✅ Empty deps — never re-registers
 
   const handleCleanup = () => {
+    const socket = getSocket();
+    if (socket) {
+      socket.off('ice-candidate');
+      socket.off('call-accepted');
+    }
+
     // Use ref to always get the latest stream (avoids stale closure bug)
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -161,8 +167,12 @@ export const CallProvider = ({ children }) => {
     // ICE candidates from remote
     socket.off('ice-candidate');
     socket.on('ice-candidate', ({ candidate }) => {
+      if (peer.signalingState === 'closed') return;
+      
       if (peer.remoteDescription) {
-        peer.addIceCandidate(new RTCIceCandidate(candidate)).catch(console.warn);
+        peer.addIceCandidate(new RTCIceCandidate(candidate)).catch(err => {
+          if (peer.signalingState !== 'closed') console.warn('ICE candidate error:', err);
+        });
       } else {
         pendingCandidates.current.push(candidate);
       }
@@ -239,8 +249,12 @@ export const CallProvider = ({ children }) => {
 
     socket.off('ice-candidate');
     socket.on('ice-candidate', ({ candidate }) => {
+      if (peer.signalingState === 'closed') return;
+
       if (peer.remoteDescription) {
-        peer.addIceCandidate(new RTCIceCandidate(candidate)).catch(console.warn);
+        peer.addIceCandidate(new RTCIceCandidate(candidate)).catch(err => {
+          if (peer.signalingState !== 'closed') console.warn('ICE candidate error:', err);
+        });
       } else {
         pendingCandidates.current.push(candidate);
       }
