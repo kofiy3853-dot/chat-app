@@ -372,6 +372,13 @@ export const CallProvider = ({ children }) => {
     socket.on('call-accepted', async ({ answer }) => {
       console.log('[WebRTC] Call accepted');
       setCallAccepted(true);
+      
+      // GUARD: Only set remote description if we are expecting an answer
+      if (peer.signalingState !== 'have-local-offer') {
+        console.warn('[WebRTC] Connection already stable or in wrong state. Skipping redundant answer.');
+        return;
+      }
+
       try {
         await peer.setRemoteDescription(new RTCSessionDescription(answer));
         for (const c of pendingCandidates.current) {
