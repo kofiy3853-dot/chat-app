@@ -33,10 +33,10 @@ export default function CallInterface() {
     return (
       <motion.div
         initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 20, opacity: 1 }}
-        className="fixed top-0 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md"
+        animate={{ y: 40, opacity: 1 }}
+        className="fixed top-safe left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-md pt-4"
       >
-        <div className="bg-white/80 backdrop-blur-xl border border-white/20 p-4 rounded-3xl shadow-2xl flex items-center justify-between">
+        <div className="bg-white/95 backdrop-blur-xl border border-gray-100 p-4 rounded-3xl shadow-2xl flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-xl font-bold animate-pulse">
               {call.to?.name?.charAt(0)}
@@ -48,7 +48,7 @@ export default function CallInterface() {
           </div>
           <button
             onClick={leaveCall}
-            className="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
+            className="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-lg shadow-red-500/20"
           >
             <XMarkIcon className="w-6 h-6" />
           </button>
@@ -62,8 +62,8 @@ export default function CallInterface() {
     return (
       <motion.div 
         initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 20, opacity: 1 }}
-        className="fixed top-0 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md"
+        animate={{ y: 40, opacity: 1 }}
+        className="fixed top-safe left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-md pt-4"
       >
         <div className="bg-white/80 backdrop-blur-xl border border-white/20 p-4 rounded-3xl shadow-2xl flex items-center justify-between">
           <div className="flex items-center space-x-4">
