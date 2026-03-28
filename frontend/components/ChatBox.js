@@ -139,6 +139,20 @@ export default function ChatBox({ conversationId }) {
       );
     });
 
+    socket.on('messages-read', ({ userId, conversationId: cid }) => {
+      if (cid === conversationId) {
+        setMessages(prev => prev.map(m => {
+          if (m.senderId !== userId && (!m.readReceipts || !m.readReceipts.some(r => r.userId === userId))) {
+            return {
+              ...m,
+              readReceipts: [...(m.readReceipts || []), { userId, readAt: new Date() }]
+            };
+          }
+          return m;
+        }));
+      }
+    });
+
     socket.on('message-sent', (sent) => {
       const sentMsg = sent.message || sent;
       setMessages(prev => prev.map(m => (m.tempId && m.tempId === sentMsg.tempId) ? sentMsg : m));
@@ -399,7 +413,23 @@ export default function ChatBox({ conversationId }) {
               {/* Timestamp Meta */}
               <div className={`flex items-center mt-1.5 space-x-1 justify-end ${isMine ? 'text-white/60' : 'text-slate-400'}`}>
                 <span className="text-[9px] font-bold italic">{timestamp}</span>
-                {isMine && (isTemp ? <ArrowPathIcon className="w-2.5 h-2.5 animate-spin" /> : <CheckIcon className="w-2.5 h-2.5 stroke-[3px]" />)}
+                {isMine && (
+                  isTemp ? (
+                    <ArrowPathIcon className="w-2.5 h-2.5 animate-spin" />
+                  ) : (
+                    <div className="flex -space-x-1">
+                      {/* Double Tick Logic */}
+                      {(message.readReceipts?.length > 0) ? (
+                        <>
+                          <CheckIcon className="w-3 h-3 stroke-[4px] text-emerald-400 drop-shadow-sm" />
+                          <CheckIcon className="w-3 h-3 stroke-[4px] text-emerald-400 drop-shadow-sm" />
+                        </>
+                      ) : (
+                        <CheckIcon className="w-3 h-3 stroke-[4px] text-white/50" />
+                      )}
+                    </div>
+                  )
+                )}
               </div>
 
               {/* Action Menu Popover (Inline Logic) */}
@@ -506,7 +536,15 @@ export default function ChatBox({ conversationId }) {
                 <div className="flex-1 bg-slate-100 rounded-[22px] border border-transparent focus-within:bg-white focus-within:border-slate-200 transition-all p-1">
                   <textarea
                     value={newMessage}
-                    onChange={e => { setNewMessage(e.target.value); sendTyping(conversationId); }}
+                    onChange={e => { 
+                      setNewMessage(e.target.value); 
+                      // Smart Typing Emitter
+                      sendTyping(conversationId, true);
+                      if (window.typingTimeout) clearTimeout(window.typingTimeout);
+                      window.typingTimeout = setTimeout(() => {
+                        sendTyping(conversationId, false);
+                      }, 2000);
+                    }}
                     placeholder="Message..."
                     className="w-full bg-transparent border-none text-sm py-2 px-3 max-h-32 resize-none focus:ring-0 font-medium"
                     rows={1}

@@ -282,6 +282,12 @@ exports.getMessages = async (req, res) => {
               }
             }
           }
+        },
+        readReceipts: {
+          select: {
+            userId: true,
+            readAt: true
+          }
         }
       },
       orderBy: {
