@@ -167,7 +167,16 @@ export default function ChatBox({ conversationId }) {
     if (e) e.preventDefault();
     if ((!newMessage.trim() && !mediaFile) || isSending) return;
 
+    if (isRecording) {
+      stopRecording();
+      return;
+    }
+
     const tempId = `temp-${Date.now()}`;
+    const type = mediaFile 
+      ? (mediaFile.type.startsWith('image/') ? 'IMAGE' : mediaFile.type.startsWith('audio/') ? 'VOICE' : 'FILE')
+      : 'TEXT';
+
     const msgData = {
       id: tempId,
       tempId,
@@ -175,8 +184,10 @@ export default function ChatBox({ conversationId }) {
       senderId: currentUser.id,
       sender: currentUser,
       createdAt: new Date().toISOString(),
-      type: mediaFile ? (mediaFile.type.startsWith('image/') ? 'IMAGE' : 'FILE') : 'TEXT',
-      attachments: mediaFile ? [{ url: URL.createObjectURL(mediaFile), name: mediaFile.name }] : []
+      type,
+      fileUrl: mediaFile ? URL.createObjectURL(mediaFile) : null,
+      fileName: mediaFile ? mediaFile.name : null,
+      fileSize: mediaFile ? mediaFile.size : null
     };
 
     setMessages(prev => [...prev, msgData]);
@@ -187,12 +198,14 @@ export default function ChatBox({ conversationId }) {
     try {
       if (mediaFile) {
         const fd = new FormData();
-        const type = mediaFile.type.startsWith('image/') ? 'IMAGE' : 'FILE';
+        const type = mediaFile.type.startsWith('image/') ? 'IMAGE' : (mediaFile.type.startsWith('audio/') ? 'VOICE' : 'FILE');
+        
         fd.append('file', mediaFile);
         fd.append('conversationId', conversationId);
         fd.append('content', msgData.content);
         fd.append('type', type);
         fd.append('tempId', tempId);
+
         await chatAPI.uploadMessageAttachment(fd);
       } else {
         sendMessage({ conversationId, content: msgData.content, tempId });
