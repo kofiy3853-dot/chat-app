@@ -635,64 +635,74 @@ exports.clearChat = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
 
-    // Verify user is participant
-    const participant = await prisma.conversationParticipant.findUnique({
-      where: { userId_conversationId: { userId, conversationId: id } }
-    });
+    console.log(`[CLEAR CHAT] Starting for CID:${id} by User:${userId}`);
 
-    if (!participant) return res.status(403).json({ message: 'Access denied' });
+    try {
+      // 1. Verify access
+      const participant = await prisma.conversationParticipant.findUnique({
+        where: { userId_conversationId: { userId, conversationId: id } }
+      });
 
-    // 1. Reset conversation last message pointers first (prevents FK constraint errors)
-    await prisma.conversation.update({
-      where: { id },
-      data: {
-        lastMessageId: null,
-        lastMessageAt: new Date()
+      if (!participant) {
+        console.warn(`[CLEAR CHAT] Access denied for user:${userId} on CID:${id}`);
+        return res.status(403).json({ message: 'Access denied' });
       }
-    });
 
-    // 2. Nullify replyToId for all messages in this conversation 
-    // This prevents foreign key constraint errors when deleting messages that are replied to
-    await prisma.message.updateMany({
-      where: { conversationId: id },
-      data: { replyToId: null }
-    });
+      // Execute as a transaction to ensure database consistency
+      await prisma.$transaction(async (tx) => {
+        console.log(`[CLEAR CHAT] Transaction started for CID:${id}`);
 
-    // 3. Delete all notifications associated with messages in this conversation
-    // We use a join-less filter to be as safe as possible with different Prisma versions
-    const messageIds = (await prisma.message.findMany({
-      where: { conversationId: id },
-      select: { id: true }
-    })).map(m => m.id);
-
-    if (messageIds.length > 0) {
-      await prisma.notification.deleteMany({
-        where: {
-          messageId: {
-            in: messageIds
+        // A. Handle Conversation pointers first
+        await tx.conversation.update({
+          where: { id },
+          data: {
+            lastMessageId: null,
+            lastMessageAt: new Date()
           }
-        }
+        });
+        console.log(`[CLEAR CHAT] Conversation pointers reset`);
+
+        // B. Clear notifications
+        await tx.notification.deleteMany({
+          where: {
+            message: {
+              conversationId: id
+            }
+          }
+        });
+        console.log(`[CLEAR CHAT] Notifications cleared`);
+
+        // C. Break self-referential reply chains
+        await tx.message.updateMany({
+          where: { conversationId: id },
+          data: { replyToId: null }
+        });
+        console.log(`[CLEAR CHAT] Reply chains broken`);
+
+        // D. Final deletion
+        const deletedResult = await tx.message.deleteMany({
+          where: { conversationId: id }
+        });
+        
+        console.log(`[CLEAR CHAT] Deleted ${deletedResult.count} messages`);
       });
 
-      // 4. Global hard delete for this conversation's messages
-      // Reactions and ReadReceipts have onDelete: Cascade in the schema
-      await prisma.message.deleteMany({
-        where: {
-          id: {
-            in: messageIds
-          }
-        }
+      // 5. Notify all participants via Socket
+      if (req.io) {
+        req.io.to(`conversation:${id}`).emit('chat-cleared', { conversationId: id });
+        console.log(`[CLEAR CHAT] Socket event emitted`);
+      }
+
+      return res.json({ message: 'Chat cleared successfully' });
+    } catch (dbError) {
+      console.error('[CLEAR CHAT] DB Error during transaction:', dbError);
+      return res.status(500).json({ 
+        message: 'Could not clear chat history due to a database constraint.',
+        error: dbError.message 
       });
     }
-
-    // Notify other participants via socket to clear UI
-    if (req.io) {
-      req.io.to(`conversation:${id}`).emit('chat-cleared', { conversationId: id });
-    }
-
-    res.json({ message: 'Chat cleared successfully' });
-  } catch (error) {
-    console.error('Clear Chat Error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+  } catch (outerError) {
+    console.error('[CLEAR CHAT] Outer Error:', outerError);
+    return res.status(500).json({ message: 'Internal server error', error: outerError.message });
   }
 };
