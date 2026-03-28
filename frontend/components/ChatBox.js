@@ -170,9 +170,11 @@ export default function ChatBox({ conversationId }) {
     try {
       if (mediaFile) {
         const fd = new FormData();
+        const type = mediaFile.type.startsWith('image/') ? 'IMAGE' : 'FILE';
         fd.append('file', mediaFile);
         fd.append('conversationId', conversationId);
         fd.append('content', msgData.content);
+        fd.append('type', type);
         fd.append('tempId', tempId);
         await chatAPI.uploadMessageAttachment(fd);
       } else {
