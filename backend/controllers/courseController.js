@@ -519,7 +519,8 @@ exports.postAnnouncement = async (req, res) => {
         content,
         type: 'ANNOUNCEMENT',
         senderId: userId,
-        conversationId: course.conversation.id
+        conversationId: course.conversation.id,
+        courseId: id
       },
       include: {
         sender: { select: { id: true, name: true, avatar: true } }
