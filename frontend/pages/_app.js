@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Navbar from '../components/Navbar';
 import { initSocket } from '../services/socket';
+import { CallProvider } from '../context/CallContext';
+import CallInterface from '../components/CallInterface';
 import '../styles/globals.css';
 
 // Pages that DON'T need you to be logged in
@@ -56,12 +58,15 @@ function MyApp({ Component, pageProps }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className={shouldHideNavbar ? '' : 'pb-20'}>
-        <Component {...pageProps} />
-      </main>
-      {authorized && !shouldHideNavbar && <Navbar />}
-    </div>
+    <CallProvider>
+      <div className="min-h-screen bg-gray-50">
+        <main className={shouldHideNavbar ? '' : 'pb-20'}>
+          <Component {...pageProps} />
+        </main>
+        {authorized && !shouldHideNavbar && <Navbar />}
+        <CallInterface />
+      </div>
+    </CallProvider>
   );
 }
 

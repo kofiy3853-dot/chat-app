@@ -169,7 +169,7 @@ const setupChatSockets = (io) => {
           
           // Only create notification if user is NOT looking at the chat
           if (!isRecipientActiveInRoom) {
-            const notificationContent = content || (type === 'VOICE' ? 'Voice memo' : fileName || 'File attachment');
+            const notificationContent = content || (type === 'VOICE' ? 'Voice memo' : 'File attachment');
 
             // Create notification in DB
             const notification = await prisma.notification.create({
@@ -320,6 +320,31 @@ const setupChatSockets = (io) => {
       }
     });
 
+    // WebRTC Signaling
+    socket.on('call-user', ({ targetUserId, offer, from, type }) => {
+      io.to(`user:${targetUserId}`).emit('incoming-call', {
+        from,
+        offer,
+        type
+      });
+    });
+
+    socket.on('answer-call', ({ targetUserId, answer }) => {
+      io.to(`user:${targetUserId}`).emit('call-accepted', { answer });
+    });
+
+    socket.on('reject-call', ({ targetUserId }) => {
+      io.to(`user:${targetUserId}`).emit('call-rejected');
+    });
+
+    socket.on('ice-candidate', ({ targetUserId, candidate }) => {
+      io.to(`user:${targetUserId}`).emit('ice-candidate', { candidate });
+    });
+
+    socket.on('end-call', ({ targetUserId }) => {
+      io.to(`user:${targetUserId}`).emit('call-ended');
+    });
+
     // Handle disconnect
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${socket.user.name} (${socket.user.id})`);
@@ -332,22 +357,14 @@ const setupChatSockets = (io) => {
           lastSeen: new Date()
         }
       }).then(user => {
-        // Broadcast user offline status
         io.emit('user-status-changed', {
           userId: user.id,
           isOnline: false,
           lastSeen: user.lastSeen
         });
       }).catch(err => console.error('Error updating status on disconnect:', err));
-
-      // Notify all rooms user was in
-      // Note: socket.rooms is cleared on disconnect in newer socket.io versions
-      // Better to track active conversations elsewhere or just broadcast to all joined
     });
   });
 };
-
-module.exports = { setupChatSockets };
-
 
 module.exports = { setupChatSockets };

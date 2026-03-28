@@ -8,6 +8,7 @@ import { joinConversation, leaveConversation } from '../../services/socket';
 import { ArrowLeftIcon, EllipsisVerticalIcon, VideoCameraIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { getCurrentUser, getInitials, getAvatarColor } from '../../utils/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCall } from '../../context/CallContext';
 
 export default function ChatPage() {
   const router = useRouter();
@@ -15,6 +16,8 @@ export default function ChatPage() {
   const [conversation, setConversation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  
+  const { callUser } = useCall();
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -40,7 +43,6 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error('Failed to fetch conversation:', error);
-      // Fallback: Check if they passed it through state somehow or just show error
     } finally {
       setLoading(false);
     }
@@ -52,6 +54,12 @@ export default function ChatPage() {
 
   const name = conversation?.name || otherParticipant?.user?.name || 'Chat';
   const isOnline = otherParticipant?.user?.isOnline;
+
+  const handleStartCall = (type) => {
+    if (otherParticipant?.user?.id) {
+      callUser(otherParticipant.user.id, otherParticipant.user.name, type);
+    }
+  };
 
   if (loading) {
     return (
@@ -75,7 +83,7 @@ export default function ChatPage() {
         <motion.header 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-slate-100 px-4 py-3 z-[100] flex items-center justify-between"
+          className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-slate-100 px-4 py-3 z-[10] flex items-center justify-between"
         >
           <div className="flex items-center space-x-3 min-w-0">
             <Link 
@@ -109,10 +117,18 @@ export default function ChatPage() {
           </div>
 
           <div className="flex items-center space-x-1 sm:space-x-2">
-            <button className="flex p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all">
+            <button 
+              onClick={() => handleStartCall('VOICE')}
+              disabled={!otherParticipant}
+              className="flex p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all disabled:opacity-30"
+            >
               <PhoneIcon className="w-5 h-5" />
             </button>
-            <button className="flex p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all">
+            <button 
+              onClick={() => handleStartCall('VIDEO')}
+              disabled={!otherParticipant}
+              className="flex p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all disabled:opacity-30"
+            >
               <VideoCameraIcon className="w-5 h-5" />
             </button>
             <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all">
