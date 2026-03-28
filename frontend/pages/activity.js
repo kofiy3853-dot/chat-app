@@ -19,6 +19,7 @@ export default function Activity() {
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [markingRead, setMarkingRead] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     fetchNotifications();
@@ -145,8 +146,6 @@ export default function Activity() {
       </div>
     );
   }
-
-  const [search, setSearch] = useState('');
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
