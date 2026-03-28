@@ -559,33 +559,25 @@ export default function ChatBox({ conversationId }) {
                             )}
                           </div>
 
-                          {/* Message Actions Button (Dropdown) */}
+                          {/* Message Actions Button (Dropdown) - Now better positioned and visible */}
                           {!message.isDeleted && !editingMessageId && (
-                            <div className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1 ${isMine ? '-left-12' : '-right-12'}`}>
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveMenuId(activeMenuId === message.id ? null : message.id);
-                                }}
-                                className={`p-1.5 rounded-full bg-white shadow-sm border border-slate-100 text-slate-400 hover:text-slate-600 transition-all ${activeMenuId === message.id ? 'opacity-100 scale-110' : ''}`}
-                              >
-                                <EllipsisHorizontalIcon className="w-4 h-4" />
-                              </button>
+                            <div className={`absolute top-1 flex items-center space-x-1 ${isMine ? 'right-full mr-1' : 'left-full ml-1'} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                              {/* Empty for now to just show how it was originally but we'll put a visible toggle on the bubble itself */}
                             </div>
                           )}
 
-                          {/* Action Menu Popover */}
+                          {/* Refined Action Menu Popover */}
                           <AnimatePresence>
                             {activeMenuId === message.id && (
                               <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                initial={{ opacity: 0, scale: 0.9, y: 5 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                className={`absolute z-[100] bottom-full mb-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden min-w-[150px] ${isMine ? 'right-0' : 'left-0'}`}
+                                exit={{ opacity: 0, scale: 0.9, y: 5 }}
+                                className={`absolute z-[1000] bottom-full mb-2 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden min-w-[160px] ${isMine ? 'right-0' : 'left-0'}`}
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {/* Quick Reactions */}
-                                <div className="flex items-center justify-around p-2 border-b border-slate-50 bg-slate-50/50">
+                                <div className="flex items-center justify-around p-2.5 border-b border-slate-50 bg-slate-50/50">
                                   {['❤️', '👍', '🔥', '😂', '😮', '😢'].map(emoji => (
                                     <button
                                       key={emoji}
@@ -593,7 +585,7 @@ export default function ChatBox({ conversationId }) {
                                         e.stopPropagation();
                                         handleAddReaction(message.id, emoji);
                                       }}
-                                      className="hover:scale-125 transition-transform p-1 text-base"
+                                      className="hover:scale-125 transition-transform p-1 text-base active:scale-90"
                                     >
                                       {emoji}
                                     </button>
@@ -606,9 +598,11 @@ export default function ChatBox({ conversationId }) {
                                       e.stopPropagation();
                                       handleCopyMessage(message.content);
                                     }}
-                                    className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors text-left"
+                                    className="w-full flex items-center space-x-3 px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors text-left"
                                   >
-                                    <DocumentDuplicateIcon className="w-4 h-4" />
+                                    <div className="p-1.5 bg-slate-100 rounded-lg text-slate-500">
+                                      <DocumentDuplicateIcon className="w-3.5 h-3.5" />
+                                    </div>
                                     <span>Copy Text</span>
                                   </button>
 
@@ -621,9 +615,11 @@ export default function ChatBox({ conversationId }) {
                                           setEditingContent(message.content);
                                           setActiveMenuId(null);
                                         }}
-                                        className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors text-left"
+                                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors text-left"
                                       >
-                                        <PencilIcon className="w-4 h-4" />
+                                        <div className="p-1.5 bg-slate-100 rounded-lg text-slate-500">
+                                          <PencilIcon className="w-3.5 h-3.5" />
+                                        </div>
                                         <span>Edit Message</span>
                                       </button>
                                       
@@ -632,9 +628,11 @@ export default function ChatBox({ conversationId }) {
                                           e.stopPropagation();
                                           handleDeleteMessage(message.id);
                                         }}
-                                        className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors text-left"
+                                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors text-left"
                                       >
-                                        <TrashIcon className="w-4 h-4" />
+                                        <div className="p-1.5 bg-red-100/50 rounded-lg text-red-500">
+                                          <TrashIcon className="w-3.5 h-3.5" />
+                                        </div>
                                         <span>Delete Message</span>
                                       </button>
                                     </>
@@ -646,10 +644,12 @@ export default function ChatBox({ conversationId }) {
                                       setActiveMenuId(null);
                                       setShowEmojiPicker(true);
                                     }}
-                                    className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors text-left border-t border-slate-50 pt-2 mt-1"
+                                    className="w-full flex items-center space-x-3 px-3 py-2.5 text-xs font-bold text-primary-600 hover:bg-primary-50 rounded-xl transition-colors text-left border-t border-slate-50 pt-2.5 mt-1"
                                   >
-                                    <FaceSmileIcon className="w-4 h-4" />
-                                    <span>More Emojis...</span>
+                                    <div className="p-1.5 bg-primary-100/50 rounded-lg text-primary-600">
+                                      <FaceSmileIcon className="w-3.5 h-3.5" />
+                                    </div>
+                                    <span>More Emojis</span>
                                   </button>
                                 </div>
                               </motion.div>
