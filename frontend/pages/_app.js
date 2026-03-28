@@ -14,39 +14,27 @@ const hideNavbarPages = ['/login', '/register', '/chat/[id]', '/courses/[id]'];
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
-
-  // ✅ Synchronous check: read localStorage on first render, no spinner flash for logged-in users
-  const [authorized, setAuthorized] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const token = localStorage.getItem('token');
-    const path = window.location.pathname;
-    // Allow if they have a token, or are on a public page
-    return !!token || publicPages.includes(path);
-  });
+  // Must start as false for SSR/hydration compatibility (localStorage not available server-side)
+  const [authorized, setAuthorized] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    // Initialize socket immediately if we have a token
-    const token = localStorage.getItem('token');
-    if (token) initSocket();
-
-    // Auth check (also handles expiry/route changes)
     const authCheck = (url) => {
       const path = url.split('?')[0];
-      const currentToken = localStorage.getItem('token');
+      const token = localStorage.getItem('token');
 
-      if (!currentToken && !publicPages.includes(path)) {
+      if (!token && !publicPages.includes(path)) {
         setAuthorized(false);
         router.push('/login');
       } else {
         setAuthorized(true);
-        if (currentToken) initSocket();
+        if (token) initSocket();
       }
+      setChecked(true);
     };
 
-    // Validate current path (handles expired tokens)
     authCheck(router.asPath);
 
-    // Re-check on every navigation
     router.events.on('routeChangeComplete', authCheck);
     return () => router.events.off('routeChangeComplete', authCheck);
   }, [router]);
@@ -54,9 +42,8 @@ function MyApp({ Component, pageProps }) {
   const isPublic = publicPages.includes(router.pathname);
   const shouldHideNavbar = hideNavbarPages.includes(router.pathname);
 
-  // Only block render if we KNOW they're unauthorized (authorized=false) and not on a public page
-  // If authorized=true from sync check, render immediately — no spinner
-  if (!authorized && !isPublic) {
+  // Only block on initial unchecked state — avoids infinite spinner if token exists
+  if (!checked && !isPublic) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>

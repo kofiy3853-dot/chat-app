@@ -6,9 +6,7 @@ import { getCurrentUser } from '../utils/helpers';
 
 export default function Inbox() {
   const router = useRouter();
-
-  // ✅ Read user synchronously — no spinner flash
-  const [user, setUser] = useState(() => getCurrentUser());
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -16,7 +14,9 @@ export default function Inbox() {
     if (!token || !localUser) {
       localStorage.removeItem('token');
       router.push('/login');
+      return;
     }
+    setUser(localUser);
   }, [router]);
 
   if (!user) {
