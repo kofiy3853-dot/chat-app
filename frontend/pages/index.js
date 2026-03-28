@@ -6,25 +6,20 @@ import { getCurrentUser } from '../utils/helpers';
 
 export default function Inbox() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [isInitializing, setIsInitializing] = useState(true);
+
+  // ✅ Read user synchronously — no spinner flash
+  const [user, setUser] = useState(() => getCurrentUser());
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const localUser = getCurrentUser();
-    
     if (!token || !localUser) {
       localStorage.removeItem('token');
       router.push('/login');
-      return;
     }
-    
-    // Set user synchronously to avoid waterfall requests
-    setUser(localUser);
-    setIsInitializing(false);
   }, [router]);
 
-  if (isInitializing) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center">

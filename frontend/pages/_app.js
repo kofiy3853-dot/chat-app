@@ -14,41 +14,48 @@ const hideNavbarPages = ['/login', '/register', '/chat/[id]', '/courses/[id]'];
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
-  const [authorized, setAuthorized] = useState(false);
+
+  // ✅ Synchronous check: read localStorage on first render, no spinner flash for logged-in users
+  const [authorized, setAuthorized] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const token = localStorage.getItem('token');
+    const path = window.location.pathname;
+    // Allow if they have a token, or are on a public page
+    return !!token || publicPages.includes(path);
+  });
 
   useEffect(() => {
-    // 1. Initial auth check
+    // Initialize socket immediately if we have a token
+    const token = localStorage.getItem('token');
+    if (token) initSocket();
+
+    // Auth check (also handles expiry/route changes)
     const authCheck = (url) => {
       const path = url.split('?')[0];
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const currentToken = localStorage.getItem('token');
 
-      if (!token && !publicPages.includes(path)) {
+      if (!currentToken && !publicPages.includes(path)) {
         setAuthorized(false);
         router.push('/login');
       } else {
         setAuthorized(true);
-        // Initialize socket if authorized
-        if (token) initSocket();
+        if (currentToken) initSocket();
       }
     };
 
-    // Run check on mount
+    // Validate current path (handles expired tokens)
     authCheck(router.asPath);
 
-    // 2. Continuous check on route changes
+    // Re-check on every navigation
     router.events.on('routeChangeComplete', authCheck);
-
-    return () => {
-      router.events.off('routeChangeComplete', authCheck);
-    };
+    return () => router.events.off('routeChangeComplete', authCheck);
   }, [router]);
 
-  // Determine if we should hide the layout components
   const isPublic = publicPages.includes(router.pathname);
   const shouldHideNavbar = hideNavbarPages.includes(router.pathname);
 
-  // If we're not on a public page and not yet confirmed as authorized, 
-  // we show a loading spinner to prevent UI flashes
+  // Only block render if we KNOW they're unauthorized (authorized=false) and not on a public page
+  // If authorized=true from sync check, render immediately — no spinner
   if (!authorized && !isPublic) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
