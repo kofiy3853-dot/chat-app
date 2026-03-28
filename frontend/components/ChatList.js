@@ -1,9 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { formatDistanceToNow } from 'date-fns';
 import { chatAPI } from '../services/api';
 import { getSocket } from '../services/socket';
-import { getCurrentUser } from '../utils/helpers';
+import { getCurrentUser, formatRelativeTime } from '../utils/helpers';
 import { 
   MagnifyingGlassIcon, 
   StarIcon, 
@@ -125,7 +124,13 @@ export default function ChatList() {
             }
             return conv;
           });
-          return [...updated].sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
+          return [...updated].sort((a, b) => {
+            const dateA = new Date(a.lastMessageAt || 0);
+            const dateB = new Date(b.lastMessageAt || 0);
+            const timeA = (dateA instanceof Date && !isNaN(dateA.getTime())) ? dateA.getTime() : 0;
+            const timeB = (dateB instanceof Date && !isNaN(dateB.getTime())) ? dateB.getTime() : 0;
+            return timeB - timeA;
+          });
         });
       };
 
@@ -302,7 +307,7 @@ export default function ChatList() {
                       {getConversationName(conversation)}
                     </h3>
                     <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
-                      {conversation.lastMessageAt ? formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: false }) : ''}
+                      {formatRelativeTime(conversation.lastMessageAt, { addSuffix: false })}
                     </span>
                   </div>
                   

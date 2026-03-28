@@ -30,11 +30,11 @@ export const formatFullDate = (timestamp) => {
 };
 
 // Format relative time
-export const formatRelativeTime = (timestamp) => {
-  if (!timestamp) return 'Never';
+export const formatRelativeTime = (timestamp, options = { addSuffix: true }) => {
+  if (!timestamp) return '';
   const date = new Date(timestamp);
-  if (!isValidDate(date)) return 'Never';
-  return formatDistanceToNow(date, { addSuffix: true });
+  if (!isValidDate(date)) return '';
+  return formatDistanceToNow(date, options);
 };
 
 // Truncate text
