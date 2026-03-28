@@ -184,12 +184,19 @@ export default function CallInterface() {
               />
             ) : (
               <div className="flex flex-col items-center space-y-8">
-                {/* Dedicated audio element for voice calls (style based visibility) */}
+                {/* Ghost audio element: Visible to browser, invisible to user */}
                 <audio 
                   ref={userVideo} 
                   autoPlay 
                   playsInline 
-                  style={{ display: 'none' }} 
+                  style={{ 
+                    position: 'absolute', 
+                    opacity: 0.01, 
+                    width: '1px', 
+                    height: '1px', 
+                    top: '-10px', 
+                    pointerEvents: 'none' 
+                  }} 
                 />
                 <div className="w-40 h-40 rounded-full bg-primary-600/10 border-4 border-primary-500/20 flex items-center justify-center relative">
                    <div className="absolute inset-0 rounded-full border-4 border-primary-500/10 animate-ping opacity-30"></div>
