@@ -28,17 +28,8 @@ export default function CallInterface() {
     isVideoOff
   } = useCall();
 
-  // Reactive stream syncing to ensure video/audio elements always have the track
-  useEffect(() => {
-    if (callAccepted && !callEnded) {
-      if (userVideo.current && remoteStream) {
-        userVideo.current.srcObject = remoteStream;
-      }
-      if (myVideo.current && stream) {
-        myVideo.current.srcObject = stream;
-      }
-    }
-  }, [callAccepted, callEnded, remoteStream, stream]);
+  // Reactive stream syncing is now handled via callback refs for higher reliability 
+  // with conditionally rendered elements. 
 
   return (
     <div className="relative z-[999999]">
@@ -167,7 +158,16 @@ export default function CallInterface() {
           >
             {/* Remote Media */}
             {call.type === 'VIDEO' ? (
-              <video playsInline ref={userVideo} autoPlay className="w-full h-full object-cover" />
+              <video 
+                playsInline 
+                ref={(el) => {
+                  if (el && remoteStream) el.srcObject = remoteStream;
+                  userVideo.current = el;
+                }} 
+                autoPlay 
+                onLoadedMetadata={(e) => e.target.play().catch(console.error)}
+                className="w-full h-full object-cover" 
+              />
             ) : (
               <div className="flex flex-col items-center space-y-8">
                 {/* Keep video element in DOM and active for audio to play, but invisible */}
@@ -188,8 +188,25 @@ export default function CallInterface() {
 
             {/* Local Floating Video */}
             {call.type === 'VIDEO' && stream && (
-              <div className="absolute bottom-36 right-6 w-32 h-44 rounded-3xl overflow-hidden border-2 border-white/30 shadow-2xl bg-black">
-                <video playsInline muted ref={myVideo} autoPlay className="w-full h-full object-cover" />
+              <div className="absolute top-8 right-6 w-32 h-44 rounded-3xl overflow-hidden border-2 border-white/30 shadow-2xl bg-slate-900 ring-4 ring-black/20">
+                <video 
+                  playsInline 
+                  muted 
+                  ref={(el) => {
+                    if (el && stream) el.srcObject = stream;
+                    myVideo.current = el;
+                  }} 
+                  autoPlay 
+                  onLoadedMetadata={(e) => e.target.play().catch(console.error)}
+                  className="w-full h-full object-cover -scale-x-100" 
+                />
+                
+                {/* Local Video Off Placeholder */}
+                {isVideoOff && (
+                  <div className="absolute inset-0 bg-slate-800 flex items-center justify-center">
+                    <VideoCameraSlashIcon className="w-8 h-8 text-white/20" />
+                  </div>
+                )}
               </div>
             )}
 

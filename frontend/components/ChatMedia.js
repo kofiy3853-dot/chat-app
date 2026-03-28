@@ -15,7 +15,11 @@ import React, { useState, useRef } from 'react';
 export const AttachmentBubble = ({ message }) => {
   const isImage = message.type === 'IMAGE' || (message.fileName && /\.(jpg|jpeg|png|gif)$/i.test(message.fileName));
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
-  const fullUrl = message.fileUrl ? `${baseUrl}${message.fileUrl}` : null;
+  
+  // If fileUrl is already a blob or full URL, use it directly. Otherwise, prefix with baseUrl.
+  const fullUrl = message.fileUrl?.startsWith('blob:') || message.fileUrl?.startsWith('http')
+    ? message.fileUrl 
+    : (message.fileUrl ? `${baseUrl}${message.fileUrl}` : null);
 
   if (isImage) {
     return (
@@ -60,7 +64,10 @@ export const VoiceBubble = ({ message }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
-  const fullUrl = message.fileUrl ? `${baseUrl}${message.fileUrl}` : null;
+
+  const fullUrl = message.fileUrl?.startsWith('blob:') || message.fileUrl?.startsWith('http')
+    ? message.fileUrl 
+    : (message.fileUrl ? `${baseUrl}${message.fileUrl}` : null);
 
   const handlePlay = () => {
     if (!audioRef.current) return;

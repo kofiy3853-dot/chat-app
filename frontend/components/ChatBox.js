@@ -238,7 +238,21 @@ export default function ChatBox({ conversationId }) {
                 <span className="text-xs italic opacity-50">This message was deleted</span>
               ) : (
                 <div className="space-y-2">
-                  {message.attachments?.map((a, i) => <AttachmentBubble key={i} attachment={a} isMine={isMine} />)}
+                  {/* Media Support (Real messages) */}
+                  {(message.type === 'IMAGE' || message.type === 'FILE') && message.fileUrl && (
+                    <AttachmentBubble message={message} />
+                  )}
+                  {message.type === 'VOICE' && message.fileUrl && (
+                    <VoiceBubble message={message} />
+                  )}
+
+                  {/* Temp message attachments mapping */}
+                  {message.attachments?.map((a, i) => (
+                    <AttachmentBubble 
+                      key={i} 
+                      message={{ ...message, fileUrl: a.url, fileName: a.name }} 
+                    />
+                  ))}
                   
                   {/* Content Rendering Logic */}
                   {message.content && (
