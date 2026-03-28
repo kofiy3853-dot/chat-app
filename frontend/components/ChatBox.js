@@ -469,7 +469,11 @@ export default function ChatBox({ conversationId }) {
                           </span>
                         )}
                         <div
-                          onDoubleClick={() => !message.isDeleted && !editingMessageId && setActiveMenuId(activeMenuId === message.id ? null : message.id)}
+                          onClick={(e) => {
+                            if (!message.isDeleted && !editingMessageId) {
+                              setActiveMenuId(activeMenuId === message.id ? null : message.id);
+                            }
+                          }}
                           className={`group relative px-4 py-2.5 rounded-2xl shadow-sm cursor-pointer select-none ${
                             isMine
                               ? 'bg-primary-600 text-white rounded-tr-none'
@@ -574,58 +578,75 @@ export default function ChatBox({ conversationId }) {
                                 initial={{ opacity: 0, scale: 0.9, y: 10 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                className={`absolute z-[100] bottom-full mb-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden min-w-[140px] ${isMine ? 'right-0' : 'left-0'}`}
+                                className={`absolute z-[100] bottom-full mb-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden min-w-[150px] ${isMine ? 'right-0' : 'left-0'}`}
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 {/* Quick Reactions */}
                                 <div className="flex items-center justify-around p-2 border-b border-slate-50 bg-slate-50/50">
                                   {['❤️', '👍', '🔥', '😂', '😮', '😢'].map(emoji => (
                                     <button
                                       key={emoji}
-                                      onClick={() => handleAddReaction(message.id, emoji)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAddReaction(message.id, emoji);
+                                      }}
                                       className="hover:scale-125 transition-transform p-1 text-base"
                                     >
                                       {emoji}
                                     </button>
                                   ))}
                                 </div>
-                                <div className="p-1">
+                                
+                                <div className="p-1.5 flex flex-col space-y-0.5">
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCopyMessage(message.content);
+                                    }}
+                                    className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors text-left"
+                                  >
+                                    <DocumentDuplicateIcon className="w-4 h-4" />
+                                    <span>Copy Text</span>
+                                  </button>
+
+                                  {isMine && (
                                     <>
                                       <button 
-                                        onClick={() => handleCopyMessage(message.content)}
-                                        className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setEditingMessageId(message.id);
+                                          setEditingContent(message.content);
+                                          setActiveMenuId(null);
+                                        }}
+                                        className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors text-left"
                                       >
-                                        <DocumentDuplicateIcon className="w-4 h-4" />
-                                        <span>Copy Text</span>
+                                        <PencilIcon className="w-4 h-4" />
+                                        <span>Edit Message</span>
                                       </button>
-                                      {isMine && (
-                                        <>
-                                          <button 
-                                            onClick={() => {
-                                              setEditingMessageId(message.id);
-                                              setEditingContent(message.content);
-                                              setActiveMenuId(null);
-                                            }}
-                                            className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
-                                          >
-                                            <PencilIcon className="w-4 h-4" />
-                                            <span>Edit Message</span>
-                                          </button>
-                                          <button 
-                                            onClick={() => handleDeleteMessage(message.id)}
-                                            className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                                          >
-                                            <TrashIcon className="w-4 h-4" />
-                                            <span>Delete</span>
-                                          </button>
-                                        </>
-                                      )}
+                                      
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteMessage(message.id);
+                                        }}
+                                        className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors text-left"
+                                      >
+                                        <TrashIcon className="w-4 h-4" />
+                                        <span>Delete Message</span>
+                                      </button>
                                     </>
+                                  )}
+
                                   <button 
-                                    className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
-                                    onClick={() => setActiveMenuId(null)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveMenuId(null);
+                                      setShowEmojiPicker(true);
+                                    }}
+                                    className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors text-left border-t border-slate-50 pt-2 mt-1"
                                   >
                                     <FaceSmileIcon className="w-4 h-4" />
-                                    <span>Add Emoji...</span>
+                                    <span>More Emojis...</span>
                                   </button>
                                 </div>
                               </motion.div>
