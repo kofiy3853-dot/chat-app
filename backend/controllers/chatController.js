@@ -434,7 +434,7 @@ exports.addReaction = async (req, res) => {
 // Upload attachment
 exports.uploadAttachment = async (req, res) => {
   try {
-    const { conversationId, type } = req.body;
+    const { conversationId, type, tempId } = req.body;
     const userId = req.user.id;
 
     if (!req.files || (!req.files.file && !req.files.voice)) {
@@ -531,12 +531,12 @@ exports.uploadAttachment = async (req, res) => {
     // Broadcast the message to the conversation room so it appears in real-time
     if (req.io) {
       req.io.to(`conversation:${conversationId}`).emit('new-message', {
-        message,
+        message: { ...message, tempId },
         conversationId
       });
     }
 
-    res.status(201).json({ message });
+    res.status(201).json({ message: { ...message, tempId } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

@@ -180,8 +180,11 @@ export default function ChatBox({ conversationId }) {
       };
 
       mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mpeg' });
-        const voiceFile = new File([audioBlob], 'voice-note.mp3', { type: 'audio/mpeg' });
+        const mimeType = mediaRecorderRef.current.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        const voiceFile = new File([audioBlob], `voice-note-${Date.now()}.mp3`, { type: mimeType });
+        
+        console.log(`Voice note recording complete. Size: ${voiceFile.size} bytes, Type: ${mimeType}`);
         handleUploadMedia(voiceFile, 'VOICE');
       };
 
@@ -241,6 +244,7 @@ export default function ChatBox({ conversationId }) {
       formData.append(type === 'VOICE' ? 'voice' : 'file', file);
       formData.append('conversationId', conversationId);
       formData.append('type', type);
+      formData.append('tempId', tempId);
 
       const response = await chatAPI.uploadMessageAttachment(formData);
       
