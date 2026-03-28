@@ -122,7 +122,8 @@ export default function CallInterface() {
             <video playsInline ref={userVideo} autoPlay className="w-full h-full object-cover" />
           ) : (
             <div className="flex flex-col items-center space-y-6">
-              <video playsInline ref={userVideo} autoPlay className="hidden" />
+              {/* Keep video element in DOM and active for audio to play, but invisible */}
+              <video playsInline ref={userVideo} autoPlay className="absolute w-0 h-0 opacity-0 pointer-events-none" />
               <div className="w-32 h-32 rounded-full bg-primary-600/20 border-2 border-primary-500 flex items-center justify-center relative">
                  <div className="absolute inset-0 rounded-full border-4 border-white animate-ping opacity-20"></div>
                  <div className="w-24 h-24 rounded-full bg-primary-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-xl">
