@@ -163,6 +163,13 @@ export const CallProvider = ({ children }) => {
       myVideo.current.muted = true;
     }
 
+    // Interaction priming for audio playback
+    if (userVideo.current) {
+      userVideo.current.play().catch(() => {
+        console.log('[WebRTC] Primed audio element for stream');
+      });
+    }
+
     const iceConfig = await getIceServers();
     const peer = new RTCPeerConnection(iceConfig);
 
@@ -209,31 +216,42 @@ export const CallProvider = ({ children }) => {
 
     peer.ontrack = (event) => {
       console.log('[WebRTC] Remote track detected:', event.track.kind);
-      // More robust way to handle remote stream
-      if (event.streams && event.streams[0]) {
-        console.log('[WebRTC] Using remote stream from event');
-        setRemoteStream(event.streams[0]);
+      const stream = event.streams && event.streams[0] ? event.streams[0] : null;
+      
+      if (stream) {
+        console.log('[WebRTC] Attaching remote stream');
+        setRemoteStream(stream);
+        
         if (userVideo.current) {
-          userVideo.current.srcObject = event.streams[0];
+          userVideo.current.srcObject = stream;
+          userVideo.current.muted = false;
+          userVideo.current.volume = 1.0;
+          
+          // Force playback
+          userVideo.current.play().catch(err => {
+            console.warn('[WebRTC] Autoplay blocked, will retry on interaction:', err);
+          });
         }
       } else {
-        console.log('[WebRTC] Creating new MediaStream for track');
+        console.warn('[WebRTC] Received track but no stream object found');
         setRemoteStream(prev => {
           const newStream = prev || new MediaStream();
           newStream.addTrack(event.track);
           if (userVideo.current) {
             userVideo.current.srcObject = newStream;
+            userVideo.current.muted = false;
+            userVideo.current.volume = 1.0;
           }
           return newStream;
         });
       }
 
-      // Important: Force play the remote media element
+      // Final fallback trigger
       setTimeout(() => {
-        if (userVideo.current) {
-          userVideo.current.play().catch(err => console.error('[WebRTC] Remote playback failed:', err));
+        if (userVideo.current && userVideo.current.paused) {
+          userVideo.current.play().catch(() => {});
         }
-      }, 500);
+      }, 1000);
     };
 
     localStream.getTracks().forEach((track) => {

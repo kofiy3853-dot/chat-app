@@ -184,8 +184,13 @@ export default function CallInterface() {
               />
             ) : (
               <div className="flex flex-col items-center space-y-8">
-                {/* Keep video element in DOM and active for audio to play, but invisible */}
-                <video playsInline ref={userVideo} autoPlay className="absolute w-0 h-0 opacity-0 pointer-events-none" />
+                {/* Dedicated audio element for voice calls (style based visibility) */}
+                <audio 
+                  ref={userVideo} 
+                  autoPlay 
+                  playsInline 
+                  style={{ display: 'none' }} 
+                />
                 <div className="w-40 h-40 rounded-full bg-primary-600/10 border-4 border-primary-500/20 flex items-center justify-center relative">
                    <div className="absolute inset-0 rounded-full border-4 border-primary-500/10 animate-ping opacity-30"></div>
                    <div className="absolute inset-4 rounded-full border-2 border-white/20 animate-pulse"></div>
