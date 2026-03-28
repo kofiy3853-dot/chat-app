@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 /**
  * GET /api/turn/credentials
@@ -11,7 +11,7 @@ const { protect } = require('../middleware/auth');
  *   TURN_USERNAME    = your_username
  *   TURN_CREDENTIAL  = your_password
  */
-router.get('/credentials', protect, async (req, res) => {
+router.get('/credentials', authMiddleware, async (req, res) => {
   try {
     const turnUrl        = process.env.TURN_SERVER_URL;
     const turnUsername   = process.env.TURN_USERNAME;

@@ -174,7 +174,7 @@ export default function ChatBox({ conversationId }) {
         fd.append('conversationId', conversationId);
         fd.append('content', msgData.content);
         fd.append('tempId', tempId);
-        await chatAPI.sendMessage(fd);
+        await chatAPI.uploadMessageAttachment(fd);
       } else {
         sendMessage({ conversationId, content: msgData.content, tempId });
       }

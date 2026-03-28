@@ -17,33 +17,33 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter (optional: restrict types)
+// File filter - blocks only potentially dangerous executables
 const fileFilter = (req, file, cb) => {
   if (file.fieldname === 'voice') {
-    // Basic check for audio files
     if (file.mimetype.startsWith('audio/')) {
       cb(null, true);
     } else {
       cb(new Error('Only audio files are allowed for voice notes'), false);
     }
   } else {
-    // Allow all images, docs, pdfs, and generic common files
-    if (file.mimetype.startsWith('image/') || 
-        file.mimetype.startsWith('application/pdf') ||
-        file.mimetype.includes('word') ||
-        file.mimetype.includes('officedocument') ||
-        file.mimetype.startsWith('text/')) {
-      cb(null, true);
+    // Block executable / script types only
+    const blocked = [
+      'application/x-msdownload', 'application/x-sh',
+      'application/x-bat', 'application/x-msdos-program'
+    ];
+    if (blocked.includes(file.mimetype)) {
+      cb(new Error(`File type not allowed: ${file.mimetype}`), false);
     } else {
-      cb(new Error(`Invalid file type: ${file.mimetype}`), false);
+      cb(null, true);
     }
   }
 };
 
 const upload = multer({
   storage,
+  fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 25 * 1024 * 1024 // 25MB limit
   }
 });
 
