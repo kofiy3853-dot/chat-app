@@ -10,8 +10,9 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const courseRoutes = require('./routes/courseRoutes');
-const { setupChatSockets } = require('./sockets/chatSockets');
-const { setupCourseSockets } = require('./sockets/courseSockets');
+const { setupSockets } = require('./sockets');
+
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -63,14 +64,10 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/courses', courseRoutes);
 
 // Socket.IO setup
-setupChatSockets(io);
-setupCourseSockets(io);
+setupSockets(io);
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!', error: err.message });
-});
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 

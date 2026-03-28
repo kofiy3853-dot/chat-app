@@ -1,42 +1,41 @@
 const errorHandler = (err, req, res, next) => {
-  let error = { ...err };
-  error.message = err.message;
+  let statusCode = err.statusCode || 500;
+  let message = err.message || 'Server Error';
 
-  console.error('Error:', err);
+  console.error('Error Stack:', err.stack);
 
-  // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    error.message = 'Resource not found';
-    return res.status(404).json({ message: error.message });
+  // Prisma unique constraint error
+  if (err.code === 'P2002') {
+    statusCode = 400;
+    message = `Duplicate field value: ${err.meta?.target || 'Resource already exists'}`;
   }
 
-  // Mongoose duplicate key
-  if (err.code === 11000) {
-    error.message = 'Duplicate field value entered';
-    return res.status(400).json({ message: error.message });
+  // Prisma record not found error
+  if (err.code === 'P2025') {
+    statusCode = 404;
+    message = 'Resource not found';
   }
 
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const messages = Object.values(err.errors).map(val => val.message);
-    error.message = messages.join(', ');
-    return res.status(400).json({ message: error.message });
+  // Prisma foreign key constraint error
+  if (err.code === 'P2003') {
+    statusCode = 400;
+    message = 'Foreign key constraint failed';
   }
 
   // JWT errors
   if (err.name === 'JsonWebTokenError') {
-    error.message = 'Invalid token';
-    return res.status(401).json({ message: error.message });
+    statusCode = 401;
+    message = 'Invalid authentication token';
   }
 
   if (err.name === 'TokenExpiredError') {
-    error.message = 'Token expired';
-    return res.status(401).json({ message: error.message });
+    statusCode = 401;
+    message = 'Authentication token expired';
   }
 
-  res.status(err.statusCode || 500).json({
-    message: error.message || 'Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  res.status(statusCode).json({
+    message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack, code: err.code })
   });
 };
 
