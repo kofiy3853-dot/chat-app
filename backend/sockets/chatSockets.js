@@ -385,6 +385,32 @@ const setupChatSockets = (io) => {
       io.to(`user:${targetUserId}`).emit('call-ended');
     });
 
+    socket.on('missed-call', async ({ targetUserId, type }) => {
+      try {
+        const title = `Missed ${type === 'VIDEO' ? 'video ' : ''}call from ${socket.user.name}`;
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'SYSTEM',
+            title,
+            content: "Tap to view.",
+            recipientId: targetUserId,
+            senderId: socket.user.id
+          }
+        });
+
+        const totalUnreadCount = await prisma.notification.count({ 
+          where: { recipientId: targetUserId, isRead: false } 
+        });
+
+        io.to(`user:${targetUserId}`).emit('new-notification', {
+          notification,
+          unreadCount: totalUnreadCount
+        });
+      } catch (err) {
+        console.error("Failed to create missed call notification:", err);
+      }
+    });
+
     // Handle disconnect
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${socket.user.name} (${socket.user.id})`);

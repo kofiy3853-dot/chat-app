@@ -16,6 +16,7 @@ function MyApp({ Component, pageProps }) {
   const router = useRouter();
   // Must start as false for SSR/hydration compatibility (localStorage not available server-side)
   const [authorized, setAuthorized] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const authCheck = (url) => {
@@ -29,6 +30,7 @@ function MyApp({ Component, pageProps }) {
         setAuthorized(true);
         if (token) initSocket();
       }
+      setIsReady(true);
     };
 
     authCheck(router.asPath);
@@ -39,8 +41,16 @@ function MyApp({ Component, pageProps }) {
 
   const shouldHideNavbar = hideNavbarPages.includes(router.pathname);
 
-  // Let the Component handle its own initial loading state.
-  // This matches Server and Client initial renders perfectly, fully preventing Hydration Errors.
+  // By returning an empty or minimal screen until `isReady` is true, 
+  // we prevent the "page flashing" effect where the UI renders partially before auth is checked.
+  if (!isReady) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        {/* Silent minimal loading state to avoid jarring flashes */}
+      </div>
+    );
+  }
+
   return (
     <CallProvider>
       <div className="min-h-screen bg-gray-50">

@@ -233,6 +233,9 @@ export const CallProvider = ({ children }) => {
     // ✅ Use ref to correctly get target for BOTH caller and callee
     const targetId = callTargetId.current;
     if (socket && targetId) {
+      if (call.isCalling && !callAccepted) {
+        socket.emit('missed-call', { targetUserId: targetId, type: call.type });
+      }
       socket.emit('end-call', { targetUserId: targetId });
     }
     handleCleanup();
