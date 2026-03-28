@@ -87,6 +87,8 @@ export default function ChatBox({ conversationId }) {
         socket.off('new-message');
         socket.off('user-typing');
         socket.off('message-sent');
+        socket.off('chat-cleared');
+        socket.off('mark-read');
       }
     };
   }, [conversationId]);
@@ -150,6 +152,12 @@ export default function ChatBox({ conversationId }) {
           }
           return m;
         }));
+      }
+    });
+
+    socket.on('chat-cleared', ({ conversationId: cid }) => {
+      if (cid === conversationId) {
+        setMessages([]);
       }
     });
 
