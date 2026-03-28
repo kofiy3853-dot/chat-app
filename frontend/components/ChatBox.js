@@ -220,7 +220,8 @@ export default function ChatBox({ conversationId }) {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+      const recorder = new MediaRecorder(stream, { mimeType });
       audioChunksRef.current = [];
 
       recorder.ondataavailable = (e) => {
@@ -228,8 +229,9 @@ export default function ChatBox({ conversationId }) {
       };
 
       recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await sendVoiceNote(audioBlob);
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        const extension = mimeType.includes('mp4') ? 'm4a' : 'webm';
+        await sendVoiceNote(audioBlob, extension);
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -249,9 +251,9 @@ export default function ChatBox({ conversationId }) {
     }
   };
 
-  const sendVoiceNote = async (blob) => {
+  const sendVoiceNote = async (blob, extension = 'webm') => {
     const tempId = `temp-${Date.now()}`;
-    const voiceFile = new File([blob], 'voicenote.webm', { type: 'audio/webm' });
+    const voiceFile = new File([blob], `voicenote.${extension}`, { type: blob.type });
     
     const msgData = {
       id: tempId,

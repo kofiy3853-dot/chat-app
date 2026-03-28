@@ -99,14 +99,16 @@ export const VoiceBubble = ({ message }) => {
         </div>
         <audio 
           ref={audioRef}
-          src={fullUrl} 
           onEnded={() => setIsPlaying(false)}
           onError={(e) => {
             console.error("Audio playback error:", e);
             setIsPlaying(false);
           }}
           className="hidden" 
-        />
+          preload="metadata"
+        >
+          <source src={fullUrl} type={fullUrl?.includes('.m4a') ? 'audio/mp4' : 'audio/webm'} />
+        </audio>
         <p className="text-[10px] text-white/70 font-black uppercase tracking-widest leading-none">Voice Memo</p>
       </div>
     </div>
