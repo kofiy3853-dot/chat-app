@@ -629,3 +629,40 @@ exports.deleteConversation = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+// Clear all chat messages
+exports.clearChat = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Verify user is participant
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { userId_conversationId: { userId, conversationId: id } }
+    });
+
+    if (!participant) return res.status(403).json({ message: 'Access denied' });
+
+    // Global clear for this conversation (deletes all messages)
+    await prisma.message.deleteMany({
+      where: { conversationId: id }
+    });
+
+    // Reset conversation last message
+    await prisma.conversation.update({
+      where: { id },
+      data: {
+        lastMessageId: null,
+        lastMessageAt: null
+      }
+    });
+
+    // Notify other participants via socket to clear UI
+    if (req.io) {
+      req.io.to(`conversation:${id}`).emit('chat-cleared', { conversationId: id });
+    }
+
+    res.json({ message: 'Chat cleared successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};

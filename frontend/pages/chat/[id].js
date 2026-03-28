@@ -5,10 +5,20 @@ import Link from 'next/link';
 import ChatBox from '../../components/ChatBox';
 import { chatAPI } from '../../services/api';
 import { joinConversation, leaveConversation } from '../../services/socket';
-import { ArrowLeftIcon, EllipsisVerticalIcon, VideoCameraIcon, PhoneIcon } from '@heroicons/react/24/outline';
+import { 
+  ArrowLeftIcon, 
+  EllipsisVerticalIcon, 
+  VideoCameraIcon, 
+  PhoneIcon,
+  TrashIcon,
+  CalendarDaysIcon,
+  LinkIcon,
+  XMarkIcon
+} from '@heroicons/react/24/outline';
 import { getCurrentUser, getInitials, getAvatarColor } from '../../utils/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCall } from '../../context/CallContext';
+import { sendMessage as sendSocketMessage } from '../../services/socket';
 
 export default function ChatPage() {
   const router = useRouter();
@@ -16,6 +26,7 @@ export default function ChatPage() {
   const [conversation, setConversation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
   
   const { callUser } = useCall();
 
@@ -59,6 +70,41 @@ export default function ChatPage() {
     if (otherParticipant?.user?.id) {
       callUser(otherParticipant.user.id, otherParticipant.user.name, type);
     }
+  };
+
+  const handleClearChat = async () => {
+    if (window.confirm('Are you sure you want to clear all messages? This cannot be undone.')) {
+      try {
+        await chatAPI.clearChat(id);
+        setShowMenu(false);
+      } catch (error) {
+        console.error('Failed to clear chat:', error);
+        alert('Could not clear chat. Please try again.');
+      }
+    }
+  };
+
+  const handleSendCallLink = () => {
+    const callLink = `https://campus-chat.com/call/${id}-${Math.random().toString(36).substring(7)}`;
+    sendSocketMessage({
+      conversationId: id,
+      content: `Let's have a quick call! Join here: ${callLink}`,
+      type: 'TEXT'
+    });
+    setShowMenu(false);
+  };
+
+  const handleScheduleCall = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(10, 0, 0, 0);
+    
+    sendSocketMessage({
+      conversationId: id,
+      content: `🗓️ Scheduled a call for tomorrow at ${tomorrow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      type: 'TEXT'
+    });
+    setShowMenu(false);
   };
 
   if (loading) {
@@ -131,9 +177,61 @@ export default function ChatPage() {
             >
               <VideoCameraIcon className="w-5 h-5" />
             </button>
-            <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all">
-              <EllipsisVerticalIcon className="w-5 h-5" />
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setShowMenu(!showMenu)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+              >
+                <EllipsisVerticalIcon className="w-5 h-5" />
+              </button>
+
+              <AnimatePresence>
+                {showMenu && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowMenu(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden"
+                    >
+                      <div className="p-2 border-b border-slate-50">
+                        <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          Conversation Options
+                        </div>
+                      </div>
+                      <div className="p-2 space-y-1">
+                        <button
+                          onClick={handleSendCallLink}
+                          className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
+                        >
+                          <LinkIcon className="w-4 h-4" />
+                          <span>Send Call Link</span>
+                        </button>
+                        <button
+                          onClick={handleScheduleCall}
+                          className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
+                        >
+                          <CalendarDaysIcon className="w-4 h-4" />
+                          <span>Schedule Call</span>
+                        </button>
+                        <div className="h-px bg-slate-50 my-1 mx-2" />
+                        <button
+                          onClick={handleClearChat}
+                          className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-all text-left"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                          <span>Clear All Chat</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </motion.header>
 

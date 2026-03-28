@@ -186,6 +186,12 @@ export default function ChatBox({ conversationId }) {
         m.id === data.messageId ? { ...m, reactions: data.reactions } : m
       ));
     });
+
+    socket.on('chat-cleared', (data) => {
+      if (data.conversationId === conversationId) {
+        setMessages([]);
+      }
+    });
   };
 
   const handleEditMessage = (e) => {

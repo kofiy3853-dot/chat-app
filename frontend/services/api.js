@@ -84,7 +84,8 @@ export const chatAPI = {
       }
     }),
   archiveConversation: (id) => api.put(`/chat/conversations/${id}/archive`),
-  deleteConversation: (id) => api.delete(`/chat/conversations/${id}`)
+  deleteConversation: (id) => api.delete(`/chat/conversations/${id}`),
+  clearChat: (id) => api.delete(`/chat/conversations/${id}/clear`)
 };
 
 // Course API
