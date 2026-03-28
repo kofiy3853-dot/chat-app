@@ -124,8 +124,6 @@ export const CallProvider = ({ children }) => {
       ringtoneRef.current.currentTime = 0;
     }
 
-    setCallAccepted(true);
-    
     let localStream;
     try {
       localStream = await navigator.mediaDevices.getUserMedia({ 
@@ -146,6 +144,10 @@ export const CallProvider = ({ children }) => {
     
     streamRef.current = localStream;
     setStream(localStream);
+
+    // Accept AFTER stream is ready — so CallInterface renders with stream already set
+    setCallAccepted(true);
+
     if (myVideo.current) {
       myVideo.current.srcObject = localStream;
       myVideo.current.muted = true;

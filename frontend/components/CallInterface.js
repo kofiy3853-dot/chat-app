@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useCall } from '../context/CallContext';
 import { 
   PhoneIcon, 
@@ -28,8 +28,22 @@ export default function CallInterface() {
     isVideoOff
   } = useCall();
 
-  // Reactive stream syncing is now handled via callback refs for higher reliability 
-  // with conditionally rendered elements. 
+  // ------------------------------------------------------------------
+  // Stream Sync: Whenever stream state changes, push it to video elements.
+  // This covers the race where ontrack fires before the video mounts.
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    if (myVideo.current && stream) {
+      myVideo.current.srcObject = stream;
+    }
+  }, [stream]);
+
+  useEffect(() => {
+    if (userVideo.current && remoteStream) {
+      userVideo.current.srcObject = remoteStream;
+      userVideo.current.play().catch(() => {});
+    }
+  }, [remoteStream]);
 
   return (
     <div className="relative z-[999999]">
