@@ -450,7 +450,8 @@ export default function ChatBox({ conversationId }) {
                           </span>
                         )}
                         <div
-                          className={`group relative px-4 py-2.5 rounded-2xl shadow-sm ${
+                          onDoubleClick={() => !message.isDeleted && !editingMessageId && setActiveMenuId(activeMenuId === message.id ? null : message.id)}
+                          className={`group relative px-4 py-2.5 rounded-2xl shadow-sm cursor-pointer select-none ${
                             isMine
                               ? 'bg-primary-600 text-white rounded-tr-none'
                               : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
