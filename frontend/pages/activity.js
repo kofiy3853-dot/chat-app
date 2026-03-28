@@ -12,6 +12,7 @@ import {
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
+import { getSocket } from '../services/socket';
 
 export default function Activity() {
   const router = useRouter();
@@ -21,6 +22,36 @@ export default function Activity() {
 
   useEffect(() => {
     fetchNotifications();
+
+    const socket = getSocket();
+    if (socket) {
+      const handleNewNotification = (data) => {
+        if (data.notification) {
+          setNotifications(prev => {
+            // Check for duplicates
+            if (prev.find(n => n.id === data.notification.id)) return prev;
+            return [data.notification, ...prev];
+          });
+        }
+      };
+
+      const handleMessagesRead = (data) => {
+        // Find notifications for this conversation and mark them as read locally
+        setNotifications(prev => prev.map(n => 
+          (n.type === 'MESSAGE' && n.message?.conversationId === data.conversationId)
+            ? { ...n, isRead: true } 
+            : n
+        ));
+      };
+
+      socket.on('new-notification', handleNewNotification);
+      socket.on('messages-read', handleMessagesRead);
+
+      return () => {
+        socket.off('new-notification', handleNewNotification);
+        socket.off('messages-read', handleMessagesRead);
+      };
+    }
   }, []);
 
   const fetchNotifications = async () => {
