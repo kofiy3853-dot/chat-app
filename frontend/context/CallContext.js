@@ -6,27 +6,28 @@ const CallContext = createContext(null);
 
 export const useCall = () => useContext(CallContext);
 
-const servers = {
-  iceServers: [
-    // STUN — NAT traversal without relay
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun.relay.metered.ca:80' },
-
-    // TURN — Open Relay (free, no signup)
-    { urls: 'turn:openrelay.metered.ca:80',             username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443',            username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-
-    // TURN — Numb (backup, widely tested)
-    { urls: 'turn:numb.viagenie.ca', username: 'webrtc@live.com', credential: 'muazkh' },
-
-    // TURN — FreeSTUN (additional backup)
-    { urls: 'turn:freestun.net:3478', username: 'free', credential: 'free' },
-    { urls: 'turn:freestun.net:5349', username: 'free', credential: 'free' },
-  ],
-  iceCandidatePoolSize: 10,
+// Fetch fresh ICE server config from backend (uses Metered TURN when configured)
+const getIceServers = async () => {
+  try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}/api/turn/credentials`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!res.ok) throw new Error('TURN fetch failed');
+    const data = await res.json();
+    console.log('[WebRTC] ICE servers loaded:', data.iceServers?.length, 'entries');
+    return { iceServers: data.iceServers, iceCandidatePoolSize: 10 };
+  } catch (err) {
+    console.warn('[WebRTC] Could not fetch TURN credentials, using fallback STUN only:', err.message);
+    return {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+      ],
+      iceCandidatePoolSize: 10,
+    };
+  }
 };
 
 export const CallProvider = ({ children }) => {
@@ -162,7 +163,8 @@ export const CallProvider = ({ children }) => {
       myVideo.current.muted = true;
     }
 
-    const peer = new RTCPeerConnection(servers);
+    const iceConfig = await getIceServers();
+    const peer = new RTCPeerConnection(iceConfig);
 
     peer.onconnectionstatechange = () => {
       console.log('[WebRTC] Connection state:', peer.connectionState);
@@ -302,7 +304,8 @@ export const CallProvider = ({ children }) => {
     callTargetId.current = id;
     setCall({ isCalling: true, to: { id, name: userName }, type });
 
-    const peer = new RTCPeerConnection(servers);
+    const iceConfig = await getIceServers();
+    const peer = new RTCPeerConnection(iceConfig);
 
     peer.onconnectionstatechange = () => {
       console.log('[WebRTC] Connection state:', peer.connectionState);

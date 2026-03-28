@@ -11,6 +11,7 @@ const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const { setupSockets } = require('./sockets');
+const turnRoutes = require('./routes/turnRoutes');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -62,6 +63,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/turn', turnRoutes);
 
 // Socket.IO setup
 setupSockets(io);
