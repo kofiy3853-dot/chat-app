@@ -46,16 +46,16 @@ export default function CallInterface() {
       <motion.div
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="fixed top-12 left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-md pt-4"
+        className="fixed top-16 left-1/2 -translate-x-1/2 z-[9999] w-[85%] max-w-xs"
       >
-        <div className="bg-white/95 backdrop-blur-xl border border-gray-100 p-4 rounded-3xl shadow-2xl flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-xl font-bold animate-pulse">
+        <div className="bg-white/95 backdrop-blur-xl border border-gray-100 p-3 rounded-2xl shadow-2xl flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-base font-bold animate-pulse">
               {call.to?.name?.charAt(0)}
             </div>
             <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Calling {call.type}...</p>
-              <h3 className="text-lg font-black text-slate-900 leading-tight">{call.to?.name}</h3>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Calling...</p>
+              <h3 className="text-base font-black text-slate-900 leading-tight mt-1">{call.to?.name}</h3>
             </div>
           </div>
           <button
@@ -75,16 +75,16 @@ export default function CallInterface() {
       <motion.div 
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="fixed top-12 left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-md pt-4"
+        className="fixed top-16 left-1/2 -translate-x-1/2 z-[9999] w-[85%] max-w-xs"
       >
-        <div className="bg-white/80 backdrop-blur-xl border border-white/20 p-4 rounded-3xl shadow-2xl flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-2xl bg-primary-600 flex items-center justify-center text-white text-xl font-bold">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/20 p-3 rounded-2xl shadow-2xl flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white text-base font-bold">
               {call.from?.name?.charAt(0)}
             </div>
             <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Incoming {call.type}</p>
-              <h3 className="text-lg font-black text-slate-900 leading-tight">{call.from?.name}</h3>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Incoming Call</p>
+              <h3 className="text-base font-black text-slate-900 leading-tight mt-1">{call.from?.name}</h3>
             </div>
           </div>
           <div className="flex space-x-2">
