@@ -34,11 +34,18 @@ export default function Navbar() {
       fetchInitialCount();
     }
 
-    // 2. Set up socket listeners (Poll every 2 seconds until socket is ready)
+    // 2. Set up socket listeners
     let socket;
     const setupListeners = () => {
       socket = getSocket();
       if (socket) {
+        // Re-fetch count immediately in case we missed the initial 'unread-count' event
+        // (race condition: socket may have connected before Navbar mounted)
+        userAPI.getUnreadCount()
+          .then(r => { if (r?.data?.count !== undefined) setUnreadCount(r.data.count); })
+          .catch(() => {});
+
+        // Live updates from socket
         socket.on('new-notification', (data) => {
           setUnreadCount(data.unreadCount);
         });
@@ -46,6 +53,14 @@ export default function Navbar() {
         socket.on('unread-count', (data) => {
           setUnreadCount(data.count);
         });
+
+        // If socket reconnects, re-sync the count
+        socket.on('connect', () => {
+          userAPI.getUnreadCount()
+            .then(r => { if (r?.data?.count !== undefined) setUnreadCount(r.data.count); })
+            .catch(() => {});
+        });
+
         return true;
       }
       return false;
@@ -60,6 +75,7 @@ export default function Navbar() {
         if (socket) {
           socket.off('new-notification');
           socket.off('unread-count');
+          socket.off('connect');
         }
       };
     }
@@ -68,6 +84,7 @@ export default function Navbar() {
       if (socket) {
         socket.off('new-notification');
         socket.off('unread-count');
+        socket.off('connect');
       }
     };
   }, []);

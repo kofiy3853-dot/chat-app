@@ -41,7 +41,7 @@ const setupCourseSockets = (io) => {
     socket.on('send-announcement', async (data) => {
       try {
         const { courseId, content } = data;
-
+        console.log(`[NOTIF DEBUG] send-announcement from user:${socket.user.id} for course:${courseId}`);
         const course = await prisma.course.findUnique({
           where: { id: courseId },
           include: { 
@@ -51,16 +51,20 @@ const setupCourseSockets = (io) => {
         });
         
         if (!course) {
+          console.warn(`[NOTIF DEBUG] Course ${courseId} not found.`);
           return socket.emit('error', { message: 'Course not found' });
         }
+        console.log(`[NOTIF DEBUG] Course found: ${course.code} | conversationId=${course.conversation?.id} | students=${course.students.length}`);
 
         // Only instructor can send announcements
         if (course.instructorId !== socket.user.id && 
             socket.user.role !== 'ADMIN') {
+          console.warn(`[NOTIF DEBUG] Permission denied: user:${socket.user.id} is not instructor of course:${courseId}`);
           return socket.emit('error', { message: 'Only instructor can send announcements' });
         }
 
         // Create announcement and update conversation in a transaction
+        console.log(`[NOTIF DEBUG] Creating announcement message in conversation:${course.conversation.id}`);
         const message = await prisma.$transaction(async (tx) => {
           const m = await tx.message.create({
             data: {
@@ -85,16 +89,21 @@ const setupCourseSockets = (io) => {
           return m;
         });
 
+        console.log(`[NOTIF DEBUG] Announcement message created: id=${message.id}`);
+
         // Broadcast to course room
+        console.log(`[NOTIF DEBUG] Broadcasting new-announcement to room course:${courseId}`);
         io.to(`course:${courseId}`).emit('new-announcement', {
           message,
           courseId
         });
 
         // Send real-time notifications to students in parallel
+        console.log(`[NOTIF DEBUG] Sending notifications to ${course.students.length} student(s)`);
         await Promise.all(course.students.map(async (student) => {
           if (student.id === socket.user.id) return;
 
+          console.log(`[NOTIF DEBUG] Creating DB notification for student:${student.id}`);
           const notification = await prisma.notification.create({
             data: {
               type: 'ANNOUNCEMENT',
@@ -107,19 +116,23 @@ const setupCourseSockets = (io) => {
               actionUrl: `/courses/${courseId}`
             }
           });
+          console.log(`[NOTIF DEBUG] DB notification created: id=${notification.id} for student:${student.id}`);
 
           const unreadCount = await prisma.notification.count({
             where: { recipientId: student.id, isRead: false }
           });
 
+          console.log(`[NOTIF DEBUG] Emitting new-notification to room user:${student.id} | unreadCount=${unreadCount}`);
           io.to(`user:${student.id}`).emit('new-notification', {
             notification,
             unreadCount
           });
         }));
 
+        console.log(`[NOTIF DEBUG] All announcement notifications dispatched.`);
         socket.emit('announcement-sent', { message });
       } catch (error) {
+        console.error(`[NOTIF ERROR] send-announcement crashed:`, error);
         socket.emit('error', { message: error.message });
       }
     });
