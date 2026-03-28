@@ -1,10 +1,16 @@
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 
+// Helper to check if date is valid
+const isValidDate = (date) => {
+  return date instanceof Date && !isNaN(date.getTime());
+};
+
 // Format message timestamp
 export const formatMessageTime = (timestamp) => {
   if (!timestamp) return '';
   
   const date = new Date(timestamp);
+  if (!isValidDate(date)) return '';
   
   if (isToday(date)) {
     return format(date, 'h:mm a');
@@ -18,13 +24,17 @@ export const formatMessageTime = (timestamp) => {
 // Format full date
 export const formatFullDate = (timestamp) => {
   if (!timestamp) return '';
-  return format(new Date(timestamp), 'MMM d, yyyy h:mm a');
+  const date = new Date(timestamp);
+  if (!isValidDate(date)) return '';
+  return format(date, 'MMM d, yyyy h:mm a');
 };
 
 // Format relative time
 export const formatRelativeTime = (timestamp) => {
-  if (!timestamp) return '';
-  return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+  if (!timestamp) return 'Never';
+  const date = new Date(timestamp);
+  if (!isValidDate(date)) return 'Never';
+  return formatDistanceToNow(date, { addSuffix: true });
 };
 
 // Truncate text
@@ -74,7 +84,7 @@ export const getAvatarColor = (name) => {
 
 // File size formatter
 export const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes';
+  if (!bytes || bytes === 0) return '0 Bytes';
   
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
@@ -106,8 +116,13 @@ export const debounce = (func, wait) => {
 export const groupMessagesByDate = (messages) => {
   const groups = {};
   
+  if (!messages || !Array.isArray(messages)) return groups;
+
   messages.forEach(message => {
+    if (!message.createdAt) return;
     const date = new Date(message.createdAt);
+    if (!isValidDate(date)) return;
+    
     const dateKey = format(date, 'yyyy-MM-dd');
     
     if (!groups[dateKey]) {

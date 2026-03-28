@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { formatDistanceToNow } from 'date-fns';
-import { userAPI, authAPI } from '../services/api';
+import { userAPI } from '../services/api';
 import { 
   ChatBubbleLeftIcon, 
   MegaphoneIcon, 
@@ -13,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { getSocket } from '../services/socket';
+import { formatRelativeTime } from '../utils/helpers';
 
 export default function Activity() {
   const router = useRouter();
@@ -244,7 +244,7 @@ export default function Activity() {
                         )}
                         <div className="flex items-center space-x-2 mt-2">
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                            {formatRelativeTime(notification.createdAt)}
                           </span>
                           {!notification.isRead && (
                             <span className="w-1.5 h-1.5 bg-primary-600 rounded-full animate-pulse"></span>

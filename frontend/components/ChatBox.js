@@ -186,7 +186,7 @@ export default function ChatBox({ conversationId }) {
 
   // --- 6. Helper Components ---
   const MessageBubble = ({ message, isMine, showSender }) => {
-    const timestamp = format(new Date(message.createdAt), 'h:mm a');
+    const timestamp = formatMessageTime(message.createdAt);
     const isTemp = message.id?.toString().startsWith('temp');
 
     return (
@@ -343,7 +343,7 @@ export default function ChatBox({ conversationId }) {
             <div key={date} className="px-2">
               <div className="flex justify-center my-6 sticky top-2 z-10">
                 <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full border border-slate-100 text-[9px] font-black text-slate-400 uppercase tracking-widest shadow-sm">
-                  {isToday(new Date(date)) ? 'Today' : isYesterday(new Date(date)) ? 'Yesterday' : format(new Date(date), 'MMM d, yyyy')}
+                  {formatMessageTime(date)}
                 </span>
               </div>
               <div className="space-y-1">

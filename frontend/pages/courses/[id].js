@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { courseAPI } from '../../services/api';
 import Navbar from '../../components/Navbar';
 import ChatBox from '../../components/ChatBox';
-import { getCurrentUser, getInitials, getAvatarColor, formatFileSize } from '../../utils/helpers';
+import { getCurrentUser, getInitials, getAvatarColor, formatFileSize, formatFullDate } from '../../utils/helpers';
 import { useCall } from '../../context/CallContext';
 import { getSocket } from '../../services/socket';
 
@@ -373,7 +373,7 @@ export default function CoursePage() {
                           </div>
                           <span className="text-[10px] font-black text-slate-900 tracking-widest uppercase">{course.instructor?.name}</span>
                         </div>
-                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{new Date(ann.createdAt).toLocaleDateString()} at {new Date(ann.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{formatFullDate(ann.createdAt)}</span>
                       </div>
                       <p className="text-slate-600 text-base font-semibold leading-relaxed">{ann.content}</p>
                     </motion.div>
@@ -486,23 +486,23 @@ export default function CoursePage() {
                         transition={{ delay: i * 0.1 }}
                         className="bg-white rounded-[3rem] border-2 border-slate-100 shadow-sm overflow-hidden p-10 flex flex-col lg:flex-row lg:items-center justify-between space-y-8 lg:space-y-0 relative group hover:border-primary-500/20 transition-all duration-500"
                      >
-                        <div className={`absolute top-0 left-0 w-3 h-full ${new Date(assignment.deadline) < new Date() ? 'bg-rose-500' : 'bg-primary-600'}`}></div>
-                        <div className="flex-1">
-                           <div className="flex items-center space-x-3 mb-4">
-                              <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${new Date(assignment.deadline) < new Date() ? 'bg-rose-50 text-rose-600' : 'bg-primary-50 text-primary-600'}`}>
-                                 {new Date(assignment.deadline) < new Date() ? 'Deadline Passed' : `Due in ${Math.ceil((new Date(assignment.deadline) - new Date()) / (1000 * 60 * 60 * 24))} Days`}
-                              </span>
-                              <span className="text-[9px] font-black bg-slate-100 text-slate-500 px-3 py-1 rounded-full uppercase tracking-widest">
-                                 {assignment.points} Points Available
-                              </span>
-                           </div>
-                           <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">{assignment.title}</h3>
-                           <p className="text-slate-500 font-medium text-sm line-clamp-2 mb-6 max-w-xl">{assignment.description}</p>
-                           <div className="flex items-center space-x-8 text-slate-400">
-                              <div className="flex items-center space-x-2.5">
-                                <CalendarIcon className="w-5 h-5 text-slate-300" />
-                                <span className="text-[10px] font-black uppercase tracking-tight">{new Date(assignment.deadline).toLocaleDateString()}</span>
-                              </div>
+                         <div className={`absolute top-0 left-0 w-3 h-full ${assignment.deadline && new Date(assignment.deadline) < new Date() ? 'bg-rose-500' : 'bg-primary-600'}`}></div>
+                         <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-4">
+                               <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${assignment.deadline && new Date(assignment.deadline) < new Date() ? 'bg-rose-50 text-rose-600' : 'bg-primary-50 text-primary-600'}`}>
+                                  {assignment.deadline && new Date(assignment.deadline) < new Date() ? 'Deadline Passed' : (assignment.deadline ? `Due in ${Math.ceil((new Date(assignment.deadline) - new Date()) / (1000 * 60 * 60 * 24))} Days` : 'No Deadline')}
+                               </span>
+                               <span className="text-[9px] font-black bg-slate-100 text-slate-500 px-3 py-1 rounded-full uppercase tracking-widest">
+                                  {assignment.points} Points Available
+                               </span>
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">{assignment.title}</h3>
+                            <p className="text-slate-500 font-medium text-sm line-clamp-2 mb-6 max-w-xl">{assignment.description}</p>
+                            <div className="flex items-center space-x-8 text-slate-400">
+                               <div className="flex items-center space-x-2.5">
+                                 <CalendarIcon className="w-5 h-5 text-slate-300" />
+                                 <span className="text-[10px] font-black uppercase tracking-tight">{formatFullDate(assignment.deadline)}</span>
+                               </div>
                               <div className="flex items-center space-x-2.5">
                                 <UsersIcon className="w-5 h-5 text-slate-300" />
                                 <span className="text-[10px] font-black uppercase tracking-tight">{assignment.submissions?.length || 0} Submissions</span>
