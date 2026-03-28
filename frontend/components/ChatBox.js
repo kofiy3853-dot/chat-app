@@ -112,7 +112,18 @@ export default function ChatBox({ conversationId }) {
 
     socket.on('new-message', (msg) => {
       if (msg.conversationId === conversationId) {
-        setMessages(prev => [...prev, msg]);
+        setMessages(prev => {
+          const newMsg = msg.message;
+          // Check if message already exists by ID or tempId
+          const exists = prev.findIndex(m => m.id === newMsg.id || (m.tempId && m.tempId === newMsg.tempId));
+          
+          if (exists !== -1) {
+            const newMessages = [...prev];
+            newMessages[exists] = newMsg;
+            return newMessages;
+          }
+          return [...prev, newMsg];
+        });
         markAsRead(conversationId);
       }
     });
@@ -126,7 +137,8 @@ export default function ChatBox({ conversationId }) {
     });
 
     socket.on('message-sent', (sent) => {
-      setMessages(prev => prev.map(m => m.tempId === sent.tempId ? sent : m));
+      const sentMsg = sent.message || sent;
+      setMessages(prev => prev.map(m => (m.tempId && m.tempId === sentMsg.tempId) ? sentMsg : m));
     });
   };
 
