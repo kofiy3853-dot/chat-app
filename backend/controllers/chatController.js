@@ -642,18 +642,29 @@ exports.clearChat = async (req, res) => {
 
     if (!participant) return res.status(403).json({ message: 'Access denied' });
 
-    // Global clear for this conversation (deletes all messages)
-    await prisma.message.deleteMany({
-      where: { conversationId: id }
-    });
-
-    // Reset conversation last message
+    // 1. Reset conversation last message pointers first (prevents FK constraint errors)
     await prisma.conversation.update({
       where: { id },
       data: {
         lastMessageId: null,
         lastMessageAt: null
       }
+    });
+
+    // 2. Delete all notifications associated with messages in this conversation
+    // Notification has a messageId field but no Cascade delete on the Message relation
+    await prisma.notification.deleteMany({
+      where: {
+        message: {
+          conversationId: id
+        }
+      }
+    });
+
+    // 3. Global clear for this conversation (deletes all messages)
+    // Dependencies like Reactions and ReadReceipts HAVE onDelete: Cascade in schema
+    await prisma.message.deleteMany({
+      where: { conversationId: id }
     });
 
     // Notify other participants via socket to clear UI
@@ -663,6 +674,7 @@ exports.clearChat = async (req, res) => {
 
     res.json({ message: 'Chat cleared successfully' });
   } catch (error) {
+    console.error('Clear Chat Error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
