@@ -158,7 +158,7 @@ export default function CallInterface() {
             onClick={toggleMute}
             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-500 text-white' : 'bg-white/20 text-white hover:bg-white/40'}`}
           >
-            {isMuted ? <MicrophoneIcon className="w-6 h-6" /> : <SpeakerWaveIcon className="get-6 h-6" />}
+            {isMuted ? <MicrophoneIcon className="w-6 h-6" /> : <SpeakerWaveIcon className="w-6 h-6" />}
           </button>
           
           <button 

@@ -181,10 +181,16 @@ export default function ChatBox({ conversationId }) {
 
       mediaRecorderRef.current.onstop = async () => {
         const mimeType = mediaRecorderRef.current.mimeType || 'audio/webm';
+        // Improved extension detection based on the actual recorded mimeType
+        let extension = 'mp3';
+        if (mimeType.includes('webm')) extension = 'webm';
+        else if (mimeType.includes('ogg')) extension = 'ogg';
+        else if (mimeType.includes('mp4') || mimeType.includes('m4a')) extension = 'm4a';
+
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
-        const voiceFile = new File([audioBlob], `voice-note-${Date.now()}.mp3`, { type: mimeType });
+        const voiceFile = new File([audioBlob], `voice-note-${Date.now()}.${extension}`, { type: mimeType });
         
-        console.log(`Voice note recording complete. Size: ${voiceFile.size} bytes, Type: ${mimeType}`);
+        console.log(`Voice note recording complete. Size: ${voiceFile.size} bytes, Type: ${mimeType}, Ext: ${extension}`);
         handleUploadMedia(voiceFile, 'VOICE');
       };
 

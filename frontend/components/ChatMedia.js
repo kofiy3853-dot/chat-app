@@ -14,7 +14,7 @@ import React, { useState, useRef } from 'react';
 
 export const AttachmentBubble = ({ message }) => {
   const isImage = message.type === 'IMAGE' || (message.fileName && /\.(jpg|jpeg|png|gif)$/i.test(message.fileName));
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
   const fullUrl = message.fileUrl ? `${baseUrl}${message.fileUrl}` : null;
 
   if (isImage) {
@@ -59,7 +59,7 @@ export const AttachmentBubble = ({ message }) => {
 export const VoiceBubble = ({ message }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
   const fullUrl = message.fileUrl ? `${baseUrl}${message.fileUrl}` : null;
 
   const handlePlay = () => {
@@ -94,6 +94,10 @@ export const VoiceBubble = ({ message }) => {
           ref={audioRef}
           src={fullUrl} 
           onEnded={() => setIsPlaying(false)}
+          onError={(e) => {
+            console.error("Audio playback error:", e);
+            setIsPlaying(false);
+          }}
           className="hidden" 
         />
         <p className="text-[10px] text-white/70 font-black uppercase tracking-widest leading-none">Voice Memo</p>
