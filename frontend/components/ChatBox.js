@@ -284,8 +284,25 @@ export default function ChatBox({ conversationId }) {
             {showSender && !isMine && <span className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">{message.sender?.name}</span>}
             
             <div 
-              onClick={() => !message.isDeleted && !editingMessageId && setActiveMenuId(activeMenuId === message.id ? null : message.id)}
-              className={`group relative p-3 rounded-2xl shadow-sm cursor-pointer border ${
+              onMouseDown={(e) => {
+                const timer = setTimeout(() => {
+                  if (!message.isDeleted && !editingMessageId) setActiveMenuId(message.id);
+                  if (navigator.vibrate) navigator.vibrate(50); // Haptic feedback
+                }, 500);
+                e.currentTarget.dataset.timer = timer;
+              }}
+              onMouseUp={(e) => clearTimeout(e.currentTarget.dataset.timer)}
+              onMouseLeave={(e) => clearTimeout(e.currentTarget.dataset.timer)}
+              onTouchStart={(e) => {
+                const timer = setTimeout(() => {
+                  if (!message.isDeleted && !editingMessageId) setActiveMenuId(message.id);
+                  if (navigator.vibrate) navigator.vibrate(50);
+                }, 500);
+                e.currentTarget.dataset.timer = timer;
+              }}
+              onTouchEnd={(e) => clearTimeout(e.currentTarget.dataset.timer)}
+              onTouchMove={(e) => clearTimeout(e.currentTarget.dataset.timer)}
+              className={`group relative p-3 rounded-2xl shadow-sm border select-none touch-none ${
                 isMine ? 'bg-primary-600 border-primary-500 text-white rounded-tr-none' : 'bg-white border-slate-100 text-slate-800 rounded-tl-none'
               }`}
             >
