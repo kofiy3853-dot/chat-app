@@ -563,7 +563,10 @@ export default function ChatBox({ conversationId }) {
                           {!message.isDeleted && !editingMessageId && (
                             <div className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1 ${isMine ? '-left-12' : '-right-12'}`}>
                               <button 
-                                onClick={() => setActiveMenuId(activeMenuId === message.id ? null : message.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveMenuId(activeMenuId === message.id ? null : message.id);
+                                }}
                                 className={`p-1.5 rounded-full bg-white shadow-sm border border-slate-100 text-slate-400 hover:text-slate-600 transition-all ${activeMenuId === message.id ? 'opacity-100 scale-110' : ''}`}
                               >
                                 <EllipsisHorizontalIcon className="w-4 h-4" />
