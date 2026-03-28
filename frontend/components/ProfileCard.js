@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { authAPI } from '../services/api';
 import { 
-  UserCircleIcon, 
+  UserIcon, 
   EnvelopeIcon, 
   AcademicCapIcon,
-  PencilIcon,
+  PencilSquareIcon,
   CheckIcon,
-  XMarkIcon
+  XMarkIcon,
+  IdentificationIcon,
+  BuildingLibraryIcon,
+  CameraIcon
 } from '@heroicons/react/24/outline';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProfileCard({ user, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -33,141 +37,173 @@ export default function ProfileCard({ user, onUpdate }) {
   };
 
   const getRoleBadgeColor = (role) => {
-    switch (role) {
+    switch (role?.toUpperCase()) {
       case 'ADMIN':
-        return 'bg-red-100 text-red-700 font-bold border border-red-200';
+        return 'bg-rose-500 text-white shadow-rose-200';
       case 'INSTRUCTOR':
-        return 'bg-purple-100 text-purple-700 font-bold border border-purple-200';
+        return 'bg-violet-600 text-white shadow-violet-200';
       case 'STUDENT':
-        return 'bg-green-100 text-green-700 font-bold border border-green-200';
+        return 'bg-emerald-600 text-white shadow-emerald-200';
       default:
-        return 'bg-gray-100 text-gray-700 font-bold border border-gray-200';
+        return 'bg-slate-600 text-white shadow-slate-200';
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Profile</h2>
-        {!isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <PencilIcon className="w-5 h-5" />
-          </button>
-        )}
-      </div>
-
-      {/* Avatar */}
-      <div className="flex justify-center mb-6">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-bold">
-          {user?.name?.charAt(0).toUpperCase()}
+    <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative">
+      {/* Cover Header */}
+      <div className="h-32 bg-gradient-to-r from-primary-600 via-indigo-600 to-violet-600 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+        <div className="absolute top-4 right-6">
+          {!isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="p-2.5 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-xl transition-all shadow-lg active:scale-95 group"
+            >
+              <PencilSquareIcon className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+            </button>
+          )}
         </div>
       </div>
 
-      {isEditing ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Department
-            </label>
-            <input
-              type="text"
-              value={formData.department}
-              onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Computer Science"
-            />
-          </div>
-
-          <div className="flex space-x-3 pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
-            >
-              <CheckIcon className="w-4 h-4" />
-              <span>Save</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsEditing(false)}
-              className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 flex items-center justify-center space-x-2"
-            >
-              <XMarkIcon className="w-4 h-4" />
-              <span>Cancel</span>
-            </button>
-          </div>
-        </form>
-      ) : (
-        <div className="space-y-4">
-          {/* Name */}
-          <div className="flex items-center space-x-3">
-            <UserCircleIcon className="w-5 h-5 text-gray-400" />
-            <div>
-              <p className="text-sm text-gray-500">Name</p>
-              <p className="font-medium text-gray-900">{user?.name}</p>
-            </div>
-          </div>
-
-          {/* Email */}
-          <div className="flex items-center space-x-3">
-            <EnvelopeIcon className="w-5 h-5 text-gray-400" />
-            <div>
-              <p className="text-sm text-gray-500">Email</p>
-              <p className="font-medium text-gray-900">{user?.email}</p>
-            </div>
-          </div>
-
-          {/* Role */}
-          <div className="flex items-center space-x-3">
-            <AcademicCapIcon className="w-5 h-5 text-gray-400" />
-            <div>
-              <p className="text-sm text-gray-500">Role</p>
-              <span className={`inline-block px-2 py-1 text-xs font-semibold rounded ${getRoleBadgeColor(user?.role)}`}>
-                {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
-              </span>
-            </div>
-          </div>
-
-          {/* Department */}
-          {user?.department && (
-            <div className="flex items-center space-x-3">
-              <AcademicCapIcon className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-500">Department</p>
-                <p className="font-medium text-gray-900">{user.department}</p>
+      {/* Profile Content Wrapper */}
+      <div className="px-8 pb-10">
+        {/* Avatar Section */}
+        <div className="relative -mt-14 mb-6 flex items-end justify-between">
+          <div className="relative group">
+            <div className="w-28 h-28 rounded-[2rem] bg-white p-1.5 shadow-xl rotate-3 group-hover:rotate-0 transition-transform duration-500">
+              <div className="w-full h-full rounded-[1.6rem] bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-black shadow-inner">
+                {user?.name?.charAt(0).toUpperCase()}
               </div>
             </div>
-          )}
+            {isEditing && (
+              <button className="absolute bottom-0 right-0 p-2 bg-white text-primary-600 rounded-lg shadow-lg border border-slate-100 hover:scale-110 active:scale-90 transition-all">
+                <CameraIcon className="w-4 h-4" />
+              </button>
+            )}
+          </div>
 
-          {/* Student ID */}
-          {user?.studentId && (
-            <div className="flex items-center space-x-3">
-              <AcademicCapIcon className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-500">Student ID</p>
-                <p className="font-medium text-gray-900">{user.studentId}</p>
-              </div>
-            </div>
-          )}
+          <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${getRoleBadgeColor(user?.role)}`}>
+            {user?.role || 'User'}
+          </div>
         </div>
-      )}
+
+        <AnimatePresence mode="wait">
+          {isEditing ? (
+            <motion.form 
+              key="edit"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              onSubmit={handleSubmit} 
+              className="space-y-6"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Full Name</label>
+                  <div className="relative">
+                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-bold text-sm"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Department</label>
+                  <div className="relative">
+                    <BuildingLibraryIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={formData.department}
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-bold text-sm"
+                      placeholder="e.g. Computer Science"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-primary-600 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary-700 disabled:opacity-50 shadow-lg shadow-primary-600/20 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                >
+                  <CheckIcon className="w-4 h-4" />
+                  <span>Update Profile</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="flex-1 bg-slate-100 text-slate-500 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                  <span>Dismiss</span>
+                </button>
+              </div>
+            </motion.form>
+          ) : (
+            <motion.div 
+              key="view"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-8"
+            >
+              {/* Identity Header */}
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">{user?.name}</h2>
+                <p className="text-sm font-bold text-slate-400 mt-1 flex items-center">
+                  <EnvelopeIcon className="w-4 h-4 mr-2" />
+                  {user?.email}
+                </p>
+              </div>
+
+              {/* Data Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-primary-100 transition-colors">
+                  <div className="flex items-center space-x-3 text-primary-600 mb-2">
+                    <BuildingLibraryIcon className="w-5 h-5" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Department</span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-800">{user?.department || 'Not Specified'}</p>
+                </div>
+
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-primary-100 transition-colors">
+                  <div className="flex items-center space-x-3 text-indigo-600 mb-2">
+                    <IdentificationIcon className="w-5 h-5" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Identification</span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-800">{user?.studentId || user?.instructorId || 'N/A'}</p>
+                </div>
+              </div>
+
+              {/* Status Section */}
+              <div className="flex items-center space-x-4 pt-2 border-t border-slate-50 uppercase">
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-slate-400 tracking-widest">Academic Status</span>
+                  <div className="flex items-center mt-1 text-emerald-600 space-x-1.5">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                    <span className="text-[10px] font-black">Active Member</span>
+                  </div>
+                </div>
+                <div className="h-6 w-px bg-slate-100" />
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-slate-400 tracking-widest">Network Secure</span>
+                  <div className="flex items-center mt-1 text-primary-600 space-x-1.5">
+                    <AcademicCapIcon className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-black">Verified Campus IP</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
