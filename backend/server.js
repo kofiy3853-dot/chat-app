@@ -46,7 +46,7 @@ const io = new Server(server, {
 });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', cors(corsOptions), express.static('uploads'));
 
 // Make prisma and io available to routes
 app.use((req, res, next) => {
