@@ -8,16 +8,37 @@ export const useCall = () => useContext(CallContext);
 
 const servers = {
   iceServers: [
+    // STUN servers — help discover public IP, but fail behind symmetric NAT
     {
-      urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
+      urls: [
+        'stun:stun.l.google.com:19302',
+        'stun:stun1.l.google.com:19302',
+        'stun:stun2.l.google.com:19302',
+      ],
     },
-    // IMPORTANT: In production, include TURN servers here for reliable connectivity
-    // {
-    //   urls: 'turn:your-turn-server.com',
-    //   username: 'user',
-    //   credential: 'password'
-    // }
+    // TURN servers — relay media through firewalls/NAT (required for real-world calls)
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:80?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
   ],
+  iceCandidatePoolSize: 10,
 };
 
 export const CallProvider = ({ children }) => {
