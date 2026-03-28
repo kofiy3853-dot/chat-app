@@ -104,7 +104,9 @@ export default function NotificationList({ notifications = [], onMarkAsRead }) {
                   </p>
                 )}
                 <p className="text-xs text-gray-400 mt-2">
-                  {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                  {notification.createdAt && !isNaN(new Date(notification.createdAt).getTime())
+                    ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
+                    : ''}
                 </p>
               </div>
               {!notification.isRead && (
