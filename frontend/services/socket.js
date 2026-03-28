@@ -91,6 +91,16 @@ export const addReaction = (messageId, emoji) => {
   if (socket) socket.emit('add-reaction', { messageId, emoji });
 };
 
+export const editMessage = (messageId, content) => {
+  const socket = getSocket();
+  if (socket) socket.emit('edit-message', { messageId, content });
+};
+
+export const deleteMessage = (messageId) => {
+  const socket = getSocket();
+  if (socket) socket.emit('delete-message', { messageId });
+};
+
 export const joinCourse = (courseId) => {
   const socket = getSocket();
   if (socket) socket.emit('join-course', courseId);

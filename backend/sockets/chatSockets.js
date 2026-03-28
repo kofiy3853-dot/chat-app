@@ -321,20 +321,41 @@ const setupChatSockets = (io) => {
       try {
         const { messageId, emoji } = data;
 
-        const reaction = await prisma.reaction.upsert({
+        const existingReaction = await prisma.reaction.findUnique({
           where: {
             userId_messageId: {
               userId: socket.user.id,
               messageId
             }
-          },
-          update: { emoji },
-          create: {
-            userId: socket.user.id,
-            messageId,
-            emoji
           }
         });
+
+        if (existingReaction && existingReaction.emoji === emoji) {
+          // Remove reaction if user clicks same emoji
+          await prisma.reaction.delete({
+            where: {
+              userId_messageId: {
+                userId: socket.user.id,
+                messageId
+              }
+            }
+          });
+        } else {
+          await prisma.reaction.upsert({
+            where: {
+              userId_messageId: {
+                userId: socket.user.id,
+                messageId
+              }
+            },
+            update: { emoji },
+            create: {
+              userId: socket.user.id,
+              messageId,
+              emoji
+            }
+          });
+        }
 
         const allReactions = await prisma.reaction.findMany({
           where: { messageId },
@@ -349,12 +370,74 @@ const setupChatSockets = (io) => {
         });
 
         if (message) {
-          // Broadcast to conversation
-          io.to(`conversation:${message.conversationId}`).emit('reaction-added', {
+          io.to(`conversation:${message.conversationId}`).emit('reaction-updated', {
             messageId,
             reactions: allReactions
           });
         }
+      } catch (error) {
+        socket.emit('error', { message: error.message });
+      }
+    });
+
+    // Edit message
+    socket.on('edit-message', async (data) => {
+      try {
+        const { messageId, content } = data;
+
+        const message = await prisma.message.findUnique({
+          where: { id: messageId }
+        });
+
+        if (!message || message.senderId !== socket.user.id) {
+          return socket.emit('error', { message: 'Unauthorized' });
+        }
+
+        const updatedMessage = await prisma.message.update({
+          where: { id: messageId },
+          data: {
+            content,
+            editedAt: new Date()
+          },
+          include: {
+            sender: {
+              select: { id: true, name: true, avatar: true }
+            }
+          }
+        });
+
+        io.to(`conversation:${updatedMessage.conversationId}`).emit('message-updated', {
+          message: updatedMessage
+        });
+      } catch (error) {
+        socket.emit('error', { message: error.message });
+      }
+    });
+
+    // Delete message (Soft delete)
+    socket.on('delete-message', async (data) => {
+      try {
+        const { messageId } = data;
+
+        const message = await prisma.message.findUnique({
+          where: { id: messageId }
+        });
+
+        if (!message || message.senderId !== socket.user.id) {
+          return socket.emit('error', { message: 'Unauthorized' });
+        }
+
+        const updatedMessage = await prisma.message.update({
+          where: { id: messageId },
+          data: {
+            isDeleted: true,
+            content: 'This message was deleted'
+          }
+        });
+
+        io.to(`conversation:${updatedMessage.conversationId}`).emit('message-deleted', {
+          messageId: updatedMessage.id
+        });
       } catch (error) {
         socket.emit('error', { message: error.message });
       }

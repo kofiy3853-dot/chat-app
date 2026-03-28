@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { chatAPI } from '../services/api';
-import { getSocket, sendMessage, sendTyping, markAsRead } from '../services/socket';
+import { getSocket, sendMessage, sendTyping, markAsRead, addReaction, editMessage, deleteMessage } from '../services/socket';
 import { 
-  PaperAirplaneIcon, 
-  FaceSmileIcon, 
+  PaperAirplaneIcon,
+  FaceSmileIcon,
   PaperClipIcon,
   CheckIcon,
   CheckBadgeIcon,
@@ -13,7 +13,10 @@ import {
   StopCircleIcon,
   XMarkIcon,
   DocumentIcon,
-  ChatBubbleLeftIcon
+  ChatBubbleLeftIcon,
+  PencilIcon,
+  TrashIcon,
+  EllipsisHorizontalIcon
 } from '@heroicons/react/24/outline';
 import { getCurrentUser, groupMessagesByDate, getInitials, getAvatarColor } from '../utils/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,6 +33,9 @@ export default function ChatBox({ conversationId }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [error, setError] = useState(null);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [activeMenuId, setActiveMenuId] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordTime, setRecordTime] = useState(0);
@@ -164,6 +170,43 @@ export default function ChatBox({ conversationId }) {
     socket.on('error', (err) => {
       console.error('Socket error:', err);
     });
+
+    socket.on('message-updated', (data) => {
+      setMessages(prev => prev.map(m => m.id === data.message.id ? data.message : m));
+    });
+
+    socket.on('message-deleted', (data) => {
+      setMessages(prev => prev.map(m => 
+        m.id === data.messageId ? { ...m, isDeleted: true, content: 'This message was deleted' } : m
+      ));
+    });
+
+    socket.on('reaction-updated', (data) => {
+      setMessages(prev => prev.map(m => 
+        m.id === data.messageId ? { ...m, reactions: data.reactions } : m
+      ));
+    });
+  };
+
+  const handleEditMessage = (e) => {
+    if (e) e.preventDefault();
+    if (!editingContent.trim() || !editingMessageId) return;
+
+    editMessage(editingMessageId, editingContent.trim());
+    setEditingMessageId(null);
+    setEditingContent('');
+  };
+
+  const handleDeleteMessage = (messageId) => {
+    if (window.confirm('Delete this message?')) {
+      deleteMessage(messageId);
+      setActiveMenuId(null);
+    }
+  };
+
+  const handleAddReaction = (messageId, emoji) => {
+    addReaction(messageId, emoji);
+    setActiveMenuId(null);
   };
 
   const startRecording = async () => {
@@ -414,7 +457,34 @@ export default function ChatBox({ conversationId }) {
                           }`}
                         >
                           {/* Media Handling */}
-                          {message.type === 'VOICE' ? (
+                          {editingMessageId === message.id ? (
+                            <form onSubmit={handleEditMessage} className="min-w-[200px]">
+                              <textarea
+                                value={editingContent}
+                                onChange={(e) => setEditingContent(e.target.value)}
+                                className={`w-full bg-transparent border-none focus:ring-0 p-0 text-sm sm:text-base resize-none ${isMine ? 'text-white' : 'text-slate-800'}`}
+                                autoFocus
+                                rows={Math.max(1, editingContent.split('\n').length)}
+                              />
+                              <div className="flex justify-end space-x-2 mt-2">
+                                <button 
+                                  type="button" 
+                                  onClick={() => setEditingMessageId(null)}
+                                  className={`text-[10px] font-bold px-2 py-1 rounded-lg ${isMine ? 'bg-primary-700 text-white' : 'bg-slate-100 text-slate-600'}`}
+                                >
+                                  Cancel
+                                </button>
+                                <button 
+                                  type="submit"
+                                  className={`text-[10px] font-bold px-2 py-1 rounded-lg ${isMine ? 'bg-white text-primary-600' : 'bg-primary-600 text-white'}`}
+                                >
+                                  Save
+                                </button>
+                              </div>
+                            </form>
+                          ) : message.isDeleted ? (
+                            <p className="text-sm italic opacity-60">This message was deleted</p>
+                          ) : message.type === 'VOICE' ? (
                             <VoiceBubble message={message} />
                           ) : (message.type === 'IMAGE' || message.type === 'FILE') ? (
                             <AttachmentBubble message={message} />
@@ -422,17 +492,116 @@ export default function ChatBox({ conversationId }) {
                             <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap font-medium">{message.content}</p>
                           )}
                           
+                          {/* Reactions Display */}
+                          {message.reactions && message.reactions.length > 0 && !message.isDeleted && (
+                            <div className={`flex flex-wrap gap-1 mt-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                              {Object.entries(
+                                message.reactions.reduce((acc, r) => {
+                                  acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+                                  return acc;
+                                }, {})
+                              ).map(([emoji, count]) => {
+                                const didIReact = message.reactions.some(r => r.userId === currentUser?.id && r.emoji === emoji);
+                                return (
+                                  <button
+                                    key={emoji}
+                                    onClick={() => handleAddReaction(message.id, emoji)}
+                                    className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-full text-[10px] border transition-all ${
+                                      didIReact 
+                                        ? 'bg-primary-50 border-primary-200 text-primary-600 shadow-sm' 
+                                        : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200'
+                                    }`}
+                                  >
+                                    <span>{emoji}</span>
+                                    {count > 1 && <span>{count}</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+
                           <div className={`flex items-center space-x-1 mt-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                            {message.editedAt && !message.isDeleted && (
+                              <span className={`text-[9px] italic font-medium mr-1 ${isMine ? 'text-primary-200' : 'text-slate-400'}`}>edited</span>
+                            )}
                             <span className={`text-[9px] font-bold tracking-tighter ${isMine ? 'text-primary-100' : 'text-slate-400'}`}>
                               {format(new Date(message.createdAt), 'h:mm a')}
                             </span>
                             {isMine && message.status === 'sending' && (
                               <ArrowPathIcon className="w-2.5 h-2.5 animate-spin text-primary-200" />
                             )}
-                            {isMine && message.status !== 'sending' && (
+                            {isMine && message.status !== 'sending' && !message.isDeleted && (
                               <CheckIcon className={`w-3 h-3 ${message.isRead ? 'text-emerald-300' : 'text-primary-200'}`} />
                             )}
                           </div>
+
+                          {/* Message Actions Button (Dropdown) */}
+                          {!message.isDeleted && !editingMessageId && (
+                            <div className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1 ${isMine ? '-left-12' : '-right-12'}`}>
+                              <button 
+                                onClick={() => setActiveMenuId(activeMenuId === message.id ? null : message.id)}
+                                className={`p-1.5 rounded-full bg-white shadow-sm border border-slate-100 text-slate-400 hover:text-slate-600 transition-all ${activeMenuId === message.id ? 'opacity-100 scale-110' : ''}`}
+                              >
+                                <EllipsisHorizontalIcon className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Action Menu Popover */}
+                          <AnimatePresence>
+                            {activeMenuId === message.id && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                className={`absolute z-[100] bottom-full mb-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden min-w-[140px] ${isMine ? 'right-0' : 'left-0'}`}
+                              >
+                                {/* Quick Reactions */}
+                                <div className="flex items-center justify-around p-2 border-b border-slate-50 bg-slate-50/50">
+                                  {['❤️', '👍', '🔥', '😂', '😮', '😢'].map(emoji => (
+                                    <button
+                                      key={emoji}
+                                      onClick={() => handleAddReaction(message.id, emoji)}
+                                      className="hover:scale-125 transition-transform p-1 text-base"
+                                    >
+                                      {emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className="p-1">
+                                  {isMine && (
+                                    <>
+                                      <button 
+                                        onClick={() => {
+                                          setEditingMessageId(message.id);
+                                          setEditingContent(message.content);
+                                          setActiveMenuId(null);
+                                        }}
+                                        className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
+                                      >
+                                        <PencilIcon className="w-4 h-4" />
+                                        <span>Edit Message</span>
+                                      </button>
+                                      <button 
+                                        onClick={() => handleDeleteMessage(message.id)}
+                                        className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                                      >
+                                        <TrashIcon className="w-4 h-4" />
+                                        <span>Delete</span>
+                                      </button>
+                                    </>
+                                  )}
+                                  <button 
+                                    className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
+                                    onClick={() => setActiveMenuId(null)}
+                                  >
+                                    <FaceSmileIcon className="w-4 h-4" />
+                                    <span>Add Emoji...</span>
+                                  </button>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
                     </motion.div>

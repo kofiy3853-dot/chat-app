@@ -25,9 +25,10 @@ export const CallProvider = ({ children }) => {
   const ringtoneRef = useRef(null);
 
   useEffect(() => {
-    // Initialize ringtone
-    ringtoneRef.current = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-main-smartphone-ringing-notification-intense-1580.mp3');
+    // Initialize ringtone - Using Cloudflare CDN for reliability
+    ringtoneRef.current = new Audio('https://cdnjs.cloudflare.com/ajax/libs/ion-sound/3.0.7/sounds/bell_ring.mp3');
     ringtoneRef.current.loop = true;
+    ringtoneRef.current.onerror = (e) => console.log('Ringtone failed to load:', e);
   }, []);
 
   const myVideo = useRef();
