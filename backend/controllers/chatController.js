@@ -347,6 +347,47 @@ exports.sendMessage = async (req, res) => {
       }
     });
 
+    // Notify other participants via socket if available
+    if (req.io) {
+      const participants = await prisma.conversationParticipant.findMany({
+        where: { conversationId },
+        select: { userId: true }
+      });
+
+      const recipients = participants.filter(p => p.userId !== req.user.id);
+      
+      // Emit to conversation room
+      req.io.to(`conversation:${conversationId}`).emit('new-message', {
+        message,
+        conversationId
+      });
+
+      // Send notifications to each recipient in parallel
+      await Promise.all(recipients.map(async (recipient) => {
+        // Create DB Notification
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'MESSAGE',
+            title: `New message from ${message.sender.name}`,
+            content: content.length > 50 ? content.substring(0, 50) + '...' : content,
+            recipientId: recipient.userId,
+            senderId: req.user.id,
+            messageId: message.id
+          }
+        });
+
+        const unreadCount = await prisma.notification.count({
+          where: { recipientId: recipient.userId, isRead: false }
+        });
+
+        // Emit new-notification
+        req.io.to(`user:${recipient.userId}`).emit('new-notification', {
+          notification,
+          unreadCount
+        });
+      }));
+    }
+
     res.status(201).json({ message });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

@@ -44,7 +44,10 @@ const setupCourseSockets = (io) => {
 
         const course = await prisma.course.findUnique({
           where: { id: courseId },
-          include: { students: { select: { id: true } } }
+          include: { 
+            students: { select: { id: true } },
+            conversation: { select: { id: true } }
+          }
         });
         
         if (!course) {
@@ -61,7 +64,7 @@ const setupCourseSockets = (io) => {
         const message = await prisma.$transaction(async (tx) => {
           const m = await tx.message.create({
             data: {
-              conversationId: course.conversationId,
+              conversationId: course.conversation.id,
               senderId: socket.user.id,
               content,
               type: 'ANNOUNCEMENT'
@@ -72,7 +75,7 @@ const setupCourseSockets = (io) => {
           });
 
           await tx.conversation.update({
-            where: { id: course.conversationId },
+            where: { id: course.conversation.id },
             data: {
               lastMessageId: m.id,
               lastMessageAt: new Date()
@@ -88,9 +91,9 @@ const setupCourseSockets = (io) => {
           courseId
         });
 
-        // Send real-time notifications to students by creating DB Notification first
-        for (const student of course.students) {
-          if (student.id === socket.user.id) continue;
+        // Send real-time notifications to students in parallel
+        await Promise.all(course.students.map(async (student) => {
+          if (student.id === socket.user.id) return;
 
           const notification = await prisma.notification.create({
             data: {
@@ -113,7 +116,7 @@ const setupCourseSockets = (io) => {
             notification,
             unreadCount
           });
-        }
+        }));
 
         socket.emit('announcement-sent', { message });
       } catch (error) {
@@ -133,7 +136,28 @@ const setupCourseSockets = (io) => {
         
         if (!course) return;
 
+        // Create persistent notification for instructor
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'SYSTEM',
+            title: `A student joined ${course.code}`,
+            content: `A new student has enrolled in your course.`,
+            recipientId: course.instructorId,
+            courseId: courseId,
+            actionUrl: `/courses/${courseId}`
+          }
+        });
+
+        const unreadCount = await prisma.notification.count({
+          where: { recipientId: course.instructorId, isRead: false }
+        });
+
         // Notify instructor
+        io.to(`user:${course.instructorId}`).emit('new-notification', {
+          notification,
+          unreadCount
+        });
+
         io.to(`user:${course.instructorId}`).emit('student-joined', {
           courseId,
           studentId,

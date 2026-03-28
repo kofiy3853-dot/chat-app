@@ -144,15 +144,14 @@ const setupChatSockets = (io) => {
           conversationId
         });
 
-        // Handle notifications for participants not in the room
+        // Handle notifications for participants not in the room in parallel
         const chatParticipants = await prisma.conversationParticipant.findMany({
           where: { conversationId },
           select: { userId: true }
         });
-
         const recipients = chatParticipants.filter(p => p.userId !== socket.user.id);
 
-        for (const recipient of recipients) {
+        await Promise.all(recipients.map(async (recipient) => {
           // Senior Implementation: Check if recipient is active in the room using socket mapping
           const room = io.sockets.adapter.rooms.get(`conversation:${conversationId}`);
           let isRecipientActiveInRoom = false;
@@ -193,7 +192,7 @@ const setupChatSockets = (io) => {
               unreadCount: totalUnreadCount
             });
           }
-        }
+        }));
 
         // Send confirmation to sender with their original tempId
         socket.emit('message-sent', { 
