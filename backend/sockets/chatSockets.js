@@ -388,7 +388,16 @@ const setupChatSockets = (io) => {
     // Handle disconnect
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${socket.user.name} (${socket.user.id})`);
-      
+
+      // If this user was in a call, notify all sockets in their personal room
+      // and broadcast call-ended to any connected peer waiting on them
+      // We can't know who the peer is server-side without state tracking,
+      // so emit to the disconnected user's room \u2014 this covers multi-device scenarios
+      // The peer's call-ended is handled via the 'end-call' flow; if the socket dies,
+      // we send call-ended broadly to the user's room to unblock any pending UI
+      console.log(`[CALL] ${socket.user.name} disconnected \u2014 broadcasting call-ended to their room`);
+      socket.to(`user:${socket.user.id}`).emit('call-ended');
+
       // Multi-device: Only mark as offline if no sockets remain in the user's personal room
       const userRoom = `user:${socket.user.id}`;
       const remainingSockets = io.sockets.adapter.rooms.get(userRoom);

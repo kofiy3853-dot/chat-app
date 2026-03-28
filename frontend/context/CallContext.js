@@ -26,44 +26,54 @@ export const CallProvider = ({ children }) => {
   const myVideo = useRef();
   const userVideo = useRef();
   const connectionRef = useRef();
+  const streamRef = useRef(null);       // ref so cleanup always has latest stream
+  const pendingCandidates = useRef([]); // queue ICE candidates before remote desc
+  const callTargetId = useRef(null);    // tracks who we're calling (both sides)
 
+  // Socket listeners — set up once on mount with stable refs
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
 
-    socket.on('incoming-call', ({ from, offer, type }) => {
+    const onIncomingCall = ({ from, offer, type }) => {
       // Don't show incoming call if already in a call
-      if (call.isReceivingCall || callAccepted) {
+      if (connectionRef.current) {
         socket.emit('reject-call', { targetUserId: from.id });
         return;
       }
+      callTargetId.current = from.id;
       setCall({ isReceivingCall: true, from, offer, type });
-    });
+    };
 
-    socket.on('call-ended', () => {
-      handleCleanup();
-    });
-
-    socket.on('call-rejected', () => {
+    const onCallEnded = () => handleCleanup();
+    const onCallRejected = () => {
       alert('Call rejected or user busy');
       handleCleanup();
-    });
+    };
+
+    socket.on('incoming-call', onIncomingCall);
+    socket.on('call-ended', onCallEnded);
+    socket.on('call-rejected', onCallRejected);
 
     return () => {
-      socket.off('incoming-call');
-      socket.off('call-ended');
-      socket.off('call-rejected');
+      socket.off('incoming-call', onIncomingCall);
+      socket.off('call-ended', onCallEnded);
+      socket.off('call-rejected', onCallRejected);
     };
-  }, [call, callAccepted]);
+  }, []); // ✅ Empty deps — never re-registers
 
   const handleCleanup = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+    // Use ref to always get the latest stream (avoids stale closure bug)
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
     if (connectionRef.current) {
       connectionRef.current.close();
       connectionRef.current = null;
     }
+    pendingCandidates.current = [];
+    callTargetId.current = null;
     setStream(null);
     setRemoteStream(null);
     setCall({});
@@ -86,9 +96,11 @@ export const CallProvider = ({ children }) => {
     } catch (err) {
       console.error('Media access error:', err);
       alert('Could not access camera or microphone. Please check permissions.');
+      setCallAccepted(false);
       return;
     }
     
+    streamRef.current = localStream;
     setStream(localStream);
     if (myVideo.current) myVideo.current.srcObject = localStream;
 
@@ -113,15 +125,25 @@ export const CallProvider = ({ children }) => {
     });
 
     await peer.setRemoteDescription(new RTCSessionDescription(call.offer));
+
+    // Flush any ICE candidates that arrived before setRemoteDescription
+    for (const c of pendingCandidates.current) {
+      await peer.addIceCandidate(new RTCIceCandidate(c)).catch(console.warn);
+    }
+    pendingCandidates.current = [];
+
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
 
     socket.emit('answer-call', { targetUserId: call.from.id, answer });
 
-    socket.off('ice-candidate'); // Clear any previous listener
+    // ICE candidates from remote
+    socket.off('ice-candidate');
     socket.on('ice-candidate', ({ candidate }) => {
       if (peer.remoteDescription) {
-        peer.addIceCandidate(new RTCIceCandidate(candidate));
+        peer.addIceCandidate(new RTCIceCandidate(candidate)).catch(console.warn);
+      } else {
+        pendingCandidates.current.push(candidate);
       }
     });
 
@@ -144,8 +166,13 @@ export const CallProvider = ({ children }) => {
       return;
     }
     
+    streamRef.current = localStream;
     setStream(localStream);
     if (myVideo.current) myVideo.current.srcObject = localStream;
+
+    // ✅ Set call state so caller sees a 'Calling...' UI
+    callTargetId.current = id;
+    setCall({ isCalling: true, to: { id, name: userName }, type });
 
     const peer = new RTCPeerConnection(servers);
 
@@ -178,15 +205,23 @@ export const CallProvider = ({ children }) => {
     });
 
     socket.off('call-accepted');
-    socket.on('call-accepted', ({ answer }) => {
+    socket.on('call-accepted', async ({ answer }) => {
       setCallAccepted(true);
-      peer.setRemoteDescription(new RTCSessionDescription(answer));
+      await peer.setRemoteDescription(new RTCSessionDescription(answer));
+
+      // Flush queued ICE candidates
+      for (const c of pendingCandidates.current) {
+        await peer.addIceCandidate(new RTCIceCandidate(c)).catch(console.warn);
+      }
+      pendingCandidates.current = [];
     });
 
     socket.off('ice-candidate');
     socket.on('ice-candidate', ({ candidate }) => {
       if (peer.remoteDescription) {
-        peer.addIceCandidate(new RTCIceCandidate(candidate));
+        peer.addIceCandidate(new RTCIceCandidate(candidate)).catch(console.warn);
+      } else {
+        pendingCandidates.current.push(candidate);
       }
     });
 
@@ -195,11 +230,11 @@ export const CallProvider = ({ children }) => {
 
   const leaveCall = () => {
     const socket = getSocket();
-    const targetId = call.from?.id;
+    // ✅ Use ref to correctly get target for BOTH caller and callee
+    const targetId = callTargetId.current;
     if (socket && targetId) {
       socket.emit('end-call', { targetUserId: targetId });
     }
-
     handleCleanup();
   };
 
