@@ -112,6 +112,11 @@ export const CallProvider = ({ children }) => {
   };
 
   const answerCall = async () => {
+    // Stop ringtone when answering
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+    }
     setCallAccepted(true);
     const socket = getSocket();
     
@@ -280,6 +285,11 @@ export const CallProvider = ({ children }) => {
   const rejectCall = () => {
     const socket = getSocket();
     socket.emit('reject-call', { targetUserId: call.from.id });
+    // Stop ringtone when rejecting
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+    }
     setCall({});
   };
 
