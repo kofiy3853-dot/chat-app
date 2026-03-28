@@ -89,23 +89,23 @@ export default function Activity() {
   };
 
   const handleNotificationClick = async (notification) => {
-    // Navigate based on type
+    // Mark as read first if it's not
+    if (!notification.isRead) {
+      try {
+        await userAPI.markNotificationsAsRead({ notificationIds: [notification.id] });
+        // Immediately remove it from the list so it "disappears" for the user 
+        // OR optionally just mark it as read. Since the user expects it to disappear, we'll filter it:
+        setNotifications(prev => prev.filter(n => n.id !== notification.id));
+      } catch (err) {
+        console.error('Failed to mark as read:', err);
+      }
+    }
+
+    // THEN navigate based on type
     if (notification.type === 'MESSAGE' && notification.message?.conversationId) {
       router.push(`/chat/${notification.message.conversationId}`);
     } else if (notification.actionUrl) {
       router.push(notification.actionUrl);
-    }
-
-    // Mark as read if it's not
-    if (!notification.isRead) {
-      try {
-        await userAPI.markNotificationsAsRead({ notificationIds: [notification.id] });
-        setNotifications(prev => prev.map(n => 
-          n.id === notification.id ? { ...n, isRead: true } : n
-        ));
-      } catch (err) {
-        console.error('Failed to mark as read:', err);
-      }
     }
   };
 
@@ -151,6 +151,7 @@ export default function Activity() {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const filteredNotifications = notifications.filter(n => {
+    if (n.isRead) return false; // Hide read notifications so they disappear
     if (!search) return true;
     const lowerSearch = search.toLowerCase();
     return (n.title && n.title.toLowerCase().includes(lowerSearch)) || 
