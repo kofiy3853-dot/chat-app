@@ -92,7 +92,7 @@ exports.createCourse = async (req, res) => {
           description,
           instructorId: req.user.id,
           semester,
-          year: parseInt(year),
+          year: parseInt(year) || new Date().getFullYear(),
           department
         }
       });
@@ -118,7 +118,7 @@ exports.createCourse = async (req, res) => {
           conversation: true
         }
       });
-    });
+    }, { timeout: 15000 });
 
     res.status(201).json({ course: result });
   } catch (error) {

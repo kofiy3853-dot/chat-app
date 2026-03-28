@@ -12,7 +12,6 @@ const chatRoutes = require('./routes/chatRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const { setupChatSockets } = require('./sockets/chatSockets');
 const { setupCourseSockets } = require('./sockets/courseSockets');
-const { setupMongoCourseSockets } = require('./sockets/mongoCourseSockets');
 
 const app = express();
 
@@ -30,7 +29,8 @@ const corsOptions = {
     'https://chat-app-kappa-rose.vercel.app', // Current production URL
     'https://social-networking-mu.vercel.app', // Previous production URL (optional)
     'http://localhost:3000',
-    'http://127.0.0.1:3000'
+    'http://127.0.0.1:3000',
+    'http://192.168.23.126:3000'
   ].filter(Boolean),
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,

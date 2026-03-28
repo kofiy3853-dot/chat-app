@@ -6,10 +6,10 @@ const { Pool } = require('pg');
 // Parse the connection string safely, supporting both encoded and raw passwords
 let connectionString = process.env.DATABASE_URL;
 
-// Strip query parameters so pg's ssl config isn't overridden by sslmode=require
-if (connectionString) {
-  connectionString = connectionString.split('?')[0];
-}
+// In Prisma 7, stripping query parameters might cause issues with pgbouncer modes
+// if (connectionString) {
+//   connectionString = connectionString.split('?')[0];
+// }
 
 const pool = new Pool({
   connectionString,
