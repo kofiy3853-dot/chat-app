@@ -16,7 +16,6 @@ function MyApp({ Component, pageProps }) {
   const router = useRouter();
   // Must start as false for SSR/hydration compatibility (localStorage not available server-side)
   const [authorized, setAuthorized] = useState(false);
-  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     const authCheck = (url) => {
@@ -30,7 +29,6 @@ function MyApp({ Component, pageProps }) {
         setAuthorized(true);
         if (token) initSocket();
       }
-      setChecked(true);
     };
 
     authCheck(router.asPath);
@@ -39,18 +37,10 @@ function MyApp({ Component, pageProps }) {
     return () => router.events.off('routeChangeComplete', authCheck);
   }, [router]);
 
-  const isPublic = publicPages.includes(router.pathname);
   const shouldHideNavbar = hideNavbarPages.includes(router.pathname);
 
-  // Only block on initial unchecked state — avoids infinite spinner if token exists
-  if (!checked && !isPublic) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
+  // Let the Component handle its own initial loading state.
+  // This matches Server and Client initial renders perfectly, fully preventing Hydration Errors.
   return (
     <CallProvider>
       <div className="min-h-screen bg-gray-50">
