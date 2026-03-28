@@ -22,6 +22,13 @@ export const CallProvider = ({ children }) => {
   const [remoteStream, setRemoteStream] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const ringtoneRef = useRef(null);
+
+  useEffect(() => {
+    // Initialize ringtone
+    ringtoneRef.current = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-main-smartphone-ringing-notification-intense-1580.mp3');
+    ringtoneRef.current.loop = true;
+  }, []);
 
   const myVideo = useRef();
   const userVideo = useRef();
@@ -43,10 +50,20 @@ export const CallProvider = ({ children }) => {
       }
       callTargetId.current = from.id;
       setCall({ isReceivingCall: true, from, offer, type });
+      
+      // Start ringtone
+      ringtoneRef.current?.play().catch(e => console.log('Ringtone autoplay blocked', e));
     };
 
-    const onCallEnded = () => handleCleanup();
+    const onCallEnded = () => {
+      ringtoneRef.current?.pause();
+      if (ringtoneRef.current) ringtoneRef.current.currentTime = 0;
+      handleCleanup();
+    };
+
     const onCallRejected = () => {
+      ringtoneRef.current?.pause();
+      if (ringtoneRef.current) ringtoneRef.current.currentTime = 0;
       alert('Call rejected or user busy');
       handleCleanup();
     };
@@ -74,6 +91,10 @@ export const CallProvider = ({ children }) => {
     }
     pendingCandidates.current = [];
     callTargetId.current = null;
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+    }
     setStream(null);
     setRemoteStream(null);
     setCall({});
