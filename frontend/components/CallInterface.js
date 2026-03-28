@@ -33,8 +33,8 @@ export default function CallInterface() {
     return (
       <motion.div
         initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 40, opacity: 1 }}
-        className="fixed top-safe left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-md pt-4"
+        animate={{ y: 0, opacity: 1 }}
+        className="fixed top-12 left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-md pt-4"
       >
         <div className="bg-white/95 backdrop-blur-xl border border-gray-100 p-4 rounded-3xl shadow-2xl flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -62,8 +62,8 @@ export default function CallInterface() {
     return (
       <motion.div 
         initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 40, opacity: 1 }}
-        className="fixed top-safe left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-md pt-4"
+        animate={{ y: 0, opacity: 1 }}
+        className="fixed top-12 left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-md pt-4"
       >
         <div className="bg-white/80 backdrop-blur-xl border border-white/20 p-4 rounded-3xl shadow-2xl flex items-center justify-between">
           <div className="flex items-center space-x-4">
