@@ -1,14 +1,35 @@
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AcademicCapIcon, UsersIcon, ChatBubbleLeftIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
-import { getInitials, getAvatarColor, formatRelativeTime } from '../../utils/helpers';
+import { getInitials, getAvatarColor } from '../../utils/helpers';
+import { getSocket } from '../../services/socket';
 
 export default function CourseCard({ course }) {
+  const [localUnreadCount, setLocalUnreadCount] = useState(course?.unreadCount || 0);
+
+  useEffect(() => {
+    setLocalUnreadCount(course?.unreadCount || 0);
+  }, [course?.unreadCount]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (socket) {
+      const handleNotification = (data) => {
+        if (data.courseId === course.id) {
+          setLocalUnreadCount(prev => prev + 1);
+        }
+      };
+
+      socket.on('course-notification', handleNotification);
+      return () => socket.off('course-notification', handleNotification);
+    }
+  }, [course.id]);
+
   if (!course) return null;
 
   const instructorName = course.instructor?.name || 'Unknown Instructor';
   const studentCount = course.students?.length || 0;
-  const unreadCount = course.unreadCount || 0;
 
   return (
     <motion.div
@@ -66,18 +87,13 @@ export default function CourseCard({ course }) {
             </div>
           </div>
           
-          {unreadCount > 0 && (
-            <div className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-primary-600 text-white rounded-lg text-[10px] font-black shadow-lg shadow-primary-500/30 animate-pulse">
-              {unreadCount}
+          {localUnreadCount > 0 && (
+            <div className={`flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-primary-600 text-white rounded-lg text-[10px] font-black shadow-lg shadow-primary-500/30 transition-all ${localUnreadCount > (course.unreadCount || 0) ? 'animate-bounce' : 'animate-pulse'}`}>
+              {localUnreadCount}
             </div>
           )}
         </div>
       </div>
-
-      {/* Notification Dot for Active State */}
-      {course.isActive && (
-        <span className="absolute top-4 right-4 w-2 h-2 bg-green-500 rounded-full border-2 border-white"></span>
-      )}
     </motion.div>
   );
 }

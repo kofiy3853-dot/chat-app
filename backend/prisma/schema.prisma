@@ -90,6 +90,8 @@ model Message {
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  courseId       String?
+  course         Course?      @relation("CourseMessages", fields: [courseId], references: [id], onDelete: Cascade)
   replyToId      String?
   replyTo        Message?     @relation("ReplyTo", fields: [replyToId], references: [id])
   replies        Message[]    @relation("ReplyTo")
@@ -99,6 +101,7 @@ model Message {
   notifications  Notification[]
 
   @@index([conversationId, createdAt])
+  @@index([courseId, createdAt])
   @@map("messages")
 }
 
@@ -148,6 +151,7 @@ model Course {
   instructor   User         @relation("CourseInstructor", fields: [instructorId], references: [id])
   students     User[]       @relation("CourseStudents")
   conversation Conversation?
+  messages     Message[]    @relation("CourseMessages")
   materials    Material[]
   assignments  Assignment[]
 

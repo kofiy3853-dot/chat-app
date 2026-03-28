@@ -12,6 +12,7 @@ const chatRoutes = require('./routes/chatRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const { setupChatSockets } = require('./sockets/chatSockets');
 const { setupCourseSockets } = require('./sockets/courseSockets');
+const { setupMongoCourseSockets } = require('./sockets/mongoCourseSockets');
 
 const app = express();
 
