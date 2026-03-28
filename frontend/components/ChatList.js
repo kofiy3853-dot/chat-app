@@ -281,62 +281,19 @@ export default function ChatList() {
       <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
         <AnimatePresence>
           {filteredConversations.map((conversation) => (
-            <SwipeableItem 
-              key={conversation.id} 
-              onArchive={(e) => handleArchive(e, conversation.id)}
-              onDelete={(e) => handleDelete(e, conversation.id)}
-            >
-              <Link
-                href={`/chat/${conversation.id}`}
-                className={`flex items-center p-4 space-x-3 hover:bg-gray-50 transition-all group relative border-l-4 ${
-                  (conversation.unreadCount > 0) ? 'border-blue-500 bg-blue-50/20' : 'border-transparent'
-                }`}
-              >
-                <div className="relative flex-shrink-0">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-sm group-hover:scale-105 transition-transform duration-300">
-                    {getConversationName(conversation).charAt(0).toUpperCase()}
-                  </div>
-                  {conversation.type === 'DIRECT' && conversation.participants?.find(p => p.userId !== currentUser?.id)?.user?.isOnline && (
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-baseline mb-1">
-                    <h3 className={`text-sm truncate pr-2 ${conversation.unreadCount > 0 ? 'font-black text-slate-900' : 'font-bold text-slate-700'}`}>
-                      {getConversationName(conversation)}
-                    </h3>
-                    <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
-                      {formatRelativeTime(conversation.lastMessageAt, { addSuffix: false })}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-1.5 min-w-0 flex-1">
-                      {getMessageStatus(conversation)}
-                      <p className={`text-xs truncate transition-colors ${conversation.unreadCount > 0 ? 'font-bold text-blue-900' : 'text-gray-500'}`}>
-                        {getLastMessagePreview(conversation)}
-                      </p>
-                    </div>
-                    {conversation.unreadCount > 0 && (
-                      <span className="bg-blue-600 text-white text-[10px] font-black h-5 min-w-[20px] px-1.5 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20">
-                        {conversation.unreadCount}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <button 
-                  onClick={(e) => toggleFavorite(e, conversation.id)}
-                  className="absolute right-2 top-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  {favorites.includes(conversation.id) ? 
-                    <StarIconSolid className="w-5 h-5 text-yellow-400" /> : 
-                    <StarIcon className="w-5 h-5 text-gray-300" />
-                  }
-                </button>
-              </Link>
-            </SwipeableItem>
+            <ChatListItem 
+              key={conversation.id}
+              conversation={conversation}
+              currentUser={currentUser}
+              favorites={favorites}
+              typingInConvs={typingInConvs}
+              getConversationName={getConversationName}
+              getLastMessagePreview={getLastMessagePreview}
+              getMessageStatus={getMessageStatus}
+              toggleFavorite={toggleFavorite}
+              handleArchive={handleArchive}
+              handleDelete={handleDelete}
+            />
           ))}
         </AnimatePresence>
       </div>
@@ -344,7 +301,79 @@ export default function ChatList() {
   );
 }
 
-function SwipeableItem({ children, onArchive, onDelete }) {
+const ChatListItem = React.memo(({ 
+  conversation, 
+  currentUser, 
+  favorites, 
+  typingInConvs,
+  getConversationName,
+  getLastMessagePreview,
+  getMessageStatus,
+  toggleFavorite,
+  handleArchive,
+  handleDelete
+}) => {
+  return (
+    <SwipeableItem 
+      key={conversation.id} 
+      onArchive={(e) => handleArchive(e, conversation.id)}
+      onDelete={(e) => handleDelete(e, conversation.id)}
+    >
+      <Link
+        href={`/chat/${conversation.id}`}
+        className={`flex items-center p-4 space-x-3 hover:bg-gray-50 transition-colors group relative border-l-4 ${
+          (conversation.unreadCount > 0) ? 'border-blue-500 bg-blue-50/20' : 'border-transparent'
+        }`}
+      >
+        <div className="relative flex-shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-sm group-hover:scale-105 transition-transform duration-300">
+            {getConversationName(conversation).charAt(0).toUpperCase()}
+          </div>
+          {conversation.type === 'DIRECT' && conversation.participants?.find(p => p.userId !== currentUser?.id)?.user?.isOnline && (
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-baseline mb-1">
+            <h3 className={`text-sm truncate pr-2 ${conversation.unreadCount > 0 ? 'font-black text-slate-900' : 'font-bold text-slate-700'}`}>
+              {getConversationName(conversation)}
+            </h3>
+            <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
+              {formatRelativeTime(conversation.lastMessageAt, { addSuffix: false })}
+            </span>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-1.5 min-w-0 flex-1">
+              {getMessageStatus(conversation)}
+              <p className={`text-xs truncate transition-colors ${conversation.unreadCount > 0 ? 'font-bold text-blue-900' : 'text-gray-500'}`}>
+                {getLastMessagePreview(conversation)}
+              </p>
+            </div>
+            {conversation.unreadCount > 0 && (
+              <span className="bg-blue-600 text-white text-[10px] font-black h-5 min-w-[20px] px-1.5 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20">
+                {conversation.unreadCount}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <button 
+          onClick={(e) => toggleFavorite(e, conversation.id)}
+          className="absolute right-2 top-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          {favorites.includes(conversation.id) ? 
+            <StarIconSolid className="w-5 h-5 text-yellow-400" /> : 
+            <StarIcon className="w-5 h-5 text-gray-300" />
+          }
+        </button>
+      </Link>
+    </SwipeableItem>
+  );
+});
+
+const SwipeableItem = React.memo(({ children, onArchive, onDelete }) => {
   return (
     <div className="relative bg-gray-100 overflow-hidden">
       {/* Background Actions */}
@@ -379,4 +408,4 @@ function SwipeableItem({ children, onArchive, onDelete }) {
       </motion.div>
     </div>
   );
-}
+});

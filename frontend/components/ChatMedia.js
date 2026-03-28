@@ -12,11 +12,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { formatFileSize } from '../utils/helpers';
 import React, { useState, useRef } from 'react';
 
-export const AttachmentBubble = ({ message }) => {
+export const AttachmentBubble = React.memo(({ message }) => {
   const isImage = message.type === 'IMAGE' || (message.fileName && /\.(jpg|jpeg|png|gif)$/i.test(message.fileName));
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
   
-  // If fileUrl is already a blob or full URL, use it directly. Otherwise, prefix with baseUrl.
   const fullUrl = message.fileUrl?.startsWith('blob:') || message.fileUrl?.startsWith('http')
     ? message.fileUrl 
     : (message.fileUrl ? `${baseUrl}${message.fileUrl}` : null);
@@ -27,7 +26,8 @@ export const AttachmentBubble = ({ message }) => {
         <img 
           src={fullUrl} 
           alt={message.fileName} 
-          className="max-w-full rounded-2xl border border-slate-100 shadow-sm transition-all hover:brightness-95 cursor-pointer max-h-[300px] object-cover"
+          loading="lazy"
+          className="max-w-full rounded-2xl border border-slate-100 shadow-sm transition-opacity hover:brightness-95 cursor-pointer max-h-[300px] object-cover"
         />
         <a 
           href={fullUrl} 
@@ -52,15 +52,15 @@ export const AttachmentBubble = ({ message }) => {
       <a 
         href={fullUrl} 
         download={message.fileName}
-        className="p-2 hover:bg-white/20 rounded-xl transition-all"
+        className="p-2 hover:bg-white/20 rounded-xl transition-colors"
       >
         <ArrowDownTrayIcon className="w-4 h-4 text-white" />
       </a>
     </div>
   );
-};
+});
 
-export const VoiceBubble = ({ message }) => {
+export const VoiceBubble = React.memo(({ message }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
@@ -83,7 +83,7 @@ export const VoiceBubble = ({ message }) => {
     <div className="mt-1 flex items-center space-x-3 bg-primary-500/20 backdrop-blur-md p-3 rounded-2xl border border-white/10 min-w-[180px]">
       <button 
         onClick={handlePlay}
-        className="w-10 h-10 flex items-center justify-center bg-white text-primary-600 rounded-full shadow-lg transform active:scale-90 transition-all"
+        className="w-10 h-10 flex items-center justify-center bg-white text-primary-600 rounded-full shadow-lg transform active:scale-90 transition-transform"
       >
         {isPlaying ? <PauseIcon className="w-5 h-5 fill-current" /> : <PlayIcon className="w-5 h-5 fill-current" />}
       </button>
@@ -113,4 +113,4 @@ export const VoiceBubble = ({ message }) => {
       </div>
     </div>
   );
-};
+});
