@@ -18,7 +18,6 @@ import {
   PhotoIcon
 } from '@heroicons/react/24/outline';
 import { getCurrentUser, getInitials, getAvatarColor } from '../../utils/helpers';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useCall } from '../../context/CallContext';
 import { sendMessage as sendSocketMessage } from '../../services/socket';
 import { SharedMediaGallery } from '../../components/ChatMedia';
@@ -256,59 +255,52 @@ export default function ChatPage() {
                 <EllipsisVerticalIcon className="w-5 h-5" />
               </button>
 
-              <AnimatePresence>
-                {showMenu && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-40" 
-                      onClick={() => setShowMenu(false)}
-                    />
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                      className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden"
-                    >
-                      <div className="p-2 border-b border-slate-50">
-                        <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          Conversation Options
-                        </div>
+              {showMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowMenu(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
+                    <div className="p-2 border-b border-slate-50">
+                      <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        Conversation Options
                       </div>
-                      <div className="p-2 space-y-1">
-                        <button
-                          onClick={() => { setShowMediaGallery(true); setShowMenu(false); }}
-                          className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
-                        >
-                          <PhotoIcon className="w-4 h-4" />
-                          <span>View Media & Files</span>
-                        </button>
-                        <button
-                          onClick={handleSendCallLink}
-                          className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
-                        >
-                          <LinkIcon className="w-4 h-4" />
-                          <span>Send Call Link</span>
-                        </button>
-                        <button
-                          onClick={handleScheduleCall}
-                          className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
-                        >
-                          <CalendarDaysIcon className="w-4 h-4" />
-                          <span>Schedule Call</span>
-                        </button>
-                        <div className="h-px bg-slate-50 my-1 mx-2" />
-                        <button
-                          onClick={handleClearChat}
-                          className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-all text-left"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                          <span>Clear All Chat</span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
+                    </div>
+                    <div className="p-2 space-y-1">
+                      <button
+                        onClick={() => { setShowMediaGallery(true); setShowMenu(false); }}
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
+                      >
+                        <PhotoIcon className="w-4 h-4" />
+                        <span>View Media & Files</span>
+                      </button>
+                      <button
+                        onClick={handleSendCallLink}
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
+                      >
+                        <LinkIcon className="w-4 h-4" />
+                        <span>Send Call Link</span>
+                      </button>
+                      <button
+                        onClick={handleScheduleCall}
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
+                      >
+                        <CalendarDaysIcon className="w-4 h-4" />
+                        <span>Schedule Call</span>
+                      </button>
+                      <div className="h-px bg-slate-50 my-1 mx-2" />
+                      <button
+                        onClick={handleClearChat}
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-all text-left"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                        <span>Clear All Chat</span>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </header>
@@ -318,25 +310,15 @@ export default function ChatPage() {
       </div>
 
       {/* Participant Profile Modal */}
-      <AnimatePresence>
-        {showProfile && otherParticipant && (
-          <>
-            {/* Dark Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowProfile(false)}
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998]"
-            />
-            {/* Sliding Drawer */}
-            <motion.div 
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-[99999] flex flex-col border-l border-slate-100"
-            >
+      {showProfile && otherParticipant && (
+        <>
+          {/* Dark Backdrop */}
+          <div
+            onClick={() => setShowProfile(false)}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998]"
+          />
+          {/* Sliding Drawer */}
+          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-[99999] flex flex-col border-l border-slate-100">
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
                 <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Contact Info</h2>
@@ -390,41 +372,30 @@ export default function ChatPage() {
                   </button>
                 </div>
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+          </div>
+        </>
+      )}
 
       {/* Shared Media Gallery Drawer */}
-      <AnimatePresence>
-        {showMediaGallery && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowMediaGallery(false)}
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998]"
-            />
-            <motion.div 
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-[99999] flex flex-col"
-            >
-              <div className="flex items-center justify-between p-6 border-b border-slate-100">
-                <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Shared Media</h2>
-                <button onClick={() => setShowMediaGallery(false)} className="p-2 text-slate-400 hover:text-slate-600">
-                  <XMarkIcon className="w-5 h-5 stroke-[2px]" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <SharedMediaGallery messages={messages} />
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {showMediaGallery && (
+        <>
+          <div
+            onClick={() => setShowMediaGallery(false)}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998]"
+          />
+          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-[99999] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+              <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Shared Media</h2>
+              <button onClick={() => setShowMediaGallery(false)} className="p-2 text-slate-400 hover:text-slate-600">
+                <XMarkIcon className="w-5 h-5 stroke-[2px]" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <SharedMediaGallery messages={messages} />
+            </div>
+          </div>
+        </>
+      )}
 
       <style jsx global>{`
         /* Hide scrollbar for Chrome, Safari and Opera */
