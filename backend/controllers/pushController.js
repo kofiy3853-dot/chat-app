@@ -1,20 +1,5 @@
-const webpush = require('web-push');
 const prisma = require('../prisma/client');
-
-// Lazy initializer — only configure web-push when the keys are actually available.
-// This prevents a crash on startup if VAPID env vars haven't been set yet on the host.
-function getWebPush() {
-  if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
-    console.warn('[WebPush] VAPID keys not set. Push notifications are disabled.');
-    return null;
-  }
-  webpush.setVapidDetails(
-    'mailto:support@campuschat.com',
-    process.env.VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
-  );
-  return webpush;
-}
+const { getWebPush } = require('../utils/webPushHelper');
 
 exports.getPublicKey = (req, res) => {
   res.json({ publicKey: process.env.VAPID_PUBLIC_KEY || null });
@@ -51,6 +36,3 @@ exports.subscribe = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
-
-// Export the lazy getter so chatController can use it too
-exports.getWebPush = getWebPush;

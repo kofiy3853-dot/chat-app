@@ -1,5 +1,6 @@
 const prisma = require('../prisma/client');
-const { getWebPush } = require('./pushController');
+const { getWebPush } = require('../utils/webPushHelper');
+
 
 // Get user's conversations
 exports.getConversations = async (req, res) => {
