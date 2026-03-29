@@ -90,7 +90,8 @@ function MyApp({ Component, pageProps }) {
       try {
         const currentUser = JSON.parse(localStorage.getItem('user'));
         // Ignore our own messages
-        if (msg.sender?.id === currentUser?.id) return;
+        const messageSenderId = msg.senderId || msg.sender?.id || msg.sender;
+        if (messageSenderId === currentUser?.id) return;
         
         // Don't spam push notifications if the user is already inside this exact chat room
         if (router.pathname === '/chat/[id]' && router.query.id === msg.conversationId) {
