@@ -95,7 +95,7 @@ function MyApp({ Component, pageProps }) {
         // Don't spam push notifications if the user is already inside this exact chat room
         if (router.pathname === '/chat/[id]' && router.query.id === msg.conversationId) {
            // We are inside the active chat, just play a subtle in-app sound
-           const inAppSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+           const inAppSound = new Audio('/sounds/ding.mp3');
            inAppSound.volume = 0.5;
            inAppSound.play().catch(e => console.log('Audio overlap blocked or disabled', e));
            return;
@@ -122,7 +122,7 @@ function MyApp({ Component, pageProps }) {
                body: msg.content || 'Sent an attachment',
                icon: '/icons/icon-192.png'
              });
-             const webSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+             const webSound = new Audio('/sounds/ding.mp3');
              webSound.play().catch(e => e);
            }
         }
