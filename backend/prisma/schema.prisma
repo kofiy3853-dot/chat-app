@@ -278,6 +278,7 @@ enum MessageType {
   SYSTEM
   ASSIGNMENT
   MATERIAL
+  CONTACT
 }
 
 enum NotificationType {

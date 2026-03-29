@@ -12,7 +12,6 @@ import {
   CheckBadgeIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ChatList() {
   const [conversations, setConversations] = useState([]);
@@ -207,7 +206,7 @@ export default function ChatList() {
     const typingUsers = typingInConvs[conversation.id];
     if (typingUsers) {
       const names = Object.values(typingUsers);
-      return <span className="text-blue-600 font-black animate-pulse">{names[0]} is typing...</span>;
+      return <span className="text-blue-600 font-black">{names[0]} is typing...</span>;
     }
 
     if (!conversation.lastMessage) return 'No messages yet';
@@ -236,7 +235,7 @@ export default function ChatList() {
      return (
         <div className="p-4 space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse flex space-x-4">
+            <div key={i} className="flex space-x-4">
               <div className="rounded-full bg-gray-200 h-12 w-12"></div>
               <div className="flex-1 space-y-2 py-1">
                 <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -258,7 +257,7 @@ export default function ChatList() {
             placeholder="Search messages..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-50 border-none rounded-2xl py-3 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-100 transition-all outline-none"
+            className="w-full bg-gray-50 border-none rounded-2xl py-3 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-100 outline-none"
           />
         </div>
         <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide pb-1">
@@ -266,7 +265,7 @@ export default function ChatList() {
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+              className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
                 filter === tab 
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' 
                   : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
@@ -279,23 +278,21 @@ export default function ChatList() {
       </div>
 
       <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
-        <AnimatePresence>
-          {filteredConversations.map((conversation) => (
-            <ChatListItem 
-              key={conversation.id}
-              conversation={conversation}
-              currentUser={currentUser}
-              favorites={favorites}
-              typingInConvs={typingInConvs}
-              getConversationName={getConversationName}
-              getLastMessagePreview={getLastMessagePreview}
-              getMessageStatus={getMessageStatus}
-              toggleFavorite={toggleFavorite}
-              handleArchive={handleArchive}
-              handleDelete={handleDelete}
-            />
-          ))}
-        </AnimatePresence>
+        {filteredConversations.map((conversation) => (
+          <ChatListItem 
+            key={conversation.id}
+            conversation={conversation}
+            currentUser={currentUser}
+            favorites={favorites}
+            typingInConvs={typingInConvs}
+            getConversationName={getConversationName}
+            getLastMessagePreview={getLastMessagePreview}
+            getMessageStatus={getMessageStatus}
+            toggleFavorite={toggleFavorite}
+            handleArchive={handleArchive}
+            handleDelete={handleDelete}
+          />
+        ))}
       </div>
     </div>
   );
@@ -321,13 +318,23 @@ const ChatListItem = React.memo(({
     >
       <Link
         href={`/chat/${conversation.id}`}
-        className={`flex items-center p-4 space-x-3 hover:bg-gray-50 transition-colors group relative border-l-4 ${
+        className={`flex items-center p-4 space-x-3 hover:bg-gray-50 group relative border-l-4 ${
           (conversation.unreadCount > 0) ? 'border-blue-500 bg-blue-50/20' : 'border-transparent'
         }`}
       >
         <div className="relative flex-shrink-0">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-sm group-hover:scale-105 transition-transform duration-300">
-            {getConversationName(conversation).charAt(0).toUpperCase()}
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-sm overflow-hidden">
+            {(() => {
+              const other = conversation.participants?.find(p => p.userId !== currentUser?.id)?.user;
+              const avatar = other?.avatar;
+              const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
+              const fullUrl = avatar ? (avatar.startsWith('http') ? avatar : `${baseUrl}${avatar}`) : null;
+              return fullUrl ? (
+                <img src={fullUrl} className="w-full h-full object-cover" alt="" />
+              ) : (
+                getConversationName(conversation).charAt(0).toUpperCase()
+              );
+            })()}
           </div>
           {conversation.type === 'DIRECT' && conversation.participants?.find(p => p.userId !== currentUser?.id)?.user?.isOnline && (
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
@@ -347,7 +354,7 @@ const ChatListItem = React.memo(({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1.5 min-w-0 flex-1">
               {getMessageStatus(conversation)}
-              <p className={`text-xs truncate transition-colors ${conversation.unreadCount > 0 ? 'font-bold text-blue-900' : 'text-gray-500'}`}>
+              <p className={`text-xs truncate ${conversation.unreadCount > 0 ? 'font-bold text-blue-900' : 'text-gray-500'}`}>
                 {getLastMessagePreview(conversation)}
               </p>
             </div>
@@ -361,7 +368,7 @@ const ChatListItem = React.memo(({
 
         <button 
           onClick={(e) => toggleFavorite(e, conversation.id)}
-          className="absolute right-2 top-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute right-2 top-2 p-2 opacity-0 group-hover:opacity-100"
         >
           {favorites.includes(conversation.id) ? 
             <StarIconSolid className="w-5 h-5 text-yellow-400" /> : 
@@ -380,32 +387,23 @@ const SwipeableItem = React.memo(({ children, onArchive, onDelete }) => {
       <div className="absolute inset-0 flex justify-between">
         <button 
           onClick={onArchive}
-          className="flex flex-col items-center justify-center w-24 bg-indigo-500 text-white transition-all hover:bg-indigo-600"
+          className="flex flex-col items-center justify-center w-24 bg-indigo-500 text-white hover:bg-indigo-600"
         >
           <ArchiveBoxIcon className="w-6 h-6 mb-1" />
           <span className="text-[10px] font-black uppercase tracking-tighter">Archive</span>
         </button>
         <button 
           onClick={onDelete}
-          className="flex flex-col items-center justify-center w-24 bg-red-500 text-white transition-all hover:bg-red-600"
+          className="flex flex-col items-center justify-center w-24 bg-red-500 text-white hover:bg-red-600"
         >
           <TrashIcon className="w-6 h-6 mb-1" />
           <span className="text-[10px] font-black uppercase tracking-tighter">Delete</span>
         </button>
       </div>
 
-      <motion.div
-        drag="x"
-        dragConstraints={{ left: -96, right: 96 }}
-        dragElastic={0.05}
-        onDragEnd={(e, info) => {
-          if (info.offset.x < -80) onDelete(e);
-          if (info.offset.x > 80) onArchive(e);
-        }}
-        className="relative bg-white z-10"
-      >
+      <div className="relative bg-white z-10">
         {children}
-      </motion.div>
+      </div>
     </div>
   );
 });

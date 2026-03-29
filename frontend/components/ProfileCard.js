@@ -11,7 +11,6 @@ import {
   BuildingLibraryIcon,
   CameraIcon
 } from '@heroicons/react/24/outline';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProfileCard({ user, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -46,13 +45,11 @@ export default function ProfileCard({ user, onUpdate }) {
     try {
       const data = new FormData();
       data.append('file', file);
-      // Re-using the message attachment uploader which pushes files to Supabase Storage
       const response = await chatAPI.uploadMessageAttachment(data);
       if (response.data?.url || response.data?.fileUrl) {
         const uploadedUrl = response.data.url || response.data.fileUrl;
         setFormData(prev => ({ ...prev, avatar: uploadedUrl }));
         
-        // Auto-save just the avatar instantly
         const updatedUser = await authAPI.updateProfile({ ...formData, avatar: uploadedUrl });
         onUpdate?.(updatedUser.data.user);
       }
@@ -77,7 +74,7 @@ export default function ProfileCard({ user, onUpdate }) {
   };
 
   return (
-    <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative">
+    <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
       {/* Cover Header */}
       <div className="h-32 bg-gradient-to-r from-primary-600 via-indigo-600 to-violet-600 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
@@ -98,7 +95,7 @@ export default function ProfileCard({ user, onUpdate }) {
         {/* Avatar Section */}
         <div className="relative -mt-14 mb-6 flex items-end justify-between">
           <div className="relative group">
-            <div className="w-28 h-28 rounded-[2rem] bg-white p-1.5 shadow-xl rotate-3 group-hover:rotate-0 transition-transform duration-500 relative flex-shrink-0">
+            <div className="w-28 h-28 rounded-[2rem] bg-white p-1.5 shadow-xl relative flex-shrink-0">
               <div className="w-full h-full rounded-[1.6rem] bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-black shadow-inner overflow-hidden">
                 {formData.avatar || user?.avatar ? (
                   <img src={formData.avatar || user?.avatar} alt="Profile" className="w-full h-full object-cover" />
@@ -134,13 +131,9 @@ export default function ProfileCard({ user, onUpdate }) {
           </div>
         </div>
 
-        <AnimatePresence mode="wait">
+        <div className="flex-1 text-slate-900">
           {isEditing ? (
-            <motion.form 
-              key="edit"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+            <form 
               onSubmit={handleSubmit} 
               className="space-y-6"
             >
@@ -192,12 +185,9 @@ export default function ProfileCard({ user, onUpdate }) {
                   <span>Dismiss</span>
                 </button>
               </div>
-            </motion.form>
+            </form>
           ) : (
-            <motion.div 
-              key="view"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+            <div 
               className="space-y-8"
             >
               {/* Identity Header */}
@@ -246,9 +236,9 @@ export default function ProfileCard({ user, onUpdate }) {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </div>
     </div>
   );

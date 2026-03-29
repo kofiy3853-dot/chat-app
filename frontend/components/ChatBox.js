@@ -23,7 +23,6 @@ import {
   FaceSmileIcon as FaceSmileOutline
 } from '@heroicons/react/24/outline';
 import { getCurrentUser, groupMessagesByDate, getInitials, getAvatarColor, formatMessageTime } from '../utils/helpers';
-import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { AttachmentBubble, VoiceBubble } from './ChatMedia';
 
@@ -355,11 +354,20 @@ const MessageBubble = React.memo(({
     <div className={`flex w-full mb-4 px-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
       <div className={`flex max-w-[80%] items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
         {/* Avatar (Left only) */}
-        {!isMine && (
-          <div className={`w-8 h-8 rounded-xl bg-slate-200 flex-shrink-0 flex items-center justify-center text-[10px] font-black ${showSender ? 'opacity-100' : 'opacity-0'}`}>
-            {getInitials(message.sender?.name)}
+          <div className="relative group">
+            <div className={`w-8 h-8 rounded-xl bg-slate-200 flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'}`}>
+              {(() => {
+                const avatar = message.sender?.avatar;
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
+                const fullUrl = avatar ? (avatar.startsWith('http') ? avatar : `${baseUrl}${avatar}`) : null;
+                return fullUrl ? (
+                  <img src={fullUrl} className="w-full h-full object-cover" alt="" />
+                ) : (
+                  getInitials(message.sender?.name)
+                );
+              })()}
+            </div>
           </div>
-        )}
 
         <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
           {showSender && !isMine && <span className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">{message.sender?.name}</span>}
@@ -383,7 +391,7 @@ const MessageBubble = React.memo(({
             }}
             onTouchEnd={(e) => clearTimeout(e.currentTarget.dataset.timer)}
             onTouchMove={(e) => clearTimeout(e.currentTarget.dataset.timer)}
-            className={`group relative p-3 rounded-2xl shadow-sm border select-none touch-none transition-colors duration-200 ${
+            className={`group relative p-3 rounded-2xl shadow-sm border select-none touch-none ${
               isMine ? 'bg-primary-600 border-primary-500 text-white rounded-tr-none hover:bg-primary-700' : 'bg-white border-slate-100 text-slate-800 rounded-tl-none hover:bg-slate-50'
             }`}
           >
@@ -500,46 +508,43 @@ const MessageBubble = React.memo(({
             </div>
 
             {/* Action Menu Popover (Inline Logic) */}
-            <AnimatePresence>
-              {activeMenuId === message.id && (
-                <>
-                  {/* Invisible backdrop to close menu when tapping outside */}
-                  <div 
-                    className="fixed inset-0 z-[1999]" 
-                    onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
-                    onTouchStart={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
-                  />
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.9, y: 5 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 5 }}
-                    className={`absolute z-[2000] bottom-full mb-2 bg-white rounded-xl shadow-2xl border border-slate-100 min-w-[140px] overflow-hidden ${isMine ? 'right-0' : 'left-0'}`}
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <div className="flex justify-around p-2 bg-slate-50 border-b border-slate-100">
-                      {['❤️', '👍', '🔥', '😂'].map(e => (
-                        <button key={e} onClick={() => { addReaction(message.id, e); setActiveMenuId(null); }} className="hover:scale-125 transition-transform">
-                          {e}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="p-1 flex flex-col">
-                      <button onClick={() => { navigator.clipboard.writeText(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
-                        <DocumentDuplicateIcon className="w-3.5 h-3.5" /> <span>Copy text</span>
+            {activeMenuId === message.id && (
+              <>
+                {/* Invisible backdrop to close menu when tapping outside */}
+                <div 
+                  className="fixed inset-0 z-[1999]" 
+                  onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
+                  onTouchStart={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
+                />
+                <div 
+                  className={`absolute z-[2000] bottom-full mb-2 bg-white rounded-xl shadow-2xl border border-slate-100 min-w-[140px] overflow-hidden ${isMine ? 'right-0' : 'left-0'}`}
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div className="flex justify-around p-2 bg-slate-50 border-b border-slate-100">
+                    {['❤️', '👍', '🔥', '😂'].map(e => (
+                      <button key={e} onClick={() => { addReaction(message.id, e); setActiveMenuId(null); }} className="hover:scale-125 transition-transform">
+                        {e}
                       </button>
-                      {isMine && !message.isDeleted && (
-                        <>
-                          <button onClick={() => { setEditingMessageId(message.id); setEditingContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
-                            <PencilIcon className="w-3.5 h-3.5" /> <span>Edit</span>
-                          </button>
-                          <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-lg">
-                            <TrashIcon className="w-3.5 h-3.5" /> <span>Delete</span>
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
+                    ))}
+                  </div>
+                  <div className="p-1 flex flex-col">
+                    <button onClick={() => { navigator.clipboard.writeText(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
+                      <DocumentDuplicateIcon className="w-3.5 h-3.5" /> <span>Copy text</span>
+                    </button>
+                    {isMine && !message.isDeleted && (
+                      <>
+                        <button onClick={() => { setEditingMessageId(message.id); setEditingContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
+                          <PencilIcon className="w-3.5 h-3.5" /> <span>Edit</span>
+                        </button>
+                        <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-lg">
+                          <TrashIcon className="w-3.5 h-3.5" /> <span>Delete</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -595,7 +600,7 @@ const MessageBubble = React.memo(({
         {/* Typing Overlay (Absolute/Bottom) */}
         {typingUsers.length > 0 && (
           <div className="px-6 py-2 flex items-center space-x-2 text-slate-400 italic text-[10px] font-bold">
-            <div className="flex space-x-1"><span className="w-1 h-1 bg-slate-300 rounded-full animate-bounce" /><span className="w-1 h-1 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]" /></div>
+            <div className="flex space-x-1"><span className="w-1 h-1 bg-slate-300 rounded-full" /><span className="w-1 h-1 bg-slate-300 rounded-full" /></div>
             <span>{typingUsers[0].name} typing...</span>
           </div>
         )}
@@ -638,7 +643,7 @@ const MessageBubble = React.memo(({
                   <button 
                     type="submit" 
                     disabled={isSending}
-                    className="p-3 bg-primary-600 text-white rounded-[18px] shadow-lg shadow-primary-600/30 hover:scale-105 active:scale-95 disabled:opacity-30 transition-all"
+                    className="p-3 bg-primary-600 text-white rounded-[18px] shadow-lg shadow-primary-600/30 active:scale-95 disabled:opacity-30"
                   >
                     {isSending ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <PaperAirplaneIcon className="w-5 h-5 -rotate-45" />}
                   </button>
@@ -646,14 +651,14 @@ const MessageBubble = React.memo(({
                   <button 
                     type="button"
                     onClick={startRecording}
-                    className="p-3 text-primary-600 hover:bg-primary-50 rounded-[18px] transition-all"
+                    className="p-3 text-primary-600 hover:bg-primary-50 rounded-[18px]"
                   >
                     <MicrophoneIcon className="w-6 h-6" />
                   </button>
                 )}
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-between bg-red-50 p-2 rounded-2xl border border-red-100 animate-pulse">
+              <div className="flex-1 flex items-center justify-between bg-red-50 p-2 rounded-2xl border border-red-100">
                 <div className="flex items-center space-x-3 px-2">
                   <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-ping" />
                   <span className="text-xs font-black text-red-600 tracking-tighter uppercase">Recording Voice Note...</span>

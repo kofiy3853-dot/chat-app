@@ -544,6 +544,12 @@ exports.uploadAttachment = async (req, res) => {
       return res.status(400).json({ message: 'No valid file data received' });
     }
 
+    // Auto-detect IMAGE type from extension if it's currently FILE
+    let finalType = type;
+    if (finalType === 'FILE' && fileName && /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName)) {
+      finalType = 'IMAGE';
+    }
+
     // GENERAL UPLOAD MODE: Quick return for generic file uploads (e.g., Avatars/Profile Pics)
     if (!conversationId || conversationId === 'undefined' || conversationId === 'null') {
       return res.status(200).json({ url: fileUrl });
@@ -567,8 +573,8 @@ exports.uploadAttachment = async (req, res) => {
       data: {
         conversationId,
         senderId: userId,
-        content: type === 'VOICE' ? 'Voice memo' : fileName,
-        type,
+        content: finalType === 'VOICE' ? 'Voice memo' : fileName,
+        type: finalType,
         fileUrl,
         fileName,
         fileSize

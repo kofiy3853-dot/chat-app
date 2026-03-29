@@ -128,13 +128,13 @@ export default function Navbar() {
 
         {/* Center Primary Action Button */}
         <div className="flex-1 flex justify-center -mt-8 px-2">
-          <button 
-            className="bg-primary-600 text-white rounded-2xl w-14 h-14 flex items-center justify-center shadow-[0_8px_30px_rgb(37,99,235,0.4)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.6)] hover:scale-105 active:scale-95 transition-all duration-200"
-            onClick={() => setIsModalOpen(true)}
-            aria-label="New Chat"
-          >
-            <PlusIcon className="w-8 h-8 stroke-2" />
-          </button>
+            <button 
+              className="bg-primary-600 text-white rounded-2xl w-14 h-14 flex items-center justify-center shadow-[0_8px_30px_rgb(37,99,235,0.4)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.6)] active:scale-95"
+              onClick={() => setIsModalOpen(true)}
+              aria-label="New Chat"
+            >
+              <PlusIcon className="w-8 h-8 stroke-2" />
+            </button>
         </div>
 
         {/* Last two items */}

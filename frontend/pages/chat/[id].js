@@ -14,21 +14,25 @@ import {
   TrashIcon,
   CalendarDaysIcon,
   LinkIcon,
-  XMarkIcon
+  XMarkIcon,
+  PhotoIcon
 } from '@heroicons/react/24/outline';
 import { getCurrentUser, getInitials, getAvatarColor } from '../../utils/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCall } from '../../context/CallContext';
 import { sendMessage as sendSocketMessage } from '../../services/socket';
+import { SharedMediaGallery } from '../../components/ChatMedia';
 
 export default function ChatPage() {
   const router = useRouter();
   const { id } = router.query;
   const [conversation, setConversation] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showMediaGallery, setShowMediaGallery] = useState(false);
   
   const { callUser } = useCall();
 
@@ -84,6 +88,7 @@ export default function ChatPage() {
     if (id) {
       setLoading(true);
       fetchConversation();
+      fetchMessages();
       joinConversation(id);
 
       return () => {
@@ -105,6 +110,15 @@ export default function ChatPage() {
     }
   };
 
+  const fetchMessages = async () => {
+    try {
+      const response = await chatAPI.getMessages(id);
+      setMessages(response.data.messages || []);
+    } catch (err) {
+      console.error('Fetch error:', err);
+    }
+  };
+
   const otherParticipant = conversation?.participants?.find(
     p => p.userId !== currentUser?.id
   );
@@ -123,6 +137,7 @@ export default function ChatPage() {
       try {
         await chatAPI.clearChat(id);
         setShowMenu(false);
+        setMessages([]);
       } catch (error) {
         console.error('Failed to clear chat:', error);
         alert('Could not clear chat. Please try again.');
@@ -254,6 +269,13 @@ export default function ChatPage() {
                       </div>
                       <div className="p-2 space-y-1">
                         <button
+                          onClick={() => { setShowMediaGallery(true); setShowMenu(false); }}
+                          className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
+                        >
+                          <PhotoIcon className="w-4 h-4" />
+                          <span>View Media & Files</span>
+                        </button>
+                        <button
                           onClick={handleSendCallLink}
                           className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
                         >
@@ -351,6 +373,37 @@ export default function ChatPage() {
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-emerald-500">Video</span>
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Shared Media Gallery Drawer */}
+      <AnimatePresence>
+        {showMediaGallery && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMediaGallery(false)}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998]"
+            />
+            <motion.div 
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-[99999] flex flex-col"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-slate-100">
+                <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Shared Media</h2>
+                <button onClick={() => setShowMediaGallery(false)} className="p-2 text-slate-400 hover:text-slate-600">
+                  <XMarkIcon className="w-5 h-5 stroke-[2px]" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <SharedMediaGallery messages={messages} />
               </div>
             </motion.div>
           </>

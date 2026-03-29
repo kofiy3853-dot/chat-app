@@ -48,7 +48,7 @@ export default function NewChatModal({ isOpen, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div 
-        className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-slide-up"
+        className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
       >
         {/* Header */}
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
@@ -91,8 +91,17 @@ export default function NewChatModal({ isOpen, onClose }) {
                   onClick={() => startChat(user.id)}
                   className="w-full flex items-center space-x-3 p-3 hover:bg-primary-50 rounded-2xl transition-all group border border-transparent hover:border-primary-100"
                 >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary-400 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm group-hover:scale-105 transition-transform">
-                    {user.name.charAt(0).toUpperCase()}
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary-400 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm overflow-hidden">
+                    {(() => {
+                      const avatar = user.avatar;
+                      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
+                      const fullUrl = avatar ? (avatar.startsWith('http') ? avatar : `${baseUrl}${avatar}`) : null;
+                      return fullUrl ? (
+                        <img src={fullUrl} className="w-full h-full object-cover" alt="" />
+                      ) : (
+                        user.name.charAt(0).toUpperCase()
+                      );
+                    })()}
                   </div>
                   <div className="flex-1 text-left min-w-0">
                     <p className="text-sm font-bold text-gray-900 truncate">{user.name}</p>
