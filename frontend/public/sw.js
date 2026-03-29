@@ -36,10 +36,13 @@ self.addEventListener("fetch", (event) => {
                         url.pathname.includes('/icons/') || 
                         url.pathname.match(/\.(png|jpg|jpeg|svg|gif|woff2?|css|js)$/);
 
-  // Bypass SERVICE WORKER for high-load media assets (Prevents 408 Timeout on large/slow Render instance images)
-  const isUploadMedia = url.pathname.includes('/uploads/');
+  // Bypass SERVICE WORKER for high-load media assets and partial stream content (audio/video)
+  // This prevents ERR_CACHE_OPERATION_NOT_SUPPORTED and 408 Timeouts
+  const isExcludedMedia = url.pathname.includes('/uploads/') || 
+                          url.pathname.includes('/sounds/') ||
+                          url.pathname.endsWith('.mp3');
 
-  if (!isStaticAsset || isUploadMedia) return;
+  if (!isStaticAsset || isExcludedMedia) return;
 
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
