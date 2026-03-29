@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const pushController = require('../controllers/pushController');
-const { protect } = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
-router.post('/subscribe', protect, pushController.subscribe);
-router.get('/vapid-public-key', protect, pushController.getPublicKey);
+router.post('/subscribe', authMiddleware, pushController.subscribe);
+router.get('/vapid-public-key', authMiddleware, pushController.getPublicKey);
 
 module.exports = router;
