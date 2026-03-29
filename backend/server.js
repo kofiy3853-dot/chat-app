@@ -51,7 +51,15 @@ const io = new Server(server, {
 });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', cors(corsOptions), express.static('uploads'));
+// Uploads: must use open CORS (no credentials) so browsers can load images/files via <img> tags.
+// credentialed CORS (with 'credentials: true') is incompatible with wildcard origin required for media.
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static('uploads'));
+
 
 // Make prisma and io available to routes
 app.use((req, res, next) => {
