@@ -8,6 +8,44 @@ import CallInterface from '../components/CallInterface';
 import { Toaster, toast } from 'react-hot-toast';
 import '../styles/globals.css';
 
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+// Convert VAPID key from base64 string to Uint8Array for browser API
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+async function subscribeToPush(registration) {
+  try {
+    const existingSubscription = await registration.pushManager.getSubscription();
+    if (existingSubscription) return; // Already subscribed
+
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://campus-chat-backend.onrender.com';
+    await fetch(`${backendUrl}/api/notifications/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(subscription.toJSON())
+    });
+  } catch (err) {
+    console.warn('Push subscription failed:', err);
+  }
+}
+
 // Pages that DON'T need you to be logged in
 const publicPages = ['/login', '/register'];
 
@@ -23,17 +61,21 @@ function MyApp({ Component, pageProps }) {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
   useEffect(() => {
-    // 1. Service Worker Registration
+    // 1. Service Worker Registration + Web Push Subscription
     if (typeof window !== 'undefined' && "serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/sw.js").then((reg) => {
+        navigator.serviceWorker.register("/sw.js").then(async (reg) => {
           console.log('SW Registered', reg.scope);
           
-          // Request Push Notification Permission gracefully
-          if ("Notification" in window && Notification.permission === "default") {
-            Notification.requestPermission().then(permission => {
-              if (permission === 'granted') console.log('Push notifications enabled!');
-            });
+          // Request Push Permission, then subscribe for background push
+          if ("Notification" in window) {
+            let permission = Notification.permission;
+            if (permission === 'default') {
+              permission = await Notification.requestPermission();
+            }
+            if (permission === 'granted' && VAPID_PUBLIC_KEY) {
+              subscribeToPush(reg);
+            }
           }
         }).catch(err => console.error('SW Registration failed', err));
       });
@@ -81,14 +123,16 @@ function MyApp({ Component, pageProps }) {
     return () => router.events.off('routeChangeComplete', authCheck);
   }, [router]);
 
-  // Request Notification Permissions on load to prevent silence
+  // Re-subscribe to push whenever the user logs in (authorized changes)
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'default') {
-        Notification.requestPermission();
+    if (!authorized) return;
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.ready.then((reg) => {
+      if ('Notification' in window && Notification.permission === 'granted' && VAPID_PUBLIC_KEY) {
+        subscribeToPush(reg);
       }
-    }
-  }, []);
+    }).catch(() => {});
+  }, [authorized]);
 
   // Global Push Notification & Sound Manager for Incoming Messages
   useEffect(() => {

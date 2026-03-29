@@ -391,6 +391,49 @@ exports.sendMessage = async (req, res) => {
           notification,
           unreadCount
         });
+
+        // WEBPUSH: Send push notification to all user's registered devices
+        try {
+          const subscriptions = await prisma.pushSubscription.findMany({
+            where: { userId: recipient.userId }
+          });
+          
+          if (subscriptions.length > 0) {
+            const webpush = require('web-push');
+            
+            // Re-assert vapid details here in case they weren't initialized
+            webpush.setVapidDetails(
+              'mailto:support@campuschat.com',
+              process.env.VAPID_PUBLIC_KEY,
+              process.env.VAPID_PRIVATE_KEY
+            );
+
+            const payload = JSON.stringify({
+              title: notification.title,
+              body: notification.content,
+              url: `/chat/${conversationId}`,
+              unreadCount
+            });
+
+            for (const sub of subscriptions) {
+              const pushSubscription = {
+                endpoint: sub.endpoint,
+                keys: { p256dh: sub.p256dh, auth: sub.auth }
+              };
+              
+              webpush.sendNotification(pushSubscription, payload).catch(async (err) => {
+                if (err.statusCode === 404 || err.statusCode === 410) {
+                  // Subscription has expired or is no longer valid
+                  await prisma.pushSubscription.delete({ where: { id: sub.id } });
+                } else {
+                  console.error('Push error:', err);
+                }
+              });
+            }
+          }
+        } catch (pushErr) {
+          console.error('Failed to process web push:', pushErr);
+        }
       }));
     }
 
@@ -577,6 +620,48 @@ exports.uploadAttachment = async (req, res) => {
           notification,
           unreadCount: await prisma.notification.count({ where: { recipientId: recipient.userId, isRead: false } })
         });
+      }
+
+      // WEBPUSH: Send push notification to all user's registered devices
+      try {
+        const subscriptions = await prisma.pushSubscription.findMany({
+          where: { userId: recipient.userId }
+        });
+        
+        if (subscriptions.length > 0) {
+          const webpush = require('web-push');
+
+          // Re-assert vapid details here in case they weren't initialized
+          webpush.setVapidDetails(
+            'mailto:support@campuschat.com',
+            process.env.VAPID_PUBLIC_KEY,
+            process.env.VAPID_PRIVATE_KEY
+          );
+
+          const payload = JSON.stringify({
+            title: notification.title,
+            body: notification.content,
+            url: `/chat/${conversationId}`
+          });
+
+          for (const sub of subscriptions) {
+            const pushSubscription = {
+              endpoint: sub.endpoint,
+              keys: { p256dh: sub.p256dh, auth: sub.auth }
+            };
+            
+            webpush.sendNotification(pushSubscription, payload).catch(async (err) => {
+              if (err.statusCode === 404 || err.statusCode === 410) {
+                // Subscription has expired or is no longer valid
+                await prisma.pushSubscription.delete({ where: { id: sub.id } });
+              } else {
+                console.error('Push error:', err);
+              }
+            });
+          }
+        }
+      } catch (pushErr) {
+        console.error('Failed to process web push for attachment:', pushErr);
       }
     }
 

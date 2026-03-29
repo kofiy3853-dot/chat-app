@@ -69,42 +69,77 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// Listen to Supabase/Backend push notifications
+// ─── BACKGROUND PUSH NOTIFICATIONS ──────────────────────────────────────────
+// This fires when the server sends a push, even if the app/browser is closed.
 self.addEventListener("push", (event) => {
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body || 'You have a new message!',
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
-      vibrate: [100, 50, 100],
-      data: { url: data.url || '/' }
-    };
-    
-    event.waitUntil(
-      self.registration.showNotification(data.title || 'Campus Chat', options)
-    );
-  }
+  if (!event.data) return;
+
+  const data = event.data.json();
+  const title = data.title || 'Campus Chat';
+  const options = {
+    body: data.body || 'You have a new message!',
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",   // Small monochrome icon shown on Android status bar
+    vibrate: [200, 100, 200],
+    tag: data.url || 'campus-chat', // Collapse duplicate notifications from same chat
+    renotify: true,                 // Still vibrate/ring even if tag already exists
+    requireInteraction: false,      // Auto-dismiss after OS timeout
+    data: { url: data.url || '/' },
+    actions: [
+      { action: 'reply', title: '💬 Open Chat' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ]
+  };
+
+  event.waitUntil(
+    // Update the app badge counter with unread count if supported
+    Promise.all([
+      self.registration.showNotification(title, options),
+      // Badge API: Shows the unread count dot on the app icon (Android/Chrome)
+      (navigator.setAppBadge || (() => Promise.resolve()))
+        .call(navigator, data.unreadCount || 1)
+        .catch(() => {})
+    ])
+  );
 });
 
+// ─── NOTIFICATION CLICK ───────────────────────────────────────────────────────
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const urlToOpen = event.notification.data.url;
-  
+
+  // Handle action buttons
+  if (event.action === 'dismiss') return;
+
+  const urlToOpen = event.notification.data?.url || '/';
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      // Check if there is already a window/tab open with the target URL
-      for (let i = 0; i < windowClients.length; i++) {
-        const client = windowClients[i];
-        // If so, just focus it
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
+      // If app is already open in some tab, navigate it and focus
+      for (const client of windowClients) {
+        if ('navigate' in client) {
+          return client.navigate(urlToOpen).then(c => c && c.focus());
         }
       }
-      // If not, open a new window/tab
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
+      // Otherwise open a fresh tab pointing to the chat room
+      return clients.openWindow(urlToOpen);
     })
+  );
+});
+
+// ─── PUSH SUBSCRIPTION CHANGE ────────────────────────────────────────────────
+// Fires when the browser rotates the push subscription key (rare but important)
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    self.registration.pushManager.subscribe(event.oldSubscription.options)
+      .then(async (subscription) => {
+        // Re-send the new subscription to the server
+        const token = await clients.matchAll({ type: 'window' })
+          .then(cls => cls[0]?.postMessage({ type: 'GET_TOKEN' }));
+        return fetch('/api/notifications/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(subscription.toJSON())
+        });
+      })
   );
 });
