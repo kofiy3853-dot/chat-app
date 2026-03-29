@@ -36,7 +36,10 @@ self.addEventListener("fetch", (event) => {
                         url.pathname.includes('/icons/') || 
                         url.pathname.match(/\.(png|jpg|jpeg|svg|gif|woff2?|css|js)$/);
 
-  if (!isStaticAsset) return;
+  // Bypass SERVICE WORKER for high-load media assets (Prevents 408 Timeout on large/slow Render instance images)
+  const isUploadMedia = url.pathname.includes('/uploads/');
+
+  if (!isStaticAsset || isUploadMedia) return;
 
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
