@@ -1,4 +1,7 @@
 const prisma = require('../prisma/client');
+const uploadToSupabase = require('../utils/uploadToSupabase');
+const fs = require('fs');
+const path = require('path');
 const { getWebPush } = require('../utils/webPushHelper');
 
 
@@ -531,17 +534,28 @@ exports.uploadAttachment = async (req, res) => {
     let fileUrl = '';
     let fileName = '';
     let fileSize = 0;
+    let localFile = null;
 
     if (req.files.file && req.files.file.length > 0) {
-      fileUrl = `/uploads/files/${req.files.file[0].filename}`;
-      fileName = req.files.file[0].originalname;
-      fileSize = req.files.file[0].size;
+      localFile = req.files.file[0];
+      fileUrl = `/uploads/files/${localFile.filename}`;
+      fileName = localFile.originalname;
+      fileSize = localFile.size;
     } else if (req.files.voice && req.files.voice.length > 0) {
-      fileUrl = `/uploads/voice/${req.files.voice[0].filename}`;
+      localFile = req.files.voice[0];
+      fileUrl = `/uploads/voice/${localFile.filename}`;
       fileName = 'Voice Note';
-      fileSize = req.files.voice[0].size;
+      fileSize = localFile.size;
     } else {
       return res.status(400).json({ message: 'No valid file data received' });
+    }
+
+    // Try uploading to Supabase cloud storage (if configured)
+    const cloudUrl = await uploadToSupabase(localFile);
+    if (cloudUrl) {
+      fileUrl = cloudUrl;
+      // Clean up local file after successful upload to cloud
+      try { fs.unlinkSync(localFile.path); } catch (e) {}
     }
 
     // Auto-detect IMAGE type from extension if it's currently FILE
