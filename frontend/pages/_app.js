@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Navbar from '../components/Navbar';
-import { initSocket } from '../services/socket';
+import { initSocket, getSocket } from '../services/socket';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { CallProvider } from '../context/CallContext';
 import CallInterface from '../components/CallInterface';
 import '../styles/globals.css';
@@ -78,6 +79,63 @@ function MyApp({ Component, pageProps }) {
     router.events.on('routeChangeComplete', authCheck);
     return () => router.events.off('routeChangeComplete', authCheck);
   }, [router]);
+
+  // Global Push Notification & Sound Manager for Incoming Messages
+  useEffect(() => {
+    if (!authorized) return;
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleGlobalNewMessage = async (msg) => {
+      try {
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+        // Ignore our own messages
+        if (msg.sender?.id === currentUser?.id) return;
+        
+        // Don't spam push notifications if the user is already inside this exact chat room
+        if (router.pathname === '/chat/[id]' && router.query.id === msg.conversationId) {
+           // We are inside the active chat, just play a subtle in-app sound
+           const inAppSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+           inAppSound.volume = 0.5;
+           inAppSound.play().catch(e => console.log('Audio overlap blocked or disabled', e));
+           return;
+        }
+
+        // We are backgrounded, in another page, or phone is asleep: Fire Native Notification & Wake Screen!
+        if (typeof window !== 'undefined' && 'capacitor' in window) {
+           await LocalNotifications.schedule({
+             notifications: [{
+               title: msg.sender?.name || 'New Message',
+               body: msg.content || 'Sent an attachment',
+               id: Math.floor(Math.random() * 100000),
+               schedule: { at: new Date(Date.now() + 100) },
+               sound: null,
+               attachments: null,
+               actionTypeId: "",
+               extra: { conversationId: msg.conversationId }
+             }]
+           });
+        } else {
+           // Fallback for Web PWA standard notifications (which also rings and wakes screen if allowed)
+           if (Notification.permission === 'granted') {
+             new Notification(msg.sender?.name || 'New Message', {
+               body: msg.content || 'Sent an attachment',
+               icon: '/icons/icon-192.png'
+             });
+             const webSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+             webSound.play().catch(e => e);
+           }
+        }
+      } catch (err) {
+        console.error('Notification error', err);
+      }
+    };
+
+    socket.on('new-message', handleGlobalNewMessage);
+    return () => {
+      socket.off('new-message', handleGlobalNewMessage);
+    };
+  }, [authorized, router.pathname, router.query.id]);
 
   const shouldHideNavbar = hideNavbarPages.includes(router.pathname);
 

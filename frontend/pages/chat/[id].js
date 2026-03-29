@@ -5,6 +5,7 @@ import Link from 'next/link';
 import ChatBox from '../../components/ChatBox';
 import { chatAPI } from '../../services/api';
 import { joinConversation, leaveConversation } from '../../services/socket';
+import { KeepAwake } from '@capacitor-community/keep-awake';
 import { 
   ArrowLeftIcon, 
   EllipsisVerticalIcon, 
@@ -30,6 +31,20 @@ export default function ChatPage() {
   const [showProfile, setShowProfile] = useState(false);
   
   const { callUser } = useCall();
+
+  useEffect(() => {
+    const enableKeepAwake = async () => {
+      try { await KeepAwake.keepAwake(); } catch(e) {}
+    };
+    const disableKeepAwake = async () => {
+      try { await KeepAwake.allowSleep(); } catch(e) {}
+    };
+
+    enableKeepAwake();
+    return () => {
+      disableKeepAwake();
+    };
+  }, []);
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
