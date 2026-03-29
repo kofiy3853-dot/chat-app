@@ -489,20 +489,6 @@ exports.uploadAttachment = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    // Verify participant
-    const participant = await prisma.conversationParticipant.findUnique({
-      where: {
-        userId_conversationId: {
-          userId,
-          conversationId
-        }
-      }
-    });
-
-    if (!participant) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
     let fileUrl = '';
     let fileName = '';
     let fileSize = 0;
@@ -517,6 +503,25 @@ exports.uploadAttachment = async (req, res) => {
       fileSize = req.files.voice[0].size;
     } else {
       return res.status(400).json({ message: 'No valid file data received' });
+    }
+
+    // GENERAL UPLOAD MODE: Quick return for generic file uploads (e.g., Avatars/Profile Pics)
+    if (!conversationId || conversationId === 'undefined' || conversationId === 'null') {
+      return res.status(200).json({ url: fileUrl });
+    }
+
+    // Verify participant
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: {
+        userId_conversationId: {
+          userId,
+          conversationId
+        }
+      }
+    });
+
+    if (!participant) {
+      return res.status(403).json({ message: 'Access denied' });
     }
 
     const message = await prisma.message.create({

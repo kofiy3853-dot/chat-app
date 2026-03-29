@@ -20,10 +20,20 @@ self.addEventListener("fetch", (event) => {
 
   // Don't intercept Socket.io WebSocket connections
   if (event.request.url.includes('/socket.io/')) return;
+  // Don't intercept API calls to prevent caching dynamic data indefinitely
+  if (event.request.url.includes('/api/')) return;
+
+  // Don't intercept Range requests (like audio/video partial content) to avoid 206 errors
+  if (event.request.headers.has('range')) return;
 
   event.respondWith(
     fetch(event.request)
       .then(res => {
+        // Only cache perfectly valid 200 OK responses to prevent 206 Audio crashes
+        if (!res || res.status !== 200 || res.type === 'opaque') {
+          return res;
+        }
+        
         const clone = res.clone();
         caches.open("dynamic-cache").then(cache => {
           cache.put(event.request, clone);
@@ -33,7 +43,6 @@ self.addEventListener("fetch", (event) => {
       .catch(() => {
         return caches.match(event.request).then(response => {
           if (response) return response;
-          // Fallback mechanism could return a cached offline page if implemented
         });
       })
   );

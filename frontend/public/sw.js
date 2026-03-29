@@ -15,39 +15,57 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  // Only cache GET requests (don't cache POST/PUT/DELETE for API calls)
+  // Only intercept GET requests
   if (event.request.method !== "GET") return;
 
-  // Don't intercept Socket.io WebSocket connections
-  if (event.request.url.includes('/socket.io/')) return;
-  // Don't intercept API calls to prevent caching dynamic data indefinitely
-  if (event.request.url.includes('/api/')) return;
+  const url = new URL(event.request.url);
 
-  // Don't intercept Range requests (like audio/video partial content) to avoid 206 errors
+  // Ignore navigation requests (HTML pages) to prevent stale content & 404s on dynamic Next.js routes
+  if (event.request.mode === 'navigate') return;
+
+  // Ignore Socket.io, API calls, and Next.js HMR
+  if (url.pathname.includes('/socket.io/')) return;
+  if (url.pathname.includes('/api/')) return;
+  if (url.pathname.includes('/_next/webpack-hmr')) return;
+
+  // Ignore range requests (audio, video) to avoid 206 Partial Content caching errors
   if (event.request.headers.has('range')) return;
 
+  // Only aggressively cache specific static assets (images, Next.js static chunks)
+  const isStaticAsset = url.pathname.includes('/_next/static/') || 
+                        url.pathname.includes('/icons/') || 
+                        url.pathname.match(/\.(png|jpg|jpeg|svg|gif|woff2?|css|js)$/);
+
+  if (!isStaticAsset) return;
+
   event.respondWith(
-    fetch(event.request)
-      .then(res => {
-        // Only cache perfectly valid 200 OK responses to prevent 206 Audio crashes
-        if (!res || res.status !== 200 || res.type === 'opaque') {
+    caches.match(event.request).then(cachedResponse => {
+      // Return cached asset if found
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      // Otherwise fetch from network and catch potential errors safely
+      return fetch(event.request)
+        .then(res => {
+          // Only cache valid 200 OK responses
+          if (!res || res.status !== 200 || res.type === 'opaque') {
+            return res;
+          }
+          
+          const clone = res.clone();
+          caches.open("dynamic-cache").then(cache => {
+            // Safely put in cache
+            cache.put(event.request, clone).catch(err => console.error("Cache put error:", err));
+          });
           return res;
-        }
-        
-        const clone = res.clone();
-        caches.open("dynamic-cache").then(cache => {
-          cache.put(event.request, clone);
+        })
+        .catch(err => {
+          console.error("Fetch failed for static asset:", event.request.url, err);
+          // Return a safe fallback rather than crashing
+          return new Response("", { status: 408, statusText: "Request Timeout" });
         });
-        return res;
-      })
-      .catch(() => {
-        return caches.match(event.request).then(response => {
-          if (response) return response;
-          // Fallback mechanism could return a cached offline page if implemented
-          // But effectively we must return a valid Response value otherwise it throws a TypeError
-          return Response.error();
-        });
-      })
+    })
   );
 });
 
