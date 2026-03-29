@@ -502,30 +502,42 @@ const MessageBubble = React.memo(({
             {/* Action Menu Popover (Inline Logic) */}
             <AnimatePresence>
               {activeMenuId === message.id && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9, y: 5 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 5 }}
-                  className={`absolute z-[2000] bottom-full mb-2 bg-white rounded-xl shadow-2xl border border-slate-100 min-w-[140px] overflow-hidden ${isMine ? 'right-0' : 'left-0'}`}
-                  onClick={e => e.stopPropagation()}
-                >
-                  <div className="flex justify-around p-2 bg-slate-50 border-b border-slate-100">
-                    {['❤️', '👍', '🔥', '😂'].map(e => <button key={e} onClick={() => addReaction(message.id, e)} className="hover:scale-125 transition-transform">{e}</button>)}
-                  </div>
-                  <div className="p-1 flex flex-col">
-                    <button onClick={() => { navigator.clipboard.writeText(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
-                      <DocumentDuplicateIcon className="w-3.5 h-3.5" /> <span>Copy text</span>
-                    </button>
-                    {isMine && !message.isDeleted && (
-                      <>
-                        <button onClick={() => { setEditingMessageId(message.id); setEditingContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
-                          <PencilIcon className="w-3.5 h-3.5" /> <span>Edit</span>
+                <>
+                  {/* Invisible backdrop to close menu when tapping outside */}
+                  <div 
+                    className="fixed inset-0 z-[1999]" 
+                    onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
+                    onTouchStart={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
+                  />
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9, y: 5 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 5 }}
+                    className={`absolute z-[2000] bottom-full mb-2 bg-white rounded-xl shadow-2xl border border-slate-100 min-w-[140px] overflow-hidden ${isMine ? 'right-0' : 'left-0'}`}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className="flex justify-around p-2 bg-slate-50 border-b border-slate-100">
+                      {['❤️', '👍', '🔥', '😂'].map(e => (
+                        <button key={e} onClick={() => { addReaction(message.id, e); setActiveMenuId(null); }} className="hover:scale-125 transition-transform">
+                          {e}
                         </button>
-                        <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-lg">
-                          <TrashIcon className="w-3.5 h-3.5" /> <span>Delete</span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </motion.div>
+                      ))}
+                    </div>
+                    <div className="p-1 flex flex-col">
+                      <button onClick={() => { navigator.clipboard.writeText(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
+                        <DocumentDuplicateIcon className="w-3.5 h-3.5" /> <span>Copy text</span>
+                      </button>
+                      {isMine && !message.isDeleted && (
+                        <>
+                          <button onClick={() => { setEditingMessageId(message.id); setEditingContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
+                            <PencilIcon className="w-3.5 h-3.5" /> <span>Edit</span>
+                          </button>
+                          <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-lg">
+                            <TrashIcon className="w-3.5 h-3.5" /> <span>Delete</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                </>
               )}
             </AnimatePresence>
           </div>

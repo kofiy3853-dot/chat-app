@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { authAPI } from '../services/api';
+import { useState, useRef } from 'react';
+import { authAPI, chatAPI } from '../services/api';
 import { 
   UserIcon, 
   EnvelopeIcon, 
@@ -17,9 +17,11 @@ export default function ProfileCard({ user, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
-    department: user?.department || ''
+    department: user?.department || '',
+    avatar: user?.avatar || ''
   });
   const [loading, setLoading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,6 +35,31 @@ export default function ProfileCard({ user, onUpdate }) {
       console.error('Failed to update profile:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingAvatar(true);
+    try {
+      const data = new FormData();
+      data.append('file', file);
+      // Re-using the message attachment uploader which pushes files to Supabase Storage
+      const response = await chatAPI.uploadMessageAttachment(data);
+      if (response.data?.url || response.data?.fileUrl) {
+        const uploadedUrl = response.data.url || response.data.fileUrl;
+        setFormData(prev => ({ ...prev, avatar: uploadedUrl }));
+        
+        // Auto-save just the avatar instantly
+        const updatedUser = await authAPI.updateProfile({ ...formData, avatar: uploadedUrl });
+        onUpdate?.(updatedUser.data.user);
+      }
+    } catch (error) {
+      console.error('Failed to upload avatar:', error);
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -71,15 +98,34 @@ export default function ProfileCard({ user, onUpdate }) {
         {/* Avatar Section */}
         <div className="relative -mt-14 mb-6 flex items-end justify-between">
           <div className="relative group">
-            <div className="w-28 h-28 rounded-[2rem] bg-white p-1.5 shadow-xl rotate-3 group-hover:rotate-0 transition-transform duration-500">
-              <div className="w-full h-full rounded-[1.6rem] bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-black shadow-inner">
-                {user?.name?.charAt(0).toUpperCase()}
+            <div className="w-28 h-28 rounded-[2rem] bg-white p-1.5 shadow-xl rotate-3 group-hover:rotate-0 transition-transform duration-500 relative flex-shrink-0">
+              <div className="w-full h-full rounded-[1.6rem] bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-black shadow-inner overflow-hidden">
+                {formData.avatar || user?.avatar ? (
+                  <img src={formData.avatar || user?.avatar} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  user?.name?.charAt(0).toUpperCase()
+                )}
               </div>
+              {uploadingAvatar && (
+                <div className="absolute inset-0 bg-white/60 rounded-[2rem] flex items-center justify-center backdrop-blur-sm z-10">
+                  <div className="w-6 h-6 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+                </div>
+              )}
             </div>
             {isEditing && (
-              <button className="absolute bottom-0 right-0 p-2 bg-white text-primary-600 rounded-lg shadow-lg border border-slate-100 hover:scale-110 active:scale-90 transition-all">
+              <label 
+                htmlFor="avatar-upload"
+                className="absolute bottom-0 right-0 p-2 bg-white text-primary-600 rounded-lg shadow-lg border border-slate-100 hover:scale-110 active:scale-90 transition-all z-20 cursor-pointer"
+              >
                 <CameraIcon className="w-4 h-4" />
-              </button>
+                <input 
+                  type="file" 
+                  id="avatar-upload" 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleAvatarChange} 
+                />
+              </label>
             )}
           </div>
 

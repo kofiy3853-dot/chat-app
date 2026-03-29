@@ -42,6 +42,14 @@ export default function CallInterface() {
     if (userVideo.current && remoteStream) {
       userVideo.current.srcObject = remoteStream;
       userVideo.current.play().catch(() => {});
+
+      // [CAPACITOR FIX] Force audio routing on Android WebViews
+      const nativeAudio = new Audio();
+      nativeAudio.srcObject = remoteStream;
+      nativeAudio.playsInline = true;
+      nativeAudio.autoplay = true;
+      nativeAudio.muted = false;
+      nativeAudio.play().catch(e => console.warn('Capacitor: Remote audio requires user tap', e));
     }
   }, [remoteStream]);
 

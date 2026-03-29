@@ -27,6 +27,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   
   const { callUser } = useCall();
 
@@ -139,7 +140,10 @@ export default function ChatPage() {
               <ArrowLeftIcon className="w-5 h-5 stroke-[2.5px]" />
             </Link>
             
-            <div className="flex items-center space-x-3 cursor-pointer group min-w-0">
+            <div 
+              className="flex items-center space-x-3 cursor-pointer group min-w-0"
+              onClick={() => setShowProfile(true)}
+            >
               <div className="relative group">
                 <div className={`w-10 h-10 rounded-[14px] bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center text-white text-sm font-bold shadow-md group-hover:scale-105 transition-all duration-300`}>
                   {getInitials(name)}
@@ -238,6 +242,75 @@ export default function ChatPage() {
         {/* Chat Component */}
         <ChatBox conversationId={id} />
       </div>
+
+      {/* Participant Profile Modal */}
+      <AnimatePresence>
+        {showProfile && otherParticipant && (
+          <>
+            {/* Dark Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowProfile(false)}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998]"
+            />
+            {/* Sliding Drawer */}
+            <motion.div 
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-[99999] flex flex-col border-l border-slate-100"
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+                <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Contact Info</h2>
+                <button onClick={() => setShowProfile(false)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-600 shadow-sm border border-slate-100 transition-all hover:scale-105">
+                  <XMarkIcon className="w-5 h-5 stroke-[3px]" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
+                {/* Giant Avatar */}
+                <div className="relative mb-6 group">
+                  <div className={`w-32 h-32 rounded-3xl bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white`}>
+                    {getInitials(name)}
+                  </div>
+                  {isOnline && (
+                    <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full shadow-lg flex items-center justify-center">
+                      <span className="w-2.5 h-2.5 bg-white rounded-full animate-pulse px-0"></span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Name & Status */}
+                <h1 className="text-2xl font-black text-slate-800 tracking-tight text-center">{name}</h1>
+                <p className={`text-sm font-bold uppercase tracking-widest mt-2 ${isOnline ? 'text-green-500' : 'text-slate-400'}`}>
+                  {isOnline ? 'Active Now' : 'Offline'}
+                </p>
+
+                {/* Quick Actions Card */}
+                <div className="w-full bg-slate-50 rounded-2xl p-4 mt-8 flex justify-around border border-slate-100">
+                  <button onClick={() => { setShowProfile(false); handleStartCall('VOICE'); }} className="flex flex-col items-center space-y-2 group">
+                    <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-all">
+                      <PhoneIcon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary-500">Audio</span>
+                  </button>
+                  <button onClick={() => { setShowProfile(false); handleStartCall('VIDEO'); }} className="flex flex-col items-center space-y-2 group">
+                    <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-emerald-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all">
+                      <VideoCameraIcon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-emerald-500">Video</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <style jsx global>{`
         /* Hide scrollbar for Chrome, Safari and Opera */
