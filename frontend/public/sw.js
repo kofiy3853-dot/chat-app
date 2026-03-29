@@ -43,6 +43,9 @@ self.addEventListener("fetch", (event) => {
       .catch(() => {
         return caches.match(event.request).then(response => {
           if (response) return response;
+          // Fallback mechanism could return a cached offline page if implemented
+          // But effectively we must return a valid Response value otherwise it throws a TypeError
+          return Response.error();
         });
       })
   );
