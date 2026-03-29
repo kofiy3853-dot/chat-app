@@ -90,8 +90,9 @@ function MyApp({ Component, pageProps }) {
       try {
         const currentUser = JSON.parse(localStorage.getItem('user'));
         // Ignore our own messages
-        const messageSenderId = msg.senderId || msg.sender?.id || msg.sender;
-        if (messageSenderId === currentUser?.id) return;
+        const actualMsg = msg.message || msg;
+        const messageSenderId = actualMsg.senderId || actualMsg.sender?.id || actualMsg.sender;
+        if (String(messageSenderId) === String(currentUser?.id)) return;
         
         // Don't spam push notifications if the user is already inside this exact chat room
         if (router.pathname === '/chat/[id]' && router.query.id === msg.conversationId) {
@@ -106,21 +107,21 @@ function MyApp({ Component, pageProps }) {
         if (typeof window !== 'undefined' && 'capacitor' in window) {
            await LocalNotifications.schedule({
              notifications: [{
-               title: msg.sender?.name || 'New Message',
-               body: msg.content || 'Sent an attachment',
+               title: actualMsg.sender?.name || 'New Message',
+               body: actualMsg.content || 'Sent an attachment',
                id: Math.floor(Math.random() * 100000),
                schedule: { at: new Date(Date.now() + 100) },
                sound: null,
                attachments: null,
                actionTypeId: "",
-               extra: { conversationId: msg.conversationId }
+               extra: { conversationId: msg.conversationId || actualMsg.conversationId }
              }]
            });
         } else {
            // Fallback for Web PWA standard notifications (which also rings and wakes screen if allowed)
            if (Notification.permission === 'granted') {
-             new Notification(msg.sender?.name || 'New Message', {
-               body: msg.content || 'Sent an attachment',
+             new Notification(actualMsg.sender?.name || 'New Message', {
+               body: actualMsg.content || 'Sent an attachment',
                icon: '/icons/icon-192.png'
              });
              const webSound = new Audio('/sounds/ding.mp3');
