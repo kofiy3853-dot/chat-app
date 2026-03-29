@@ -321,6 +321,12 @@ export default function ChatList() {
 }
 
 const ChatListItem = React.memo(({ 
+  conversation,
+  currentUser,
+  favorites,
+  getConversationName,
+  getLastMessagePreview,
+  getMessageStatus,
   toggleFavorite,
   handleArchive,
   handleDelete,
