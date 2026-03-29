@@ -187,9 +187,7 @@ export default function ChatPage() {
 
       <div className="max-w-xl mx-auto min-h-screen flex flex-col bg-white shadow-2xl relative">
         {/* Header */}
-        <motion.header 
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+        <header 
           className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-slate-100 px-4 py-3 z-[10] flex items-center justify-between"
         >
           <div className="flex items-center space-x-3 min-w-0">
@@ -205,8 +203,17 @@ export default function ChatPage() {
               onClick={() => setShowProfile(true)}
             >
               <div className="relative group">
-                <div className={`w-10 h-10 rounded-[14px] bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center text-white text-sm font-bold shadow-md group-hover:scale-105 transition-all duration-300`}>
-                  {getInitials(name)}
+                <div className={`w-10 h-10 rounded-[14px] bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center text-white text-sm font-bold shadow-md overflow-hidden`}>
+                  {(() => {
+                    const avatar = otherParticipant?.user?.avatar;
+                    const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
+                    const fullUrl = avatar ? (avatar.startsWith('http') ? avatar : `${baseUrl}${avatar}`) : null;
+                    return fullUrl ? (
+                      <img src={fullUrl} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      getInitials(name)
+                    );
+                  })()}
                 </div>
                 {isOnline && (
                   <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
@@ -304,7 +311,7 @@ export default function ChatPage() {
               </AnimatePresence>
             </div>
           </div>
-        </motion.header>
+        </header>
 
         {/* Chat Component */}
         <ChatBox conversationId={id} />
@@ -342,8 +349,17 @@ export default function ChatPage() {
               <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
                 {/* Giant Avatar */}
                 <div className="relative mb-6 group">
-                  <div className={`w-32 h-32 rounded-3xl bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white`}>
-                    {getInitials(name)}
+                  <div className={`w-32 h-32 rounded-3xl bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden`}>
+                    {(() => {
+                      const avatar = otherParticipant?.user?.avatar;
+                      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
+                      const fullUrl = avatar ? (avatar.startsWith('http') ? avatar : `${baseUrl}${avatar}`) : null;
+                      return fullUrl ? (
+                        <img src={fullUrl} className="w-full h-full object-cover" alt="" />
+                      ) : (
+                        getInitials(name)
+                      );
+                    })()}
                   </div>
                   {isOnline && (
                     <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full shadow-lg flex items-center justify-center">
