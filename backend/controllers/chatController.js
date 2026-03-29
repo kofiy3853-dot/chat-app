@@ -1,4 +1,5 @@
 const prisma = require('../prisma/client');
+const { getWebPush } = require('./pushController');
 
 // Get user's conversations
 exports.getConversations = async (req, res) => {
@@ -399,14 +400,8 @@ exports.sendMessage = async (req, res) => {
           });
           
           if (subscriptions.length > 0) {
-            const webpush = require('web-push');
-            
-            // Re-assert vapid details here in case they weren't initialized
-            webpush.setVapidDetails(
-              'mailto:support@campuschat.com',
-              process.env.VAPID_PUBLIC_KEY,
-              process.env.VAPID_PRIVATE_KEY
-            );
+            const wp = getWebPush();
+            if (!wp) return; // VAPID keys not configured, skip
 
             const payload = JSON.stringify({
               title: notification.title,
@@ -421,7 +416,7 @@ exports.sendMessage = async (req, res) => {
                 keys: { p256dh: sub.p256dh, auth: sub.auth }
               };
               
-              webpush.sendNotification(pushSubscription, payload).catch(async (err) => {
+              wp.sendNotification(pushSubscription, payload).catch(async (err) => {
                 if (err.statusCode === 404 || err.statusCode === 410) {
                   // Subscription has expired or is no longer valid
                   await prisma.pushSubscription.delete({ where: { id: sub.id } });
@@ -629,14 +624,8 @@ exports.uploadAttachment = async (req, res) => {
         });
         
         if (subscriptions.length > 0) {
-          const webpush = require('web-push');
-
-          // Re-assert vapid details here in case they weren't initialized
-          webpush.setVapidDetails(
-            'mailto:support@campuschat.com',
-            process.env.VAPID_PUBLIC_KEY,
-            process.env.VAPID_PRIVATE_KEY
-          );
+          const wp = getWebPush();
+          if (!wp) return; // VAPID keys not configured, skip
 
           const payload = JSON.stringify({
             title: notification.title,
@@ -644,13 +633,13 @@ exports.uploadAttachment = async (req, res) => {
             url: `/chat/${conversationId}`
           });
 
-          for (const sub of subscriptions) {
-            const pushSubscription = {
-              endpoint: sub.endpoint,
-              keys: { p256dh: sub.p256dh, auth: sub.auth }
-            };
-            
-            webpush.sendNotification(pushSubscription, payload).catch(async (err) => {
+            for (const sub of subscriptions) {
+              const pushSubscription = {
+                endpoint: sub.endpoint,
+                keys: { p256dh: sub.p256dh, auth: sub.auth }
+              };
+              
+              wp.sendNotification(pushSubscription, payload).catch(async (err) => {
               if (err.statusCode === 404 || err.statusCode === 410) {
                 // Subscription has expired or is no longer valid
                 await prisma.pushSubscription.delete({ where: { id: sub.id } });
