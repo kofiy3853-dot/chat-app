@@ -20,6 +20,8 @@ export default function ChatList() {
   const [filter, setFilter] = useState('ALL'); // ALL, UNREAD, FAVORITES, GROUPS
   const [favorites, setFavorites] = useState([]);
   const [typingInConvs, setTypingInConvs] = useState({}); // { [id]: { [userId]: userName } }
+  const [longPressedId, setLongPressedId] = useState(null);
+  const pressTimer = useRef(null);
 
   // Memoize currentUser
   const currentUser = useMemo(() => getCurrentUser(), []);
@@ -279,19 +281,39 @@ export default function ChatList() {
 
       <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
         {filteredConversations.map((conversation) => (
-          <ChatListItem 
-            key={conversation.id}
-            conversation={conversation}
-            currentUser={currentUser}
-            favorites={favorites}
-            typingInConvs={typingInConvs}
-            getConversationName={getConversationName}
-            getLastMessagePreview={getLastMessagePreview}
-            getMessageStatus={getMessageStatus}
-            toggleFavorite={toggleFavorite}
-            handleArchive={handleArchive}
-            handleDelete={handleDelete}
-          />
+          <div key={conversation.id} className="relative">
+            <ChatListItem 
+              conversation={conversation}
+              currentUser={currentUser}
+              favorites={favorites}
+              typingInConvs={typingInConvs}
+              getConversationName={getConversationName}
+              getLastMessagePreview={getLastMessagePreview}
+              getMessageStatus={getMessageStatus}
+              toggleFavorite={toggleFavorite}
+              handleArchive={handleArchive}
+              handleDelete={handleDelete}
+              setLongPressedId={setLongPressedId}
+              pressTimer={pressTimer}
+            />
+            {longPressedId === conversation.id && (
+              <>
+                <div 
+                  className="fixed inset-0 z-[100] bg-black/5" 
+                  onClick={() => setLongPressedId(null)}
+                />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] flex flex-col items-center">
+                  <button 
+                    onClick={(e) => { handleDelete(e, conversation.id); setLongPressedId(null); }}
+                    className="bg-red-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center space-x-2 active:scale-95 transition-transform"
+                  >
+                    <TrashIcon className="w-5 h-5 text-white" />
+                    <span className="text-sm font-black uppercase tracking-wider">Delete Chat</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         ))}
       </div>
     </div>
@@ -299,31 +321,40 @@ export default function ChatList() {
 }
 
 const ChatListItem = React.memo(({ 
-  conversation, 
-  currentUser, 
-  favorites, 
-  typingInConvs,
-  getConversationName,
-  getLastMessagePreview,
-  getMessageStatus,
   toggleFavorite,
   handleArchive,
-  handleDelete
+  handleDelete,
+  setLongPressedId,
+  pressTimer
 }) => {
+  const startPress = useCallback((e) => {
+    pressTimer.current = setTimeout(() => {
+      if (navigator.vibrate) navigator.vibrate(50);
+      setLongPressedId(conversation.id);
+    }, 600);
+  }, [conversation.id, setLongPressedId, pressTimer]);
+
+  const endPress = useCallback(() => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+  }, [pressTimer]);
+
   return (
-    <SwipeableItem 
-      key={conversation.id} 
-      onArchive={(e) => handleArchive(e, conversation.id)}
-      onDelete={(e) => handleDelete(e, conversation.id)}
+    <div
+      onMouseDown={startPress}
+      onMouseUp={endPress}
+      onMouseLeave={endPress}
+      onTouchStart={startPress}
+      onTouchEnd={endPress}
+      className="relative select-none"
     >
       <Link
         href={`/chat/${conversation.id}`}
         className={`flex items-center p-4 space-x-3 hover:bg-gray-50 group relative border-l-4 ${
-          (conversation.unreadCount > 0) ? 'border-blue-500 bg-blue-50/20' : 'border-transparent'
+          (conversation.unreadCount > 0) ? 'border-primary-500 bg-primary-50/20' : 'border-transparent'
         }`}
       >
         <div className="relative flex-shrink-0">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-sm overflow-hidden">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-400 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-sm overflow-hidden">
             {(() => {
               const other = conversation.participants?.find(p => p.userId !== currentUser?.id)?.user;
               const avatar = other?.avatar;
@@ -354,12 +385,12 @@ const ChatListItem = React.memo(({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1.5 min-w-0 flex-1">
               {getMessageStatus(conversation)}
-              <p className={`text-xs truncate ${conversation.unreadCount > 0 ? 'font-bold text-blue-900' : 'text-gray-500'}`}>
+              <p className={`text-xs truncate ${conversation.unreadCount > 0 ? 'font-bold text-primary-900' : 'text-gray-500'}`}>
                 {getLastMessagePreview(conversation)}
               </p>
             </div>
             {conversation.unreadCount > 0 && (
-              <span className="bg-blue-600 text-white text-[10px] font-black h-5 min-w-[20px] px-1.5 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <span className="bg-primary-600 text-white text-[10px] font-black h-5 min-w-[20px] px-1.5 rounded-full flex items-center justify-center shadow-lg shadow-primary-500/20">
                 {conversation.unreadCount}
               </span>
             )}
@@ -376,34 +407,7 @@ const ChatListItem = React.memo(({
           }
         </button>
       </Link>
-    </SwipeableItem>
-  );
-});
-
-const SwipeableItem = React.memo(({ children, onArchive, onDelete }) => {
-  return (
-    <div className="relative bg-gray-100 overflow-hidden">
-      {/* Background Actions */}
-      <div className="absolute inset-0 flex justify-between">
-        <button 
-          onClick={onArchive}
-          className="flex flex-col items-center justify-center w-24 bg-indigo-500 text-white hover:bg-indigo-600"
-        >
-          <ArchiveBoxIcon className="w-6 h-6 mb-1" />
-          <span className="text-[10px] font-black uppercase tracking-tighter">Archive</span>
-        </button>
-        <button 
-          onClick={onDelete}
-          className="flex flex-col items-center justify-center w-24 bg-red-500 text-white hover:bg-red-600"
-        >
-          <TrashIcon className="w-6 h-6 mb-1" />
-          <span className="text-[10px] font-black uppercase tracking-tighter">Delete</span>
-        </button>
-      </div>
-
-      <div className="relative bg-white z-10">
-        {children}
-      </div>
     </div>
   );
 });
+
