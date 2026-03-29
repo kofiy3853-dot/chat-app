@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AcademicCapIcon, UsersIcon, ChatBubbleLeftIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
-import { motion } from 'framer-motion';
 import { getInitials, getAvatarColor } from '../../utils/helpers';
 import { getSocket } from '../../services/socket';
 
@@ -32,10 +31,7 @@ export default function CourseCard({ course }) {
   const studentCount = course.students?.length || 0;
 
   return (
-    <motion.div
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
+    <div
       className="group relative bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
     >
       <Link href={`/courses/${course.id}`} className="absolute inset-0 z-10 rounded-[2rem]"></Link>
@@ -94,6 +90,6 @@ export default function CourseCard({ course }) {
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

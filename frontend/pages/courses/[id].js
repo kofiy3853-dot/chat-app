@@ -17,7 +17,6 @@ import {
   ClockIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
-import { motion, AnimatePresence } from 'framer-motion';
 import { courseAPI } from '../../services/api';
 import Navbar from '../../components/Navbar';
 import ChatBox from '../../components/ChatBox';
@@ -292,9 +291,8 @@ export default function CoursePage() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-screen md:h-screen overflow-hidden relative">
         <div className="flex-1 overflow-y-auto bg-slate-50/30 md:bg-transparent no-scrollbar relative z-10">
-          <AnimatePresence mode="wait">
-            {activeTab === 'overview' && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-6 md:p-12 max-w-5xl mx-auto space-y-10 pb-32">
+          {activeTab === 'overview' && (
+            <div className="p-6 md:p-12 max-w-5xl mx-auto space-y-10 pb-32">
                 <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary-50 rounded-full -mr-32 -mt-32 opacity-30 z-0"></div>
                    <div className="relative z-10">
@@ -328,19 +326,19 @@ export default function CoursePage() {
                       </div>
                    </div>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {activeTab === 'chat' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-col md:p-6 pb-24 md:pb-6">
+              <div className="h-full flex flex-col md:p-6 pb-24 md:pb-6">
                  <div className="flex-1 flex flex-col min-h-0 bg-white md:rounded-[3rem] shadow-2xl relative overflow-hidden border border-slate-100">
                     <ChatBox conversationId={course.conversation?.id} />
                  </div>
-              </motion.div>
+              </div>
             )}
 
             {activeTab === 'announcements' && (
-               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-6 md:p-12 max-w-4xl mx-auto space-y-10 pb-32">
+               <div className="p-6 md:p-12 max-w-4xl mx-auto space-y-10 pb-32">
                  <div className="flex justify-between items-center mb-4">
                    <div>
                     <h2 className="text-3xl font-black text-slate-900 tracking-tight">Broadcasts</h2>
@@ -358,11 +356,8 @@ export default function CoursePage() {
                  
                  <div className="space-y-6">
                   {announcements.length > 0 ? announcements.map((ann, i) => (
-                    <motion.div 
+                    <div 
                       key={ann.id} 
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.1 }}
                       className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-xl transition-all duration-300"
                     >
                       <div className="absolute top-0 left-0 w-2 h-full bg-primary-600"></div>
@@ -376,7 +371,7 @@ export default function CoursePage() {
                         <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{formatFullDate(ann.createdAt)}</span>
                       </div>
                       <p className="text-slate-600 text-base font-semibold leading-relaxed">{ann.content}</p>
-                    </motion.div>
+                    </div>
                   )) : (
                     <div className="p-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center">
                       <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
@@ -387,11 +382,11 @@ export default function CoursePage() {
                     </div>
                   )}
                  </div>
-               </motion.div>
+               </div>
             )}
 
             {activeTab === 'materials' && (
-               <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="p-6 md:p-12 max-w-6xl mx-auto space-y-12 pb-32">
+               <div className="p-6 md:p-12 max-w-6xl mx-auto space-y-12 pb-32">
                  <div className="flex justify-between items-center">
                    <div>
                     <h2 className="text-3xl font-black text-slate-900 tracking-tight">Resource Hub</h2>
@@ -409,11 +404,8 @@ export default function CoursePage() {
 
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                    {materials.length > 0 ? materials.map((material, i) => (
-                     <motion.div 
+                     <div 
                         key={material.id} 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
                         className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group hover:border-primary-100 hover:shadow-2xl hover:shadow-primary-600/5 transition-all duration-500"
                      >
                        <div className="p-6 border-b border-slate-50 flex justify-between items-start">
@@ -446,7 +438,7 @@ export default function CoursePage() {
                              </div>
                           </a>
                        </div>
-                     </motion.div>
+                     </div>
                    )) : (
                     <div className="col-span-full p-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center">
                       <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
@@ -457,11 +449,11 @@ export default function CoursePage() {
                     </div>
                    )}
                  </div>
-               </motion.div>
+               </div>
             )}
 
             {activeTab === 'assignments' && (
-               <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-6 md:p-12 max-w-4xl mx-auto space-y-10 pb-32">
+               <div className="p-6 md:p-12 max-w-4xl mx-auto space-y-10 pb-32">
                  <div className="flex justify-between items-end mb-4">
                    <div>
                     <h2 className="text-3xl font-black text-slate-900 tracking-tight">Active Tasks</h2>
@@ -479,11 +471,8 @@ export default function CoursePage() {
                  
                  <div className="space-y-8">
                   {assignments.length > 0 ? assignments.map((assignment, i) => (
-                     <motion.div 
+                     <div 
                         key={assignment.id} 
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
                         className="bg-white rounded-[3rem] border-2 border-slate-100 shadow-sm overflow-hidden p-10 flex flex-col lg:flex-row lg:items-center justify-between space-y-8 lg:space-y-0 relative group hover:border-primary-500/20 transition-all duration-500"
                      >
                          <div className={`absolute top-0 left-0 w-3 h-full ${assignment.deadline && new Date(assignment.deadline) < new Date() ? 'bg-rose-500' : 'bg-primary-600'}`}></div>
@@ -512,7 +501,7 @@ export default function CoursePage() {
                         <button className="px-12 py-5 bg-slate-900 text-white rounded-[1.5rem] text-sm font-black hover:bg-slate-800 transition-all shadow-[0_20px_40px_rgba(15,23,42,0.2)] active:scale-95">
                            {assignment.submissions?.length > 0 ? 'Review Work' : 'Launch Task'}
                         </button>
-                     </motion.div>
+                     </div>
                   )) : (
                     <div className="p-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center">
                       <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
@@ -523,11 +512,11 @@ export default function CoursePage() {
                     </div>
                   )}
                  </div>
-               </motion.div>
+               </div>
             )}
 
             {activeTab === 'members' && (
-               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 md:p-12 max-w-5xl mx-auto pb-32">
+               <div className="p-6 md:p-12 max-w-5xl mx-auto pb-32">
                  <div className="mb-10">
                   <h2 className="text-3xl font-black text-slate-900 tracking-tight">Learning Community</h2>
                   <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest mt-2">Connect with your peers</p>
@@ -549,11 +538,8 @@ export default function CoursePage() {
 
                     {/* Students */}
                     {course.students?.map((student, i) => (
-                      <motion.div 
+                      <div 
                         key={student.id} 
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.05 }}
                         className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col items-center text-center hover:shadow-xl transition-all duration-500 group"
                       >
                          <div className={`w-16 h-16 rounded-[1.5rem] bg-gradient-to-tr ${getAvatarColor(student.name)} flex items-center justify-center text-white font-black text-lg shadow-lg group-hover:rotate-6 transition-transform`}>
@@ -571,12 +557,11 @@ export default function CoursePage() {
                              <AcademicCapIcon className="w-4 h-4" />
                            </button>
                          </div>
-                      </motion.div>
+                      </div>
                     ))}
                  </div>
-               </motion.div>
+               </div>
             )}
-          </AnimatePresence>
         </div>
 
         {/* Global Action Buttons (Fixed Bottom for Mobile) */}
@@ -593,10 +578,9 @@ export default function CoursePage() {
       </main>
 
       {/* Material Upload Modal */}
-      <AnimatePresence>
-        {isMaterialModalOpen && (
-          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
-            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-white rounded-[3rem] w-full max-w-xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden">
+      {isMaterialModalOpen && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
+          <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden">
                <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
                   <div>
                     <h3 className="text-2xl font-black text-slate-900 leading-none">Resource Registry</h3>
@@ -632,16 +616,14 @@ export default function CoursePage() {
                   </div>
                   <button type="submit" className="w-full py-5 bg-primary-600 text-white rounded-3xl text-sm font-black shadow-[0_25px_50px_-12px_rgba(37,99,235,0.4)] hover:shadow-[0_25px_50px_-12px_rgba(37,99,235,0.6)] hover:bg-primary-700 active:scale-95 transition-all duration-500">Deploy Resource</button>
                </form>
-            </motion.div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       {/* Assignment Modal */}
-      <AnimatePresence>
-        {isAssignmentModalOpen && (
-          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden">
+      {isAssignmentModalOpen && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
+          <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden">
                <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-emerald-50/30">
                   <div>
                     <h3 className="text-2xl font-black text-slate-900 leading-none">Task Initialization</h3>
@@ -670,16 +652,14 @@ export default function CoursePage() {
                   </div>
                   <button type="submit" className="w-full py-5 bg-emerald-600 text-white rounded-3xl text-sm font-black shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all duration-500">Publish to Class</button>
                </form>
-            </motion.div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       {/* Announcement Modal */}
-      <AnimatePresence>
-        {isAnnouncementModalOpen && (
-          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden">
+      {isAnnouncementModalOpen && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
+          <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden">
                <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-orange-50/30">
                   <div>
                     <h3 className="text-2xl font-black text-slate-900 leading-none">Broadcast Modulation</h3>
@@ -694,10 +674,9 @@ export default function CoursePage() {
                   </div>
                   <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-3xl text-sm font-black shadow-2xl hover:bg-slate-800 transition-all">Transmit Globally</button>
                </form>
-            </motion.div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       {/* Mobile Sticky Nav Component if needed - using the built in one */}
       <div className="md:hidden">

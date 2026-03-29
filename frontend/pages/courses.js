@@ -13,7 +13,6 @@ import {
   UserPlusIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Courses() {
   const router = useRouter();
@@ -162,20 +161,9 @@ export default function Courses() {
         </main>
 
         {/* Unified Modal Overlay */}
-        <AnimatePresence>
-          {showModal && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-6"
-            >
-              <motion.div 
-                initial={{ scale: 0.9, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.9, y: 20 }}
-                className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden"
-              >
+        {showModal && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-6">
+            <div className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary-50 rounded-full -mr-16 -mt-16 z-0 opacity-50"></div>
                 
                 <div className="relative z-10">
@@ -216,54 +204,42 @@ export default function Courses() {
                     </div>
                   )}
 
-                  <AnimatePresence mode="wait">
-                    {modalTab === 'JOIN' ? (
-                      <motion.form 
-                        key="join"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 10 }}
-                        onSubmit={handleJoinCourse} 
-                        className="space-y-4"
+                  {modalTab === 'JOIN' ? (
+                    <form 
+                      onSubmit={handleJoinCourse} 
+                      className="space-y-4"
+                    >
+                      <input
+                        type="text"
+                        placeholder="CS50-2024"
+                        value={joinCode}
+                        onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                        className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 px-6 py-5 rounded-2xl text-center text-2xl font-black tracking-[0.2em] placeholder:text-slate-200 focus:ring-4 focus:ring-primary-500/10 transition-all font-mono"
+                        autoFocus
+                      />
+                      <button
+                        type="submit"
+                        disabled={!joinCode.trim()}
+                        className="w-full bg-primary-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary-500/30 hover:bg-primary-700 active:scale-95 transition-all duration-300"
                       >
-                        <input
-                          type="text"
-                          placeholder="CS50-2024"
-                          value={joinCode}
-                          onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                          className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 px-6 py-5 rounded-2xl text-center text-2xl font-black tracking-[0.2em] placeholder:text-slate-200 focus:ring-4 focus:ring-primary-500/10 transition-all font-mono"
-                          autoFocus
-                        />
-                        <button
-                          type="submit"
-                          disabled={!joinCode.trim()}
-                          className="w-full bg-primary-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary-500/30 hover:bg-primary-700 active:scale-95 transition-all duration-300"
-                        >
-                          Enroll Now
-                        </button>
-                      </motion.form>
-                    ) : (
-                      <motion.div
-                        key="create"
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
-                      >
-                        <CreateCourseForm 
-                          onSuccess={() => {
-                            setShowModal(false);
-                            fetchCourses();
-                          }}
-                          onCancel={() => setShowModal(false)}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        Enroll Now
+                      </button>
+                    </form>
+                  ) : (
+                    <div>
+                      <CreateCourseForm 
+                        onSuccess={() => {
+                          setShowModal(false);
+                          fetchCourses();
+                        }}
+                        onCancel={() => setShowModal(false)}
+                      />
+                    </div>
+                  )}
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           )}
-        </AnimatePresence>
       </div>
 
       <style jsx global>{`

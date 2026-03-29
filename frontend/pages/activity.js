@@ -10,7 +10,6 @@ import {
   CheckIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
-import { motion } from 'framer-motion';
 import { getSocket } from '../services/socket';
 import { formatRelativeTime } from '../utils/helpers';
 
@@ -211,10 +210,7 @@ export default function Activity() {
               {notifications.map((notification, idx) => {
                 const Icon = getNotificationIcon(notification.type);
                 return (
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
+                  <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
                     className={`group p-6 cursor-pointer transition-all duration-300 relative ${
@@ -252,7 +248,7 @@ export default function Activity() {
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
