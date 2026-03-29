@@ -33,16 +33,46 @@ export default function ChatPage() {
   const { callUser } = useCall();
 
   useEffect(() => {
+    let wakeLock = null;
+
     const enableKeepAwake = async () => {
-      try { await KeepAwake.keepAwake(); } catch(e) {}
+      try {
+        if (typeof window !== 'undefined' && window.capacitor) {
+          await KeepAwake.keepAwake();
+        } else if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (e) {
+        console.log('KeepAwake error:', e);
+      }
     };
+
     const disableKeepAwake = async () => {
-      try { await KeepAwake.allowSleep(); } catch(e) {}
+      try {
+        if (typeof window !== 'undefined' && window.capacitor) {
+          await KeepAwake.allowSleep();
+        } else if (wakeLock) {
+          await wakeLock.release();
+          wakeLock = null;
+        }
+      } catch (e) {
+        console.log('Release error:', e);
+      }
+    };
+
+    const handleVisibilityChange = async () => {
+      if (typeof window === 'undefined' || window.capacitor) return;
+      if (document.visibilityState === 'visible' && 'wakeLock' in navigator && !wakeLock) {
+        enableKeepAwake();
+      }
     };
 
     enableKeepAwake();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       disableKeepAwake();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 

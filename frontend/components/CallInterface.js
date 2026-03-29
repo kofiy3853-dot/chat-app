@@ -9,6 +9,7 @@ import {
   VideoCameraSlashIcon
 } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
+import { KeepAwake } from '@capacitor-community/keep-awake';
 
 export default function CallInterface() {
   const { 
@@ -52,6 +53,55 @@ export default function CallInterface() {
       nativeAudio.play().catch(e => console.warn('Capacitor: Remote audio requires user tap', e));
     }
   }, [remoteStream]);
+
+  // ------------------------------------------------------------------
+  // Screen Wake Lock: Prevent device from sleeping during an active call
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    let wakeLock = null;
+    const isActive = callAccepted && !callEnded;
+
+    const enableKeepAwake = async () => {
+      if (!isActive) return;
+      try {
+        if (typeof window !== 'undefined' && window.capacitor) {
+          await KeepAwake.keepAwake();
+        } else if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (e) { console.log('KeepAwake error:', e); }
+    };
+
+    const disableKeepAwake = async () => {
+      try {
+        if (typeof window !== 'undefined' && window.capacitor) {
+          await KeepAwake.allowSleep();
+        } else if (wakeLock) {
+          await wakeLock.release();
+          wakeLock = null;
+        }
+      } catch (e) { console.log('Release error:', e); }
+    };
+
+    const handleVisibilityChange = async () => {
+      if (typeof window === 'undefined' || window.capacitor) return;
+      if (isActive && document.visibilityState === 'visible' && 'wakeLock' in navigator && !wakeLock) {
+        enableKeepAwake();
+      }
+    };
+
+    if (isActive) {
+      enableKeepAwake();
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    } else {
+      disableKeepAwake();
+    }
+
+    return () => {
+      disableKeepAwake();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [callAccepted, callEnded]);
 
   return (
     <div className="relative z-[999999]">
