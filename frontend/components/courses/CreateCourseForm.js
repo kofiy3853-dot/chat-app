@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { AcademicCapIcon, BookOpenIcon, CalendarIcon, HashtagIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/outline';
-import { motion } from 'framer-motion';
 import { courseAPI } from '../../services/api';
 
 export default function CreateCourseForm({ onSuccess, onCancel }) {
