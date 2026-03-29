@@ -5,6 +5,7 @@ import { initSocket, getSocket } from '../services/socket';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { CallProvider } from '../context/CallContext';
 import CallInterface from '../components/CallInterface';
+import { Toaster, toast } from 'react-hot-toast';
 import '../styles/globals.css';
 
 // Pages that DON'T need you to be logged in
@@ -80,6 +81,15 @@ function MyApp({ Component, pageProps }) {
     return () => router.events.off('routeChangeComplete', authCheck);
   }, [router]);
 
+  // Request Notification Permissions on load to prevent silence
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
   // Global Push Notification & Sound Manager for Incoming Messages
   useEffect(() => {
     if (!authorized) return;
@@ -99,7 +109,24 @@ function MyApp({ Component, pageProps }) {
            // We are inside the active chat, just play a subtle in-app sound
            const inAppSound = new Audio('/sounds/ding.mp3');
            inAppSound.volume = 0.5;
-           inAppSound.play().catch(e => console.log('Audio overlap blocked or disabled', e));
+           inAppSound.play().catch(e => console.log('Audio overlap blocked', e));
+           return;
+        }
+
+        const senderName = actualMsg.sender?.name || 'New Message';
+        const bodyContent = actualMsg.content || 'Sent an attachment';
+
+        // Play alert sound unconditionally
+        const alertSound = new Audio('/sounds/ding.mp3');
+        alertSound.play().catch(e => console.log('Autoplay blocked', e));
+
+        // If the user's screen is currently on and they are looking at the app
+        if (document.visibilityState === 'visible') {
+           toast.success(`${senderName}: ${bodyContent}`, {
+             icon: '💬',
+             position: 'top-center',
+             duration: 4000
+           });
            return;
         }
 
@@ -107,8 +134,8 @@ function MyApp({ Component, pageProps }) {
         if (typeof window !== 'undefined' && 'capacitor' in window) {
            await LocalNotifications.schedule({
              notifications: [{
-               title: actualMsg.sender?.name || 'New Message',
-               body: actualMsg.content || 'Sent an attachment',
+               title: senderName,
+               body: bodyContent,
                id: Math.floor(Math.random() * 100000),
                schedule: { at: new Date(Date.now() + 100) },
                sound: null,
@@ -120,12 +147,10 @@ function MyApp({ Component, pageProps }) {
         } else {
            // Fallback for Web PWA standard notifications (which also rings and wakes screen if allowed)
            if (Notification.permission === 'granted') {
-             new Notification(actualMsg.sender?.name || 'New Message', {
-               body: actualMsg.content || 'Sent an attachment',
+             new Notification(senderName, {
+               body: bodyContent,
                icon: '/icons/icon-192.png'
              });
-             const webSound = new Audio('/sounds/ding.mp3');
-             webSound.play().catch(e => e);
            }
         }
       } catch (err) {
@@ -154,6 +179,7 @@ function MyApp({ Component, pageProps }) {
   return (
     <CallProvider>
       <div className="min-h-screen bg-gray-50">
+        <Toaster />
         <main className={shouldHideNavbar ? '' : 'pb-20'}>
           {isOffline && (
             <div className="bg-rose-500 text-white text-center py-2 text-sm font-medium sticky top-0 z-50 shadow-sm shadow-rose-500/20">
