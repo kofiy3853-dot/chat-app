@@ -18,3 +18,4 @@ frontend/.env.local
 backend/.env
 .vscode/
 .qoder/
+frontend/out/
