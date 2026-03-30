@@ -48,29 +48,36 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
       <div 
         style={style} 
         {...ariaAttributes}
-        className={`flex ${isMe ? 'justify-end' : 'justify-start'} px-4 py-2`}
+        className={`flex ${isMe ? 'justify-end' : 'justify-start'} px-6 py-2`}
       >
         <div className={`flex flex-col max-w-[80%] ${isMe ? 'items-end' : 'items-start'}`}>
-          <div className={`p-4 rounded-[18px] text-[15px] font-medium shadow-soft ${
+          <div className={`p-4 rounded-[30px] text-[15px] font-bold tracking-tight ${
             isMe 
-              ? 'bg-soft-gradient text-white rounded-br-none' 
-              : 'bg-white text-soft-text-primary rounded-bl-none border border-slate-50'
+              ? 'chat-bubble-me rounded-tr-[10px]' 
+              : 'chat-bubble-other rounded-tl-[10px]'
             }`}
           >
             {msg.type === 'VOICE' ? (
-              <div className="flex items-center space-x-2 py-1 min-w-[120px]">
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                  <div className="w-4 h-4 bg-white rounded-full"></div>
+              <div className="flex items-center space-x-3 py-1 min-w-[140px]">
+                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+                  <div className="w-3.5 h-3.5 bg-white rounded-full"></div>
                 </div>
-                <div className="flex-1 h-1.5 bg-white/30 rounded-full overflow-hidden">
-                  <div className="w-1/2 h-full bg-white"></div>
+                <div className="flex-1 space-y-1">
+                   <div className="flex justify-between items-center px-1">
+                      <div className="h-1.5 w-1.5 rounded-full bg-white animate-bounce" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-white animate-bounce delay-75" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-white animate-bounce delay-150" />
+                   </div>
+                   <div className="h-1 bg-white/30 rounded-full overflow-hidden">
+                      <div className="w-[60%] h-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>
+                   </div>
                 </div>
               </div>
             ) : (
               msg.content
             )}
           </div>
-          <span className="text-[10px] font-bold text-soft-text-secondary mt-1 uppercase tracking-widest px-1">
+          <span className="text-[10px] font-black text-[#8B90A0] mt-1.5 uppercase tracking-widest px-2">
             {formatRelativeTime(msg.createdAt)}
           </span>
         </div>

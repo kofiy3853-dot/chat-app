@@ -46,32 +46,52 @@ body {
   overflow: hidden;
 }
 
-/* ─── Design System: Periwinkle Blue Theme ─── */
+/* ─── Design System: Premium Periwinkle Soft UI ─── */
+
+:root {
+  --primary-blue: #6B73FF;
+  --primary-purple: #9B59FF;
+  --bg-soft: #F5F8FF;
+  --text-main: #1A1D3A;
+  --text-muted: #8B90A0;
+}
 
 .bg-app {
-  background: #f0f2ff;
+  background: var(--bg-soft);
 }
 
 .bg-header-gradient {
-  background: linear-gradient(160deg, #6B73FF 0%, #7f87ff 60%, #9B59FF 100%);
+  background: linear-gradient(135deg, #6B73FF 0%, #7F87FF 50%, #8E96FF 100%);
 }
 
 .bg-fab-gradient {
-  background: linear-gradient(135deg, #6B73FF, #9B59FF);
+  background: linear-gradient(135deg, #6B73FF, #8E96FF);
 }
 
 .badge-gradient {
-  background: linear-gradient(135deg, #6B73FF, #9B59FF);
+  background: linear-gradient(135deg, #6B73FF, #8E96FF);
 }
 
-.story-ring {
-  background: rgba(255, 255, 255, 0.35);
-  padding: 2px;
+.chat-bubble-me {
+  background: linear-gradient(135deg, #6B73FF, #8E96FF);
+  color: white;
+  box-shadow: 0 4px 15px rgba(107, 115, 255, 0.25);
 }
 
-.chat-list-panel {
-  background: #ffffff;
-  border-radius: 28px 28px 0 0;
+.chat-bubble-other {
+  background: white;
+  color: var(--text-main);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.soft-shadow {
+  box-shadow: 0 8px 24px rgba(107, 115, 255, 0.08);
+}
+
+.premium-card {
+  background: white;
+  border-radius: 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
 }
 
 /* Hide scrollbar utility */
@@ -81,4 +101,18 @@ body {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

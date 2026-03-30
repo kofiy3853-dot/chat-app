@@ -93,84 +93,88 @@ const ChatConversationPage: React.FC = () => {
   if (loading || !currentUser) return null;
 
   return (
-    <div className="flex flex-col h-screen max-w-xl mx-auto bg-soft-bg relative overflow-hidden shadow-2xl">
+    <div className="flex flex-col h-screen max-w-xl mx-auto bg-[#F5F8FF] relative overflow-hidden font-sans">
       <Head>
         <title>{name} | Campus Chat</title>
       </Head>
 
-      {/* Header */}
-      <header className="bg-soft-gradient px-4 pt-10 pb-6 text-white rounded-b-[24px] z-10 shadow-lg shadow-indigo-500/10">
-        <div className="flex items-center justify-between">
+      {/* ─── Premium Island Header ─── */}
+      <header className="px-5 pt-10 pb-6 z-20">
+        <div className="bg-header-gradient rounded-[32px] p-4 flex items-center justify-between shadow-lg shadow-primary-500/10">
           <div className="flex items-center space-x-3">
             <button 
               onClick={() => router.back()} 
               aria-label="Go back"
-              className="p-2 -ml-2 hover:bg-white/10 rounded-2xl transition-all"
+              className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white active:scale-90 transition-transform"
             >
-              <ArrowLeftIcon className="w-6 h-6 stroke-[2.5px]" />
+              <ArrowLeftIcon className="w-5 h-5 stroke-[3px]" />
             </button>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 overflow-hidden shadow-sm">
+              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 overflow-hidden">
                 {otherParticipant?.user?.avatar ? (
                   <img src={getFullFileUrl(otherParticipant.user.avatar)} className="w-full h-full object-cover" alt="" />
                 ) : (
-                  <span className="text-sm font-black">{getInitials(name)}</span>
+                  <span className="text-sm font-black text-white">{getInitials(name)}</span>
                 )}
               </div>
               <div>
-                <h1 className="font-black text-sm tracking-tight leading-none truncate max-w-[120px]">{name}</h1>
-                <p className="text-[10px] font-black uppercase tracking-widest mt-0.5 opacity-80">
-                  {isOnline ? 'Online' : 'Offline'}
-                </p>
+                <h1 className="font-black text-[15px] tracking-tight text-white leading-none mb-1">{name}</h1>
+                <div className="flex items-center space-x-1.5 transition-all">
+                   <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-white/30'}`} />
+                   <p className="text-[10px] font-black uppercase tracking-widest text-white/70">
+                    {isOnline ? 'Online' : 'Offline'}
+                   </p>
+                </div>
               </div>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            <button aria-label="Audio call" className="p-2.5 bg-white/10 hover:bg-white/20 rounded-2xl transition-all">
-              <PhoneIcon className="w-5 h-5" />
+            <button aria-label="Audio call" className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white active:scale-95">
+              <PhoneIcon className="w-5 h-5 fill-white/10" />
             </button>
-            <button aria-label="Video call" className="p-2.5 bg-white/10 hover:bg-white/20 rounded-2xl transition-all">
-              <VideoCameraIcon className="w-5 h-5" />
-            </button>
-            <button aria-label="More options" className="p-2.5 bg-white/10 hover:bg-white/20 rounded-2xl transition-all">
-              <EllipsisVerticalIcon className="w-5 h-5" />
+            <button aria-label="Video call" className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white active:scale-95">
+              <VideoCameraIcon className="w-5 h-5 fill-white/10" />
             </button>
           </div>
         </div>
       </header>
 
-      {/* Message List */}
-      <div className="flex-1 min-h-0 bg-[#f5f7fb]">
+      {/* ─── Message List (Virtualized) ─── */}
+      <main className="flex-1 min-h-0">
         <SoftMessageList messages={messages} currentUser={currentUser} />
-      </div>
+      </main>
 
-      {/* Input Area */}
-      <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-50 relative bottom-0">
-        <div className="flex items-center space-x-3 bg-slate-50 p-2 rounded-soft shadow-soft">
-          <button aria-label="Attach file" className="p-3 text-soft-text-secondary hover:text-soft-primary bg-white rounded-2xl shadow-sm transition-all active:scale-95">
-            <PaperClipIcon className="w-5 h-5" />
+      {/* ─── Premium Floating Input ─── */}
+      <footer className="px-6 pb-10 pt-4 z-20">
+        <div className="bg-white rounded-[32px] p-2 flex items-center shadow-xl shadow-primary-900/5 hover:shadow-primary-900/10 transition-shadow">
+          <button aria-label="Media" className="w-11 h-11 flex items-center justify-center text-slate-300 hover:text-primary-500 transition-colors">
+            <PaperClipIcon className="w-6 h-6" />
           </button>
+          
           <input 
             type="text" 
-            placeholder="Write a message..." 
+            placeholder="Type Your Message..." 
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            className="flex-1 bg-transparent border-none outline-none text-soft-text-primary px-2 font-medium text-sm"
+            className="flex-1 bg-transparent border-none outline-none text-[#1A1D3A] px-2 font-bold text-[14px] placeholder-slate-300"
           />
-          <button aria-label="Voice message" className="p-3 text-soft-text-secondary hover:text-soft-primary pr-1">
-             <MicrophoneIcon className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={handleSendMessage}
-            aria-label="Send message"
-            className="p-3.5 bg-soft-gradient text-white rounded-full shadow-lg shadow-indigo-500/30 active:scale-90 transition-all"
-          >
-            <PaperAirplaneIcon className="w-6 h-6 -rotate-45" />
-          </button>
+          
+          <div className="flex items-center pr-1">
+             <button aria-label="Voice" className="w-11 h-11 flex items-center justify-center text-slate-300 mr-1">
+                <MicrophoneIcon className="w-6 h-6" />
+             </button>
+             <button 
+               onClick={handleSendMessage}
+               aria-label="Send"
+               className="w-11 h-11 rounded-full bg-primary-500 flex items-center justify-center text-white shadow-lg shadow-primary-500/30 active:scale-90 transition-all"
+             >
+               <PaperAirplaneIcon className="w-5 h-5 -rotate-45 relative left-[-1px]" />
+             </button>
+          </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 };
