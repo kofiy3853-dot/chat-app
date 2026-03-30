@@ -38,23 +38,33 @@ const ALLOWED_ORIGINS = [
   'http://192.168.23.126:3000',
 ].filter(Boolean);
 
-// Accept all Vercel preview deployments for this project
-const VERCEL_PREVIEW_PATTERN = /^https:\/\/chat-.*-kofiy3853-dots-projects\.vercel\.app$/;
+// Acceptance patterns for all project variants (chat-, social-, campus-, etc.)
+const projectPatterns = [
+  /^https:\/\/chat-.*-kofiy3853-dots-projects\.vercel\.app$/,
+  /^https:\/\/social-.*-kofiy3853-dots-projects\.vercel\.app$/,
+  /^https:\/\/campus-.*-kofiy3853-dots-projects\.vercel\.app$/,
+];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. mobile apps, curl, Render health checks)
+    // 1. Allow health checks and direct server calls
     if (!origin) return callback(null, true);
-    // Allow known production/dev origins
+    
+    // 2. Allow hardcoded list
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    // Allow any Vercel preview URL for this project
-    if (VERCEL_PREVIEW_PATTERN.test(origin)) return callback(null, true);
-    // Block everything else
-    callback(new Error(`CORS blocked: ${origin}`));
+    
+    // 3. Allow project patterns
+    const isMatched = projectPatterns.some(p => p.test(origin));
+    if (isMatched) return callback(null, true);
+
+    // Debugging: Log if blocked
+    console.warn(`CORS BLOCKED ORIGIN: ${origin}`);
+    callback(null, false); // Don't throw error, just fail the origin match
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 };
 
 app.use(cors(corsOptions));
