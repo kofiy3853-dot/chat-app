@@ -78,7 +78,10 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
         {/* My Status Item */}
         <div 
           onClick={() => setUploadOpen(true)}
-          className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16"
+          role="button"
+          aria-label="Add new status"
+          title="Add status"
+          className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1"
         >
           <div className="relative p-[2px] rounded-full border-2 border-dashed border-gray-300">
             <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
@@ -100,7 +103,10 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
           <div 
             key={group.user.id} 
             onClick={() => handleOpenViewer(index)}
-            className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 group"
+            role="button"
+            aria-label={`View status from ${group.user.name}`}
+            title={`View status from ${group.user.name}`}
+            className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 group outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1"
           >
             <div className={`relative p-[2px] rounded-full transition-all duration-300 border-2 ${group.hasUnseen ? 'border-primary-500' : 'border-gray-200'}`}>
               <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
