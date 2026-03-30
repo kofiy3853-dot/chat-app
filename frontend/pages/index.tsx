@@ -15,6 +15,7 @@ import SoftChatList from '../components/SoftChatList';
 import SoftStories from '../components/SoftStories';
 import { getFullFileUrl, getInitials } from '../utils/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
+import NewChatModal from '../components/NewChatModal';
 
 const MessagesPage: React.FC = () => {
   const router = useRouter();
@@ -25,6 +26,7 @@ const MessagesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'messages' | 'calls' | 'contacts'>('messages');
   const [typingInConvs, setTypingInConvs] = useState<{ [key: string]: { [userId: string]: string } }>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -155,11 +157,20 @@ const MessagesPage: React.FC = () => {
       {/* ─── Compact Header ─── */}
       <header className="px-4 pt-10 pb-4 bg-primary-500 shadow-sm relative z-10 transition-colors">
         <div className="flex justify-between items-center relative">
-          <button aria-label="Menu" className="w-10 h-10 flex flex-col items-center justify-center space-y-1.5 active:scale-95 transition-all">
-             <span className="block w-6 h-0.5 bg-white rounded-full" />
-             <span className="block w-6 h-0.5 bg-white rounded-full" />
-             <span className="block w-6 h-0.5 bg-white rounded-full" />
-          </button>
+          <div className="flex items-center space-x-3">
+             <button aria-label="Menu" className="w-10 h-10 flex flex-col items-center justify-center space-y-1.5 active:scale-95 transition-all text-white">
+                <span className="block w-6 h-0.5 bg-current rounded-full" />
+                <span className="block w-6 h-0.5 bg-current rounded-full" />
+                <span className="block w-6 h-0.5 bg-current rounded-full" />
+             </button>
+             <button 
+               onClick={() => setIsModalOpen(true)}
+               className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-90 transition-all text-white"
+               title="New Chat"
+             >
+               <PlusIcon className="w-6 h-6 stroke-[2.5px]" />
+             </button>
+          </div>
           
           <h1 className="text-xl font-bold tracking-wide text-white absolute left-1/2 -translate-x-1/2">Inbox</h1>
           
@@ -225,6 +236,10 @@ const MessagesPage: React.FC = () => {
         </AnimatePresence>
       </main>
 
+      <NewChatModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 };

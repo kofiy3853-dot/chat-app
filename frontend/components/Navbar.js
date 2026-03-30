@@ -125,18 +125,6 @@ export default function Navbar() {
           <AcademicCapIcon className={`w-6 h-6 ${isActive('/courses') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
         </Link>
 
-        {/* Central FAB - New Chat */}
-        <div className="relative -top-5 px-2">
-           <button
-             onClick={() => setIsModalOpen(true)}
-             aria-label="New Chat"
-             className="w-14 h-14 rounded-full flex items-center justify-center text-white shadow-xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 active:scale-95 transition-all ring-4 ring-gray-50 border border-primary-400/20"
-             title="New Chat"
-           >
-             <PlusIcon className="w-7 h-7 stroke-[2.5px]" />
-           </button>
-        </div>
-
         {/* Activity Link */}
         <Link 
           href="/activity"
