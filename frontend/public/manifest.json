@@ -4,8 +4,8 @@
   "description": "Multi-university campus communication platform",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0ea5e9",
-  "theme_color": "#0ea5e9",
+  "background_color": "#6B73FF",
+  "theme_color": "#6B73FF",
   "orientation": "portrait",
   "icons": [
     {

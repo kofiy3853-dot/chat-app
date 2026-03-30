@@ -132,6 +132,16 @@ const MessagesPage: React.FC = () => {
     router.push(`/chat/${id}`);
   }, [router]);
 
+  const handleDelete = async (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    try {
+      await chatAPI.deleteConversation(id);
+      setConversations(prev => prev.filter(c => c.id !== id));
+    } catch (err) {
+      console.error('Failed to delete chat:', err);
+    }
+  };
+
   if (!user) return null;
 
   const avatarUrl = getFullFileUrl(user?.avatar);
@@ -204,6 +214,7 @@ const MessagesPage: React.FC = () => {
                 loading={loading}
                 onStartChat={() => setActiveTab('contacts')}
                 typingInConvs={typingInConvs}
+                onDelete={handleDelete}
               />
             </motion.div>
           )}

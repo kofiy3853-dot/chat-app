@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useState } from 'react';
 import SoftChatListItem from './SoftChatListItem';
+import { TrashIcon } from '@heroicons/react/24/solid';
 
 interface ChatListProps {
   conversations: any[];
@@ -8,9 +9,12 @@ interface ChatListProps {
   loading: boolean;
   onStartChat?: () => void;
   typingInConvs?: { [key: string]: { [userId: string]: string } };
+  onDelete?: (id: string, e?: React.MouseEvent) => void;
 }
 
-const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onChatClick, loading, onStartChat, typingInConvs }) => {
+const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onChatClick, loading, onStartChat, typingInConvs, onDelete }) => {
+  const [longPressedId, setLongPressedId] = useState<string | null>(null);
+
   if (loading) {
     return (
       <div className="px-2 py-4 space-y-5">
@@ -52,13 +56,32 @@ const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onC
   return (
     <div className="divide-y divide-slate-50">
       {conversations.map(conv => (
-        <SoftChatListItem 
-          key={conv.id} 
-          conversation={conv} 
-          currentUser={currentUser} 
-          onClick={onChatClick}
-          typingUsers={typingInConvs?.[conv.id]}
-        />
+        <div key={conv.id} className="relative select-none">
+          <SoftChatListItem 
+            conversation={conv} 
+            currentUser={currentUser} 
+            onClick={onChatClick}
+            typingUsers={typingInConvs?.[conv.id]}
+            onLongPress={() => setLongPressedId(conv.id)}
+          />
+          {longPressedId === conv.id && (
+            <>
+              <div 
+                className="fixed inset-0 z-[100] bg-black/5" 
+                onClick={(e) => { e.stopPropagation(); setLongPressedId(null); }}
+              />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] flex flex-col items-center">
+                <button 
+                  onClick={(e) => { onDelete?.(conv.id, e); setLongPressedId(null); }}
+                  className="bg-red-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-red-500/20 flex items-center space-x-2 active:scale-95 transition-transform"
+                >
+                  <TrashIcon className="w-5 h-5 text-white" />
+                  <span className="text-sm font-bold tracking-wide">Delete Chat</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       ))}
     </div>
   );

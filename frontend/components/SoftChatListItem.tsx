@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { formatShortTime, getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
 
 interface User {
@@ -36,6 +36,7 @@ interface SoftChatListItemProps {
   isActive?: boolean;
   onClick: (id: string) => void;
   typingUsers?: { [userId: string]: string };
+  onLongPress?: () => void;
 }
 
 const getLastMsgPreview = (msg?: Message) => {
@@ -51,8 +52,21 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
   currentUser,
   isActive,
   onClick,
-  typingUsers
+  typingUsers,
+  onLongPress
 }) => {
+  const pressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const startPress = useCallback(() => {
+    pressTimer.current = setTimeout(() => {
+      if (navigator.vibrate) navigator.vibrate(50);
+      onLongPress?.();
+    }, 600);
+  }, [onLongPress]);
+
+  const endPress = useCallback(() => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+  }, []);
   const otherParticipant = conversation.participants?.find(p => p.userId !== currentUser?.id)?.user;
   const name = conversation.name || otherParticipant?.name || 'Chat';
   const avatar = otherParticipant?.avatar;
@@ -74,7 +88,12 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
   return (
     <div
       onClick={() => onClick(conversation.id)}
-      className="flex items-center px-4 py-4 cursor-pointer transition-colors duration-200 hover:bg-gray-50 relative group bg-white border-b border-gray-100 last:border-0"
+      onMouseDown={startPress}
+      onMouseUp={endPress}
+      onMouseLeave={endPress}
+      onTouchStart={startPress}
+      onTouchEnd={endPress}
+      className="flex items-center px-4 py-4 cursor-pointer transition-colors duration-200 hover:bg-gray-50 relative group bg-white border-b border-gray-100 last:border-0 select-none"
     >
       {/* Avatar Container */}
       <div className="relative flex-shrink-0 mr-4">
