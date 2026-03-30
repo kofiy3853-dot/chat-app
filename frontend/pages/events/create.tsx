@@ -13,7 +13,7 @@ import {
   PhotoIcon
 } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
-import { eventAPI } from '../services/api';
+import { eventAPI } from '../../services/api';
 
 const STEPS = [
   { id: 1, title: 'Basics', icon: TagIcon },
@@ -97,7 +97,7 @@ const CreateEventPage = () => {
       await eventAPI.createEvent(formData);
       setSuccess(true);
       localStorage.removeItem('event_draft');
-      setTimeout(() => router.push('/events'), 2000);
+      setTimeout(() => router.push('/campus'), 2000);
     } catch (error) {
       console.error('Submission failed', error);
       alert('Failed to create event. Please check all fields.');
