@@ -166,7 +166,7 @@ const MessagesPage: React.FC = () => {
       </Head>
 
       {/* ─── Compact Header ─── */}
-      <header className="px-4 pt-10 pb-4 bg-primary-500 shadow-sm relative z-20 transition-colors">
+      <header className="sticky top-0 px-4 pt-10 pb-4 bg-primary-500 shadow-sm z-20 transition-colors">
         <div className="flex justify-between items-center relative">
           <div className="flex items-center relative">
             <button
