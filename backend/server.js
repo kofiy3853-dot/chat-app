@@ -38,33 +38,16 @@ const ALLOWED_ORIGINS = [
   'http://192.168.23.126:3000',
 ].filter(Boolean);
 
-// Acceptance patterns for all project variants (chat-, social-, campus-, etc.)
-const projectPatterns = [
-  /^https:\/\/chat-.*-kofiy3853-dots-projects\.vercel\.app$/,
-  /^https:\/\/social-.*-kofiy3853-dots-projects\.vercel\.app$/,
-  /^https:\/\/campus-.*-kofiy3853-dots-projects\.vercel\.app$/,
-];
-
 const corsOptions = {
   origin: (origin, callback) => {
-    // 1. Allow health checks and direct server calls
-    if (!origin) return callback(null, true);
-    
-    // 2. Allow hardcoded list
-    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    
-    // 3. Allow project patterns
-    const isMatched = projectPatterns.some(p => p.test(origin));
-    if (isMatched) return callback(null, true);
-
-    // Debugging: Log if blocked
-    console.warn(`CORS BLOCKED ORIGIN: ${origin}`);
-    callback(null, false); // Don't throw error, just fail the origin match
+    // Dynamically allow the incoming origin to unblock all environments
+    // This mirrors the origin back to the browser which is the most compatible way for credentials
+    callback(null, true);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Origin'],
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
