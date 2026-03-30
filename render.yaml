@@ -24,3 +24,9 @@ services:
         value: https://chat-app-kappa-rose.vercel.app
       - key: JWT_SECRET
         generateValue: true
+      - key: TURN_SERVER_URL
+        value: turn:free.expressturn.com:3478
+      - key: TURN_USERNAME
+        value: "000000002090062923"
+      - key: TURN_CREDENTIAL
+        value: XLfSTEOdOfNnsXLLOba9GkCmHW8=
