@@ -101,7 +101,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto z-40 px-6 pb-6 pt-2 pointer-events-none">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-40 px-6 pb-6 pt-2 pointer-events-none">
       <div className="flex justify-between items-center bg-white rounded-full border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] h-16 px-2 pointer-events-auto relative">
         
         {/* Inbox Link */}
