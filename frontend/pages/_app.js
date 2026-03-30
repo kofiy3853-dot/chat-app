@@ -95,6 +95,13 @@ function MyApp({ Component, pageProps }) {
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+    // 4. Pre-warm / Health Check to wake up Render Backend early
+    const pingBackend = async () => {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://campus-chat-backend-m7wy.onrender.com';
+      try { await fetch(`${backendUrl}/health`).catch(() => {}); } catch(e) {}
+    };
+    pingBackend();
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
@@ -212,10 +219,44 @@ function MyApp({ Component, pageProps }) {
 
   // By returning an empty or minimal screen until `isReady` is true, 
   // we prevent the "page flashing" effect where the UI renders partially before auth is checked.
+  // ─── PREMIUM SPLASH SCREEN ───
   if (!isReady) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        {/* Silent minimal loading state to avoid jarring flashes */}
+      <div className="fixed inset-0 min-h-screen bg-white flex flex-col items-center justify-center z-[1000000]">
+        <div className="relative mb-10">
+          {/* Outer Ring Animation */}
+          <div className="absolute inset-[-20px] rounded-[3rem] border-2 border-primary-500/20 animate-ping"></div>
+          
+          {/* Logo Icon Wrapper */}
+          <div className="w-24 h-24 bg-gradient-to-tr from-primary-600 to-indigo-500 rounded-[2.5rem] flex items-center justify-center shadow-2xl relative overflow-hidden ring-4 ring-white">
+             {/* Dynamic shine flare */}
+             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+             
+             <svg className="w-12 h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+             </svg>
+          </div>
+        </div>
+
+        {/* Loading Text & Branding */}
+        <div className="text-center animate-pulse">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Campus Chat</h2>
+          <p className="text-[10px] font-bold text-primary-600 uppercase tracking-[0.4em] mb-8">Connecting Communities</p>
+          
+          {/* Elegant Loading DOTS */}
+          <div className="flex items-center justify-center space-x-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-bounce" style={{animationDelay: '0s'}}></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-bounce" style={{animationDelay: '0.4s'}}></div>
+          </div>
+        </div>
+        
+        <style jsx>{`
+          @keyframes shimmer {
+            0% { transform: translateX(-100%) skewX(-15deg); }
+            100% { transform: translateX(200%) skewX(-15deg); }
+          }
+        `}</style>
       </div>
     );
   }

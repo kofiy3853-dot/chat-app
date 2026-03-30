@@ -146,11 +146,19 @@ const MessagesPage: React.FC = () => {
 
   const handleDelete = async (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
+    if (!window.confirm('Delete this conversation?')) return;
+    
+    // Optimistic Update: remove from UI immediately
+    const originalConversations = [...conversations];
+    setConversations(prev => prev.filter(c => c.id !== id));
+    
     try {
       await chatAPI.deleteConversation(id);
-      setConversations(prev => prev.filter(c => c.id !== id));
     } catch (err) {
       console.error('Failed to delete chat:', err);
+      // Rollback on failure
+      setConversations(originalConversations);
+      alert('Could not delete chat. Please try again.');
     }
   };
 
