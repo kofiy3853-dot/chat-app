@@ -31,13 +31,14 @@ const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL,
   'https://chat-app-kappa-rose.vercel.app',
   'https://social-networking-mu.vercel.app',
+  'https://chat-jdfqbgvhk-kofiy3853-dots-projects.vercel.app',
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'http://192.168.23.126:3000',
 ].filter(Boolean);
 
 // Accept all Vercel preview deployments for this project
-const VERCEL_PREVIEW_PATTERN = /^https:\/\/chat-[a-z0-9]+-kofiy3853-dots-projects\.vercel\.app$/;
+const VERCEL_PREVIEW_PATTERN = /^https:\/\/chat-.*-kofiy3853-dots-projects\.vercel\.app$/;
 
 const corsOptions = {
   origin: (origin, callback) => {
