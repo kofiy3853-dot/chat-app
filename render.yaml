@@ -9,9 +9,13 @@ services:
     startCommand: cd backend && npm start
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: campus-chat-db
-          property: connectionString
+        sync: false # Set manually in Render Dashboard using Supabase URL
+      - key: SUPABASE_URL
+        value: https://pkfysnbnfjjybxrsxsiu.supabase.co
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false # Set manually in Render Dashboard for security
+      - key: SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrZnlzbmJuZmpqeWJ4cnN4c2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTYyOTMsImV4cCI6MjA5MDA3MjI5M30.dlI3uZ2GpXewXLOKEG8MypvPnHFNCscE0wVuaN_pIu4
       - key: PORT
         value: 10000
       - key: NODE_ENV
@@ -20,11 +24,3 @@ services:
         value: https://chat-app-kappa-rose.vercel.app
       - key: JWT_SECRET
         generateValue: true
-
-databases:
-  # Managed PostgreSQL Database
-  - name: campus-chat-db
-    plan: free
-    region: ohio
-    databaseName: campuschat
-    user: kofi

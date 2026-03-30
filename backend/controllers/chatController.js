@@ -550,12 +550,11 @@ exports.uploadAttachment = async (req, res) => {
       return res.status(400).json({ message: 'No valid file data received' });
     }
 
-    // Try uploading to Supabase cloud storage (if configured)
-    const cloudUrl = await uploadToSupabase(localFile);
-    if (cloudUrl) {
-      fileUrl = cloudUrl;
-      // Clean up local file after successful upload to cloud
-      try { fs.unlinkSync(localFile.path); } catch (e) {}
+    // Upload to Supabase cloud storage (Memory Buffer)
+    const fileUrl = await uploadToSupabase(localFile);
+    
+    if (!fileUrl) {
+      return res.status(500).json({ message: 'Failed to upload to cloud storage' });
     }
 
     // Auto-detect IMAGE type from extension if it's currently FILE

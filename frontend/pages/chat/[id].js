@@ -17,7 +17,7 @@ import {
   XMarkIcon,
   PhotoIcon
 } from '@heroicons/react/24/outline';
-import { getCurrentUser, getInitials, getAvatarColor } from '../../utils/helpers';
+import { getCurrentUser, getInitials, getAvatarColor, getFullFileUrl } from '../../utils/helpers';
 import { useCall } from '../../context/CallContext';
 import { sendMessage as sendSocketMessage } from '../../services/socket';
 import { SharedMediaGallery } from '../../components/ChatMedia';
@@ -334,8 +334,7 @@ export default function ChatPage() {
                   <div className={`w-32 h-32 rounded-3xl bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden`}>
                     {(() => {
                       const avatar = otherParticipant?.user?.avatar;
-                      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
-                      const fullUrl = avatar ? (avatar.startsWith('http') ? avatar : `${baseUrl}${avatar}`) : null;
+                      const fullUrl = getFullFileUrl(avatar);
                       return fullUrl ? (
                         <img src={fullUrl} className="w-full h-full object-cover" alt="" />
                       ) : (

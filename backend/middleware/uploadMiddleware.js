@@ -3,19 +3,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 // Storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (file.fieldname === 'voice') {
-      cb(null, 'uploads/voice');
-    } else {
-      cb(null, 'uploads/files');
-    }
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  }
-});
+const storage = multer.memoryStorage();
 
 // File filter - blocks only potentially dangerous executables
 const fileFilter = (req, file, cb) => {

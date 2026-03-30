@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link';
 import { chatAPI } from '../services/api';
 import { getSocket } from '../services/socket';
-import { getCurrentUser, formatRelativeTime } from '../utils/helpers';
+import { getCurrentUser, formatRelativeTime, getFullFileUrl } from '../utils/helpers';
 import { 
   MagnifyingGlassIcon, 
   StarIcon, 
@@ -364,8 +364,7 @@ const ChatListItem = React.memo(({
             {(() => {
               const other = conversation.participants?.find(p => p.userId !== currentUser?.id)?.user;
               const avatar = other?.avatar;
-              const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
-              const fullUrl = avatar ? (avatar.startsWith('http') ? avatar : `${baseUrl}${avatar}`) : null;
+              const fullUrl = getFullFileUrl(avatar);
               return fullUrl ? (
                 <img src={fullUrl} className="w-full h-full object-cover" alt="" />
               ) : (

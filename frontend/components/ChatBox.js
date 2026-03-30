@@ -22,7 +22,7 @@ import {
   CalendarDaysIcon,
   FaceSmileIcon as FaceSmileOutline
 } from '@heroicons/react/24/outline';
-import { getCurrentUser, groupMessagesByDate, getInitials, getAvatarColor, formatMessageTime } from '../utils/helpers';
+import { getCurrentUser, groupMessagesByDate, getInitials, getAvatarColor, formatMessageTime, getFullFileUrl } from '../utils/helpers';
 import dynamic from 'next/dynamic';
 import { AttachmentBubble, VoiceBubble } from './ChatMedia';
 
@@ -358,8 +358,7 @@ const MessageBubble = React.memo(({
             <div className={`w-8 h-8 rounded-xl bg-slate-200 flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'}`}>
               {(() => {
                 const avatar = message.sender?.avatar;
-                const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
-                const fullUrl = avatar ? (avatar.startsWith('http') ? avatar : `${baseUrl}${avatar}`) : null;
+                const fullUrl = getFullFileUrl(avatar);
                 return fullUrl ? (
                   <img src={fullUrl} className="w-full h-full object-cover" alt="" />
                 ) : (

@@ -11,18 +11,14 @@ import {
   VideoCameraIcon,
   MusicalNoteIcon
 } from '@heroicons/react/24/outline';
-import { formatFileSize } from '../utils/helpers';
+import { formatFileSize, getFullFileUrl } from '../utils/helpers';
 import React, { useState, useRef, useMemo } from 'react';
 
 export const AttachmentBubble = React.memo(({ message }) => {
   const isImage = message.type === 'IMAGE' || (message.fileName && /\.(jpg|jpeg|png|gif|webp)$/i.test(message.fileName));
   const isVideo = message.fileName && /\.(mp4|webm|mov|ogg)$/i.test(message.fileName);
   
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
-  
-  const fullUrl = message.fileUrl?.startsWith('blob:') || message.fileUrl?.startsWith('http')
-    ? message.fileUrl 
-    : (message.fileUrl ? `${baseUrl}${message.fileUrl}` : null);
+  const fullUrl = getFullFileUrl(message.fileUrl);
 
   if (isImage) {
     return (
@@ -83,11 +79,7 @@ export const AttachmentBubble = React.memo(({ message }) => {
 export const VoiceBubble = React.memo(({ message }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
-
-  const fullUrl = message.fileUrl?.startsWith('blob:') || message.fileUrl?.startsWith('http')
-    ? message.fileUrl 
-    : (message.fileUrl ? `${baseUrl}${message.fileUrl}` : null);
+  const fullUrl = getFullFileUrl(message.fileUrl);
 
   const handlePlay = () => {
     if (!audioRef.current) return;
@@ -155,9 +147,7 @@ export const SharedMediaGallery = ({ messages = [] }) => {
     });
   }, [messages, activeTab]);
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
-
-  const getUrl = (m) => m.fileUrl?.startsWith('http') ? m.fileUrl : `${baseUrl}${m.fileUrl}`;
+  const getUrl = (m) => getFullFileUrl(m.fileUrl);
 
   return (
     <div className="flex flex-col h-full bg-slate-50">

@@ -147,3 +147,15 @@ export const getCurrentUser = () => {
   }
 };
 
+// Reconstruct full URL for files/avatars
+export const getFullFileUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;
+  
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL 
+    ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] 
+    : 'http://localhost:5000';
+    
+  return `${baseUrl}${url}`;
+};
+

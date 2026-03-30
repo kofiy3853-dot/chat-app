@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { userAPI, chatAPI } from '../services/api';
 import { useRouter } from 'next/router';
 import { XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { getFullFileUrl } from '../utils/helpers';
 
 export default function NewChatModal({ isOpen, onClose }) {
   const [search, setSearch] = useState('');
@@ -94,8 +95,7 @@ export default function NewChatModal({ isOpen, onClose }) {
                   <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary-400 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm overflow-hidden">
                     {(() => {
                       const avatar = user.avatar;
-                      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
-                      const fullUrl = avatar ? (avatar.startsWith('http') ? avatar : `${baseUrl}${avatar}`) : null;
+                      const fullUrl = getFullFileUrl(avatar);
                       return fullUrl ? (
                         <img src={fullUrl} className="w-full h-full object-cover" alt="" />
                       ) : (

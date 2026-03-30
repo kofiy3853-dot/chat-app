@@ -2,40 +2,52 @@ const supabase = require('./supabaseClient');
 const fs = require('fs');
 const path = require('path');
 
-const uploadToSupabase = async (fileObject, bucketName = 'chat-attachments') => {
-  if (!supabase) {
-    console.error('Supabase client not initialized. Cannot upload to cloud storage.');
-    return null;
-  }
-
+async function uploadToSupabase(file, bucket = 'chat-attachments') {
   try {
-    // Read file from disk (since multer is currently using diskStorage)
-    const fileBuffer = fs.readFileSync(fileObject.path);
-    const fileName = fileObject.filename;
-    const contentType = fileObject.mimetype;
+    const { createClient } = require('@supabase/supabase-js');
+    const path = require('path');
+    const fs = require('fs');
 
-    const { data, error } = await supabase.storage
-      .from(bucketName)
-      .upload(`public/${fileName}`, fileBuffer, {
-        contentType,
-        upsert: true
-      });
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
 
-    if (error) {
-       console.error('Supabase upload error:', error);
-       return null;
+    // Support both disk and memory storage
+    let fileContent;
+    let fileName = file.originalname;
+
+    if (file.buffer) {
+      fileContent = file.buffer;
+    } else if (file.path) {
+      fileContent = fs.readFileSync(file.path);
+    } else {
+      throw new Error('No file content found to upload');
     }
 
-    // Get public URL
+    const fileExt = path.extname(fileName);
+    const fileNameOnSupabase = `${Date.now()}-${Math.random().toString(36).substring(7)}${fileExt}`;
+    const filePath = `${fileNameOnSupabase}`;
+
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, fileContent, {
+        contentType: file.mimetype,
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) throw error;
+
     const { data: { publicUrl } } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(`public/${fileName}`);
+      .from(bucket)
+      .getPublicUrl(filePath);
 
     return publicUrl;
   } catch (err) {
-    console.error('Failed to upload to Supabase:', err);
+    console.error('Supabase Upload Error:', err);
     return null;
   }
-};
+}
 
 module.exports = uploadToSupabase;

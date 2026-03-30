@@ -11,6 +11,7 @@ import {
   BuildingLibraryIcon,
   CameraIcon
 } from '@heroicons/react/24/outline';
+import { getFullFileUrl } from '../utils/helpers';
 
 export default function ProfileCard({ user, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -98,7 +99,7 @@ export default function ProfileCard({ user, onUpdate }) {
             <div className="w-28 h-28 rounded-[2rem] bg-white p-1.5 shadow-xl relative flex-shrink-0">
               <div className="w-full h-full rounded-[1.6rem] bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-black shadow-inner overflow-hidden">
                 {formData.avatar || user?.avatar ? (
-                  <img src={formData.avatar || user?.avatar} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={getFullFileUrl(formData.avatar || user?.avatar)} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   user?.name?.charAt(0).toUpperCase()
                 )}

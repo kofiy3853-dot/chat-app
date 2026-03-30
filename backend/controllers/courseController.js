@@ -1,4 +1,6 @@
 const prisma = require('../prisma/client');
+const uploadToSupabase = require('../utils/uploadToSupabase');
+const fs = require('fs');
 
 // Get all courses for user
 exports.getCourses = async (req, res) => {
@@ -336,13 +338,18 @@ exports.addMaterial = async (req, res) => {
       return res.status(403).json({ message: 'Only instructors can add materials' });
     }
 
+    const fileUrl = await uploadToSupabase(req.file);
+    if (!fileUrl) {
+      return res.status(500).json({ message: 'Failed to upload material to cloud storage' });
+    }
+
     const material = await prisma.material.create({
       data: {
         title,
         description,
         topic,
         week: week ? parseInt(week) : null,
-        fileUrl: `/uploads/files/${req.file.filename}`,
+        fileUrl,
         fileName: req.file.originalname,
         fileSize: req.file.size,
         courseId: id,
@@ -439,6 +446,14 @@ exports.submitAssignment = async (req, res) => {
     const { content } = req.body;
     const userId = req.user.id;
 
+    let fileUrl = undefined;
+    if (req.file) {
+      fileUrl = await uploadToSupabase(req.file);
+      if (!fileUrl) {
+        return res.status(500).json({ message: 'Failed to upload submission to cloud storage' });
+      }
+    }
+
     const submission = await prisma.submission.upsert({
       where: {
         assignmentId_studentId: {
@@ -448,7 +463,7 @@ exports.submitAssignment = async (req, res) => {
       },
       update: {
         content,
-        fileUrl: req.file ? `/uploads/submissions/${req.file.filename}` : undefined,
+        fileUrl,
         fileName: req.file ? req.file.originalname : undefined,
         submittedAt: new Date()
       },
@@ -456,7 +471,7 @@ exports.submitAssignment = async (req, res) => {
         assignmentId,
         studentId: userId,
         content,
-        fileUrl: req.file ? `/uploads/submissions/${req.file.filename}` : undefined,
+        fileUrl,
         fileName: req.file ? req.file.originalname : undefined,
       }
     });
