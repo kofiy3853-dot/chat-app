@@ -19,7 +19,7 @@ const MessagesPage: React.FC = () => {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [conversations, setConversations] = useState<any[]>([]);
-  const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
+
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'messages' | 'calls' | 'contacts'>('messages');
@@ -43,12 +43,8 @@ const MessagesPage: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [convRes, userRes] = await Promise.all([
-        chatAPI.getConversations(),
-        userAPI.searchUsers('')
-      ]);
+      const convRes = await chatAPI.getConversations();
       setConversations(convRes.data.conversations || []);
-      setOnlineUsers(userRes.data.users?.filter((u: any) => u.isOnline) || []);
     } catch (err) {
       console.error('Fetch data error:', err);
     } finally {
