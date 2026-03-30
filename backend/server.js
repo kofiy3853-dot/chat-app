@@ -38,19 +38,35 @@ const ALLOWED_ORIGINS = [
   'http://192.168.23.126:3000',
 ].filter(Boolean);
 
+// Manual CORS Middleware - Foolproof for all environments
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Allow all origins with credentials support
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Allow-Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Dynamically allow the incoming origin to unblock all environments
-    // This mirrors the origin back to the browser which is the most compatible way for credentials
-    callback(null, true);
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  origin: (origin, callback) => callback(null, true),
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Origin'],
-  optionsSuccessStatus: 200
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
 };
 
-app.use(cors(corsOptions));
 const server = http.createServer(app);
 const io = new Server(server, { 
   cors: corsOptions,
