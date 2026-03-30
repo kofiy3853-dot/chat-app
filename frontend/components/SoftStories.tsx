@@ -13,30 +13,36 @@ interface SoftStoriesProps {
 }
 
 const SoftStories: React.FC<SoftStoriesProps> = ({ stories }) => {
+  if (!stories || stories.length === 0) return null;
+
   return (
-    <div className="flex items-center space-x-4 overflow-x-auto scrollbar-hide py-4 px-1 min-w-0">
-      {stories.map((story) => (
-        <div key={story.id} className="flex flex-col items-center space-y-1.5 flex-shrink-0">
-          <div className="relative p-0.5 rounded-full border-2 border-transparent group-hover:border-soft-primary">
-            <div className={`w-14 h-14 rounded-full bg-gradient-to-tr ${getAvatarColor(story.name)} flex items-center justify-center text-white text-lg font-bold shadow-soft overflow-hidden`}>
-              {(() => {
-                const url = getFullFileUrl(story.avatar);
-                return url ? (
-                  <img src={url} className="w-full h-full object-cover" alt="" />
+    <div className="flex items-center space-x-4 overflow-x-auto scrollbar-hide py-1 px-1">
+      {stories.map((story) => {
+        const url = getFullFileUrl(story.avatar);
+        return (
+          <div key={story.id} className="flex flex-col items-center space-y-1.5 flex-shrink-0 cursor-pointer">
+            {/* Avatar with white ring (story-style) */}
+            <div className="relative story-ring rounded-full">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-base font-bold overflow-hidden">
+                {url ? (
+                  <img src={url} className="w-full h-full object-cover rounded-full" alt="" />
                 ) : (
-                  getInitials(story.name)
-                );
-              })()}
+                  <div className={`w-full h-full rounded-full bg-gradient-to-tr ${getAvatarColor(story.name)} flex items-center justify-center text-white text-base font-bold`}>
+                    {getInitials(story.name)}
+                  </div>
+                )}
+              </div>
+              {/* Online dot */}
+              {story.isOnline && (
+                <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-green-400 border-2 border-soft-primary rounded-full shadow-sm" />
+              )}
             </div>
-            {story.isOnline && (
-              <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm"></span>
-            )}
+            <p className="text-[10px] font-semibold text-white/80 truncate w-12 text-center">
+              {story.name.split(' ')[0]}
+            </p>
           </div>
-          <p className="text-[10px] font-bold text-soft-text-secondary truncate w-14 text-center">
-            {story.name.split(' ')[0]}
-          </p>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

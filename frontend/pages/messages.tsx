@@ -5,7 +5,7 @@ import {
   MagnifyingGlassIcon, 
   ChatBubbleOvalLeftEllipsisIcon, 
   PhoneIcon, 
-  Cog8ToothIcon,
+  UserIcon,
   PlusIcon 
 } from '@heroicons/react/24/outline';
 import { getCurrentUser } from '../utils/helpers';
@@ -13,6 +13,7 @@ import { chatAPI, userAPI } from '../services/api';
 import SoftChatListItem from '../components/SoftChatListItem';
 import SoftStories from '../components/SoftStories';
 import SoftChatList from '../components/SoftChatList';
+import { getFullFileUrl, getInitials } from '../utils/helpers';
 
 const MessagesPage: React.FC = () => {
   const router = useRouter();
@@ -21,6 +22,7 @@ const MessagesPage: React.FC = () => {
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'messages' | 'calls' | 'contacts'>('messages');
 
   useEffect(() => {
     const localUser = getCurrentUser();
@@ -36,7 +38,7 @@ const MessagesPage: React.FC = () => {
     try {
       const [convRes, userRes] = await Promise.all([
         chatAPI.getConversations(),
-        userAPI.searchUsers('') // Search all initially for stories
+        userAPI.searchUsers('')
       ]);
       setConversations(convRes.data.conversations || []);
       setOnlineUsers(userRes.data.users?.filter((u: any) => u.isOnline) || []);
@@ -61,81 +63,112 @@ const MessagesPage: React.FC = () => {
 
   if (!user) return null;
 
+  const avatarUrl = getFullFileUrl(user?.avatar);
+
   return (
-    <div className="min-h-screen bg-soft-bg flex flex-col max-w-xl mx-auto shadow-sm relative overflow-x-hidden">
+    <div className="min-h-screen flex flex-col max-w-xl mx-auto relative overflow-x-hidden bg-app">
       <Head>
         <title>Messages | Campus Chat</title>
       </Head>
 
-      {/* Header */}
-      <header className="bg-soft-gradient rounded-b-[24px] px-6 pt-10 pb-12 text-white relative shadow-lg shadow-indigo-500/10">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-black tracking-tight leading-none">Messages</h1>
-          <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 overflow-hidden shadow-sm">
-            {user?.avatar ? (
-              <img src={user.avatar} className="w-full h-full object-cover" alt="" />
+      {/* ─── Blue Gradient Header ─── */}
+      <header className="relative px-5 pt-12 pb-20 text-white bg-header-gradient">
+        {/* Top row: hamburger + title + avatar */}
+        <div className="flex justify-between items-center mb-1">
+          <button aria-label="Menu" className="p-1">
+            <div className="flex flex-col space-y-1.5">
+              <span className="block w-5 h-0.5 bg-white/70 rounded-full" />
+              <span className="block w-3.5 h-0.5 bg-white/70 rounded-full" />
+            </div>
+          </button>
+          <h1 className="text-sm font-black tracking-[0.2em] uppercase text-white/90">Messages</h1>
+          <button
+            aria-label="My profile"
+            className="w-9 h-9 rounded-full bg-white/20 border border-white/30 overflow-hidden flex items-center justify-center shadow-sm"
+          >
+            {avatarUrl ? (
+              <img src={avatarUrl} className="w-full h-full object-cover" alt="" />
             ) : (
-              <span className="text-sm font-black uppercase">{user?.name?.charAt(0)}</span>
+              <span className="text-xs font-black text-white">{getInitials(user?.name)}</span>
             )}
-          </div>
+          </button>
         </div>
 
-        {/* Search Bar - Positioned at overlap */}
-        <div className="absolute -bottom-7 left-6 right-6 flex items-center bg-white rounded-2xl px-4 py-4 shadow-soft">
-          <MagnifyingGlassIcon className="w-5 h-5 text-soft-text-secondary mr-3" />
-          <input 
-            type="text" 
-            placeholder="Search friends..." 
+        {/* Stories row — inside the header */}
+        <div className="mt-6">
+          <SoftStories stories={onlineUsers} />
+        </div>
+      </header>
+
+      {/* ─── Search bar (overlaps header) ─── */}
+      <div className="px-5 -mt-6 z-10 relative">
+        <div className="flex items-center bg-white rounded-2xl px-4 py-3 shadow-blue">
+          <MagnifyingGlassIcon className="w-4 h-4 text-soft-text-secondary mr-3 flex-shrink-0" />
+          <input
+            type="text"
+            placeholder="Search friends..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1 bg-transparent border-none outline-none text-soft-text-primary placeholder-soft-text-secondary font-medium text-sm"
           />
         </div>
-      </header>
-
-      {/* Story List */}
-      <div className="mt-12 px-6">
-        <SoftStories stories={onlineUsers} />
       </div>
 
-      {/* Chat List */}
-      <div className="flex-1 px-4 mt-2 overflow-y-auto min-h-0 bg-white rounded-t-[24px] shadow-sm pb-24">
-        <SoftChatList 
-          conversations={filteredConversations} 
-          currentUser={user} 
-          onChatClick={handleChatClick} 
+      <div className="flex-1 mt-4 px-0 overflow-y-auto min-h-0 chat-list-panel pb-28">
+        <SoftChatList
+          conversations={filteredConversations}
+          currentUser={user}
+          onChatClick={handleChatClick}
           loading={loading}
         />
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white/90 backdrop-blur-xl border-t border-slate-50 flex justify-around items-center px-4 pt-4 pb-8 z-40">
-        <button 
-          aria-label="Messages"
-          className="p-3 text-soft-primary bg-indigo-50 rounded-2xl shadow-sm"
-        >
-          <ChatBubbleOvalLeftEllipsisIcon className="w-6 h-6" />
-        </button>
-        <div className="relative -mt-16">
-          <button 
-            aria-label="New Message"
-            className="w-16 h-16 rounded-full bg-soft-gradient flex items-center justify-center text-white shadow-xl shadow-indigo-500/30 active:scale-95 transition-transform"
+      {/* ─── Bottom Navigation ─── */}
+      <nav className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white/95 backdrop-blur-xl border-t border-slate-100 z-40">
+        <div className="flex justify-around items-end px-8 pt-3 pb-7">
+          {/* Messages tab */}
+          <button
+            aria-label="Messages"
+            onClick={() => setActiveTab('messages')}
+            className="flex flex-col items-center space-y-1"
           >
-            <PlusIcon className="w-8 h-8 stroke-[3px]" />
+            <div className={`p-2.5 rounded-2xl transition-all ${activeTab === 'messages' ? 'bg-primary-100' : ''}`}>
+              <ChatBubbleOvalLeftEllipsisIcon className={`w-6 h-6 ${activeTab === 'messages' ? 'text-soft-primary' : 'text-slate-400'}`} />
+            </div>
+          </button>
+
+          {/* FAB - New Message */}
+          <div className="relative -mt-8">
+            <button
+              aria-label="New Message"
+              className="w-14 h-14 rounded-full flex items-center justify-center text-white shadow-blue active:scale-95 transition-transform bg-fab-gradient"
+            >
+              <PlusIcon className="w-7 h-7 stroke-[2.5px]" />
+            </button>
+          </div>
+
+          {/* Calls tab */}
+          <button
+            aria-label="Calls"
+            onClick={() => setActiveTab('calls')}
+            className="flex flex-col items-center space-y-1"
+          >
+            <div className={`p-2.5 rounded-2xl transition-all ${activeTab === 'calls' ? 'bg-primary-100' : ''}`}>
+              <PhoneIcon className={`w-6 h-6 ${activeTab === 'calls' ? 'text-soft-primary' : 'text-slate-400'}`} />
+            </div>
+          </button>
+
+          {/* Contacts tab */}
+          <button
+            aria-label="Contacts"
+            onClick={() => setActiveTab('contacts')}
+            className="flex flex-col items-center space-y-1"
+          >
+            <div className={`p-2.5 rounded-2xl transition-all ${activeTab === 'contacts' ? 'bg-primary-100' : ''}`}>
+              <UserIcon className={`w-6 h-6 ${activeTab === 'contacts' ? 'text-soft-primary' : 'text-slate-400'}`} />
+            </div>
           </button>
         </div>
-        <button 
-          aria-label="Calls"
-          className="p-3 text-soft-text-secondary hover:text-soft-primary transition-colors"
-        >
-          <PhoneIcon className="w-6 h-6" />
-        </button>
-        <button 
-          aria-label="Settings"
-          className="p-3 text-soft-text-secondary hover:text-soft-primary transition-colors"
-        >
-          <Cog8ToothIcon className="w-6 h-6" />
-        </button>
       </nav>
     </div>
   );

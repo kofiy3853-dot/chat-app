@@ -188,9 +188,9 @@ export default function ChatPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0f2ff' }}>
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div>
           <p className="mt-4 text-slate-500 font-medium">Connecting to chat...</p>
         </div>
       </div>
@@ -203,83 +203,77 @@ export default function ChatPage() {
         <title>{name} | Campus Chat</title>
       </Head>
 
-      <div className="max-w-xl mx-auto min-h-screen flex flex-col bg-white shadow-2xl relative">
-        {/* Header */}
-        <header 
-          className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-slate-100 px-4 py-3 z-[10] flex items-center justify-between"
+      <div className="max-w-xl mx-auto min-h-screen flex flex-col shadow-2xl relative bg-app">
+        {/* Header - Blue Gradient */}
+        <header
+          className="sticky top-0 z-[10] px-4 py-4 flex items-center justify-between bg-header-gradient"
         >
+          {/* Left: back + avatar + name */}
           <div className="flex items-center space-x-3 min-w-0">
-            <Link 
+            <Link
               href="/"
-              className="p-2 -ml-2 hover:bg-slate-50 text-slate-400 hover:text-slate-600 rounded-2xl transition-all"
+              className="p-2 -ml-1 text-white/80 hover:text-white transition-colors"
             >
               <ArrowLeftIcon className="w-5 h-5 stroke-[2.5px]" />
             </Link>
-            
-            <div 
-              className="flex items-center space-x-3 cursor-pointer group min-w-0"
+
+            <div
+              className="flex items-center space-x-3 cursor-pointer min-w-0"
               onClick={() => setShowProfile(true)}
             >
-              <div className="relative group">
-                <div className={`w-10 h-10 rounded-[14px] bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center text-white text-sm font-bold shadow-md overflow-hidden`}>
+              <div className="relative">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold overflow-hidden ring-2 ring-white/30`}>
                   {(() => {
                     const avatar = otherParticipant?.user?.avatar;
                     const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
                     const fullUrl = avatar ? (avatar.startsWith('http') ? avatar : `${baseUrl}${avatar}`) : null;
                     return fullUrl ? (
-                      <img src={fullUrl} className="w-full h-full object-cover" alt="" />
+                      <img src={fullUrl} className="w-full h-full object-cover rounded-full" alt="" />
                     ) : (
-                      getInitials(name)
+                      <div className={`w-full h-full rounded-full bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center`}>
+                        {getInitials(name)}
+                      </div>
                     );
                   })()}
                 </div>
                 {isOnline && (
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></span>
                 )}
               </div>
-              
+
               <div className="min-w-0">
-                <h1 className="font-extrabold text-slate-800 truncate text-sm sm:text-base tracking-tight leading-none group-hover:text-primary-600 transition-colors">
+                <h1 className="font-bold text-white truncate text-[15px] leading-tight">
                   {name}
                 </h1>
-                <div className="flex items-center space-x-1.5 mt-1">
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${isOnline ? 'text-green-500' : 'text-slate-400'}`}>
-                    {isOnline ? 'Active Now' : 'Offline'}
-                  </span>
-                  {otherParticipant?.user?.status && (
-                    <>
-                      <span className="text-slate-300 transform scale-150">•</span>
-                      <span className="text-[10px] font-bold text-slate-400 truncate max-w-[120px] italic">
-                        "{otherParticipant.user.status}"
-                      </span>
-                    </>
-                  )}
-                </div>
+                <p className="text-[11px] text-white/70 font-medium">
+                  {isOnline ? 'Online' : 'Offline'}
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-1 sm:space-x-2">
-            <button 
+          {/* Right: call buttons */}
+          <div className="flex items-center space-x-2">
+            <button
               onClick={() => handleStartCall('VOICE')}
               disabled={!otherParticipant}
-              className="flex p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all disabled:opacity-30"
+              className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all disabled:opacity-30"
             >
-              <PhoneIcon className="w-5 h-5" />
+              <PhoneIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px'}} />
             </button>
-            <button 
+            <button
               onClick={() => handleStartCall('VIDEO')}
               disabled={!otherParticipant}
-              className="flex p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all disabled:opacity-30"
+              className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all disabled:opacity-30"
             >
-              <VideoCameraIcon className="w-5 h-5" />
+              <VideoCameraIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px'}} />
             </button>
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+                className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all"
               >
-                <EllipsisVerticalIcon className="w-5 h-5" />
+                <EllipsisVerticalIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px'}} />
               </button>
 
               {showMenu && (

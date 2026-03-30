@@ -45,3 +45,40 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ─── Design System: Periwinkle Blue Theme ─── */
+
+.bg-app {
+  background: #f0f2ff;
+}
+
+.bg-header-gradient {
+  background: linear-gradient(160deg, #6B73FF 0%, #7f87ff 60%, #9B59FF 100%);
+}
+
+.bg-fab-gradient {
+  background: linear-gradient(135deg, #6B73FF, #9B59FF);
+}
+
+.badge-gradient {
+  background: linear-gradient(135deg, #6B73FF, #9B59FF);
+}
+
+.story-ring {
+  background: rgba(255, 255, 255, 0.35);
+  padding: 2px;
+}
+
+.chat-list-panel {
+  background: #ffffff;
+  border-radius: 28px 28px 0 0;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
