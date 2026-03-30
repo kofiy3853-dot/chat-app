@@ -139,50 +139,6 @@ const MessagesPage: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      {/* ─── Clean Bottom Navigation ─── */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto z-40 px-4 pb-4 pt-2 pointer-events-none">
-        <div className="flex justify-around items-center bg-white rounded-full border border-gray-100 shadow-lg h-16 px-2 pointer-events-auto relative">
-          
-          <button 
-            aria-label="Messages" 
-            onClick={() => setActiveTab('messages')} 
-            className="flex-1 flex flex-col items-center justify-center space-y-1"
-          >
-            <ChatBubbleOvalLeftEllipsisIcon className={`w-[22px] h-[22px] ${activeTab === 'messages' ? 'text-primary-600 stroke-2' : 'text-slate-400 stroke-2'}`} />
-            {activeTab === 'messages' && <span className="w-1 h-1 rounded-full bg-primary-600"></span>}
-          </button>
-
-          {/* Central FAB - New Chat */}
-          <div className="relative bottom-4">
-             <button
-               onClick={() => setActiveTab('contacts')}
-               aria-label="New Chat"
-               className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md bg-primary-600 hover:bg-primary-500 active:scale-95 transition-all outline outline-4 outline-white"
-               title="New Chat"
-             >
-               <PlusIcon className="w-6 h-6 stroke-[3px]" />
-             </button>
-          </div>
-
-          <button 
-            aria-label="Calls" 
-            onClick={() => setActiveTab('calls')} 
-            className="flex-1 flex flex-col items-center justify-center space-y-1"
-          >
-            <PhoneIcon className={`w-[22px] h-[22px] ${activeTab === 'calls' ? 'text-primary-600 stroke-2' : 'text-slate-400 stroke-2'}`} />
-            {activeTab === 'calls' && <span className="w-1 h-1 rounded-full bg-primary-600"></span>}
-          </button>
-          
-          <button 
-            aria-label="Contacts" 
-            onClick={() => setActiveTab('contacts')} 
-            className="flex-1 flex flex-col items-center justify-center space-y-1"
-          >
-            <UserIcon className={`w-[22px] h-[22px] ${activeTab === 'contacts' ? 'text-primary-600 stroke-2' : 'text-slate-400 stroke-2'}`} />
-            {activeTab === 'contacts' && <span className="w-1 h-1 rounded-full bg-primary-600"></span>}
-          </button>
-        </div>
-      </nav>
     </div>
   );
 };

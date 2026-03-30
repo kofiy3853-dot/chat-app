@@ -99,68 +99,74 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-100 px-4 py-2 z-50">
-      <div className="flex justify-between items-center max-w-lg mx-auto h-14">
-        {/* First two items */}
-        {navItems.slice(0, 2).map((item) => (
-          <Link 
-            key={item.href}
-            href={item.href}
-            className={`flex-1 flex flex-col items-center justify-center h-full transition-all duration-200 ${
-              isActive(item.href) 
-                ? 'text-primary-600' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <div className="relative">
-              <item.icon className={`w-6 h-6 ${isActive(item.href) ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-              {item.label === 'Inbox' && unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </div>
-            <span className={`text-[10px] sm:text-xs font-medium mt-1 ${isActive(item.href) ? 'opacity-100' : 'opacity-70'}`}>
-              {item.label}
-            </span>
-          </Link>
-        ))}
+    <nav className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto z-40 px-4 pb-4 pt-2 pointer-events-none">
+      <div className="flex justify-around items-center bg-white rounded-full border border-gray-100 shadow-lg h-16 px-2 pointer-events-auto relative">
+        
+        {/* Inbox Link */}
+        <Link 
+          href="/"
+          className={`flex-1 flex flex-col items-center justify-center space-y-1 transition-all ${
+            isActive('/') ? 'text-primary-600' : 'text-slate-400'
+          }`}
+        >
+          <div className="relative">
+            <ChatBubbleLeftIcon className={`w-[22px] h-[22px] ${isActive('/') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </div>
+          {isActive('/') && <span className="w-1 h-1 rounded-full bg-primary-600"></span>}
+        </Link>
 
-        {/* Center Primary Action Button */}
-        <div className="flex-1 flex justify-center -mt-8 px-2">
-            <button 
-              className="bg-primary-600 text-white rounded-2xl w-14 h-14 flex items-center justify-center shadow-[0_8px_30px_rgb(37,99,235,0.4)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.6)] active:scale-95"
-              onClick={() => setIsModalOpen(true)}
-              aria-label="New Chat"
-            >
-              <PlusIcon className="w-8 h-8 stroke-2" />
-            </button>
+        {/* Courses Link */}
+        <Link 
+          href="/courses"
+          className={`flex-1 flex flex-col items-center justify-center space-y-1 transition-all ${
+            isActive('/courses') ? 'text-primary-600' : 'text-slate-400'
+          }`}
+        >
+          <AcademicCapIcon className={`w-[22px] h-[22px] ${isActive('/courses') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+          {isActive('/courses') && <span className="w-1 h-1 rounded-full bg-primary-600"></span>}
+        </Link>
+
+        {/* Central FAB - New Chat */}
+        <div className="relative bottom-4">
+           <button
+             onClick={() => setIsModalOpen(true)}
+             aria-label="New Chat"
+             className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md bg-primary-600 hover:bg-primary-500 active:scale-95 transition-all outline outline-4 outline-white"
+             title="New Chat"
+           >
+             <PlusIcon className="w-6 h-6 stroke-[3px]" />
+           </button>
         </div>
 
-        {/* Last two items */}
-        {navItems.slice(2).map((item) => (
-          <Link 
-            key={item.href}
-            href={item.href}
-            className={`flex-1 flex flex-col items-center justify-center h-full transition-all duration-200 ${
-              isActive(item.href) 
-                ? 'text-primary-600' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <div className="relative">
-              <item.icon className={`w-6 h-6 ${isActive(item.href) ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-              {item.label === 'Activity' && unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </div>
-            <span className={`text-[10px] sm:text-xs font-medium mt-1 ${isActive(item.href) ? 'opacity-100' : 'opacity-70'}`}>
-              {item.label}
-            </span>
-          </Link>
-        ))}
+        {/* Activity Link */}
+        <Link 
+          href="/activity"
+          className={`flex-1 flex flex-col items-center justify-center space-y-1 transition-all ${
+            isActive('/activity') ? 'text-primary-600' : 'text-slate-400'
+          }`}
+        >
+          <div className="relative">
+            <BellIcon className={`w-[22px] h-[22px] ${isActive('/activity') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+            {/* Logic for unread activity could go here */}
+          </div>
+          {isActive('/activity') && <span className="w-1 h-1 rounded-full bg-primary-600"></span>}
+        </Link>
+        
+        {/* Account Link */}
+        <Link 
+          href="/account"
+          className={`flex-1 flex flex-col items-center justify-center space-y-1 transition-all ${
+            isActive('/account') ? 'text-primary-600' : 'text-slate-400'
+          }`}
+        >
+          <UserCircleIcon className={`w-[22px] h-[22px] ${isActive('/account') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+          {isActive('/account') && <span className="w-1 h-1 rounded-full bg-primary-600"></span>}
+        </Link>
       </div>
       
       <NewChatModal 
