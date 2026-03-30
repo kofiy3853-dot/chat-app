@@ -131,6 +131,9 @@ export default function ChatPage() {
     try {
       const response = await chatAPI.getMessages(id);
       setMessages(response.data.messages || []);
+      
+      // Mark as read after fetching
+      chatAPI.markAsRead(id).catch(() => {});
     } catch (err) {
       console.error('Fetch error:', err);
     }

@@ -471,6 +471,18 @@ exports.markAsRead = async (req, res) => {
         })),
         skipDuplicates: true
       });
+      
+      // Update the user's unread count via socket
+      if (req.io) {
+        const newCount = await prisma.message.count({
+          where: {
+            senderId: { not: userId },
+            readReceipts: { none: { userId: userId } },
+            conversation: { participants: { some: { userId: userId, isDeleted: false } }, isActive: true }
+          }
+        });
+        req.io.to(`user:${userId}`).emit('total-unread-chat-count', { count: newCount });
+      }
     }
 
     res.json({ message: 'Messages marked as read' });
@@ -786,9 +798,45 @@ exports.markAllAsRead = async (req, res) => {
         })),
         skipDuplicates: true
       });
+
+      // Update the user's unread count via socket
+      if (req.io) {
+        req.io.to(`user:${userId}`).emit('total-unread-chat-count', { count: 0 });
+      }
     }
 
     res.json({ message: 'All messages marked as read' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Get total unread message count across all conversations
+exports.getTotalUnreadMessages = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const count = await prisma.message.count({
+      where: {
+        senderId: { not: userId },
+        readReceipts: {
+          none: {
+            userId: userId
+          }
+        },
+        conversation: {
+          participants: {
+            some: {
+              userId: userId,
+              isDeleted: false
+            }
+          },
+          isActive: true
+        }
+      }
+    });
+
+    res.json({ count });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

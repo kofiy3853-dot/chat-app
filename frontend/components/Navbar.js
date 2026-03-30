@@ -18,22 +18,25 @@ export default function Navbar() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
 
   useEffect(() => {
-    // 1. Fetch initial count immediately on mount
-    const fetchInitialCount = async () => {
+    // 1. Fetch initial counts immediately on mount
+    const fetchInitialCounts = async () => {
       try {
-        const response = await userAPI.getUnreadCount();
-        if (response?.data?.count !== undefined) {
-          setUnreadCount(response.data.count);
-        }
+        const [notifRes, chatRes] = await Promise.all([
+          userAPI.getUnreadCount(),
+          chatAPI.getUnreadChatCount()
+        ]);
+        if (notifRes?.data?.count !== undefined) setUnreadCount(notifRes.data.count);
+        if (chatRes?.data?.count !== undefined) setChatUnreadCount(chatRes.data.count);
       } catch (error) {
-        console.error('Failed to fetch unread count:', error);
+        console.error('Failed to fetch unread counts:', error);
       }
     };
     
     if (typeof window !== 'undefined' && localStorage.getItem('token')) {
-      fetchInitialCount();
+      fetchInitialCounts();
     }
 
     // 2. Set up socket listeners
@@ -41,12 +44,6 @@ export default function Navbar() {
     const setupListeners = () => {
       socket = getSocket();
       if (socket) {
-        // Re-fetch count immediately in case we missed the initial 'unread-count' event
-        // (race condition: socket may have connected before Navbar mounted)
-        userAPI.getUnreadCount()
-          .then(r => { if (r?.data?.count !== undefined) setUnreadCount(r.data.count); })
-          .catch(() => {});
-
         // Live updates from socket
         socket.on('new-notification', (data) => {
           setUnreadCount(data.unreadCount);
@@ -56,11 +53,24 @@ export default function Navbar() {
           setUnreadCount(data.count);
         });
 
-        // If socket reconnects, re-sync the count
+        // Add handler for new messages across any conversation
+        socket.on('new-message', (data) => {
+          // If the message is from someone else, refresh the total unread count
+          if (data.message.senderId !== JSON.parse(localStorage.getItem('user'))?.id) {
+            chatAPI.getUnreadChatCount()
+              .then(r => { if (r?.data?.count !== undefined) setChatUnreadCount(r.data.count); })
+              .catch(() => {});
+          }
+        });
+
+        // Handle total unread refresh from backend (optional depending on implementation)
+        socket.on('total-unread-chat-count', (data) => {
+          setChatUnreadCount(data.count);
+        });
+
+        // If socket reconnects, re-sync everything
         socket.on('connect', () => {
-          userAPI.getUnreadCount()
-            .then(r => { if (r?.data?.count !== undefined) setUnreadCount(r.data.count); })
-            .catch(() => {});
+           fetchInitialCounts();
         });
 
         return true;
@@ -86,6 +96,8 @@ export default function Navbar() {
       if (socket) {
         socket.off('new-notification');
         socket.off('unread-count');
+        socket.off('new-message');
+        socket.off('total-unread-chat-count');
         socket.off('connect');
       }
     };
@@ -112,6 +124,11 @@ export default function Navbar() {
         >
           <div className="relative">
             <ChatBubbleLeftIcon className={`w-6 h-6 ${isActive('/') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
+            {chatUnreadCount > 0 && (
+              <span className="absolute -top-1 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+              </span>
+            )}
           </div>
           <span className={`text-[10px] font-semibold tracking-wide ${isActive('/') ? 'text-primary-600' : 'text-gray-400'}`}>Chats</span>
         </Link>
