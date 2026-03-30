@@ -68,21 +68,19 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
       onClick={() => onClick(conversation.id)}
       className="flex items-center px-6 py-4 cursor-pointer transition-all duration-300 hover:bg-slate-50 relative group"
     >
-      {/* Avatar with soft border */}
+      {/* Avatar */}
       <div className="relative flex-shrink-0 mr-4">
-        <div className="w-14 h-14 rounded-[22px] overflow-hidden flex items-center justify-center p-[2px] bg-slate-100 group-hover:bg-primary-100 transition-colors">
-          <div className="w-full h-full rounded-[20px] overflow-hidden bg-white">
-            {avatarUrl ? (
-              <img src={avatarUrl} className="w-full h-full object-cover" alt="" />
-            ) : (
-              <div className={`w-full h-full bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center text-white`}>
-                <span className="text-base font-black tracking-tighter">{getInitials(name)}</span>
-              </div>
-            )}
-          </div>
+        <div className="w-[52px] h-[52px] rounded-full overflow-hidden shadow-sm border border-gray-100">
+          {avatarUrl ? (
+            <img src={avatarUrl} className="w-full h-full object-cover" alt="" />
+          ) : (
+            <div className={`w-full h-full bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center text-white`}>
+              <span className="text-base font-bold tracking-tight">{getInitials(name)}</span>
+            </div>
+          )}
         </div>
         {isOnline && (
-          <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-[3px] border-white rounded-full shadow-sm shadow-green-500/20" />
+          <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full" />
         )}
       </div>
 

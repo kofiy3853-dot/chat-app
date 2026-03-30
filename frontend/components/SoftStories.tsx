@@ -78,23 +78,21 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
         {/* My Status Item */}
         <div 
           onClick={() => setUploadOpen(true)}
-          className="flex flex-col items-center space-y-1.5 flex-shrink-0 cursor-pointer"
+          className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16"
         >
-          <div className="relative p-[3px] rounded-[22px] border-2 border-dashed border-white/30">
-            <div className="w-12 h-12 rounded-[18px] bg-white/20 backdrop-blur-md overflow-hidden border border-white/20 p-0.5 shadow-lg">
+          <div className="relative p-[2px] rounded-full border-2 border-dashed border-gray-300">
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-white/20 backdrop-blur-md flex items-center justify-center">
               {currentUser?.avatar ? (
-                <img src={getFullFileUrl(currentUser.avatar)} className="w-full h-full object-cover rounded-2xl" alt="" />
+                <img src={getFullFileUrl(currentUser.avatar)} className="w-full h-full object-cover" alt="My Status" />
               ) : (
-                <div className="w-full h-full bg-white/20 flex items-center justify-center text-white text-xs font-black rounded-2xl">
-                  {getInitials(currentUser?.name)}
-                </div>
+                <span className="text-white text-sm font-bold">{getInitials(currentUser?.name)}</span>
               )}
             </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-xl bg-white flex items-center justify-center text-primary-500 shadow-xl border-2 border-primary-500 transform transition-transform hover:rotate-90">
-              <PlusIcon className="w-4 h-4 stroke-[3px]" />
+            <div className="absolute bottom-0 right-0 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+              <PlusIcon className="w-3 h-3 text-white" />
             </div>
           </div>
-          <p className="text-[10px] font-black text-white/90 tracking-tight uppercase leading-none mt-1">Status</p>
+          <p className="text-xs font-medium text-white/90 mt-1 truncate w-full text-center">My Status</p>
         </div>
 
         {/* Other Users' Statuses */}
@@ -102,20 +100,20 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
           <div 
             key={group.user.id} 
             onClick={() => handleOpenViewer(index)}
-            className="flex flex-col items-center space-y-1.5 flex-shrink-0 cursor-pointer group"
+            className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 group"
           >
-            <div className={`relative p-[3px] rounded-[22px] border-2 transition-all duration-500 ${group.hasUnseen ? 'border-sky-400 rotate-12 scale-105 shadow-[0_0_15px_rgba(56,189,248,0.4)]' : 'border-white/20 opacity-80'}`}>
-              <div className="w-12 h-12 rounded-[18px] bg-white/20 backdrop-blur-md overflow-hidden p-0.5">
+            <div className={`relative p-[2px] rounded-full transition-all duration-300 border-2 ${group.hasUnseen ? 'border-primary-400' : 'border-gray-300/50'}`}>
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-white/20 backdrop-blur-md flex items-center justify-center">
                 {group.user.avatar ? (
-                  <img src={getFullFileUrl(group.user.avatar)} className="w-full h-full object-cover rounded-2xl" alt="" />
+                  <img src={getFullFileUrl(group.user.avatar)} className="w-full h-full object-cover" alt={group.user.name} />
                 ) : (
-                  <div className={`w-full h-full rounded-2xl bg-gradient-to-tr ${getAvatarColor(group.user.name)} flex items-center justify-center text-white text-xs font-black`}>
+                  <div className={`w-full h-full flex items-center justify-center text-white text-sm font-bold bg-gradient-to-tr ${getAvatarColor(group.user.name)}`}>
                     {getInitials(group.user.name)}
                   </div>
                 )}
               </div>
             </div>
-            <p className="text-[10px] font-black text-white/80 truncate w-14 text-center tracking-tight leading-none uppercase">
+            <p className={`text-xs mt-1 truncate w-full text-center ${group.hasUnseen ? 'font-semibold text-white' : 'font-medium text-white/70'}`}>
               {group.user.name.split(' ')[0]}
             </p>
           </div>
