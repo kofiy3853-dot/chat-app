@@ -138,6 +138,32 @@ exports.viewStatus = async (req, res) => {
       }
     });
 
+    // Notify status owner
+    const status = await prisma.status.findUnique({
+      where: { id: statusId },
+      include: { user: true }
+    });
+
+    if (status && status.userId !== viewerId) {
+      // Find how many people viewed this status total
+      const viewCount = await prisma.statusView.count({ where: { statusId } });
+      
+      const notification = await prisma.notification.create({
+        data: {
+          type: 'SYSTEM',
+          title: 'Status Update',
+          content: `${viewCount} people viewed your status`,
+          recipientId: status.userId,
+          actionUrl: '/status'
+        }
+      });
+
+      if (req.io) {
+        const unreadCount = await prisma.notification.count({ where: { recipientId: status.userId, isRead: false } });
+        req.io.to(`user:${status.userId}`).emit('new-notification', { notification, unreadCount });
+      }
+    }
+
     res.json(view);
   } catch (error) {
     console.error('Error viewing status:', error);

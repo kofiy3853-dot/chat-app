@@ -360,9 +360,24 @@ exports.addMaterial = async (req, res) => {
       }
     });
 
-    // Notify students via socket
+    // Notify students via socket & persistence
     if (req.io) {
       req.io.to(`course:${id}`).emit('new-material', { material, courseId: id });
+
+      const studentIds = course.students.map(s => s.id);
+      await Promise.all(studentIds.map(async (sId) => {
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'SYSTEM',
+            title: 'New Material',
+            content: `New material: ${material.title} in ${course.code}`,
+            recipientId: sId,
+            actionUrl: `/courses/${id}`
+          }
+        });
+        const unreadCount = await prisma.notification.count({ where: { recipientId: sId, isRead: false } });
+        req.io.to(`user:${sId}`).emit('new-notification', { notification, unreadCount });
+      }));
     }
 
     res.status(201).json({ material });
@@ -430,7 +445,27 @@ exports.createAssignment = async (req, res) => {
 
     // Notify students
     if (req.io) {
-       req.io.to(`course:${id}`).emit('new-assignment', { assignment, courseId: id });
+      req.io.to(`course:${id}`).emit('new-assignment', { assignment, courseId: id });
+
+      const courseWithStudents = await prisma.course.findUnique({
+        where: { id },
+        include: { students: { select: { id: true } } }
+      });
+
+      const studentIds = courseWithStudents.students.map(s => s.id);
+      await Promise.all(studentIds.map(async (sId) => {
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'ANNOUNCEMENT',
+            title: 'New Assignment',
+            content: `New assignment: ${assignment.title} for ${course.code}`,
+            recipientId: sId,
+            actionUrl: `/courses/${id}`
+          }
+        });
+        const unreadCount = await prisma.notification.count({ where: { recipientId: sId, isRead: false } });
+        req.io.to(`user:${sId}`).emit('new-notification', { notification, unreadCount });
+      }));
     }
 
     res.status(201).json({ assignment });
@@ -545,6 +580,26 @@ exports.postAnnouncement = async (req, res) => {
     // Notify students via socket
     if (req.io) {
       req.io.to(`course:${id}`).emit('new-announcement', { announcement, courseId: id });
+
+      const courseWithStudents = await prisma.course.findUnique({
+        where: { id },
+        include: { students: { select: { id: true } } }
+      });
+
+      const studentIds = courseWithStudents.students.map(s => s.id);
+      await Promise.all(studentIds.map(async (sId) => {
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'ANNOUNCEMENT',
+            title: `Announcement in ${course.code}`,
+            content: content.substring(0, 50),
+            recipientId: sId,
+            actionUrl: `/courses/${id}`
+          }
+        });
+        const unreadCount = await prisma.notification.count({ where: { recipientId: sId, isRead: false } });
+        req.io.to(`user:${sId}`).emit('new-notification', { notification, unreadCount });
+      }));
     }
 
     res.status(201).json({ message: announcement });

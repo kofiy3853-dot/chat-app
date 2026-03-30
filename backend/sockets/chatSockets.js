@@ -205,10 +205,34 @@ const setupChatSockets = (io) => {
         const recipients = chatParticipants.filter(p => p.userId !== socket.user.id);
         console.log(`[NOTIF DEBUG] Found ${recipients.length} recipient(s) to potentially notify.`);
 
+        const mentionRegex = /@\[([^\]]+)\]\(([^)]+)\)/g;
+        const mentions = [...content.matchAll(mentionRegex)];
+
+        await Promise.all(mentions.map(async (mention) => {
+          const mentionedUserId = mention[2];
+          if (mentionedUserId === socket.user.id) return;
+
+          const notification = await prisma.notification.create({
+            data: {
+              type: 'MENTION',
+              title: `${socket.user.name} mentioned you`,
+              content: content.replace(mentionRegex, '$1').substring(0, 50),
+              recipientId: mentionedUserId,
+              senderId: socket.user.id,
+              messageId: message.id,
+              actionUrl: `/chat/${conversationId}`
+            }
+          });
+
+          const count = await prisma.notification.count({ where: { recipientId: mentionedUserId, isRead: false } });
+          io.to(`user:${mentionedUserId}`).emit('new-notification', { notification, unreadCount: count });
+        }));
+
         await Promise.all(recipients.map(async (recipient) => {
+          // Check if recipient was already notified via mention to avoid double notifying
+          if (mentions.some(m => m[2] === recipient.userId)) return;
+
           console.log(`[NOTIF DEBUG] Checking recipient user:${recipient.userId}`);
-          // Check if recipient is ACTIVELY VIEWING this conversation (viewing: room)
-          // NOT just in the broadcast room — everyone is in the broadcast room
           const viewingRoom = io.sockets.adapter.rooms.get(`viewing:${conversationId}`);
           let isRecipientActiveInRoom = false;
 
@@ -221,37 +245,29 @@ const setupChatSockets = (io) => {
               }
             }
           }
-          console.log(`[NOTIF DEBUG] Recipient user:${recipient.userId} activelyViewing=${isRecipientActiveInRoom} | viewingRoomSize=${viewingRoom?.size ?? 0}`);
-          // Only create notification if user is NOT looking at the chat
           if (!isRecipientActiveInRoom) {
+            const isReply = !!replyToId;
             const notificationContent = content || (type === 'VOICE' ? 'Voice memo' : 'File attachment');
 
-            // Create notification in DB
-            console.log(`[NOTIF DEBUG] Creating DB notification for user:${recipient.userId}`);
             const notification = await prisma.notification.create({
               data: {
-                type: 'MESSAGE',
-                title: `New message from ${socket.user.name}`,
+                type: isReply ? 'MESSAGE' : 'MESSAGE', // Keep as MESSAGE but maybe add REPLY type later if needed
+                title: isReply ? `${socket.user.name} replied to your message` : `New message from ${socket.user.name}`,
                 content: notificationContent.length > 50 ? notificationContent.substring(0, 50) + '...' : notificationContent,
                 recipientId: recipient.userId,
                 senderId: socket.user.id,
                 messageId: message.id
               }
             });
-            console.log(`[NOTIF DEBUG] DB notification created: id=${notification.id}`);
 
-            // Global Signaling (user:ID): Multi-device sync
             const totalUnreadCount = await prisma.notification.count({ 
               where: { recipientId: recipient.userId, isRead: false } 
             });
-            console.log(`[NOTIF DEBUG] Emitting new-notification to room user:${recipient.userId} | unreadCount=${totalUnreadCount}`);
 
             io.to(`user:${recipient.userId}`).emit('new-notification', {
               notification,
               unreadCount: totalUnreadCount
             });
-          } else {
-            console.log(`[NOTIF DEBUG] Skipped notification for user:${recipient.userId} — they are active in the conversation.`);
           }
         }));
 

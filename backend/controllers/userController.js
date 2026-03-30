@@ -138,20 +138,24 @@ exports.getNotifications = async (req, res) => {
       skip,
       take: parseInt(limit),
       include: {
+        sender: {
+          select: { id: true, name: true, avatar: true }
+        },
         message: {
           select: {
             id: true,
             content: true,
             conversationId: true,
-            sender: {
-              select: { name: true, avatar: true }
-            }
+            type: true
           }
         }
       }
     });
 
-    res.json({ notifications });
+    res.json({ 
+      notifications,
+      hasMore: notifications.length === parseInt(limit)
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

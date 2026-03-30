@@ -1,260 +1,288 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { userAPI } from '../services/api';
 import { 
-  ChatBubbleLeftIcon, 
+  ChatBubbleLeftRightIcon, 
   MegaphoneIcon, 
   UserPlusIcon,
   BellIcon,
   CheckIcon,
-  MagnifyingGlassIcon
+  AtSymbolIcon,
+  UserGroupIcon,
+  SparklesIcon,
+  ArchiveBoxIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline';
 import { getSocket } from '../services/socket';
 import { formatRelativeTime } from '../utils/helpers';
 
+const TABS = [
+  { id: 'ALL', label: 'All', icon: BellIcon },
+  { id: 'MENTIONS', label: 'Mentions', icon: AtSymbolIcon },
+  { id: 'GROUPS', label: 'Groups', icon: UserGroupIcon },
+  { id: 'ANNOUNCEMENTS', label: 'Announcements', icon: MegaphoneIcon }
+];
+
 export default function Activity() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState([]);
-  const [markingRead, setMarkingRead] = useState(false);
-  const [search, setSearch] = useState('');
+  const [activities, setActivities] = useState([]);
+  const [activeTab, setActiveTab] = useState('ALL');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  useEffect(() => {
-    fetchNotifications();
-
-    const socket = getSocket();
-    if (socket) {
-      const handleNewNotification = (data) => {
-        if (data.notification) {
-          setNotifications(prev => {
-            // Check for duplicates
-            if (prev.find(n => n.id === data.notification.id)) return prev;
-            return [data.notification, ...prev];
-          });
-        }
-      };
-
-      const handleMessagesRead = (data) => {
-        // Find notifications for this conversation and mark them as read locally
-        setNotifications(prev => prev.map(n => 
-          (n.type === 'MESSAGE' && n.message?.conversationId === data.conversationId)
-            ? { ...n, isRead: true } 
-            : n
-        ));
-      };
-
-      socket.on('new-notification', handleNewNotification);
-      socket.on('messages-read', handleMessagesRead);
-
-      return () => {
-        socket.off('new-notification', handleNewNotification);
-        socket.off('messages-read', handleMessagesRead);
-      };
+  const fetchActivities = useCallback(async (pageNum = 1, shouldAppend = false) => {
+    try {
+      const response = await userAPI.getNotifications(pageNum);
+      const newItems = response.data.notifications || [];
+      
+      if (shouldAppend) {
+        setActivities(prev => [...prev, ...newItems]);
+      } else {
+        setActivities(newItems);
+      }
+      setHasMore(response.data.hasMore);
+    } catch (error) {
+      console.error('Failed to fetch activities:', error);
+    } finally {
+      setLoading(false);
+      setIsFetchingMore(false);
     }
   }, []);
 
-  const fetchNotifications = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+  useEffect(() => {
+    fetchActivities(1, false);
 
-    try {
-      const response = await userAPI.getNotifications();
-      setNotifications(response.data.notifications || []);
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem('token');
-        router.push('/login');
-      }
-    } finally {
-      setLoading(false);
+    const socket = getSocket();
+    if (socket) {
+      const handleNewActivity = (data) => {
+        if (data.notification) {
+          setActivities(prev => {
+            if (prev.find(a => a.id === data.notification.id)) return prev;
+            return [data.notification, ...prev];
+          });
+          // Vibrate on new activity
+          if (navigator.vibrate) navigator.vibrate(50);
+        }
+      };
+
+      socket.on('new-notification', handleNewActivity);
+      return () => socket.off('new-notification', handleNewActivity);
+    }
+  }, [fetchActivities]);
+
+  const loadMore = () => {
+    if (hasMore && !isFetchingMore) {
+      setIsFetchingMore(true);
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchActivities(nextPage, true);
     }
   };
 
-  const markAllAsRead = async () => {
-    if (markingRead || notifications.length === 0) return;
-    setMarkingRead(true);
+  const markAllRead = async () => {
     try {
       await userAPI.markNotificationsAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-    } catch (error) {
-      console.error('Failed to mark notifications as read:', error);
-    } finally {
-      setMarkingRead(false);
+      setActivities(prev => prev.map(a => ({ ...a, isRead: true })));
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const handleNotificationClick = async (notification) => {
-    // Mark as read first if it's not
-    if (!notification.isRead) {
-      try {
-        await userAPI.markNotificationsAsRead({ notificationIds: [notification.id] });
-        // Immediately remove it from the list so it "disappears" for the user 
-        // OR optionally just mark it as read. Since the user expects it to disappear, we'll filter it:
-        setNotifications(prev => prev.filter(n => n.id !== notification.id));
-      } catch (err) {
-        console.error('Failed to mark as read:', err);
-      }
+  const handleActivityClick = async (activity) => {
+    if (!activity.isRead) {
+      userAPI.markNotificationsAsRead({ notificationIds: [activity.id] }).catch(console.error);
+      setActivities(prev => prev.map(a => a.id === activity.id ? { ...a, isRead: true } : a));
     }
 
-    // THEN navigate based on type
-    if (notification.type === 'MESSAGE' && notification.message?.conversationId) {
-      router.push(`/chat/${notification.message.conversationId}`);
-    } else if (notification.actionUrl) {
-      router.push(notification.actionUrl);
+    if (activity.actionUrl) {
+      router.push(activity.actionUrl);
+    } else if (activity.message?.conversationId) {
+      router.push(`/chat/${activity.message.conversationId}`);
     }
   };
 
-  const getNotificationIcon = (type) => {
+  const filteredActivities = activities.filter(a => {
+    if (activeTab === 'ALL') return true;
+    if (activeTab === 'MENTIONS') return a.type === 'MENTION';
+    if (activeTab === 'GROUPS') return a.type === 'COURSE_INVITE' || a.type === 'SYSTEM' && a.title.toLowerCase().includes('group');
+    if (activeTab === 'ANNOUNCEMENTS') return a.type === 'ANNOUNCEMENT';
+    return true;
+  });
+
+  const getIcon = (type, title) => {
+    if (type === 'MENTION') return AtSymbolIcon;
+    if (type === 'ANNOUNCEMENT') return MegaphoneIcon;
+    if (type === 'COURSE_INVITE') return UserPlusIcon;
+    if (type === 'MESSAGE') return ChatBubbleLeftRightIcon;
+    if (title?.toLowerCase().includes('group')) return UserGroupIcon;
+    if (title?.toLowerCase().includes('status')) return SparklesIcon;
+    return BellIcon;
+  };
+
+  const getColor = (type) => {
     switch (type) {
-      case 'MESSAGE':
-        return ChatBubbleLeftIcon;
-      case 'ANNOUNCEMENT':
-        return MegaphoneIcon;
-      case 'COURSE_INVITE':
-        return UserPlusIcon;
-      default:
-        return BellIcon;
+      case 'MENTION': return 'bg-rose-100 text-rose-600';
+      case 'ANNOUNCEMENT': return 'bg-amber-100 text-amber-600';
+      case 'MESSAGE': return 'bg-blue-100 text-blue-600';
+      case 'SYSTEM': return 'bg-indigo-100 text-indigo-600';
+      default: return 'bg-slate-100 text-slate-600';
     }
   };
 
-  const getNotificationColor = (type) => {
-    switch (type) {
-      case 'MESSAGE':
-        return 'bg-blue-100 text-blue-600';
-      case 'ANNOUNCEMENT':
-        return 'bg-purple-100 text-purple-600';
-      case 'COURSE_INVITE':
-        return 'bg-green-100 text-green-600';
-      default:
-        return 'bg-gray-100 text-gray-600';
-    }
-  };
+  // Grouping by date
+  const groupedActivities = filteredActivities.reduce((groups, activity) => {
+    const date = new Date(activity.createdAt);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    let groupTitle = 'Earlier';
+    if (date.toDateString() === today.toDateString()) groupTitle = 'Today';
+    else if (date.toDateString() === yesterday.toDateString()) groupTitle = 'Yesterday';
+
+    if (!groups[groupTitle]) groups[groupTitle] = [];
+    groups[groupTitle].push(activity);
+    return groups;
+  }, {});
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center">
-          <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
-          <p className="mt-4 text-slate-500 font-medium">Checking updates...</p>
+          <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin shadow-lg"></div>
+          <p className="mt-4 text-slate-500 font-black uppercase tracking-widest text-[10px]">Syncing Activity...</p>
         </div>
       </div>
     );
   }
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-
-  const filteredNotifications = notifications.filter(n => {
-    if (n.isRead) return false; // Hide read notifications so they disappear
-    if (!search) return true;
-    const lowerSearch = search.toLowerCase();
-    return (n.title && n.title.toLowerCase().includes(lowerSearch)) || 
-           (n.content && n.content.toLowerCase().includes(lowerSearch));
-  });
-
   return (
-    <>
+    <div className="min-h-screen bg-slate-50 pb-20">
       <Head>
         <title>Activity | Campus Chat</title>
       </Head>
-      
-      <div className="max-w-xl mx-auto min-h-screen bg-white shadow-xl flex flex-col">
-        {/* Header */}
-        <div className="flex flex-col sticky top-0 bg-white/90 backdrop-blur-md border-b border-slate-100 z-10 px-6 py-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Activity</h1>
-              <p className="text-[10px] font-bold text-primary-600 uppercase tracking-widest mt-0.5">
-                {unreadCount > 0 ? `${unreadCount} New notifications` : 'No new updates'}
-              </p>
+
+      {/* Header */}
+      <div className="sticky top-0 bg-white/80 backdrop-blur-xl z-30 border-b border-slate-200/60 shadow-sm">
+        <div className="max-w-xl mx-auto px-6 py-5 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tighter">Activity</h1>
+            <div className="flex items-center space-x-1.5 mt-0.5">
+              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-pulse"></div>
+              <p className="text-[10px] font-bold text-primary-600 uppercase tracking-[0.2em]">Live Updates</p>
             </div>
-            {unreadCount > 0 && (
-              <button 
-                onClick={markAllAsRead}
-                disabled={markingRead}
-                className="p-2 text-primary-600 hover:bg-primary-50 rounded-xl transition-all flex items-center space-x-1"
-              >
-                <CheckIcon className="w-5 h-5 stroke-[2.5px]" />
-                <span className="text-xs font-extrabold uppercase tracking-wider">Mark Read</span>
-              </button>
-            )}
           </div>
-          <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Search notifications..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-gray-50 border-none rounded-xl py-2 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-100 transition-all outline-none"
-            />
-          </div>
+          <button 
+            onClick={markAllRead}
+            className="p-2.5 bg-slate-50 text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded-2xl transition-all border border-slate-100"
+          >
+            <CheckIcon className="w-5 h-5 stroke-[2.5px]" />
+          </button>
         </div>
 
-        {/* Notifications List */}
-        <div className="flex-1 overflow-y-auto pb-24">
-          {filteredNotifications.length === 0 ? (
-            <div className="px-12 py-32 text-center">
-              <div className="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 rotate-12 transition-transform hover:rotate-0 duration-500">
-                <BellIcon className="w-12 h-12 text-slate-300" />
+        {/* Tabs */}
+        <div className="max-w-xl mx-auto px-4 overflow-x-auto">
+          <div className="flex items-center space-x-2 pb-4 pt-1 px-2 no-scrollbar">
+            {TABS.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-2xl whitespace-nowrap transition-all text-xs font-black uppercase tracking-wider ${
+                  activeTab === tab.id 
+                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' 
+                    : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100'
+                }`}
+              >
+                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'stroke-[2.5px]' : ''}`} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Activity List */}
+      <div className="max-w-xl mx-auto p-4 space-y-6">
+        {filteredActivities.length === 0 ? (
+          <div className="py-32 text-center animate-in fade-in zoom-in duration-500 overflow-hidden">
+             <div className="relative inline-block">
+                <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200/50 rotate-6 border border-slate-50">
+                  <ArchiveBoxIcon className="w-10 h-10 text-slate-200" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center border-4 border-slate-50 animate-bounce">
+                  <SparklesIcon className="w-4 h-4 text-primary-600" />
+                </div>
+             </div>
+             <h3 className="text-xl font-black text-slate-900 tracking-tight">Nothing to show</h3>
+             <p className="text-sm text-slate-400 mt-2 font-medium max-w-[240px] mx-auto leading-relaxed">
+               All caught up! New activities will appear here in real-time.
+             </p>
+          </div>
+        ) : (
+          Object.entries(groupedActivities).map(([title, items]) => (
+            <div key={title} className="space-y-3">
+              <div className="flex items-center space-x-3 px-2">
+                 <ClockIcon className="w-4 h-4 text-slate-300" />
+                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{title}</h4>
               </div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">Quiet day...</h3>
-              <p className="text-sm text-slate-500 mt-2 font-medium">No notifications yet. Check back later for updates from your classmates!</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-50">
-              {notifications.map((notification, idx) => {
-                const Icon = getNotificationIcon(notification.type);
-                return (
-                  <div
-                    key={notification.id}
-                    onClick={() => handleNotificationClick(notification)}
-                    className={`group p-6 cursor-pointer transition-all duration-300 relative ${
-                      !notification.isRead 
-                        ? 'bg-blue-50/30 hover:bg-blue-50/50' 
-                        : 'hover:bg-slate-50/80'
-                    }`}
-                  >
-                    {!notification.isRead && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-600"></div>
-                    )}
-                    
-                    <div className="flex items-start space-x-4">
-                      <div className={`p-3 rounded-2xl shadow-sm transition-transform group-hover:scale-110 ${getNotificationColor(notification.type)}`}>
-                        <Icon className="w-6 h-6 stroke-2" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start">
-                          <h3 className={`text-sm sm:text-base font-bold text-slate-900 leading-tight ${!notification.isRead ? '' : 'opacity-70'}`}>
-                            {notification.title}
-                          </h3>
+              <div className="space-y-2">
+                {items.map((activity) => {
+                  const Icon = getIcon(activity.type, activity.title);
+                  return (
+                    <div
+                      key={activity.id}
+                      onClick={() => handleActivityClick(activity)}
+                      className={`group relative p-4 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer active:scale-[0.98] ${!activity.isRead ? 'ring-1 ring-primary-100' : ''}`}
+                    >
+                      {!activity.isRead && (
+                        <div className="absolute right-4 top-4 w-2 h-2 bg-primary-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-pulse"></div>
+                      )}
+                      
+                      <div className="flex items-start space-x-4">
+                        <div className={`p-3 rounded-2xl shrink-0 ${getColor(activity.type)} transition-transform group-hover:scale-110 shadow-sm`}>
+                          <Icon className="w-6 h-6 stroke-[2.5px]" />
                         </div>
-                        {notification.content && (
-                          <p className="text-sm text-slate-500 mt-1 line-clamp-2 leading-relaxed font-medium">
-                            {notification.content}
+                        <div className="flex-1 min-w-0 pr-4">
+                          <h5 className={`text-sm font-black text-slate-800 leading-tight tracking-tight mb-1 truncate ${!activity.isRead ? '' : 'opacity-70'}`}>
+                            {activity.title}
+                          </h5>
+                          <p className="text-xs text-slate-500 line-clamp-2 font-medium leading-relaxed">
+                            {activity.content}
                           </p>
-                        )}
-                        <div className="flex items-center space-x-2 mt-2">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            {formatRelativeTime(notification.createdAt)}
-                          </span>
-                          {!notification.isRead && (
-                            <span className="w-1.5 h-1.5 bg-primary-600 rounded-full animate-pulse"></span>
-                          )}
+                          <div className="flex items-center space-x-3 mt-2.5">
+                            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">
+                              {formatRelativeTime(activity.createdAt)}
+                            </span>
+                            {activity.sender && (
+                              <div className="flex items-center space-x-1">
+                                <img src={activity.sender.avatar || '/avatars/default.png'} className="w-4 h-4 rounded-full" />
+                                <span className="text-[10px] font-black text-slate-400 truncate">{activity.sender.name}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          )}
-        </div>
+          ))
+        )}
+
+        {hasMore && (
+          <button 
+            onClick={loadMore}
+            disabled={isFetchingMore}
+            className="w-full py-4 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-primary-600 transition-colors"
+          >
+            {isFetchingMore ? 'Loading...' : 'Load older activity'}
+          </button>
+        )}
       </div>
-    </>
+    </div>
   );
 }

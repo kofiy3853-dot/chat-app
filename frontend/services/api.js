@@ -131,4 +131,11 @@ export const statusAPI = {
   })
 };
 
+// Event API
+export const eventAPI = {
+  getEvents: (page = 1, limit = 20) => api.get(`/events?page=${page}&limit=${limit}`),
+  createEvent: (data) => api.post('/events', data),
+  toggleJoin: (eventId) => api.post(`/events/${eventId}/toggle-join`)
+};
+
 export default api;

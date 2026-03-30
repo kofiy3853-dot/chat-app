@@ -34,6 +34,8 @@ model User {
   submissions       Submission[]
   statuses          Status[]
   statusViews       StatusView[]
+  createdEvents     Event[]       @relation("EventCreator")
+  joinedEvents      EventParticipant[]
 
   @@map("users")
 }
@@ -283,6 +285,35 @@ model Notification {
   @@index([recipientId, isRead])
   @@index([recipientId, createdAt])
   @@map("notifications")
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  location    String
+  dateTime    DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creatorId   String
+  creator     User     @relation("EventCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  participants EventParticipant[]
+
+  @@map("events")
+}
+
+model EventParticipant {
+  id        String   @id @default(uuid())
+  joinedAt  DateTime @default(now())
+
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@map("event_participants")
 }
 
 enum Role {
