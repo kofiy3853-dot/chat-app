@@ -36,6 +36,7 @@ model User {
   statusViews       StatusView[]
   createdEvents     Event[]       @relation("EventCreator")
   joinedEvents      EventParticipant[]
+  announcements     Announcement[]
 
   @@map("users")
 }
@@ -384,4 +385,27 @@ enum StatusType {
   TEXT
   IMAGE
   VIDEO
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("announcements")
+}
+
+model AnonymousPost {
+  id        String   @id @default(uuid())
+  content   String
+  tags      String?  // Simple comma-separated string for now
+  createdAt DateTime @default(now())
+
+  @@map("anonymous_posts")
 }

@@ -141,4 +141,16 @@ export const eventAPI = {
   toggleJoin: (eventId) => api.post(`/events/${eventId}/toggle-join`)
 };
 
+// Announcement API
+export const announcementAPI = {
+  getAnnouncements: (page = 1, limit = 20) => api.get(`/announcements?page=${page}&limit=${limit}`),
+  createAnnouncement: (data) => api.post('/announcements', data)
+};
+
+// Anonymous API
+export const anonymousAPI = {
+  getPosts: (page = 1, limit = 20) => api.get(`/anonymous?page=${page}&limit=${limit}`),
+  createPost: (data) => api.post('/anonymous', data)
+};
+
 export default api;

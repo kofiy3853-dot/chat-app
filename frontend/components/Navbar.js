@@ -6,7 +6,8 @@ import {
   BellIcon, 
   UserCircleIcon,
   PlusIcon,
-  CalendarDaysIcon
+  CalendarDaysIcon,
+  BuildingLibraryIcon
 } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
 import NewChatModal from './NewChatModal';
@@ -142,14 +143,14 @@ export default function Navbar() {
           </div>
         </Link>
         
-        {/* Events Link */}
+        {/* Campus Link */}
         <Link 
-          href="/events"
+          href="/campus"
           className={`flex-1 flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/events') ? 'text-primary-600' : 'text-gray-400 hover:text-gray-500'
+            isActive('/campus') ? 'text-primary-600' : 'text-gray-400 hover:text-gray-500'
           }`}
         >
-          <CalendarDaysIcon className={`w-6 h-6 ${isActive('/events') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+          <BuildingLibraryIcon className={`w-6 h-6 ${isActive('/campus') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
         </Link>
 
         {/* Account Link */}

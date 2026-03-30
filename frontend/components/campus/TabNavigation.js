@@ -1,0 +1,28 @@
+import React from 'react';
+
+const TabNavigation = ({ tabs, activeTab, onTabChange }) => {
+  return (
+    <div className="flex bg-white/80 backdrop-blur-xl border-b border-slate-100 px-2 sticky top-[72px] z-20">
+      <div className="flex w-full space-x-1 py-1 overflow-x-auto no-scrollbar max-w-xl mx-auto">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
+            className={`flex-1 py-3 px-4 text-xs font-black uppercase tracking-widest transition-all relative overflow-hidden rounded-xl ${
+              activeTab === tab.id 
+              ? 'text-primary-600 bg-primary-50/50' 
+              : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            {tab.label}
+            {activeTab === tab.id && (
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary-500 rounded-full shadow-[0_0_8px_rgba(107,115,255,0.4)]" />
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default TabNavigation;
