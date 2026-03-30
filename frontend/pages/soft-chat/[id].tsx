@@ -11,7 +11,7 @@ import {
   MicrophoneIcon
 } from '@heroicons/react/24/outline';
 import { chatAPI } from '../../services/api';
-import { getSocket, joinConversation, leaveConversation, sendMessage as sendSocketMessage } from '../../services/socket';
+import { initSocket, joinConversation, leaveConversation, sendMessage as sendSocketMessage } from '../../services/socket';
 import { getCurrentUser, getInitials, getAvatarColor, getFullFileUrl } from '../../utils/helpers';
 import SoftMessageList from '../../components/SoftMessageList';
 
@@ -36,18 +36,17 @@ const ChatConversationPage: React.FC = () => {
       fetchMessages();
       joinConversation(id as string);
 
-      const socket = getSocket();
+      const socket = initSocket();
       if (socket) {
         socket.on('new-message', (data: any) => {
           if (data.conversationId === id) {
-            setMessages(prev => [...prev, data.message]);
+            setMessages((prev: any[]) => [...prev, data.message]);
           }
         });
       }
 
       return () => {
         leaveConversation(id as string);
-        const socket = getSocket();
         if (socket) socket.off('new-message');
       };
     }
