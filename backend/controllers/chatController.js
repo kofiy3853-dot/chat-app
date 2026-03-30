@@ -531,19 +531,16 @@ exports.uploadAttachment = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    let fileUrl = '';
     let fileName = '';
     let fileSize = 0;
     let localFile = null;
 
     if (req.files.file && req.files.file.length > 0) {
       localFile = req.files.file[0];
-      fileUrl = `/uploads/files/${localFile.filename}`;
       fileName = localFile.originalname;
       fileSize = localFile.size;
     } else if (req.files.voice && req.files.voice.length > 0) {
       localFile = req.files.voice[0];
-      fileUrl = `/uploads/voice/${localFile.filename}`;
       fileName = 'Voice Note';
       fileSize = localFile.size;
     } else {
