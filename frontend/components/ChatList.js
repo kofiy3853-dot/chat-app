@@ -280,7 +280,18 @@ export default function ChatList() {
       </div>
 
       <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
-        {filteredConversations.map((conversation) => (
+        {filteredConversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full p-12 text-center">
+            <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6">
+              <ArchiveBoxIcon className="w-10 h-10 text-blue-400" />
+            </div>
+            <h3 className="text-lg font-black text-slate-800 tracking-tight">Your Inbox is Empty</h3>
+            <p className="text-xs text-slate-400 font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-widest">
+              You don't have any {filter.toLowerCase()} conversations yet. Start a new chat to keep the campus connected!
+            </p>
+          </div>
+        ) : (
+          filteredConversations.map((conversation) => (
           <div key={conversation.id} className="relative">
             <ChatListItem 
               conversation={conversation}
@@ -314,7 +325,8 @@ export default function ChatList() {
               </>
             )}
           </div>
-        ))}
+        ))
+      )}
       </div>
     </div>
   );

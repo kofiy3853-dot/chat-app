@@ -10,13 +10,21 @@ import {
   ShieldCheckIcon,
   BellIcon,
   GlobeAltIcon,
-  LockClosedIcon
+  LockClosedIcon,
+  SwatchIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
 export default function Account() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeBg, setActiveBg] = useState('bg-slate-50/50');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('chat_bg_color');
+    if (saved) setActiveBg(saved);
+  }, []);
 
   useEffect(() => {
     checkAuth();
@@ -50,6 +58,12 @@ export default function Account() {
   const handleUpdateProfile = (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
+  const setChatBg = (bg) => {
+    setActiveBg(bg);
+    localStorage.setItem('chat_bg_color', bg);
+    // Alert or small toast if we had one
   };
 
   if (loading) {
@@ -103,6 +117,40 @@ export default function Account() {
 
           {/* Settings Sections */}
           <div className="space-y-6">
+            {/* Appearance (Special Row) */}
+            <div className="space-y-3">
+              <h3 className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Appearance</h3>
+              <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/40 border border-slate-100">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <SwatchIcon className="w-5 h-5 text-primary-500" />
+                    <span className="text-sm font-black text-slate-700">Chat Theme</span>
+                  </div>
+                  <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Select background</span>
+                </div>
+                <div className="grid grid-cols-6 gap-3">
+                  {[
+                    { color: 'bg-slate-50/50', name: 'Default' },
+                    { color: 'bg-blue-50/50', name: 'Ocean' },
+                    { color: 'bg-emerald-50/50', name: 'Sage' },
+                    { color: 'bg-rose-50/50', name: 'Rose' },
+                    { color: 'bg-slate-900', name: 'Dark' },
+                    { color: 'bg-amber-50/30', name: 'Gold' }
+                  ].map((theme) => (
+                    <button
+                      key={theme.name}
+                      onClick={() => setChatBg(theme.color)}
+                      className={`relative w-full aspect-square rounded-2xl ${theme.color} border-2 transition-all hover:scale-110 active:scale-95 flex items-center justify-center ${
+                        activeBg === theme.color ? 'border-primary-500 shadow-lg shadow-primary-500/20' : 'border-slate-50'
+                      }`}
+                    >
+                      {activeBg === theme.color && <CheckCircleIcon className="w-5 h-5 text-primary-500 bg-white rounded-full p-0.5" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {sections.map((section, idx) => (
               <div key={idx} className="space-y-3">
                 <h3 className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{section.title}</h3>

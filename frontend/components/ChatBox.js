@@ -56,6 +56,7 @@ export default function ChatBox({ conversationId }) {
 
   // --- 2. Refs ---
   const messagesEndRef = useRef(null);
+  const [bgColor, setBgColor] = useState('bg-slate-50/50');
   const scrollContainerRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -63,6 +64,11 @@ export default function ChatBox({ conversationId }) {
   useEffect(() => {
     const user = getCurrentUser();
     setCurrentUser(user);
+    
+    // Load background preference
+    const savedBg = localStorage.getItem('chat_bg_color');
+    if (savedBg) setBgColor(savedBg);
+
     console.log('[DEBUG] ChatBox initialized for user:', user?.id);
   }, []);
 
@@ -553,16 +559,32 @@ const MessageBubble = React.memo(({
 
   // --- 7. Final Render ---
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-slate-50/50">
+    <div className={`flex-1 flex flex-col min-h-0 transition-colors duration-500 ${bgColor}`}>
       {/* Scrollable Message Area */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-6 pb-2 scroll-smooth scrollbar-hide">
         {loading ? (
-          <div className="h-full flex items-center justify-center"><ArrowPathIcon className="w-8 h-8 text-primary-600 animate-spin" /></div>
-        ) : messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center opacity-40">
-            <ChatBubbleLeftIcon className="w-12 h-12 mb-2" />
-            <p className="font-bold">No messages yet</p>
+          <div className="h-full flex items-center justify-center">
+              <div className="flex flex-col items-center">
+                  <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-600 rounded-full animate-spin shadow-sm"></div>
+                  <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Gathering messages...</p>
+              </div>
           </div>
+        ) : !conversationId ? (
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50/30">
+              <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center mb-6">
+                <ChatBubbleLeftIcon className="w-10 h-10 text-primary-400" />
+              </div>
+              <h3 className="text-lg font-black text-slate-800 tracking-tight">Select a conversation</h3>
+              <p className="text-xs text-slate-400 font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-wider">Choose a contact from your inbox to start a secure encrypted chat session.</p>
+            </div>
+        ) : messages.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50/30">
+              <div className="w-16 h-16 rounded-3xl bg-white shadow-lg flex items-center justify-center mb-4 opacity-50">
+                <PaperAirplaneIcon className="w-8 h-8 text-primary-300" />
+              </div>
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Your conversation starts here</p>
+              <p className="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-widest">Say hello to break the ice!</p>
+            </div>
         ) : (
           Object.entries(groupedMessages).map(([date, dateMsgs]) => (
             <div key={date} className="px-2">
