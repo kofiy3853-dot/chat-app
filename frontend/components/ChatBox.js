@@ -194,6 +194,13 @@ export default function ChatBox({ conversationId }) {
       ? (mediaFile.type.startsWith('image/') ? 'IMAGE' : mediaFile.type.startsWith('audio/') ? 'VOICE' : 'FILE')
       : 'TEXT';
 
+    const msgData = {
+      id: tempId,
+      tempId,
+      content: newMessage.trim(),
+      senderId: user.id || user._id,
+      sender: user,
+      createdAt: new Date().toISOString(),
       type,
       replyTo,
       replyToId: replyTo?.id,
