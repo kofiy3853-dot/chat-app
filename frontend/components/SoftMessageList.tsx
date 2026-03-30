@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { VariableSizeList } from 'react-window';
+import { List } from 'react-window';
 import { formatRelativeTime, getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
 
 interface Message {
@@ -27,7 +27,7 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
   // Scroll to bottom on new messages
   useEffect(() => {
     if (listRef.current && messages.length > 0) {
-      listRef.current.scrollToItem(messages.length - 1, 'end');
+      listRef.current.scrollToRow({ index: messages.length - 1, align: 'end' });
     }
   }, [messages.length]);
 
@@ -39,13 +39,17 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
     return baseHeight + (lines * 20); // Estimation
   }, [messages]);
 
-  const MessageItem = React.memo(({ index, style }: { index: number; style: React.CSSProperties }) => {
+  const MessageItem = useCallback(({ index, style, ariaAttributes }: { index: number; style: React.CSSProperties; ariaAttributes?: any }) => {
     const msg = messages[index];
+    if (!msg) return null;
     const isMe = msg.senderId === currentUser?.id;
     
     return (
-      /* eslint-disable-next-line react/forbid-component-props */
-      <div style={style} className={`flex ${isMe ? 'justify-end' : 'justify-start'} px-4 py-2`}>
+      <div 
+        style={style} 
+        {...ariaAttributes}
+        className={`flex ${isMe ? 'justify-end' : 'justify-start'} px-4 py-2`}
+      >
         <div className={`flex flex-col max-w-[80%] ${isMe ? 'items-end' : 'items-start'}`}>
           <div className={`p-4 rounded-[18px] text-[15px] font-medium shadow-soft ${
             isMe 
@@ -56,7 +60,7 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
             {msg.type === 'VOICE' ? (
               <div className="flex items-center space-x-2 py-1 min-w-[120px]">
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                  <div className="w-4 h-4 bg-white rounded-sm"></div>
+                  <div className="w-4 / 4 bg-white rounded-sm"></div>
                 </div>
                 <div className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
                   <div className="w-1/2 h-full bg-white"></div>
@@ -72,21 +76,20 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
         </div>
       </div>
     );
-  });
+  }, [messages, currentUser]);
 
   return (
     <div ref={containerRef} className="flex-1 min-h-0 bg-[#f5f7fb]">
       {containerRef.current && (
-        <VariableSizeList
-          ref={listRef}
-          height={containerRef.current.offsetHeight}
-          itemCount={messages.length}
-          itemSize={getRowHeight}
-          width="100%"
+        <List
+          listRef={listRef}
+          rowCount={messages.length}
+          rowHeight={getRowHeight}
           className="scrollbar-hide"
-        >
-          {MessageItem}
-        </VariableSizeList>
+          rowComponent={MessageItem as any}
+          rowProps={{}}
+          style={{ height: containerRef.current.offsetHeight, width: '100%' }}
+        />
       )}
     </div>
   );
