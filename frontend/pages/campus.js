@@ -49,7 +49,7 @@ const CampusPage = () => {
       <div className="sticky top-0 bg-white/90 backdrop-blur-3xl z-30 border-b border-slate-100/50 shadow-sm">
         <header className="px-6 py-5 flex items-center justify-between">
            <div className="flex items-center space-x-4">
-              <button onClick={() => router.push('/')} className="p-2 -ml-2 text-slate-400 hover:text-slate-800 transition-colors">
+              <button onClick={() => router.push('/')} aria-label="Go to inbox" className="p-2 -ml-2 text-slate-400 hover:text-slate-800 transition-colors">
                  <ChevronLeftIcon className="w-5 h-5 stroke-[2.5px]" />
               </button>
               <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center space-x-2">
