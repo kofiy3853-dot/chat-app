@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import ChatBox from '../../components/ChatBox';
 import { chatAPI } from '../../services/api';
-import { joinConversation, leaveConversation } from '../../services/socket';
+import { initSocket, joinConversation, leaveConversation } from '../../services/socket';
 import { KeepAwake } from '@capacitor-community/keep-awake';
 import { 
   ArrowLeftIcon, 
@@ -90,7 +90,7 @@ export default function ChatPage() {
       fetchMessages();
       joinConversation(id);
 
-      const socket = getSocket();
+      const socket = initSocket();
       if (socket) {
         socket.on('user-status-changed', (data) => {
           setConversation(prev => {
@@ -109,7 +109,6 @@ export default function ChatPage() {
 
       return () => {
         leaveConversation(id);
-        const socket = getSocket();
         if (socket) socket.off('user-status-changed');
       };
     }
