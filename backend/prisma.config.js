@@ -1,9 +1,9 @@
-// Prisma 7 configuration file for CLI usage (Migrate, Pull, Studio)
-// Connection details are moved here from schema.prisma.
+import { defineConfig } from 'prisma/config';
 
-module.exports = {
-  db: {
+export default defineConfig({
+  earlyAccess: true,
+  datasource: {
     url: process.env.DATABASE_URL,
     directUrl: process.env.DIRECT_URL
   }
-};
+});

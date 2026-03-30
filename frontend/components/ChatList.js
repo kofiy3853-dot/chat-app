@@ -139,7 +139,17 @@ export default function ChatList() {
         setConversations(prev => prev.map(conv => {
           const participants = conv.participants?.map(p => {
             if (p.userId === data.userId) {
-              return { ...p, user: { ...p.user, isOnline: data.isOnline, lastSeen: data.lastSeen } };
+              return { 
+                ...p, 
+                user: { 
+                  ...p.user, 
+                  isOnline: data.isOnline, 
+                  lastSeen: data.lastSeen,
+                  status: data.status ?? p.user.status,
+                  name: data.name ?? p.user.name,
+                  avatar: data.avatar ?? p.user.avatar
+                } 
+              };
             }
             return p;
           });

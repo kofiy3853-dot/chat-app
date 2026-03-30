@@ -115,6 +115,7 @@ exports.getMe = async (req, res) => {
         department: true,
         isOnline: true,
         lastSeen: true,
+        status: true,
         createdAt: true,
         updatedAt: true,
         notifications: {
@@ -138,11 +139,11 @@ exports.getMe = async (req, res) => {
 // Update user profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, department, avatar } = req.body;
+    const { name, department, avatar, status } = req.body;
     
     const user = await prisma.user.update({
       where: { id: req.user.id },
-      data: { name, department, avatar },
+      data: { name, department, avatar, status },
       select: {
         id: true,
         email: true,
@@ -153,10 +154,23 @@ exports.updateProfile = async (req, res) => {
         department: true,
         isOnline: true,
         lastSeen: true,
+        status: true,
         createdAt: true,
         updatedAt: true
       }
     });
+
+    // Broadcast the update to all connected users
+    if (req.io) {
+      req.io.emit('user-status-changed', {
+        userId: user.id,
+        status: user.status,
+        name: user.name,
+        avatar: user.avatar,
+        isOnline: user.isOnline,
+        lastSeen: user.lastSeen
+      });
+    }
 
     res.json({
       message: 'Profile updated successfully',

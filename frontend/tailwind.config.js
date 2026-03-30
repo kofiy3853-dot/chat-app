@@ -22,7 +22,26 @@ module.exports = {
           800: '#1e40af',
           900: '#1e3a8a',
         },
+        soft: {
+          bg: '#f5f7fb',
+          card: '#ffffff',
+          primary: '#5B8DEF',
+          secondary: '#6C63FF',
+          text: {
+            primary: '#1f2937',
+            secondary: '#6b7280',
+          }
+        }
       },
+      backgroundImage: {
+        'soft-gradient': 'linear-gradient(135deg, #5B8DEF, #6C63FF)',
+      },
+      boxShadow: {
+        'soft': '0 4px 12px rgba(0,0,0,0.05)',
+      },
+      borderRadius: {
+        'soft': '24px',
+      }
     },
   },
   plugins: [],

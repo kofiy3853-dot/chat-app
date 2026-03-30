@@ -90,8 +90,27 @@ export default function ChatPage() {
       fetchMessages();
       joinConversation(id);
 
+      const socket = getSocket();
+      if (socket) {
+        socket.on('user-status-changed', (data) => {
+          setConversation(prev => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              participants: prev.participants.map(p => 
+                p.userId === data.userId 
+                  ? { ...p, user: { ...p.user, isOnline: data.isOnline, lastSeen: data.lastSeen, status: data.status ?? p.user.status } }
+                  : p
+              )
+            };
+          });
+        });
+      }
+
       return () => {
         leaveConversation(id);
+        const socket = getSocket();
+        if (socket) socket.off('user-status-changed');
       };
     }
   }, [id]);
@@ -227,6 +246,14 @@ export default function ChatPage() {
                   <span className={`text-[10px] font-bold uppercase tracking-widest ${isOnline ? 'text-green-500' : 'text-slate-400'}`}>
                     {isOnline ? 'Active Now' : 'Offline'}
                   </span>
+                  {otherParticipant?.user?.status && (
+                    <>
+                      <span className="text-slate-300 transform scale-150">•</span>
+                      <span className="text-[10px] font-bold text-slate-400 truncate max-w-[120px] italic">
+                        "{otherParticipant.user.status}"
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -351,7 +378,14 @@ export default function ChatPage() {
 
                 {/* Name & Status */}
                 <h1 className="text-2xl font-black text-slate-800 tracking-tight text-center">{name}</h1>
-                <p className={`text-sm font-bold uppercase tracking-widest mt-2 ${isOnline ? 'text-green-500' : 'text-slate-400'}`}>
+                {otherParticipant?.user?.status && (
+                  <div className="mt-1 px-3 py-1 bg-slate-50 border border-slate-100 rounded-lg">
+                    <p className="text-[11px] font-black text-slate-500 italic uppercase">
+                      "{otherParticipant.user.status}"
+                    </p>
+                  </div>
+                )}
+                <p className={`text-sm font-bold uppercase tracking-widest mt-3 ${isOnline ? 'text-green-500' : 'text-slate-400'}`}>
                   {isOnline ? 'Active Now' : 'Offline'}
                 </p>
 

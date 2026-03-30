@@ -9,7 +9,8 @@ import {
   XMarkIcon,
   IdentificationIcon,
   BuildingLibraryIcon,
-  CameraIcon
+  CameraIcon,
+  ChatBubbleBottomCenterTextIcon
 } from '@heroicons/react/24/outline';
 import { getFullFileUrl } from '../utils/helpers';
 
@@ -18,7 +19,8 @@ export default function ProfileCard({ user, onUpdate }) {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     department: user?.department || '',
-    avatar: user?.avatar || ''
+    avatar: user?.avatar || '',
+    status: user?.status || 'Available'
   });
   const [loading, setLoading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -166,6 +168,20 @@ export default function ProfileCard({ user, onUpdate }) {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Status Message</label>
+                  <div className="relative">
+                    <ChatBubbleBottomCenterTextIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-bold text-sm"
+                      placeholder="What's on your mind?"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex space-x-3 pt-4">
@@ -194,7 +210,14 @@ export default function ProfileCard({ user, onUpdate }) {
               {/* Identity Header */}
               <div>
                 <h2 className="text-2xl font-black text-slate-900 tracking-tight">{user?.name}</h2>
-                <p className="text-sm font-bold text-slate-400 mt-1 flex items-center">
+                <div className="flex items-center space-x-2 mt-1">
+                  <div className="px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-tight italic">
+                      "{user?.status || 'Available'}"
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm font-bold text-slate-400 mt-2 flex items-center">
                   <EnvelopeIcon className="w-4 h-4 mr-2" />
                   {user?.email}
                 </p>
