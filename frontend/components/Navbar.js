@@ -101,66 +101,66 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-40 px-6 pb-6 pt-2 pointer-events-none">
-      <div className="flex justify-between items-center bg-white rounded-full border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] h-16 px-2 pointer-events-auto relative">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-40 px-5 pb-5 pt-2 pointer-events-none">
+      <div className="flex justify-between items-center bg-white rounded-2xl border border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] h-16 px-3 pointer-events-auto">
         
-        {/* Inbox Link */}
         <Link 
           href="/"
-          className={`flex-1 flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/') ? 'text-primary-600' : 'text-gray-400 hover:text-gray-500'
+          className={`flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-colors ${
+            isActive('/') ? 'text-primary-600' : 'text-gray-400'
           }`}
         >
           <div className="relative">
-            <ChatBubbleLeftIcon className={`w-6 h-6 ${isActive('/') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+            <ChatBubbleLeftIcon className={`w-6 h-6 ${isActive('/') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
           </div>
+          <span className={`text-[10px] font-semibold tracking-wide ${isActive('/') ? 'text-primary-600' : 'text-gray-400'}`}>Chats</span>
         </Link>
 
-        {/* Courses Link */}
         <Link 
           href="/courses"
-          className={`flex-1 flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/courses') ? 'text-primary-600' : 'text-gray-400 hover:text-gray-500'
+          className={`flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-colors ${
+            isActive('/courses') ? 'text-primary-600' : 'text-gray-400'
           }`}
         >
-          <AcademicCapIcon className={`w-6 h-6 ${isActive('/courses') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+          <AcademicCapIcon className={`w-6 h-6 ${isActive('/courses') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
+          <span className={`text-[10px] font-semibold tracking-wide ${isActive('/courses') ? 'text-primary-600' : 'text-gray-400'}`}>Courses</span>
         </Link>
 
-        {/* Activity Link */}
         <Link 
           href="/activity"
-          className={`flex-1 flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/activity') ? 'text-primary-600' : 'text-gray-400 hover:text-gray-500'
+          className={`flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-colors ${
+            isActive('/activity') ? 'text-primary-600' : 'text-gray-400'
           }`}
         >
           <div className="relative">
-            <BellIcon className={`w-6 h-6 ${isActive('/activity') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+            <BellIcon className={`w-6 h-6 ${isActive('/activity') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm shadow-red-500/30">
+              <span className="absolute -top-1 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
           </div>
+          <span className={`text-[10px] font-semibold tracking-wide ${isActive('/activity') ? 'text-primary-600' : 'text-gray-400'}`}>Alerts</span>
         </Link>
         
-        {/* Campus Link */}
         <Link 
           href="/campus"
-          className={`flex-1 flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/campus') ? 'text-primary-600' : 'text-gray-400 hover:text-gray-500'
+          className={`flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-colors ${
+            isActive('/campus') ? 'text-primary-600' : 'text-gray-400'
           }`}
         >
-          <BuildingLibraryIcon className={`w-6 h-6 ${isActive('/campus') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+          <BuildingLibraryIcon className={`w-6 h-6 ${isActive('/campus') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
+          <span className={`text-[10px] font-semibold tracking-wide ${isActive('/campus') ? 'text-primary-600' : 'text-gray-400'}`}>Campus</span>
         </Link>
 
-        {/* Account Link */}
         <Link 
           href="/account"
-          className={`flex-1 flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/account') ? 'text-primary-600' : 'text-gray-400 hover:text-gray-500'
+          className={`flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-colors ${
+            isActive('/account') ? 'text-primary-600' : 'text-gray-400'
           }`}
         >
-          <UserCircleIcon className={`w-6 h-6 ${isActive('/account') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+          <UserCircleIcon className={`w-6 h-6 ${isActive('/account') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
+          <span className={`text-[10px] font-semibold tracking-wide ${isActive('/account') ? 'text-primary-600' : 'text-gray-400'}`}>Profile</span>
         </Link>
       </div>
       

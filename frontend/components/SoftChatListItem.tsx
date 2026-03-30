@@ -69,11 +69,13 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
   const endPress = useCallback(() => {
     if (pressTimer.current) clearTimeout(pressTimer.current);
   }, []);
+
   const otherParticipant = conversation.participants?.find(p => p.userId !== currentUser?.id)?.user;
   const name = conversation.name || otherParticipant?.name || 'Chat';
   const avatar = otherParticipant?.avatar;
   const isOnline = otherParticipant?.isOnline;
   const unread = conversation.unreadCount ?? 0;
+  const isGroup = conversation.type === 'GROUP';
 
   const lastMsg = conversation.lastMessage;
   const time = conversation.lastMessageAt ? formatShortTime(conversation.lastMessageAt) : '';
@@ -82,7 +84,7 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
   const isSomeoneTyping = typingUsers && Object.keys(typingUsers).length > 0;
   if (isSomeoneTyping) {
     const typerNames = Object.values(typingUsers);
-    preview = typerNames.length === 1 ? `${typerNames[0]} is typing...` : `${typerNames.length} people are typing...`;
+    preview = typerNames.length === 1 ? `${typerNames[0]} is typing…` : `${typerNames.length} people are typing…`;
   }
 
   const avatarUrl = getFullFileUrl(avatar);
@@ -95,64 +97,69 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
       onMouseLeave={endPress}
       onTouchStart={startPress}
       onTouchEnd={endPress}
-      className={`flex items-center px-4 py-4 cursor-pointer transition-all duration-200 relative group border-b border-gray-100 last:border-0 select-none ${isSelected ? 'bg-primary-50/50' : 'bg-white hover:bg-gray-50'}`}
+      className={`flex items-center px-4 py-3.5 cursor-pointer transition-colors duration-150 relative select-none border-b border-gray-50 last:border-0 ${
+        isSelected ? 'bg-primary-50' : 'hover:bg-gray-50 active:bg-gray-100'
+      }`}
     >
       {/* Selection Checkmark */}
       {isSelected && (
-        <div className="absolute right-4 top-4 z-10">
-          <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center shadow-lg shadow-primary-500/30">
-            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+        <div className="absolute left-1.5 top-1/2 -translate-y-1/2 z-10">
+          <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center shadow-sm">
+            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
         </div>
       )}
 
-      {/* Avatar Container */}
-      <div className="relative flex-shrink-0 mr-4">
-        <div className="w-14 h-14 rounded-full overflow-hidden shadow-sm bg-gray-100 flex items-center justify-center border border-gray-100/50">
+      {/* Avatar */}
+      <div className="relative flex-shrink-0 mr-3">
+        <div className="w-12 h-12 rounded-full overflow-hidden">
           {avatarUrl ? (
-            <img 
-              src={avatarUrl} 
-              className="w-full h-full object-cover" 
-              alt={name} 
-              onError={(e) => {
-                // Fallback implemented by removing image source so it defaults to next condition if possible, or just hides.
-                e.currentTarget.style.display = 'none';
-              }} 
+            <img
+              src={avatarUrl}
+              className="w-full h-full object-cover"
+              alt={name}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
           ) : (
             <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${getAvatarColor(name)}`}>
-              <span className="text-white text-lg font-bold tracking-wide">{getInitials(name)}</span>
+              <span className="text-white text-sm font-bold tracking-wide">{getInitials(name)}</span>
             </div>
           )}
         </div>
-        
-        {/* Online Indicator */}
-        {isOnline && (
-          <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full shadow-sm" />
+
+        {/* Online dot */}
+        {isOnline && !isGroup && (
+          <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-white rounded-full" />
         )}
       </div>
 
-      {/* Text Content */}
-      <div className="flex-1 min-w-0 flex flex-col justify-center h-14">
-        <div className="flex justify-between items-center mb-1">
-          <h3 className="text-base font-bold text-gray-900 truncate pr-3 tracking-tight">
+      {/* Text */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-0.5">
+          <h3 className={`text-[15px] truncate pr-2 ${unread > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-800'}`}>
             {name}
           </h3>
-          <span className="text-xs font-medium text-gray-400 whitespace-nowrap flex-shrink-0">
+          <span className={`text-[11px] flex-shrink-0 ${unread > 0 ? 'text-primary-500 font-semibold' : 'text-gray-400 font-normal'}`}>
             {time}
           </span>
         </div>
 
         <div className="flex items-center justify-between">
-          <p className={`text-sm truncate pr-3 ${isSomeoneTyping ? 'font-black text-primary-500 animate-pulse' : unread > 0 ? 'font-bold text-gray-900' : 'text-gray-500 font-medium'}`}>
+          <p className={`text-[13px] truncate pr-2 leading-snug ${
+            isSomeoneTyping
+              ? 'text-primary-500 font-semibold italic'
+              : unread > 0
+              ? 'text-gray-700 font-medium'
+              : 'text-gray-400 font-normal'
+          }`}>
             {preview}
           </p>
-          
+
           {unread > 0 && (
-            <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white bg-primary-500 shadow-sm">
-              {unread}
+            <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-[11px] font-bold text-white bg-primary-500">
+              {unread > 99 ? '99+' : unread}
             </span>
           )}
         </div>
