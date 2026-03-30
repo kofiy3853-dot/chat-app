@@ -160,13 +160,13 @@ const MessagesPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen flex flex-col max-w-xl mx-auto relative overflow-x-hidden bg-white font-sans">
+    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden bg-white font-sans">
       <Head>
         <title>Messages | Campus Chat</title>
       </Head>
 
       {/* ─── Header ─── */}
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-100 px-4 pt-10 pb-3">
+      <header className="sticky top-0 z-30 bg-white border-b border-gray-100 px-4 pt-[max(env(safe-area-inset-top,0px),40px)] pb-3">
         <div className="flex items-center justify-between mb-3">
           {/* Avatar */}
           <button
@@ -317,7 +317,7 @@ const MessagesPage: React.FC = () => {
       </div>
 
       {/* ─── Chat List ─── */}
-      <main className="flex-1 overflow-y-auto no-scrollbar pb-40 bg-white">
+      <main className="flex-1 overflow-y-auto no-scrollbar pb-[max(env(safe-area-inset-bottom,0px),100px)] bg-white">
         <AnimatePresence mode="wait">
           {activeTab === 'messages' && (
             <motion.div

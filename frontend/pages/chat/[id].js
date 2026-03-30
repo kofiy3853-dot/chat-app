@@ -202,10 +202,10 @@ export default function ChatPage() {
         <title>{name} | Campus Chat</title>
       </Head>
 
-      <div className="max-w-xl mx-auto min-h-screen flex flex-col shadow-2xl relative bg-app">
+      <div className="max-w-xl mx-auto h-[100dvh] overflow-hidden flex flex-col shadow-2xl relative bg-app">
         {/* Header - Blue Gradient */}
         <header
-          className="sticky top-0 z-[10] px-4 py-4 flex items-center justify-between bg-header-gradient"
+          className="z-[10] px-4 pt-[max(env(safe-area-inset-top,0px),16px)] pb-4 flex items-center justify-between bg-header-gradient shrink-0"
         >
           {/* Left: back + avatar + name */}
           <div className="flex items-center space-x-3 min-w-0">

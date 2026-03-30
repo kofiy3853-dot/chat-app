@@ -692,7 +692,7 @@ const MessageBubble = React.memo(({
       </div>
 
       {/* Footer Input Area */}
-      <div className="p-3 bg-white border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)]">
+      <div className="p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-white border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] shrink-0">
         <form onSubmit={handleSendMessage} className="flex flex-col space-y-2">
           {replyTo && (
             <div className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border-l-4 border-primary-500 mx-1 mb-1 animate-in slide-in-from-bottom-2">
