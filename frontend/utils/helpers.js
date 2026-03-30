@@ -174,12 +174,26 @@ export const getCurrentUser = () => {
 // Reconstruct full URL for files/avatars
 export const getFullFileUrl = (url) => {
   if (!url) return null;
+  // Supabase public URLs and blob URLs are returned as-is
   if (url.startsWith('http') || url.startsWith('blob:')) return url;
   
   const baseUrl = process.env.NEXT_PUBLIC_API_URL 
     ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] 
     : 'http://localhost:5000';
     
-  return `${baseUrl}${url}`;
+  // Format the url path 
+  let formattedPath = url;
+  
+  // If it doesn't start with a slash, we need to inspect it
+  if (!formattedPath.startsWith('/')) {
+    // Legacy local files were often just saved as UUID strings without folders
+    if (!formattedPath.includes('uploads/')) {
+      formattedPath = `/uploads/${formattedPath}`;
+    } else {
+      formattedPath = `/${formattedPath}`;
+    }
+  }
+    
+  return `${baseUrl}${formattedPath}`;
 };
 

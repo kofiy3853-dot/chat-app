@@ -182,6 +182,8 @@ const MessagesPage: React.FC = () => {
          <div className="flex items-center bg-gray-100 rounded-full px-4 py-3 border border-transparent transition-all focus-within:ring-2 focus-within:ring-primary-100 focus-within:bg-white focus-within:border-primary-300">
            <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 mr-3 flex-shrink-0" />
            <input
+             id="search"
+             name="search"
              type="text"
              placeholder="Search chats..."
              value={search}
