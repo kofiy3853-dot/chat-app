@@ -141,7 +141,7 @@ const CreateEventPage = () => {
 
       {/* Header */}
       <header className="sticky top-0 bg-white/80 backdrop-blur-xl z-20 px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-        <button onClick={() => router.back()} className="p-2 hover:bg-slate-100 rounded-xl transition-all active:scale-90">
+        <button onClick={() => router.back()} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-all active:scale-90">
           <ChevronLeftIcon className="w-5 h-5 text-slate-400 stroke-2" />
         </button>
         <div className="text-center">
@@ -208,6 +208,8 @@ const CreateEventPage = () => {
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Category</label>
                   <select
                     name="category"
+                    title="Event category"
+                    aria-label="Event category"
                     value={formData.category}
                     onChange={handleInputChange}
                     className="w-full px-5 py-4 bg-white border border-slate-200 rounded-[1.25rem] font-bold text-slate-800 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all appearance-none cursor-pointer"
@@ -232,6 +234,8 @@ const CreateEventPage = () => {
                     type="datetime-local"
                     name="startTime"
                     required
+                    title="Event start time"
+                    aria-label="Event start time"
                     value={formData.startTime}
                     onChange={handleInputChange}
                     className="w-full px-5 py-4 bg-white border border-slate-200 rounded-[1.25rem] font-bold text-slate-800 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all"
@@ -243,6 +247,8 @@ const CreateEventPage = () => {
                     type="datetime-local"
                     name="endTime"
                     required
+                    title="Event end time"
+                    aria-label="Event end time"
                     value={formData.endTime}
                     onChange={handleInputChange}
                     className="w-full px-5 py-4 bg-white border border-slate-200 rounded-[1.25rem] font-bold text-slate-800 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all"
@@ -317,7 +323,7 @@ const CreateEventPage = () => {
                         <p className="text-xs font-bold text-slate-400">Click to upload banner</p>
                       </div>
                     )}
-                    <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageUpload} />
+                    <input type="file" accept="image/*" aria-label="Upload event banner image" title="Upload event banner image" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageUpload} />
                   </div>
                   <p className="text-[10px] text-slate-400 font-medium text-center">Optimized for 16:9 aspect ratio. Max 5MB.</p>
                 </div>
@@ -351,6 +357,7 @@ const CreateEventPage = () => {
                    </div>
                    <button
                      type="button"
+                     aria-label={`Toggle visibility: currently ${formData.visibility}`}
                      onClick={() => setFormData({ ...formData, visibility: formData.visibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC' })}
                      className={`w-12 h-6 rounded-full transition-all relative ${formData.visibility === 'PUBLIC' ? 'bg-primary-500' : 'bg-slate-200'}`}
                    >
@@ -368,6 +375,7 @@ const CreateEventPage = () => {
                    </div>
                    <button
                      type="button"
+                     aria-label={`Toggle RSVPs: currently ${formData.rsvpEnabled ? 'enabled' : 'disabled'}`}
                      onClick={() => setFormData({ ...formData, rsvpEnabled: !formData.rsvpEnabled })}
                      className={`w-12 h-6 rounded-full transition-all relative ${formData.rsvpEnabled ? 'bg-primary-500' : 'bg-slate-200'}`}
                    >
