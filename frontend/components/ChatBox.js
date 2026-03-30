@@ -48,6 +48,7 @@ export default function ChatBox({ conversationId }) {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editingContent, setEditingContent] = useState('');
   const [activeMenuId, setActiveMenuId] = useState(null);
+  const [replyTo, setReplyTo] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const [mediaFile, setMediaFile] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -163,10 +164,10 @@ export default function ChatBox({ conversationId }) {
       }
     });
 
-    socket.on('chat-cleared', ({ conversationId: cid }) => {
-      if (cid === conversationId) {
-        setMessages([]);
-      }
+    socket.on('message-deleted', ({ messageId }) => {
+      setMessages(prev => prev.map(m => 
+        m.id === messageId ? { ...m, isDeleted: true, content: 'This message was deleted' } : m
+      ));
     });
 
     socket.on('message-sent', (sent) => {
@@ -193,14 +194,9 @@ export default function ChatBox({ conversationId }) {
       ? (mediaFile.type.startsWith('image/') ? 'IMAGE' : mediaFile.type.startsWith('audio/') ? 'VOICE' : 'FILE')
       : 'TEXT';
 
-    const msgData = {
-      id: tempId,
-      tempId,
-      content: newMessage.trim(),
-      senderId: currentUser.id,
-      sender: currentUser,
-      createdAt: new Date().toISOString(),
       type,
+      replyTo,
+      replyToId: replyTo?.id,
       fileUrl: mediaFile ? URL.createObjectURL(mediaFile) : null,
       fileName: mediaFile ? mediaFile.name : null,
       fileSize: mediaFile ? mediaFile.size : null
@@ -209,6 +205,7 @@ export default function ChatBox({ conversationId }) {
     setMessages(prev => [...prev, msgData]);
     setNewMessage('');
     setMediaFile(null);
+    setReplyTo(null);
     setIsSending(true);
 
     try {
@@ -221,10 +218,11 @@ export default function ChatBox({ conversationId }) {
         fd.append('content', msgData.content);
         fd.append('type', type);
         fd.append('tempId', tempId);
+        if (replyTo?.id) fd.append('replyToId', replyTo.id);
 
         await chatAPI.uploadMessageAttachment(fd);
       } else {
-        sendMessage({ conversationId, content: msgData.content, tempId });
+        sendMessage({ conversationId, content: msgData.content, tempId, replyToId: replyTo?.id });
       }
     } catch (err) {
       console.error('[DEBUG] Send error:', err);
@@ -312,6 +310,20 @@ export default function ChatBox({ conversationId }) {
     if (cid) window.open(`/call/${cid}`, '_blank');
   }, []);
 
+  const handleDeleteMessage = useCallback((msgId) => {
+    // Basic optimistic UI check - if we have a real ID, delete via socket
+    if (msgId && !msgId.toString().startsWith('temp')) {
+      deleteMessage(msgId);
+    }
+  }, []);
+
+  const handleReplyTo = useCallback((msg) => {
+    if (msg?.isDeleted) return;
+    setReplyTo(msg);
+    // Vibrate if available for sensory feedback on swipe
+    if (navigator.vibrate) navigator.vibrate(20);
+  }, []);
+
   const handleInputChange = useCallback((e) => {
     const val = e.target.value;
     setNewMessage(val);
@@ -350,14 +362,47 @@ const MessageBubble = React.memo(({
   handleEdit, 
   addReaction, 
   deleteMessage,
-  handleJoinCall
+  handleJoinCall,
+  onReply
 }) => {
   const timestamp = formatMessageTime(message.createdAt);
   const isTemp = message.id?.toString().startsWith('temp');
   const avatarName = message.sender?.name || 'User';
 
+  const [touchStart, setTouchStart] = useState(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!touchStart || isMine) return; // Only allow swipe-to-reply on other's messages for now or both
+    const currentTouch = e.targetTouches[0].clientX;
+    const diff = currentTouch - touchStart;
+    
+    // Swipe Right to Reply (max 80px)
+    if (diff > 0 && diff < 80) {
+      setSwipeOffset(diff);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeOffset > 50) {
+      onReply(message);
+    }
+    setSwipeOffset(0);
+    setTouchStart(null);
+  };
+
   return (
-    <div className={`flex w-full mb-4 px-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+    <div 
+      className={`flex w-full mb-4 px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200`}
+      style={{ transform: `translateX(${swipeOffset}px)` }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className={`flex max-w-[80%] items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
         {/* Avatar (Left only) */}
           <div className="relative group">
@@ -400,6 +445,16 @@ const MessageBubble = React.memo(({
               isMine ? 'bg-primary-600 border-primary-500 text-white rounded-tr-none hover:bg-primary-700' : 'bg-white border-slate-100 text-slate-800 rounded-tl-none hover:bg-slate-50'
             }`}
           >
+            {/* Reply Context */}
+            {message.replyTo && !message.isDeleted && (
+              <div className={`mb-2 p-2 rounded-lg border-l-4 text-[10px] bg-black/5 ${isMine ? 'border-white/40' : 'border-primary-500 bg-primary-50'}`}>
+                <p className="font-black uppercase tracking-tight opacity-60">
+                   Replying to {message.replyTo.sender?.name || 'User'}
+                </p>
+                <p className="truncate opacity-80">{message.replyTo.content || 'Attachment'}</p>
+              </div>
+            )}
+
             {/* Message Context */}
             {editingMessageId === message.id ? (
               <div className="min-w-[180px]">
@@ -609,8 +664,9 @@ const MessageBubble = React.memo(({
                     setEditingContent={setEditingContent}
                     handleEdit={handleEdit}
                     addReaction={addReaction}
-                    deleteMessage={deleteMessage}
+                    deleteMessage={handleDeleteMessage}
                     handleJoinCall={handleJoinCall}
+                    onReply={handleReplyTo}
                   />
                 ))}
               </div>
@@ -631,6 +687,18 @@ const MessageBubble = React.memo(({
       {/* Footer Input Area */}
       <div className="p-3 bg-white border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)]">
         <form onSubmit={handleSendMessage} className="flex flex-col space-y-2">
+          {replyTo && (
+            <div className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border-l-4 border-primary-500 mx-1 mb-1 animate-in slide-in-from-bottom-2">
+              <div className="flex-1 min-w-0 px-2">
+                <p className="text-[9px] font-black text-primary-600 uppercase tracking-widest">Replying to {replyTo.sender?.name}</p>
+                <p className="text-xs text-slate-500 truncate">{replyTo.content || 'Attachment'}</p>
+              </div>
+              <button type="button" onClick={() => setReplyTo(null)} className="p-1 text-slate-400 hover:text-slate-600">
+                <XMarkIcon className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          
           {mediaFile && (
             <div className="flex items-center justify-between bg-primary-50 p-2 rounded-xl border border-primary-100 mx-1">
               <div className="flex items-center space-x-2">
