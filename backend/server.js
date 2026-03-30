@@ -98,9 +98,10 @@ app.use((req, res, next) => {
 });
 
 // Health check
-app.get('/health', (req, res) => res.status(200).json({ status: 'ok', timestamp: new Date() }));
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok', timestamp: new Date(), version: '1.0.4-colored-headers' }));
 
 // Routes
+console.log('Registering routes...');
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
@@ -111,6 +112,7 @@ app.use('/api/status', statusRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/anonymous', anonymousRoutes);
+console.log('All routes registered successfully');
 
 // Socket.IO setup
 setupSockets(io);
