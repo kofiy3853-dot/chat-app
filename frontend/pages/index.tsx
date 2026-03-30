@@ -166,32 +166,32 @@ const MessagesPage: React.FC = () => {
       </Head>
 
       {/* ─── Header ─── */}
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-100 px-4 pt-[max(env(safe-area-inset-top,0px),40px)] pb-3">
+      <header className="sticky top-0 z-30 bg-primary-600 px-4 pt-[max(env(safe-area-inset-top,0px),40px)] pb-3 shadow-md transition-colors">
         <div className="flex items-center justify-between mb-3">
           {/* Avatar */}
           <button
             onClick={() => router.push('/profile')}
             aria-label="Profile"
-            className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-primary-100 active:scale-95 transition-all"
+            className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active:scale-95 transition-all"
           >
             {avatarUrl ? (
               <img src={avatarUrl} className="w-full h-full object-cover" alt="" />
             ) : (
-              <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${getAvatarColor(user?.name)} text-white text-xs font-bold`}>
+              <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${getAvatarColor(user?.name)} text-white text-xs font-bold ring-1 ring-white/20`}>
                 {getInitials(user?.name)}
               </div>
             )}
           </button>
 
           {/* Title */}
-          <h1 className="text-lg font-bold text-gray-900 tracking-tight">Chats</h1>
+          <h1 className="text-lg font-bold text-white tracking-tight">Chats</h1>
 
           {/* Overflow Menu */}
           <div className="relative" ref={overflowRef}>
             <button
               aria-label="More options"
               onClick={() => setShowOverflow(v => !v)}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 active:scale-95 transition-all text-gray-600"
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 active:scale-95 transition-all text-white"
             >
               <EllipsisVerticalIcon className="w-5 h-5" />
             </button>
@@ -257,8 +257,8 @@ const MessagesPage: React.FC = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="flex items-center bg-gray-100 rounded-full px-3.5 py-2.5 space-x-2">
-          <MagnifyingGlassIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        <div className="flex items-center bg-white/15 backdrop-blur-sm rounded-xl px-3.5 py-2.5 space-x-2 border border-white/10">
+          <MagnifyingGlassIcon className="w-4 h-4 text-white/50 flex-shrink-0" />
           <input
             id="search"
             name="search"
@@ -266,17 +266,17 @@ const MessagesPage: React.FC = () => {
             placeholder="Search chats..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-gray-800 placeholder-gray-400 text-sm font-medium"
+            className="flex-1 bg-transparent border-none outline-none text-white placeholder-white/40 text-sm font-medium"
           />
           {search ? (
             <button onClick={() => setSearch('')} aria-label="Clear search">
-              <XMarkIcon className="w-4 h-4 text-gray-400" />
+              <XMarkIcon className="w-4 h-4 text-white/50" />
             </button>
           ) : (
             <button
               aria-label="Filter options"
               onClick={() => setChatFilter(chatFilter === 'all' ? 'unread' : 'all')}
-              className={`flex-shrink-0 ${chatFilter !== 'all' ? 'text-primary-500' : 'text-gray-400'}`}
+              className={`flex-shrink-0 ${chatFilter !== 'all' ? 'text-white' : 'text-white/40'}`}
             >
               <AdjustmentsHorizontalIcon className="w-4 h-4" />
             </button>

@@ -46,20 +46,20 @@ const CampusPage = () => {
       </Head>
 
       {/* Top Navigation - Campus Header */}
-      <div className="bg-white/90 backdrop-blur-3xl z-30 border-b border-slate-100/50 shadow-sm shrink-0">
+      <div className="bg-primary-600 z-30 shadow-md shrink-0">
         <header className="px-6 pt-[max(env(safe-area-inset-top,0px),24px)] pb-5 flex items-center justify-between">
            <div className="flex items-center space-x-4">
-              <button onClick={() => router.push('/')} aria-label="Go to inbox" className="p-2 -ml-2 text-slate-400 hover:text-slate-800 transition-colors">
+              <button onClick={() => router.push('/')} aria-label="Go to inbox" className="p-2 -ml-2 text-white/70 hover:text-white transition-colors">
                  <ChevronLeftIcon className="w-5 h-5 stroke-[2.5px]" />
               </button>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center space-x-2">
-                 <BuildingLibraryIcon className="w-6 h-6 text-primary-600" />
+              <h1 className="text-xl font-black text-white tracking-tight flex items-center space-x-2">
+                 <BuildingLibraryIcon className="w-6 h-6 text-white" />
                  <span>Campus</span>
               </h1>
            </div>
            
            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
+              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white/50">
                  <BuildingLibraryIcon className="w-4 h-4" />
               </div>
            </div>
