@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { getCurrentUser } from '../utils/helpers';
 import { chatAPI, userAPI } from '../services/api';
+import { getSocket } from '../services/socket';
 import SoftChatList from '../components/SoftChatList';
 import SoftStories from '../components/SoftStories';
 import { getFullFileUrl, getInitials } from '../utils/helpers';
@@ -23,6 +24,7 @@ const MessagesPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'messages' | 'calls' | 'contacts'>('messages');
+  const [typingInConvs, setTypingInConvs] = useState<{ [key: string]: { [userId: string]: string } }>({});
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -40,6 +42,72 @@ const MessagesPage: React.FC = () => {
     setUser(localUser);
     fetchData();
   }, [router]);
+
+  useEffect(() => {
+    if (!user) return;
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleUserTyping = (data: any) => {
+      const { conversationId, userId, userName, isTyping } = data;
+      if (userId === user.id) return;
+      
+      setTypingInConvs((prev) => {
+        const next = { ...prev };
+        if (isTyping) {
+          next[conversationId] = { ...(next[conversationId] || {}), [userId]: userName };
+        } else {
+          if (next[conversationId]) {
+            const updated = { ...next[conversationId] };
+            delete updated[userId];
+            if (Object.keys(updated).length === 0) delete next[conversationId];
+            else next[conversationId] = updated;
+          }
+        }
+        return next;
+      });
+    };
+
+    const handleNewMessage = (data: any) => {
+      setConversations((prev) => {
+        const idx = prev.findIndex((c) => c.id === data.conversationId);
+        if (idx === -1) {
+          fetchData(); // refetch if new conversation created
+          return prev;
+        }
+        const updated = [...prev];
+        const conv = { ...updated[idx] };
+        conv.lastMessage = data.message;
+        conv.lastMessageAt = data.message.createdAt;
+        if (data.message.senderId !== user.id) {
+          conv.unreadCount = (conv.unreadCount || 0) + 1;
+        }
+        updated[idx] = conv;
+        return updated.sort((a, b) => new Date(b.lastMessageAt || 0).getTime() - new Date(a.lastMessageAt || 0).getTime());
+      });
+    };
+
+    const handleUserStatus = (data: any) => {
+      setConversations(prev => prev.map(c => {
+        const hasUser = c.participants?.some((p: any) => p.userId === data.userId);
+        if (!hasUser) return c;
+        return {
+          ...c,
+          participants: c.participants.map((p: any) => p.userId === data.userId ? { ...p, user: { ...p.user, isOnline: data.isOnline } } : p)
+        };
+      }));
+    };
+
+    socket.on('user-typing', handleUserTyping);
+    socket.on('new-message', handleNewMessage);
+    socket.on('user-status-changed', handleUserStatus);
+
+    return () => {
+      socket.off('user-typing', handleUserTyping);
+      socket.off('new-message', handleNewMessage);
+      socket.off('user-status-changed', handleUserStatus);
+    };
+  }, [user]);
 
   const fetchData = async () => {
     try {
@@ -135,6 +203,7 @@ const MessagesPage: React.FC = () => {
                 onChatClick={handleChatClick}
                 loading={loading}
                 onStartChat={() => setActiveTab('contacts')}
+                typingInConvs={typingInConvs}
               />
             </motion.div>
           )}

@@ -7,9 +7,10 @@ interface ChatListProps {
   onChatClick: (id: string) => void;
   loading: boolean;
   onStartChat?: () => void;
+  typingInConvs?: { [key: string]: { [userId: string]: string } };
 }
 
-const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onChatClick, loading, onStartChat }) => {
+const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onChatClick, loading, onStartChat, typingInConvs }) => {
   if (loading) {
     return (
       <div className="px-2 py-4 space-y-5">
@@ -56,6 +57,7 @@ const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onC
           conversation={conv} 
           currentUser={currentUser} 
           onClick={onChatClick}
+          typingUsers={typingInConvs?.[conv.id]}
         />
       ))}
     </div>

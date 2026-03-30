@@ -35,6 +35,7 @@ interface SoftChatListItemProps {
   currentUser: { id: string } | null;
   isActive?: boolean;
   onClick: (id: string) => void;
+  typingUsers?: { [userId: string]: string };
 }
 
 const getLastMsgPreview = (msg?: Message) => {
@@ -49,7 +50,8 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
   conversation,
   currentUser,
   isActive,
-  onClick
+  onClick,
+  typingUsers
 }) => {
   const otherParticipant = conversation.participants?.find(p => p.userId !== currentUser?.id)?.user;
   const name = conversation.name || otherParticipant?.name || 'Chat';
@@ -59,7 +61,13 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
 
   const lastMsg = conversation.lastMessage;
   const time = conversation.lastMessageAt ? formatShortTime(conversation.lastMessageAt) : '';
-  const preview = getLastMsgPreview(lastMsg);
+  
+  let preview = getLastMsgPreview(lastMsg);
+  const isSomeoneTyping = typingUsers && Object.keys(typingUsers).length > 0;
+  if (isSomeoneTyping) {
+    const typerNames = Object.values(typingUsers);
+    preview = typerNames.length === 1 ? `${typerNames[0]} is typing...` : `${typerNames.length} people are typing...`;
+  }
 
   const avatarUrl = getFullFileUrl(avatar);
 
@@ -106,7 +114,7 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
         </div>
 
         <div className="flex items-center justify-between">
-          <p className={`text-sm truncate pr-3 ${unread > 0 ? 'font-bold text-gray-900' : 'text-gray-500 font-medium'}`}>
+          <p className={`text-sm truncate pr-3 ${isSomeoneTyping ? 'font-black text-primary-500 animate-pulse' : unread > 0 ? 'font-bold text-gray-900' : 'text-gray-500 font-medium'}`}>
             {preview}
           </p>
           
