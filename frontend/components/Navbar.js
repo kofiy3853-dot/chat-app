@@ -99,73 +99,68 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto z-40 px-4 pb-4 pt-2 pointer-events-none">
-      <div className="flex justify-around items-center bg-white rounded-full border border-gray-100 shadow-lg h-16 px-2 pointer-events-auto relative">
+    <nav className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto z-40 px-6 pb-6 pt-2 pointer-events-none">
+      <div className="flex justify-between items-center bg-white rounded-full border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] h-16 px-2 pointer-events-auto relative">
         
         {/* Inbox Link */}
         <Link 
           href="/"
-          className={`flex-1 flex flex-col items-center justify-center space-y-1 transition-all ${
-            isActive('/') ? 'text-primary-600' : 'text-slate-400'
+          className={`flex-1 flex flex-col items-center justify-center py-2 transition-colors ${
+            isActive('/') ? 'text-primary-600' : 'text-gray-400 hover:text-gray-500'
           }`}
         >
           <div className="relative">
-            <ChatBubbleLeftIcon className={`w-[22px] h-[22px] ${isActive('/') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+            <ChatBubbleLeftIcon className={`w-6 h-6 ${isActive('/') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+              <span className="absolute -top-1 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm shadow-red-500/30">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
           </div>
-          {isActive('/') && <span className="w-1 h-1 rounded-full bg-primary-600"></span>}
         </Link>
 
         {/* Courses Link */}
         <Link 
           href="/courses"
-          className={`flex-1 flex flex-col items-center justify-center space-y-1 transition-all ${
-            isActive('/courses') ? 'text-primary-600' : 'text-slate-400'
+          className={`flex-1 flex flex-col items-center justify-center py-2 transition-colors ${
+            isActive('/courses') ? 'text-primary-600' : 'text-gray-400 hover:text-gray-500'
           }`}
         >
-          <AcademicCapIcon className={`w-[22px] h-[22px] ${isActive('/courses') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-          {isActive('/courses') && <span className="w-1 h-1 rounded-full bg-primary-600"></span>}
+          <AcademicCapIcon className={`w-6 h-6 ${isActive('/courses') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
         </Link>
 
         {/* Central FAB - New Chat */}
-        <div className="relative bottom-4">
+        <div className="relative -top-5 px-2">
            <button
              onClick={() => setIsModalOpen(true)}
              aria-label="New Chat"
-             className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md bg-primary-600 hover:bg-primary-500 active:scale-95 transition-all outline outline-4 outline-white"
+             className="w-14 h-14 rounded-full flex items-center justify-center text-white shadow-xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 active:scale-95 transition-all ring-4 ring-gray-50 border border-primary-400/20"
              title="New Chat"
            >
-             <PlusIcon className="w-6 h-6 stroke-[3px]" />
+             <PlusIcon className="w-7 h-7 stroke-[2.5px]" />
            </button>
         </div>
 
         {/* Activity Link */}
         <Link 
           href="/activity"
-          className={`flex-1 flex flex-col items-center justify-center space-y-1 transition-all ${
-            isActive('/activity') ? 'text-primary-600' : 'text-slate-400'
+          className={`flex-1 flex flex-col items-center justify-center py-2 transition-colors ${
+            isActive('/activity') ? 'text-primary-600' : 'text-gray-400 hover:text-gray-500'
           }`}
         >
           <div className="relative">
-            <BellIcon className={`w-[22px] h-[22px] ${isActive('/activity') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-            {/* Logic for unread activity could go here */}
+            <BellIcon className={`w-6 h-6 ${isActive('/activity') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
           </div>
-          {isActive('/activity') && <span className="w-1 h-1 rounded-full bg-primary-600"></span>}
         </Link>
         
         {/* Account Link */}
         <Link 
           href="/account"
-          className={`flex-1 flex flex-col items-center justify-center space-y-1 transition-all ${
-            isActive('/account') ? 'text-primary-600' : 'text-slate-400'
+          className={`flex-1 flex flex-col items-center justify-center py-2 transition-colors ${
+            isActive('/account') ? 'text-primary-600' : 'text-gray-400 hover:text-gray-500'
           }`}
         >
-          <UserCircleIcon className={`w-[22px] h-[22px] ${isActive('/account') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-          {isActive('/account') && <span className="w-1 h-1 rounded-full bg-primary-600"></span>}
+          <UserCircleIcon className={`w-6 h-6 ${isActive('/account') ? 'stroke-[2.5px]' : 'stroke-2'}`} />
         </Link>
       </div>
       

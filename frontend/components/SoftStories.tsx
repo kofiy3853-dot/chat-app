@@ -68,7 +68,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
 
   if (loading && groups.length === 0) return (
      <div className="flex space-x-4 px-1 py-1 animate-pulse">
-        {[1,2,3,4].map(i => <div key={i} className="w-12 h-12 bg-white/20 rounded-[20px] flex-shrink-0" />)}
+        {[1,2,3,4].map(i => <div key={i} className="w-12 h-12 bg-gray-200 rounded-full flex-shrink-0" />)}
      </div>
   );
 
@@ -81,18 +81,18 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
           className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16"
         >
           <div className="relative p-[2px] rounded-full border-2 border-dashed border-gray-300">
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-white/20 backdrop-blur-md flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
               {currentUser?.avatar ? (
                 <img src={getFullFileUrl(currentUser.avatar)} className="w-full h-full object-cover" alt="My Status" />
               ) : (
-                <span className="text-white text-sm font-bold">{getInitials(currentUser?.name)}</span>
+                <span className="text-gray-600 text-sm font-bold">{getInitials(currentUser?.name)}</span>
               )}
             </div>
             <div className="absolute bottom-0 right-0 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
               <PlusIcon className="w-3 h-3 text-white" />
             </div>
           </div>
-          <p className="text-xs font-medium text-white/90 mt-1 truncate w-full text-center">My Status</p>
+          <p className="text-xs font-medium text-gray-700 mt-1 truncate w-full text-center">My Status</p>
         </div>
 
         {/* Other Users' Statuses */}
@@ -102,8 +102,8 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
             onClick={() => handleOpenViewer(index)}
             className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 group"
           >
-            <div className={`relative p-[2px] rounded-full transition-all duration-300 border-2 ${group.hasUnseen ? 'border-primary-400' : 'border-gray-300/50'}`}>
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-white/20 backdrop-blur-md flex items-center justify-center">
+            <div className={`relative p-[2px] rounded-full transition-all duration-300 border-2 ${group.hasUnseen ? 'border-primary-500' : 'border-gray-200'}`}>
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
                 {group.user.avatar ? (
                   <img src={getFullFileUrl(group.user.avatar)} className="w-full h-full object-cover" alt={group.user.name} />
                 ) : (
@@ -113,7 +113,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
                 )}
               </div>
             </div>
-            <p className={`text-xs mt-1 truncate w-full text-center ${group.hasUnseen ? 'font-semibold text-white' : 'font-medium text-white/70'}`}>
+            <p className={`text-xs mt-1 truncate w-full text-center ${group.hasUnseen ? 'font-semibold text-gray-900' : 'font-medium text-gray-500'}`}>
               {group.user.name.split(' ')[0]}
             </p>
           </div>

@@ -75,47 +75,51 @@ const MessagesPage: React.FC = () => {
       </Head>
 
       {/* ─── Compact Header ─── */}
-      <header className="px-4 pt-8 pb-10 bg-primary-500 rounded-b-[30px] shadow-sm relative z-10 transition-colors">
-        <div className="flex justify-between items-center mb-4">
-          <button aria-label="Menu" className="w-9 h-9 flex flex-col items-center justify-center space-y-1 active:scale-95">
-             <span className="block w-5 h-0.5 bg-white/90 rounded-full" />
-             <span className="block w-4 h-0.5 bg-white/90 rounded-full" />
-             <span className="block w-5 h-0.5 bg-white/90 rounded-full" />
+      <header className="px-4 pt-10 pb-4 bg-primary-500 shadow-sm relative z-10 transition-colors">
+        <div className="flex justify-between items-center relative">
+          <button aria-label="Menu" className="w-10 h-10 flex flex-col items-center justify-center space-y-1.5 active:scale-95 transition-all">
+             <span className="block w-6 h-0.5 bg-white rounded-full" />
+             <span className="block w-6 h-0.5 bg-white rounded-full" />
+             <span className="block w-6 h-0.5 bg-white rounded-full" />
           </button>
-          <h1 className="text-base font-bold tracking-wide text-white">Inbox</h1>
+          
+          <h1 className="text-xl font-bold tracking-wide text-white absolute left-1/2 -translate-x-1/2">Inbox</h1>
+          
           <button
             onClick={() => router.push('/profile')}
             aria-label="Profile"
-            className="w-10 h-10 rounded-full overflow-hidden shadow-sm border-2 border-primary-400 active:scale-95"
+            className="w-10 h-10 rounded-full overflow-hidden shadow-sm border-2 border-primary-200 active:scale-95 transition-all"
           >
             {avatarUrl ? (
               <img src={avatarUrl} className="w-full h-full object-cover" alt="" />
             ) : (
-              <span className="flex items-center justify-center w-full h-full bg-white/10 text-xs font-bold text-white tracking-widest">{getInitials(user?.name)}</span>
+              <span className="flex items-center justify-center w-full h-full bg-white/20 text-xs font-bold text-white tracking-widest">{getInitials(user?.name)}</span>
             )}
           </button>
         </div>
-
-        {/* Stories Section slightly trimmed */}
-        <SoftStories currentUser={user} />
       </header>
 
-      {/* ─── Floating Search Bar ─── */}
-      <div className="px-4 relative z-20 -mt-6 mb-4">
-         <div className="flex items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary-100">
-           <MagnifyingGlassIcon className="w-5 h-5 text-slate-400 mr-3 flex-shrink-0" />
+      {/* ─── Search Bar ─── */}
+      <div className="px-4 pt-4 pb-2 bg-white relative z-0">
+         <div className="flex items-center bg-gray-100 rounded-full px-4 py-3 border border-transparent transition-all focus-within:ring-2 focus-within:ring-primary-100 focus-within:bg-white focus-within:border-primary-300">
+           <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 mr-3 flex-shrink-0" />
            <input
              type="text"
              placeholder="Search chats..."
              value={search}
              onChange={(e) => setSearch(e.target.value)}
-             className="flex-1 bg-transparent border-none outline-none text-slate-700 placeholder-slate-400 font-medium text-sm"
+             className="flex-1 bg-transparent border-none outline-none text-gray-900 placeholder-gray-500 font-medium text-sm"
            />
          </div>
       </div>
 
+      {/* ─── Stories Section ─── */}
+      <div className="bg-white px-2 pt-2 pb-4">
+        <SoftStories currentUser={user} />
+      </div>
+
       {/* ─── Main Content Area ─── */}
-      <main className="flex-1 overflow-y-auto no-scrollbar pb-32">
+      <main className="flex-1 overflow-y-auto no-scrollbar pb-32 bg-white">
         <AnimatePresence mode="wait">
           {activeTab === 'messages' && (
             <motion.div
@@ -123,7 +127,7 @@ const MessagesPage: React.FC = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="px-4"
+              className="flex flex-col"
             >
               <SoftChatList
                 conversations={filteredConversations}

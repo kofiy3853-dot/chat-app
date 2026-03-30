@@ -37,6 +37,30 @@ export const formatRelativeTime = (timestamp, options = { addSuffix: true }) => 
   return formatDistanceToNow(date, options);
 };
 
+// Format short time for chat list (e.g., "4h", "1d", "now")
+export const formatShortTime = (timestamp) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  if (!isValidDate(date)) return '';
+  
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+  
+  if (diffInSeconds < 60) return 'now';
+  
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours}h ago`;
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `${diffInDays}d ago`;
+  
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  return `${diffInWeeks}w ago`;
+};
+
 // Truncate text
 export const truncateText = (text, maxLength = 100) => {
   if (!text || text.length <= maxLength) return text;
