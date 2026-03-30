@@ -32,8 +32,41 @@ model User {
   conversations     ConversationParticipant[]
   uploadedMaterials Material[]    @relation("MaterialUploader")
   submissions       Submission[]
+  statuses          Status[]
+  statusViews       StatusView[]
 
   @@map("users")
+}
+
+model Status {
+  id              String      @id @default(uuid())
+  type            StatusType  @default(TEXT)
+  contentUrl      String?
+  textContent     String?
+  backgroundColor String?     @default("#6B73FF")
+  caption         String?
+  createdAt       DateTime    @default(now())
+  expiresAt       DateTime
+
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  views           StatusView[]
+
+  @@index([userId, expiresAt])
+  @@map("statuses")
+}
+
+model StatusView {
+  id        String   @id @default(uuid())
+  viewedAt  DateTime @default(now())
+
+  statusId  String
+  status    Status   @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  viewerId  String
+  viewer    User     @relation(fields: [viewerId], references: [id], onDelete: Cascade)
+
+  @@unique([statusId, viewerId])
+  @@map("status_views")
 }
 
 model PushSubscription {
@@ -288,4 +321,10 @@ enum NotificationType {
   COURSE_INVITE
   MENTION
   SYSTEM
+}
+
+enum StatusType {
+  TEXT
+  IMAGE
+  VIDEO
 }

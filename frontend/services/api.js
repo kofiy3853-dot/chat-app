@@ -120,4 +120,15 @@ export const courseAPI = {
   postAnnouncement: (id, content) => api.post(`/courses/${id}/announcements`, { content })
 };
 
+// Status API
+export const statusAPI = {
+  createStatus: (data) => api.post('/status', data),
+  getStatuses: () => api.get('/status'),
+  viewStatus: (statusId) => api.post(`/status/${statusId}/view`),
+  getViewers: (statusId) => api.get(`/status/${statusId}/viewers`),
+  uploadImage: (formData) => api.post('/status/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+};
+
 export default api;

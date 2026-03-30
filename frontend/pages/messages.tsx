@@ -114,7 +114,7 @@ const MessagesPage: React.FC = () => {
         </div>
 
         {/* Stories Section inside the tray */}
-        <SoftStories stories={onlineUsers} />
+        <SoftStories currentUser={user} />
       </header>
 
       {/* ─── Main Content Area ─── */}
