@@ -10,9 +10,11 @@ interface ChatListProps {
   onStartChat?: () => void;
   typingInConvs?: { [key: string]: { [userId: string]: string } };
   onDelete?: (id: string, e?: React.MouseEvent) => void;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }
 
-const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onChatClick, loading, onStartChat, typingInConvs, onDelete }) => {
+const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onChatClick, loading, onStartChat, typingInConvs, onDelete, selectedIds, onToggleSelect }) => {
   const [longPressedId, setLongPressedId] = useState<string | null>(null);
 
   if (loading) {
@@ -63,6 +65,7 @@ const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onC
             onClick={onChatClick}
             typingUsers={typingInConvs?.[conv.id]}
             onLongPress={() => setLongPressedId(conv.id)}
+            isSelected={selectedIds?.has(conv.id)}
           />
           {longPressedId === conv.id && (
             <>

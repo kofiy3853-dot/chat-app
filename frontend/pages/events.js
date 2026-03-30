@@ -98,25 +98,20 @@ export default function Events() {
 
       {/* Header */}
       <div className="sticky top-0 bg-white/80 backdrop-blur-xl z-30 border-b border-slate-200/60 shadow-sm">
-        <div className="max-w-xl mx-auto px-6 py-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Events</h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1 flex items-center">
-              <SparklesIcon className="w-3 h-3 mr-1 text-primary-500" />
-              Join the excitement
-            </p>
-          </div>
+        <header className="sticky top-0 bg-white/80 backdrop-blur-xl z-20 px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+          <h1 className="text-xl font-black text-slate-800 tracking-tight">Events</h1>
           <button 
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center space-x-2 px-5 py-3 bg-primary-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-wider hover:bg-primary-500 active:scale-95 transition-all shadow-lg shadow-primary-200"
+            onClick={() => router.push('/events/create')}
+            aria-label="Create new event"
+            className="bg-primary-600 hover:bg-primary-500 text-white p-2.5 rounded-2xl shadow-lg shadow-primary-200 transition-all active:scale-90 flex items-center space-x-2"
           >
-            <PlusIcon className="w-4 h-4 stroke-[3px]" />
-            <span>Create</span>
+            <PlusIcon className="w-5 h-5 stroke-[3px]" />
+            <span className="text-xs font-black uppercase tracking-widest pr-1">Host</span>
           </button>
-        </div>
+        </header>
 
         {/* Search */}
-        <div className="max-w-xl mx-auto px-6 pb-4">
+        <div className="max-w-xl mx-auto px-6 pb-4 pt-4">
           <div className="relative group">
             <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
             <input 
@@ -193,24 +188,25 @@ export default function Events() {
                   <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                     <div className="flex items-center space-x-2">
                        <div className="flex -space-x-2">
-                         {[...Array(Math.min(3, event.attendeeCount))].map((_, i) => (
+                         {[...Array(Math.min(3, event.attendeeCount || 0))].map((_, i) => (
                            <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-200">
-                             <img src={`https://i.pravatar.cc/100?u=${event.id}${i}`} className="w-full h-full rounded-full" />
+                             <img src={`https://i.pravatar.cc/100?u=${event.id}${i}`} className="w-full h-full rounded-full" alt="Attendee" />
                            </div>
                          ))}
-                         {event.attendeeCount > 3 && (
+                         {(event.attendeeCount || 0) > 3 && (
                             <div className="w-6 h-6 rounded-full border-2 border-white bg-primary-100 flex items-center justify-center text-[8px] font-black text-primary-600">
                               +{event.attendeeCount - 3}
                             </div>
                          )}
                        </div>
                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                         {event.attendeeCount} Going
+                         {event.attendeeCount || 0} Going
                        </span>
                     </div>
 
                     <button 
                       onClick={() => handleToggleJoin(event.id)}
+                      aria-label={event.isJoined ? "Leave event" : "Join event"}
                       className={`px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 flex items-center space-x-2 ${
                         event.isJoined 
                           ? 'bg-primary-50 text-primary-600 hover:bg-primary-100' 
@@ -244,14 +240,7 @@ export default function Events() {
         )}
       </div>
 
-      <CreateEventModal 
-        isOpen={showCreateModal} 
-        onClose={() => setShowCreateModal(false)}
-        onSuccess={(newEvent) => {
-          setEvents(prev => [newEvent, ...prev]);
-          setShowCreateModal(false);
-        }}
-      />
+      {/* Modal is now replaced by /events/create page */}
     </div>
   );
 }

@@ -9,7 +9,7 @@ exports.getEvents = async (req, res) => {
 
     const events = await prisma.event.findMany({
       where: {
-        dateTime: { gte: now }
+        startTime: { gte: now }
       },
       include: {
         creator: { select: { id: true, name: true, avatar: true } },
@@ -19,7 +19,7 @@ exports.getEvents = async (req, res) => {
           select: { id: true }
         }
       },
-      orderBy: { dateTime: 'asc' },
+      orderBy: { startTime: 'asc' },
       skip,
       take: parseInt(limit)
     });
@@ -41,14 +41,33 @@ exports.getEvents = async (req, res) => {
 // Create event
 exports.createEvent = async (req, res) => {
   try {
-    const { title, description, dateTime, location } = req.body;
+    const { 
+      title, 
+      description, 
+      startTime, 
+      endTime, 
+      category,
+      locationType,
+      locationValue,
+      maxAttendees,
+      visibility,
+      rsvpEnabled,
+      bannerUrl
+    } = req.body;
 
     const event = await prisma.event.create({
       data: {
         title,
         description,
-        dateTime: new Date(dateTime),
-        location,
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        category,
+        locationType,
+        locationValue,
+        maxAttendees: maxAttendees ? parseInt(maxAttendees) : null,
+        visibility,
+        rsvpEnabled: rsvpEnabled !== undefined ? rsvpEnabled : true,
+        bannerUrl,
         creatorId: req.user.id,
         participants: {
           create: { userId: req.user.id }
@@ -60,9 +79,7 @@ exports.createEvent = async (req, res) => {
       }
     });
 
-    // Notify users via Activity
-    // In a real app, we might notify everyone, but for now we'll create a system notification
-    // that the Activity page can pick up.
+    // Notify all users via Activity system
     const users = await prisma.user.findMany({
       where: { id: { not: req.user.id } },
       select: { id: true }
@@ -72,10 +89,10 @@ exports.createEvent = async (req, res) => {
       const notification = await prisma.notification.create({
         data: {
           type: 'SYSTEM',
-          title: 'New Event',
-          content: `${req.user.name} posted a new event: ${title}`,
+          title: `New ${category.toLowerCase()} event`,
+          content: `${req.user.name} created: ${title}`,
           recipientId: u.id,
-          actionUrl: '/events'
+          actionUrl: `/events`
         }
       });
       if (req.io) {
@@ -86,6 +103,7 @@ exports.createEvent = async (req, res) => {
 
     res.status(201).json(event);
   } catch (error) {
+    console.error('Create event error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

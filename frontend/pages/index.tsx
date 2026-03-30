@@ -27,6 +27,8 @@ const MessagesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'messages' | 'calls' | 'contacts'>('messages');
   const [typingInConvs, setTypingInConvs] = useState<{ [key: string]: { [userId: string]: string } }>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
+  const [chatFilter, setChatFilter] = useState<'all' | 'unread' | 'groups'>('all');
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -123,12 +125,20 @@ const MessagesPage: React.FC = () => {
   };
 
   const filteredConversations = useMemo(() => {
-    return conversations.filter(conv => {
+    let filtered = conversations;
+    
+    if (chatFilter === 'unread') {
+      filtered = filtered.filter(c => (c.unreadCount || 0) > 0);
+    } else if (chatFilter === 'groups') {
+      filtered = filtered.filter(c => c.type === 'GROUP');
+    }
+
+    return filtered.filter(conv => {
       const name = (conv.name || conv.participants?.find((p: any) => p.userId !== user?.id)?.user?.name || '').toLowerCase();
       const lastMsg = (conv.lastMessage?.content || '').toLowerCase();
       return name.includes(search.toLowerCase()) || lastMsg.includes(search.toLowerCase());
     });
-  }, [conversations, search, user]);
+  }, [conversations, search, user, chatFilter]);
 
   const handleChatClick = useCallback((id: string) => {
     router.push(`/chat/${id}`);
@@ -157,34 +167,36 @@ const MessagesPage: React.FC = () => {
       {/* ─── Compact Header ─── */}
       <header className="px-4 pt-10 pb-4 bg-primary-500 shadow-sm relative z-10 transition-colors">
         <div className="flex justify-between items-center relative">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center">
              <button aria-label="Menu" className="w-10 h-10 flex flex-col items-center justify-center space-y-1.5 active:scale-95 transition-all text-white">
                 <span className="block w-6 h-0.5 bg-current rounded-full" />
                 <span className="block w-6 h-0.5 bg-current rounded-full" />
                 <span className="block w-6 h-0.5 bg-current rounded-full" />
              </button>
-             <button 
-               onClick={() => setIsModalOpen(true)}
-               className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-90 transition-all text-white"
-               title="New Chat"
-             >
-               <PlusIcon className="w-6 h-6 stroke-[2.5px]" />
-             </button>
           </div>
           
           <h1 className="text-xl font-bold tracking-wide text-white absolute left-1/2 -translate-x-1/2">Inbox</h1>
           
-          <button
-            onClick={() => router.push('/profile')}
-            aria-label="Profile"
-            className="w-10 h-10 rounded-full overflow-hidden shadow-sm border-2 border-primary-200 active:scale-95 transition-all"
-          >
-            {avatarUrl ? (
-              <img src={avatarUrl} className="w-full h-full object-cover" alt="" />
-            ) : (
-              <span className="flex items-center justify-center w-full h-full bg-white/20 text-xs font-bold text-white tracking-widest">{getInitials(user?.name)}</span>
-            )}
-          </button>
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-90 transition-all text-white"
+              title="New Chat"
+            >
+              <PlusIcon className="w-6 h-6 stroke-[2.5px]" />
+            </button>
+            <button
+              onClick={() => router.push('/profile')}
+              aria-label="Profile"
+              className="w-10 h-10 rounded-full overflow-hidden shadow-sm border-2 border-white/20 active:scale-95 transition-all"
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} className="w-full h-full object-cover" alt="" />
+              ) : (
+                <span className="flex items-center justify-center w-full h-full bg-white/20 text-xs font-bold text-white tracking-widest">{getInitials(user?.name)}</span>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -205,8 +217,81 @@ const MessagesPage: React.FC = () => {
       </div>
 
       {/* ─── Stories Section ─── */}
-      <div className="bg-white px-2 pt-2 pb-4">
+      <div className="bg-white px-2 pt-2 pb-2">
         <SoftStories currentUser={user} />
+      </div>
+
+      {/* ─── Chat Actions & Details ─── */}
+      <div className="px-5 py-4 bg-white flex flex-col space-y-4 border-b border-gray-50/50">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <h2 className="text-lg font-black text-slate-800 tracking-tight">Recent Messages</h2>
+            <div className="flex items-center space-x-2 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse"></span>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                {conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0)} New Unread
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button 
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 border ${selectedConversations.size === filteredConversations.length && filteredConversations.length > 0 ? 'bg-primary-500 text-white border-primary-500' : 'bg-slate-50 text-slate-600 border-slate-100'}`}
+              onClick={() => {
+                if (selectedConversations.size === filteredConversations.length) {
+                  setSelectedConversations(new Set());
+                } else {
+                  setSelectedConversations(new Set(filteredConversations.map(c => c.id)));
+                }
+              }}
+            >
+              Select All
+            </button>
+            <button 
+              className="px-3 py-1.5 bg-primary-50 hover:bg-primary-100 text-primary-600 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 border border-primary-100"
+              onClick={async () => {
+                try {
+                  await chatAPI.markAllAsRead();
+                  fetchData();
+                } catch (err) {
+                  console.error(err);
+                }
+              }}
+            >
+              Read All
+            </button>
+            {selectedConversations.size > 0 && (
+              <button 
+                className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 border border-red-100 animate-in fade-in zoom-in-95"
+                onClick={async () => {
+                  if (window.confirm(`Delete ${selectedConversations.size} conversations?`)) {
+                    try {
+                      await chatAPI.deleteMultipleConversations(Array.from(selectedConversations));
+                      setSelectedConversations(new Set());
+                      fetchData();
+                    } catch (err) {
+                      console.error(err);
+                    }
+                  }
+                }}
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Filter Pills */}
+        <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-1">
+          {['all', 'unread', 'groups'].map((f) => (
+            <button
+              key={f}
+              onClick={() => setChatFilter(f as any)}
+              className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap ${chatFilter === f ? 'bg-primary-500 text-white border-primary-500 shadow-sm' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-200'}`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ─── Main Content Area ─── */}
@@ -228,6 +313,15 @@ const MessagesPage: React.FC = () => {
                 onStartChat={() => setActiveTab('contacts')}
                 typingInConvs={typingInConvs}
                 onDelete={handleDelete}
+                selectedIds={selectedConversations}
+                onToggleSelect={(id) => {
+                  setSelectedConversations(prev => {
+                    const next = new Set(prev);
+                    if (next.has(id)) next.delete(id);
+                    else next.add(id);
+                    return next;
+                  });
+                }}
               />
             </motion.div>
           )}

@@ -37,6 +37,7 @@ interface SoftChatListItemProps {
   onClick: (id: string) => void;
   typingUsers?: { [userId: string]: string };
   onLongPress?: () => void;
+  isSelected?: boolean;
 }
 
 const getLastMsgPreview = (msg?: Message) => {
@@ -53,7 +54,8 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
   isActive,
   onClick,
   typingUsers,
-  onLongPress
+  onLongPress,
+  isSelected
 }) => {
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -93,8 +95,19 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
       onMouseLeave={endPress}
       onTouchStart={startPress}
       onTouchEnd={endPress}
-      className="flex items-center px-4 py-4 cursor-pointer transition-colors duration-200 hover:bg-gray-50 relative group bg-white border-b border-gray-100 last:border-0 select-none"
+      className={`flex items-center px-4 py-4 cursor-pointer transition-all duration-200 relative group border-b border-gray-100 last:border-0 select-none ${isSelected ? 'bg-primary-50/50' : 'bg-white hover:bg-gray-50'}`}
     >
+      {/* Selection Checkmark */}
+      {isSelected && (
+        <div className="absolute right-4 top-4 z-10">
+          <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center shadow-lg shadow-primary-500/30">
+            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        </div>
+      )}
+
       {/* Avatar Container */}
       <div className="relative flex-shrink-0 mr-4">
         <div className="w-14 h-14 rounded-full overflow-hidden shadow-sm bg-gray-100 flex items-center justify-center border border-gray-100/50">

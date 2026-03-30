@@ -731,6 +731,69 @@ exports.deleteConversation = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+// Delete multiple conversations
+exports.deleteMultipleConversations = async (req, res) => {
+  try {
+    const { conversationIds } = req.body;
+    const userId = req.user.id;
+
+    await prisma.conversationParticipant.updateMany({
+      where: {
+        userId,
+        conversationId: { in: conversationIds }
+      },
+      data: { isDeleted: true }
+    });
+
+    res.json({ message: 'Conversations deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Mark all conversations as read
+exports.markAllAsRead = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Find all conversations where user is a participant
+    const participantIn = await prisma.conversationParticipant.findMany({
+      where: { userId, isDeleted: false },
+      select: { conversationId: true }
+    });
+
+    const conversationIds = participantIn.map(p => p.conversationId);
+
+    // Find all unread messages in those conversations
+    const messagesToMark = await prisma.message.findMany({
+      where: {
+        conversationId: { in: conversationIds },
+        senderId: { not: userId },
+        readReceipts: {
+          none: {
+            userId: userId
+          }
+        }
+      }
+    });
+
+    if (messagesToMark.length > 0) {
+      await prisma.readReceipt.createMany({
+        data: messagesToMark.map(m => ({
+          userId: userId,
+          messageId: m.id
+        })),
+        skipDuplicates: true
+      });
+    }
+
+    res.json({ message: 'All messages marked as read' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 // Clear all chat messages
 exports.clearChat = async (req, res) => {
   try {

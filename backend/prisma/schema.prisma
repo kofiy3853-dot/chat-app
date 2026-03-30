@@ -287,18 +287,44 @@ model Notification {
   @@map("notifications")
 }
 
-model Event {
-  id          String   @id @default(uuid())
-  title       String
-  description String?
-  location    String
-  dateTime    DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+enum EventCategory {
+  ACADEMIC
+  SOCIAL
+  SPORTS
+  CLUB
+  OTHER
+}
 
-  creatorId   String
-  creator     User     @relation("EventCreator", fields: [creatorId], references: [id], onDelete: Cascade)
-  participants EventParticipant[]
+enum LocationType {
+  PHYSICAL
+  ONLINE
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+model Event {
+  id            String         @id @default(uuid())
+  title         String
+  description   String
+  category      EventCategory  @default(OTHER)
+  startTime     DateTime
+  endTime       DateTime
+  locationType  LocationType   @default(PHYSICAL)
+  locationValue String         // Venue name OR Meeting link
+  bannerUrl     String?
+  maxAttendees  Int?
+  visibility    Visibility     @default(PUBLIC)
+  rsvpEnabled   Boolean        @default(true)
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  creatorId     String
+  creator       User           @relation("EventCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  participants  EventParticipant[]
 
   @@map("events")
 }

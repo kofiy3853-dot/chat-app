@@ -13,6 +13,8 @@ router.post('/conversations/group', chatController.createGroupConversation);
 router.get('/conversations/:id', chatController.getConversationById);
 router.put('/conversations/:id/archive', chatController.archiveConversation);
 router.delete('/conversations/:id', chatController.deleteConversation);
+router.put('/conversations/read-all', chatController.markAllAsRead);
+router.post('/conversations/delete-multiple', chatController.deleteMultipleConversations);
 router.delete('/conversations/:id/clear', chatController.clearChat);
 
 const upload = require('../middleware/uploadMiddleware');

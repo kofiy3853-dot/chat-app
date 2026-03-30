@@ -75,6 +75,9 @@ export const chatAPI = {
   sendMessage: (data) => api.post('/chat/messages', data),
   markAsRead: (conversationId) => 
     api.put(`/chat/conversations/${conversationId}/read`),
+  markAllAsRead: () => api.put('/chat/conversations/read-all'),
+  deleteMultipleConversations: (conversationIds) => 
+    api.post('/chat/conversations/delete-multiple', { conversationIds }),
   addReaction: (messageId, emoji) => 
     api.post(`/chat/messages/${messageId}/reaction`, { emoji }),
   uploadMessageAttachment: (formData) => 
