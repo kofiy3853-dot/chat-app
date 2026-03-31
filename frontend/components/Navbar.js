@@ -12,7 +12,7 @@ import {
 import { useState, useEffect } from 'react';
 import NewChatModal from './NewChatModal';
 import { getSocket } from '../services/socket';
-import { userAPI } from '../services/api';
+import { userAPI, chatAPI } from '../services/api';
 
 export default function Navbar() {
   const router = useRouter();

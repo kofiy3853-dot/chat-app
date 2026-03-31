@@ -41,8 +41,9 @@ async function subscribeToPush(registration) {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://campus-chat-backend.onrender.com';
-    await fetch(`${backendUrl}/api/notifications/subscribe`, {
+    const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://campus-chat-backend.onrender.com';
+    const baseUrl = rawUrl.replace(/\/api$/, '');
+    await fetch(`${baseUrl}/api/notifications/subscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(subscription.toJSON())
@@ -96,8 +97,9 @@ export default function MyApp({ Component, pageProps }) {
 
     // 4. Ping backend
     const pingBackend = async () => {
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://campus-chat-backend.onrender.com';
-      try { await fetch(`${backendUrl}/health`).catch(() => {}); } catch(e) {}
+      const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://campus-chat-backend.onrender.com';
+      const baseUrl = rawUrl.replace(/\/api$/, '');
+      try { await fetch(`${baseUrl}/health`).catch(() => {}); } catch(e) {}
     };
     pingBackend();
 
