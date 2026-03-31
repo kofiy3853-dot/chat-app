@@ -106,6 +106,7 @@ model Conversation {
   lastMessage   Message?  @relation("LastMessage", fields: [lastMessageId], references: [id])
   lastMessageId String?   @unique
 
+  @@index([lastMessageAt(sort: Desc)])
   @@map("conversations")
 }
 
@@ -152,8 +153,9 @@ model Message {
   lastMessageIn  Conversation? @relation("LastMessage")
   notifications  Notification[]
 
-  @@index([conversationId, createdAt])
-  @@index([courseId, createdAt])
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@index([courseId, createdAt(sort: Desc)])
+  @@index([senderId, createdAt])
   @@map("messages")
 }
 
@@ -327,6 +329,8 @@ model Event {
   creator       User           @relation("EventCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   participants  EventParticipant[]
 
+  @@index([startTime(sort: Asc)])
+  @@index([creatorId, createdAt])
   @@map("events")
 }
 
@@ -398,6 +402,7 @@ model Announcement {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([createdAt(sort: Desc)])
   @@map("announcements")
 }
 
@@ -407,5 +412,6 @@ model AnonymousPost {
   tags      String?  // Simple comma-separated string for now
   createdAt DateTime @default(now())
 
+  @@index([createdAt(sort: Desc)])
   @@map("anonymous_posts")
 }

@@ -79,27 +79,34 @@ exports.createEvent = async (req, res) => {
       }
     });
 
-    // Notify all users via Activity system
-    const users = await prisma.user.findMany({
+    // 5. Notify all users via high-performance batch creation
+    const allUsers = await prisma.user.findMany({
       where: { id: { not: req.user.id } },
       select: { id: true }
     });
 
-    await Promise.all(users.map(async (u) => {
-      const notification = await prisma.notification.create({
-        data: {
+    if (allUsers.length > 0) {
+      await prisma.notification.createMany({
+        data: allUsers.map(u => ({
           type: 'SYSTEM',
           title: `New ${category.toLowerCase()} event`,
           content: `${req.user.name} created: ${title}`,
           recipientId: u.id,
           actionUrl: `/events`
-        }
+        })),
+        skipDuplicates: true
       });
+
+      // Emit sockets in background
       if (req.io) {
-        const count = await prisma.notification.count({ where: { recipientId: u.id, isRead: false } });
-        req.io.to(`user:${u.id}`).emit('new-notification', { notification, unreadCount: count });
+        allUsers.forEach(u => {
+          req.io.to(`user:${u.id}`).emit('new-notification', { 
+            notification: { title: `New ${category} event`, content: title },
+            unreadCount: 'refresh' // Client will fetch count if needed or we can optimize later
+          });
+        });
       }
-    }));
+    }
 
     res.status(201).json(event);
   } catch (error) {

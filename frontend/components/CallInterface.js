@@ -14,8 +14,6 @@ export default function CallInterface() {
   const { 
     call, 
     callAccepted, 
-    myVideo, 
-    userVideo, 
     stream, 
     remoteStream,
     callEnded,
@@ -28,25 +26,33 @@ export default function CallInterface() {
     isVideoOff
   } = useCall();
 
+  const myVideoRef = useRef(null);
+  const userVideoRef = useRef(null);
+
+  // Attach local stream to myVideoRef
   useEffect(() => {
-    if (myVideo.current && stream) {
-      myVideo.current.srcObject = stream;
+    if (myVideoRef.current && stream) {
+      console.log('[CallInterface] Attaching local stream');
+      myVideoRef.current.srcObject = stream;
     }
-  }, [stream]);
+  }, [stream, callAccepted]);
 
+  // Attach remote stream to userVideoRef
   useEffect(() => {
-    if (userVideo.current && remoteStream) {
-      userVideo.current.srcObject = remoteStream;
-      userVideo.current.play().catch(() => {});
+    if (userVideoRef.current && remoteStream) {
+      console.log('[CallInterface] Attaching remote stream');
+      userVideoRef.current.srcObject = remoteStream;
+      userVideoRef.current.play().catch(e => console.warn('[CallInterface] Remote play error:', e));
 
+      // Workaround for some mobile browsers to ensure audio plays
       const nativeAudio = new Audio();
       nativeAudio.srcObject = remoteStream;
       nativeAudio.playsInline = true;
       nativeAudio.autoplay = true;
       nativeAudio.muted = false;
-      nativeAudio.play().catch(e => console.warn('Capacitor: Remote audio requires user tap', e));
+      nativeAudio.play().catch(e => console.warn('[CallInterface] Native audio play error:', e));
     }
-  }, [remoteStream]);
+  }, [remoteStream, callAccepted]);
 
   useEffect(() => {
     let wakeLock = null;
@@ -75,7 +81,7 @@ export default function CallInterface() {
     };
 
     const handleVisibilityChange = async () => {
-      if (typeof window === 'undefined' || window.capacitor) return;
+      if (typeof window === 'undefined' || (window.capacitor)) return;
       if (isActive && document.visibilityState === 'visible' && 'wakeLock' in navigator && !wakeLock) {
         enableKeepAwake();
       }
@@ -170,10 +176,7 @@ export default function CallInterface() {
           {call.type === 'VIDEO' ? (
             <video 
               playsInline 
-              ref={(el) => {
-                if (el && remoteStream) el.srcObject = remoteStream;
-                userVideo.current = el;
-              }} 
+              ref={userVideoRef} 
               autoPlay 
               onLoadedMetadata={(e) => e.target.play().catch(console.error)}
               className="w-full h-full object-cover" 
@@ -181,7 +184,7 @@ export default function CallInterface() {
           ) : (
             <div className="flex flex-col items-center space-y-8">
               <audio 
-                ref={userVideo} 
+                ref={userVideoRef} 
                 autoPlay 
                 playsInline 
                 style={{ position: 'absolute', opacity: 0.01, width: '1px', height: '1px', top: '-10px', pointerEvents: 'none' }} 
@@ -205,10 +208,7 @@ export default function CallInterface() {
               <video 
                 playsInline 
                 muted 
-                ref={(el) => {
-                  if (el && stream) el.srcObject = stream;
-                  myVideo.current = el;
-                }} 
+                ref={myVideoRef} 
                 autoPlay 
                 onLoadedMetadata={(e) => e.target.play().catch(console.error)}
                 className="w-full h-full object-cover -scale-x-100" 
