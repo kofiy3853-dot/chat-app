@@ -7,7 +7,7 @@ const { authMiddleware } = require('../middleware/authMiddleware');
 router.use(authMiddleware);
 
 // Conversation routes
-router.get('/unread-count', chatController.getTotalUnreadMessages);
+router.get('/total-unread', chatController.getTotalUnreadMessages);
 router.get('/conversations', chatController.getConversations);
 router.post('/conversations/direct', chatController.getOrCreateDirectConversation);
 router.post('/conversations/group', chatController.createGroupConversation);

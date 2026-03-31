@@ -65,7 +65,7 @@ export const userAPI = {
 
 // Chat API
 export const chatAPI = {
-  getUnreadChatCount: () => api.get('/chat/unread-count'),
+  getUnreadChatCount: () => api.get('/chat/total-unread'),
   getConversations: () => api.get('/chat/conversations'),
   getConversationById: (id) => api.get(`/chat/conversations/${id}`),
   getOrCreateDirectConversation: (userId) => 

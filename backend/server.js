@@ -41,6 +41,12 @@ const ALLOWED_ORIGINS = [
   'http://192.168.23.126:3000',
 ].filter(Boolean);
 
+// Request logging
+app.use((req, res, next) => {
+  console.log(`[REQUEST] ${req.method} ${req.path}`);
+  next();
+});
+
 // Manual CORS Middleware - Foolproof for all environments
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -116,6 +122,15 @@ console.log('All routes registered successfully');
 
 // Socket.IO setup
 setupSockets(io);
+
+// Catch-all API 404s
+app.use((req, res, next) => {
+  if (req.originalUrl.startsWith('/api')) {
+    console.log(`[API 404] ${req.method} ${req.originalUrl}`);
+    return res.status(404).json({ message: `API route not found: ${req.originalUrl}` });
+  }
+  next();
+});
 
 // Error handling middleware
 app.use(errorHandler);
