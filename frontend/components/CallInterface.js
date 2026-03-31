@@ -28,7 +28,8 @@ export default function CallInterface() {
 
   const myVideoRef = useRef(null);
   const userVideoRef = useRef(null);
-
+  const remoteAudioRef = useRef(null);
+  
   // Attach local stream to myVideoRef
   useEffect(() => {
     if (myVideoRef.current && stream) {
@@ -45,13 +46,28 @@ export default function CallInterface() {
       userVideoRef.current.play().catch(e => console.warn('[CallInterface] Remote play error:', e));
 
       // Workaround for some mobile browsers to ensure audio plays
-      const nativeAudio = new Audio();
-      nativeAudio.srcObject = remoteStream;
-      nativeAudio.playsInline = true;
-      nativeAudio.autoplay = true;
-      nativeAudio.muted = false;
-      nativeAudio.play().catch(e => console.warn('[CallInterface] Native audio play error:', e));
+      // Ensuring only ONE audio object exists to prevent echo/double audio (Previous bug)
+      if (!remoteAudioRef.current) {
+        remoteAudioRef.current = new Audio();
+        remoteAudioRef.current.playsInline = true;
+        remoteAudioRef.current.autoplay = true;
+      }
+      
+      if (remoteAudioRef.current.srcObject !== remoteStream) {
+        remoteAudioRef.current.srcObject = remoteStream;
+        remoteAudioRef.current.muted = false;
+        remoteAudioRef.current.play().catch(e => console.warn('[CallInterface] Native audio play error:', e));
+      }
     }
+
+    return () => {
+      if (remoteAudioRef.current) {
+        console.log('[CallInterface] Stopping remote audio');
+        remoteAudioRef.current.pause();
+        remoteAudioRef.current.srcObject = null;
+        remoteAudioRef.current = null;
+      }
+    };
   }, [remoteStream, callAccepted]);
 
   useEffect(() => {
