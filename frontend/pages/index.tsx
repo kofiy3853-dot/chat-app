@@ -1,19 +1,17 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, useEffect as uE } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { 
-  MagnifyingGlassIcon, 
-  PlusIcon,
-  EllipsisVerticalIcon,
-  CheckIcon,
-  EnvelopeOpenIcon,
-  TrashIcon,
-  UserGroupIcon,
-  CameraIcon,
-  ChatBubbleOvalLeftEllipsisIcon,
-  AdjustmentsHorizontalIcon,
-  XMarkIcon
-} from '@heroicons/react/24/outline';
+import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon';
+import PlusIcon from '@heroicons/react/24/outline/PlusIcon';
+import EllipsisVerticalIcon from '@heroicons/react/24/outline/EllipsisVerticalIcon';
+import CheckIcon from '@heroicons/react/24/outline/CheckIcon';
+import EnvelopeOpenIcon from '@heroicons/react/24/outline/EnvelopeOpenIcon';
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
+import UserGroupIcon from '@heroicons/react/24/outline/UserGroupIcon';
+import CameraIcon from '@heroicons/react/24/outline/CameraIcon';
+import ChatBubbleOvalLeftEllipsisIcon from '@heroicons/react/24/outline/ChatBubbleOvalLeftEllipsisIcon';
+import AdjustmentsHorizontalIcon from '@heroicons/react/24/outline/AdjustmentsHorizontalIcon';
+import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
 import { getCurrentUser } from '../utils/helpers';
 import { chatAPI, userAPI } from '../services/api';
 import { getSocket } from '../services/socket';

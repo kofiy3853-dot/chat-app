@@ -26,14 +26,12 @@ export default function ChatPage() {
   const router = useRouter();
   const { id } = router.query;
   const [conversation, setConversation] = useState(null);
-  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showMediaGallery, setShowMediaGallery] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const [modalImgError, setModalImgError] = useState(false);
   
   const { callUser } = useCall();
 
@@ -108,7 +106,6 @@ export default function ChatPage() {
       }
       
       fetchConversation();
-      fetchMessages();
       joinConversation(id);
 
       const socket = initSocket();
@@ -150,18 +147,6 @@ export default function ChatPage() {
     }
   };
 
-  const fetchMessages = async () => {
-    try {
-      const response = await chatAPI.getMessages(id);
-      setMessages(response.data.messages || []);
-      
-      // Mark as read after fetching
-      chatAPI.markAsRead(id).catch(() => {});
-    } catch (err) {
-      console.error('Fetch error:', err);
-    }
-  };
-
   const otherParticipant = conversation?.participants?.find(
     p => p.userId !== currentUser?.id
   );
@@ -180,7 +165,6 @@ export default function ChatPage() {
       try {
         await chatAPI.clearChat(id);
         setShowMenu(false);
-        setMessages([]);
       } catch (error) {
         console.error('Failed to clear chat:', error);
         alert('Could not clear chat. Please try again.');
