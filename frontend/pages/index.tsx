@@ -9,6 +9,7 @@ import EnvelopeOpenIcon from '@heroicons/react/24/outline/EnvelopeOpenIcon';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import UserGroupIcon from '@heroicons/react/24/outline/UserGroupIcon';
 import CameraIcon from '@heroicons/react/24/outline/CameraIcon';
+import SparklesIcon from '@heroicons/react/24/outline/SparklesIcon';
 import ChatBubbleOvalLeftEllipsisIcon from '@heroicons/react/24/outline/ChatBubbleOvalLeftEllipsisIcon';
 import AdjustmentsHorizontalIcon from '@heroicons/react/24/outline/AdjustmentsHorizontalIcon';
 import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
@@ -394,7 +395,7 @@ const MessagesPage: React.FC = () => {
       </main>
 
       {/* ─── Floating Action Button ─── */}
-      <div className="fixed bottom-24 right-4 z-40">
+      <div className="fixed bottom-24 right-4 z-[200]">
         <div className="relative">
           <AnimatePresence>
             {showFAB && (
@@ -409,17 +410,17 @@ const MessagesPage: React.FC = () => {
                   onClick={() => { startNanaChat(); setShowFAB(false); }}
                   className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-black text-primary-600 hover:bg-primary-50 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600 shadow-sm shadow-primary-500/20">
-                    <ChatBubbleOvalLeftEllipsisIcon className="w-5 h-5 animate-pulse" />
+                  <div className="w-8 h-8 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600 shadow-sm shadow-primary-500/10">
+                    <SparklesIcon className="w-5 h-5" />
                   </div>
                   <span>✨ Ask Nana AI</span>
                 </button>
-                <div className="h-px bg-gray-100 mx-2" />
+                <div className="h-px bg-gray-100 mx-3" />
                 <button
                   onClick={() => { setIsModalOpen(true); setShowFAB(false); }}
                   className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-600">
+                  <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
                     <ChatBubbleOvalLeftEllipsisIcon className="w-4 h-4" />
                   </div>
                   <span>New Chat</span>
@@ -433,7 +434,6 @@ const MessagesPage: React.FC = () => {
                   </div>
                   <span>New Group</span>
                 </button>
-                <div className="h-px bg-gray-100" />
                 <button
                   onClick={() => { router.push('/status'); setShowFAB(false); }}
                   className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
