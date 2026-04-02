@@ -130,27 +130,27 @@ exports.updateStatus = async (req, res) => {
 exports.getNotifications = async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Safer pagination parsing
+    const p = Math.max(1, parseInt(page) || 1);
+    const l = Math.max(1, Math.min(100, parseInt(limit) || 20));
+    const skip = (p - 1) * l;
 
-    // Fetch notifications without the missing 'sender' relation
+    console.log(`[NOTIF] Fetching notifications for user: ${req.user.id}, Page: ${p}, Skip: ${skip}, Take: ${l}`);
+
+    // Fetch core notifications WITHOUT relations to avoid "broken relation" errors in Prisma/Postgres
     const notifications = await prisma.notification.findMany({
       where: { recipientId: req.user.id },
       orderBy: { createdAt: 'desc' },
       skip,
-      take: parseInt(limit),
-      include: {
-        message: {
-          select: {
-            id: true,
-            content: true,
-            conversationId: true,
-            type: true
-          }
-        }
-      }
+      take: l
     });
 
-    // Manually fetch sender information for notifications that have a senderId
+    if (!notifications || notifications.length === 0) {
+      return res.json({ notifications: [], hasMore: false });
+    }
+
+    // 1. Manually fetch Senders
     const senderIds = [...new Set(notifications.map(n => n.senderId).filter(Boolean))];
     let senders = [];
     if (senderIds.length > 0) {
@@ -160,21 +160,43 @@ exports.getNotifications = async (req, res) => {
       });
     }
 
-    // Map senders back to notifications
-    const notificationsWithSenders = notifications.map(notif => ({
-      ...notif,
-      sender: senders.find(s => s.id === notif.senderId) || null
-    }));
+    // 2. Manually fetch Messages (if referenced)
+    const messageIds = [...new Set(notifications.map(n => n.messageId).filter(Boolean))];
+    let messages = [];
+    if (messageIds.length > 0) {
+      messages = await prisma.message.findMany({
+        where: { id: { in: messageIds } },
+        select: {
+          id: true,
+          content: true,
+          conversationId: true,
+          type: true
+        }
+      });
+    }
+
+    // Combine everything
+    const populatedNotifications = notifications.map(notif => {
+      const sender = senders.find(s => s.id === notif.senderId) || null;
+      const message = messages.find(m => m.id === notif.messageId) || null;
+      
+      return {
+        ...notif,
+        sender,
+        message
+      };
+    });
 
     res.json({ 
-      notifications: notificationsWithSenders,
-      hasMore: notifications.length === parseInt(limit)
+      notifications: populatedNotifications,
+      hasMore: notifications.length === l
     });
   } catch (error) {
-    console.error('[NOTIF ERROR] getNotifications failed:', error);
+    console.error('[CRITICAL NOTIF ERROR] getNotifications failed:', error);
     res.status(500).json({ 
       message: 'Server error while fetching notifications', 
-      error: error.message 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
