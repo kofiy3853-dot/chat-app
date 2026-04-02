@@ -116,15 +116,15 @@ export default function Register() {
         <title>Create Account | Campus Chat</title>
       </Head>
 
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ backgroundColor: '#6B73FF' }}>
         <div className="max-w-xl w-full">
           {/* Logo & Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4 shadow-lg shadow-primary-200">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-3xl mb-4">
               <AcademicCapIcon className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Create Account</h1>
-            <p className="text-gray-500 mt-2">Join your global campus network</p>
+            <h1 className="text-2xl font-black text-white tracking-tight">Create Account</h1>
+            <p className="text-white/60 mt-1 text-sm font-medium">Join your campus network</p>
           </div>
 
           {/* Registration Card */}

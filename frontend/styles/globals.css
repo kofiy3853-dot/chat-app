@@ -5,15 +5,15 @@
 /* ─── Light Mode (Default) ───────────────────────────────── */
 :root,
 [data-theme="light"] {
-  --bg-page:          #F5F8FF;
+  --bg-page:          #6B73FF;
   --bg-surface:       #FFFFFF;
-  --bg-surface-2:     #F0F2FF;
-  --bg-input:         #F1F3FF;
+  --bg-surface-2:     #F4F5FF;
+  --bg-input:         #F4F5FF;
   --bg-navbar:        #FFFFFF;
 
   --text-primary:     #1A1D3A;
   --text-secondary:   #6B7280;
-  --text-muted:       #94A3B8;
+  --text-muted:       #9CA3AF;
 
   --border:           #E8EAF6;
   --border-light:     #F0F2FF;
