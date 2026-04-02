@@ -28,7 +28,9 @@ exports.register = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorMsg = errors.array()[0].msg || 'Validation failed';
+      console.log(`[REGISTER DEBUG] Validation failed: ${errorMsg}`);
+      return res.status(400).json({ message: errorMsg, errors: errors.array() });
     }
 
     const { email, password, name, studentId, department, role } = req.body;
