@@ -12,13 +12,25 @@ if (!process.env.DIRECT_URL && !process.env.DATABASE_URL) {
 }
 
 // Generate JWT token
-const generateToken = (userId) => {
+const generateToken = (user) => {
   if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET environment variable is not configured on this server.');
   }
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+  return jwt.sign({ 
+    userId: user.id,
+    role: user.role 
+  }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
+};
+
+const getRedirectPath = (role) => {
+  switch (role) {
+    case 'ADMIN': return '/admin';
+    case 'NANA': return '/nana';
+    case 'STUDENT': return '/';
+    default: return '/';
+  }
 };
 
 const uploadToSupabase = require('../utils/uploadToSupabase');
@@ -85,7 +97,7 @@ exports.register = async (req, res) => {
     console.log(`[REGISTER DEBUG] User created in DB with avatar: ${user.avatar ? 'YES' : 'NO'}`);
 
     // Generate token
-    const token = generateToken(user.id);
+    const token = generateToken(user);
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
@@ -93,7 +105,8 @@ exports.register = async (req, res) => {
     res.status(201).json({
       message: 'User registered successfully',
       token,
-      user: userWithoutPassword
+      user: userWithoutPassword,
+      redirectTo: getRedirectPath(user.role)
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -133,7 +146,7 @@ exports.login = async (req, res) => {
 
     // Step 3: Generate JWT
     step = 'jwt_sign';
-    const token = generateToken(user.id);
+    const token = generateToken(user);
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
@@ -142,7 +155,8 @@ exports.login = async (req, res) => {
     res.json({
       message: 'Login successful',
       token,
-      user: userWithoutPassword
+      user: userWithoutPassword,
+      redirectTo: getRedirectPath(user.role)
     });
   } catch (error) {
     console.error(`[LOGIN ERROR] Failed at step '${step}':`, error.message);

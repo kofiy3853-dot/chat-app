@@ -335,6 +335,7 @@ enum Role {
   STUDENT
   INSTRUCTOR
   ADMIN
+  NANA
 }
 
 enum ConversationType {

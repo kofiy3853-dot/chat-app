@@ -99,8 +99,9 @@ export default function Register() {
       // Initialize OneSignal
       initOneSignal(user);
 
+      // Redirect based on role-based path from server
       toast.success('Account created successfully!');
-      router.push('/');
+      router.push(response.data.redirectTo || '/');
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed. Please try again.';
       setError(msg);

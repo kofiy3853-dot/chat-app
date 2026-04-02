@@ -99,4 +99,25 @@ const optionalAuthMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = { authMiddleware, socketAuthMiddleware, optionalAuthMiddleware };
+const requireRole = (roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authorization required' });
+    }
+    
+    // Support single role string or array of roles
+    const allowedRoles = Array.isArray(roles) ? roles : [roles];
+    
+    if (!allowedRoles.includes(req.user.role)) {
+      console.warn(`[AUTH] RBAC Denied: User ${req.user.email} (Role: ${req.user.role}) attempted to access ${req.originalUrl}. Required: ${allowedRoles}`);
+      return res.status(403).json({ 
+        message: 'Forbidden: You do not have permission to access this resource',
+        requiredRoles: allowedRoles
+      });
+    }
+    
+    next();
+  };
+};
+
+module.exports = { authMiddleware, socketAuthMiddleware, optionalAuthMiddleware, requireRole };

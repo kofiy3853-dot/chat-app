@@ -65,8 +65,9 @@ export default function MyApp({ Component, pageProps }) {
   const [isOffline, setIsOffline] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
+  // 1. Core Lifecycle & Global Side-effects
   useEffect(() => {
-    // 1. Service Worker & Push
+    // 1.1 Service Worker & Push (OneSignal)
     if (typeof window !== 'undefined' && "serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("/sw.js").then(async (reg) => {
@@ -77,32 +78,34 @@ export default function MyApp({ Component, pageProps }) {
             }
             if (permission === 'granted' && VAPID_PUBLIC_KEY) {
               const currentUser = JSON.parse(localStorage.getItem('user'));
-              initOneSignal(currentUser);
+              if (currentUser) initOneSignal(currentUser);
             }
           }
         }).catch(err => console.error('SW error', err));
       });
     }
 
-    // 2. OfflineUX
+    // 1.2 Offline Monitoring
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     if (typeof navigator !== 'undefined') setIsOffline(!navigator.onLine);
 
-    // 3. Install
+    // 1.3 Install Prompt
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // 4. Ping backend
+    // 1.4 Backend Health Ping
     const pingBackend = async () => {
-      const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://campus-chat-backend.onrender.com';
-      const baseUrl = rawUrl.replace(/\/api$/, '');
-      try { await fetch(`${baseUrl}/health`).catch(() => {}); } catch(e) {}
+      try {
+        const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://campus-chat-backend.onrender.com';
+        const baseUrl = rawUrl.replace(/\/api$/, '');
+        await fetch(`${baseUrl}/health`).catch(() => {});
+      } catch(e) {}
     };
     pingBackend();
 
@@ -113,87 +116,76 @@ export default function MyApp({ Component, pageProps }) {
     };
   }, []);
 
-  useEffect(() => {
-    const authCheck = (url) => {
-      const path = url.split('?')[0];
-      const token = localStorage.getItem('token');
-      if (!token && !publicPages.includes(path)) {
-        setAuthorized(false);
-        router.push('/login');
-      } else {
-        setAuthorized(true);
-        if (token) initSocket();
-      }
+  // 2. Unified Auth & RBAC Logic
+  const authCheck = (url) => {
+    if (!router.isReady) return;
+    
+    const path = url.split('?')[0];
+    const userStr = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    // A. Public Routes Bypass
+    if (publicPages.includes(path)) {
+      setAuthorized(!!token); // Allow /login, but set authorized if token exists
       setIsReady(true);
-      setTimeout(() => {
-        const loader = document.getElementById('initial-loader');
-        if (loader) {
-          loader.style.opacity = '0';
-          loader.style.visibility = 'hidden';
-          setTimeout(() => loader.remove(), 500);
-        }
-      }, 50);
-    };
+      
+      // If logged in and trying to access /login, redirect to their home
+      if (token && user && path === '/login') {
+         router.push(user.role === 'NANA' ? '/nana' : '/');
+      }
+      return;
+    }
+
+    // B. Guard Protected Routes
+    if (!token || !user) {
+      setAuthorized(false);
+      setIsReady(true);
+      if (path !== '/login') router.push('/login');
+      return;
+    }
+
+    // C. Role-Based Access Control (RBAC)
+    const role = user.role || 'STUDENT';
+
+    // C.1 Nana Restriction (Nana ONLY allowed on /nana)
+    if (role === 'NANA') {
+      if (!path.startsWith('/nana') && path !== '/logout') {
+        console.warn(`[RBAC] Nana role unauthorized for path: ${path}. Redirecting to Hub.`);
+        router.push('/nana');
+        return;
+      }
+    }
+
+    // C.2 Student/Instructor Protection
+    if ((role === 'STUDENT' || role === 'INSTRUCTOR') && path.startsWith('/admin')) {
+      console.warn(`[RBAC] Access Denied for role ${role} to ${path}`);
+      router.push('/');
+      return;
+    }
+
+    // Success! 
+    setAuthorized(true);
+    setIsReady(true);
+    
+    // Auto-init socket if not already done
+    if (token) initSocket();
+  };
+
+  useEffect(() => {
+    // Initial check on mount/load
     authCheck(router.asPath);
-    router.events.on('routeChangeComplete', authCheck);
-    return () => router.events.off('routeChangeComplete', authCheck);
-  }, [router]);
 
-  useEffect(() => {
-    if (!authorized) return;
-    navigator.serviceWorker.ready.then((reg) => {
-      const currentUser = JSON.parse(localStorage.getItem('user'));
-      initOneSignal(currentUser);
-    }).catch(() => {});
-  }, [authorized]);
+    // Watch for route transitions
+    const handleRouteChange = (url) => authCheck(url);
+    router.events.on('routeChangeStart', handleRouteChange);
+    
+    return () => router.events.off('routeChangeStart', handleRouteChange);
+  }, [router.isReady, router.asPath]);
 
-  useEffect(() => {
-    if (!authorized) return;
-    const socket = getSocket();
-    if (!socket) return;
-    const handleGlobalNewMessage = async (msg) => {
-      try {
-        const currentUser = JSON.parse(localStorage.getItem('user'));
-        const actualMsg = msg.message || msg;
-        const messageSenderId = actualMsg.senderId || actualMsg.sender?.id || actualMsg.sender;
-        if (String(messageSenderId) === String(currentUser?.id)) return;
-        
-        if (router.pathname === '/chat/[id]' && router.query.id === msg.conversationId) {
-           new Audio('/sounds/ding.mp3').play().catch(() => {});
-           return;
-        }
+  // 3. UI Decision Helpers
+  const shouldHideNavbar = hideNavbarPages.includes(router.pathname) || (authorized && JSON.parse(localStorage.getItem('user'))?.role === 'NANA');
 
-        const senderName = actualMsg.sender?.name || 'New Message';
-        const bodyContent = actualMsg.content || 'Sent an attachment';
-        new Audio('/sounds/ding.mp3').play().catch(() => {});
-
-        if (document.visibilityState === 'visible') {
-           toast.success(`${senderName}: ${bodyContent}`, { icon: '💬', position: 'top-center', duration: 4000 });
-           return;
-        }
-
-        if (typeof window !== 'undefined' && 'capacitor' in window) {
-           await LocalNotifications.schedule({
-             notifications: [{
-               title: senderName,
-               body: bodyContent,
-               id: Math.floor(Math.random() * 100000),
-               schedule: { at: new Date(Date.now() + 100) },
-               extra: { conversationId: msg.conversationId || actualMsg.conversationId }
-             }]
-           });
-        } else if (Notification.permission === 'granted') {
-           new Notification(senderName, { body: bodyContent, icon: '/icons/icon-192.png' });
-        }
-      } catch (err) { console.error('Notify Error', err); }
-    };
-    socket.on('new-message', handleGlobalNewMessage);
-    return () => { socket.off('new-message', handleGlobalNewMessage); };
-  }, [authorized, router.pathname, router.query.id]);
-
-  const shouldHideNavbar = hideNavbarPages.includes(router.pathname);
-
-  // Return nothing while checking auth - the static splash screen in _document.js handles the loading state instantly
   if (!isReady) return null;
 
   return (
