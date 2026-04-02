@@ -5,5 +5,6 @@ const { authMiddleware } = require('../middleware/authMiddleware');
 
 router.get('/', announcementController.getAnnouncements);
 router.post('/', authMiddleware, announcementController.createAnnouncement);
+router.delete('/:id', authMiddleware, announcementController.deleteAnnouncement);
 
 module.exports = router;

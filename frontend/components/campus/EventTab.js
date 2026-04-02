@@ -3,11 +3,18 @@ import {
   CalendarIcon, 
   MapPinIcon, 
   CheckIcon,
-  PlusIcon
+  PlusIcon,
+  XMarkIcon,
+  TrashIcon,
+  ClockIcon,
+  UsersIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import { eventAPI } from '../../services/api';
 import { format } from 'date-fns';
 import { useRouter } from 'next/router';
+import { getCurrentUser } from '../../utils/helpers';
+import { toast } from 'react-hot-toast';
 
 const EventTab = () => {
   const router = useRouter();
@@ -16,6 +23,12 @@ const EventTab = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
+  useEffect(() => {
+    setCurrentUser(getCurrentUser());
+  }, []);
 
   const fetchEvents = useCallback(async (pageNum = 1, shouldAppend = false) => {
     try {
@@ -40,7 +53,8 @@ const EventTab = () => {
     fetchEvents(1, false);
   }, [fetchEvents]);
 
-  const handleToggleJoin = async (eventId) => {
+  const handleToggleJoin = async (e, eventId) => {
+    e.stopPropagation(); // Don't open modal when clicking join
     try {
       const response = await eventAPI.toggleJoin(eventId);
       setEvents(prev => prev.map(e => {
@@ -53,8 +67,31 @@ const EventTab = () => {
         }
         return e;
       }));
+      
+      // Update selected event if open
+      if (selectedEvent && selectedEvent.id === eventId) {
+        setSelectedEvent(prev => ({
+          ...prev,
+          isJoined: response.data.isJoined,
+          attendeeCount: response.data.isJoined ? prev.attendeeCount + 1 : prev.attendeeCount - 1
+        }));
+      }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteEvent = async (e, eventId) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) return;
+
+    try {
+      await eventAPI.deleteEvent(eventId);
+      setEvents(prev => prev.filter(ev => ev.id !== eventId));
+      toast.success('Event deleted');
+      if (selectedEvent?.id === eventId) setSelectedEvent(null);
+    } catch (err) {
+      console.error('Failed to delete event:', err);
     }
   };
 
@@ -105,10 +142,19 @@ const EventTab = () => {
       ) : (
         <div className="grid gap-6 px-4 pb-12">
           {events.map((event) => (
-            <div key={event.id} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group shadow-slate-200/20">
+            <div 
+              key={event.id} 
+              onClick={() => setSelectedEvent(event)}
+              className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group shadow-slate-200/20 cursor-pointer hover:border-primary-200 transition-all active:scale-[0.99]"
+            >
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1 pr-4">
+                    <div className="flex items-center space-x-2 mb-1">
+                       <span className="px-2 py-0.5 bg-primary-50 text-primary-600 text-[8px] font-black uppercase tracking-widest rounded-md border border-primary-100/50">
+                          {event.category || 'Event'}
+                       </span>
+                    </div>
                     <h2 className="text-xl font-black text-slate-900 leading-tight tracking-tight mb-2 group-hover:text-primary-600 transition-colors uppercase">
                       {event.title}
                     </h2>
@@ -138,11 +184,21 @@ const EventTab = () => {
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                    {event.attendeeCount || 0} Going
-                  </span>
+                  <div className="flex items-center space-x-4">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                      {event.attendeeCount || 0} Going
+                    </span>
+                    {(currentUser?.id === event.creatorId || currentUser?.role === 'ADMIN') && (
+                      <button 
+                        onClick={(e) => handleDeleteEvent(e, event.id)}
+                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                   <button 
-                    onClick={() => handleToggleJoin(event.id)}
+                    onClick={(e) => handleToggleJoin(e, event.id)}
                     className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
                       event.isJoined 
                       ? 'bg-primary-50 text-primary-600' 
@@ -160,6 +216,124 @@ const EventTab = () => {
               {isFetchingMore ? 'Loading...' : 'See More'}
             </button>
           )}
+        </div>
+      )}
+
+      {/* Detailed Modal Overlay */}
+      {selectedEvent && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+           {/* Backdrop */}
+           <div 
+             className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" 
+             onClick={() => setSelectedEvent(null)}
+           />
+           
+           {/* Modal Body */}
+           <div className="relative w-full max-w-xl bg-white rounded-t-[3rem] sm:rounded-[3rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300 flex flex-col max-h-[90vh]">
+              {/* Header/Banner Area */}
+              <div className="h-48 bg-primary-600 relative shrink-0">
+                 {selectedEvent.bannerUrl ? (
+                   <img src={selectedEvent.bannerUrl} className="w-full h-full object-cover opacity-60" alt="" />
+                 ) : (
+                   <div className="w-full h-full bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center">
+                      <CalendarIcon className="w-20 h-20 text-white/10" />
+                   </div>
+                 )}
+                 <button 
+                   onClick={() => setSelectedEvent(null)}
+                   className="absolute top-6 right-6 p-2 bg-black/20 backdrop-blur-md text-white rounded-2xl hover:bg-black/40 transition-all"
+                 >
+                    <XMarkIcon className="w-6 h-6" />
+                 </button>
+                 
+                 <div className="absolute -bottom-1 left-0 right-0 h-10 bg-white rounded-t-[3rem]" />
+              </div>
+
+              {/* Content Area */}
+              <div className="px-8 pb-10 overflow-y-auto custom-scrollbar">
+                 <div className="flex items-center space-x-2 mb-4">
+                    <span className="px-3 py-1 bg-primary-50 text-primary-600 text-[10px] font-black uppercase tracking-widest rounded-xl border border-primary-100">
+                       {selectedEvent.category}
+                    </span>
+                 </div>
+                 
+                 <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight leading-none mb-6">
+                    {selectedEvent.title}
+                 </h2>
+                 
+                 <div className="grid grid-cols-1 gap-4 mb-8">
+                    <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-3xl border border-slate-100">
+                       <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary-500 shadow-sm">
+                          <ClockIcon className="w-6 h-6" />
+                       </div>
+                       <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Time & Date</p>
+                          <p className="text-sm font-bold text-slate-700">
+                             {format(new Date(selectedEvent.dateTime || selectedEvent.startTime), 'EEEE, MMMM do')} @ {format(new Date(selectedEvent.dateTime || selectedEvent.startTime), 'p')}
+                          </p>
+                       </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-3xl border border-slate-100">
+                       <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm">
+                          <MapPinIcon className="w-6 h-6" />
+                       </div>
+                       <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Location</p>
+                          <p className="text-sm font-bold text-slate-700">{selectedEvent.location || selectedEvent.locationValue}</p>
+                       </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-3xl border border-slate-100">
+                       <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-orange-500 shadow-sm">
+                          <UsersIcon className="w-6 h-6" />
+                       </div>
+                       <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Attendance</p>
+                          <p className="text-sm font-bold text-slate-700">{selectedEvent.attendeeCount || 0} People are going</p>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="mb-8">
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center space-x-2">
+                       <InformationCircleIcon className="w-4 h-4" />
+                       <span>About this event</span>
+                    </h3>
+                    <p className="text-base text-slate-600 font-medium leading-relaxed bg-slate-50/50 p-6 rounded-3xl border border-slate-100 italic">
+                       {selectedEvent.description}
+                    </p>
+                 </div>
+
+                 {/* Host Info */}
+                 <div className="flex items-center justify-between p-6 bg-slate-900 rounded-3xl">
+                    <div className="flex items-center space-x-4">
+                       <div className={`w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white font-black overflow-hidden`}>
+                          {selectedEvent.creator?.avatar ? (
+                            <img src={selectedEvent.creator.avatar} className="w-full h-full object-cover" alt="" />
+                          ) : (
+                            selectedEvent.creator?.name?.charAt(0) || 'H'
+                          )}
+                       </div>
+                       <div>
+                          <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-0.5">Hosted By</p>
+                          <p className="text-sm font-bold text-white">{selectedEvent.creator?.name || 'Campus Host'}</p>
+                       </div>
+                    </div>
+                    
+                    <button 
+                      onClick={(e) => handleToggleJoin(e, selectedEvent.id)}
+                      className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                         selectedEvent.isJoined 
+                         ? 'bg-white/10 text-white border border-white/20' 
+                         : 'bg-primary-500 text-white shadow-xl shadow-primary-500/30'
+                      }`}
+                    >
+                       {selectedEvent.isJoined ? 'I\'m Going' : 'Count me in'}
+                    </button>
+                 </div>
+              </div>
+           </div>
         </div>
       )}
     </div>

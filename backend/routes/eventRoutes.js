@@ -8,5 +8,6 @@ router.use(authMiddleware);
 router.get('/', eventController.getEvents);
 router.post('/', eventController.createEvent);
 router.post('/:eventId/toggle-join', eventController.toggleJoinEvent);
+router.delete('/:eventId', eventController.deleteEvent);
 
 module.exports = router;

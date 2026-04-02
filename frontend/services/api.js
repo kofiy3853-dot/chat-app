@@ -162,19 +162,22 @@ export const statusAPI = {
 export const eventAPI = {
   getEvents: (page = 1, limit = 20) => api.get(`/events?page=${page}&limit=${limit}`),
   createEvent: (data) => api.post('/events', data),
-  toggleJoin: (eventId) => api.post(`/events/${eventId}/toggle-join`)
+  toggleJoin: (eventId) => api.post(`/events/${eventId}/toggle-join`),
+  deleteEvent: (eventId) => api.delete(`/events/${eventId}`)
 };
 
 // Announcement API
 export const announcementAPI = {
   getAnnouncements: (page = 1, limit = 20) => api.get(`/announcements?page=${page}&limit=${limit}`),
-  createAnnouncement: (data) => api.post('/announcements', data)
+  createAnnouncement: (data) => api.post('/announcements', data),
+  deleteAnnouncement: (id) => api.delete(`/announcements/${id}`)
 };
 
 // Anonymous API
 export const anonymousAPI = {
   getPosts: (page = 1, limit = 20) => api.get(`/anonymous?page=${page}&limit=${limit}`),
-  createPost: (data) => api.post('/anonymous', data)
+  createPost: (data) => api.post('/anonymous', data),
+  deletePost: (id) => api.delete(`/anonymous/${id}`)
 };
 
 export default api;

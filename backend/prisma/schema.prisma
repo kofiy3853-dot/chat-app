@@ -38,6 +38,7 @@ model User {
   createdEvents     Event[]       @relation("EventCreator")
   joinedEvents      EventParticipant[]
   announcements     Announcement[]
+  anonymousPosts    AnonymousPost[] @relation("AnonymousPostCreator")
 }
 
 model Status {
@@ -393,6 +394,9 @@ model AnonymousPost {
   content   String
   tags      String?  // Simple comma-separated string for now
   createdAt DateTime @default(now())
+
+  userId    String?
+  user      User?    @relation("AnonymousPostCreator", fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([createdAt(sort: Desc)])
   @@map("anonymous_posts")

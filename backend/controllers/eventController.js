@@ -140,3 +140,30 @@ exports.toggleJoinEvent = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+// Delete event
+exports.deleteEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const userId = req.user.id;
+
+    const event = await prisma.event.findUnique({
+      where: { id: eventId }
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    if (event.creatorId !== userId && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Not authorized to delete this event' });
+    }
+
+    await prisma.event.delete({
+      where: { id: eventId }
+    });
+
+    res.json({ message: 'Event deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
