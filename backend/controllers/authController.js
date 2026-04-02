@@ -33,6 +33,11 @@ exports.register = async (req, res) => {
 
     const { email, password, name, studentId, department, role } = req.body;
 
+    // Email domain restriction: ktu.edu.gh only
+    if (!email?.toLowerCase().endsWith('@ktu.edu.gh')) {
+      return res.status(400).json({ message: 'Access Denied. Only university emails (@ktu.edu.gh) are permitted to join this hub.' });
+    }
+
     // Strict validation: No single line leave blank
     if (!name?.trim() || !email?.trim() || !password?.trim() || !studentId?.trim() || !department?.trim()) {
       return res.status(400).json({ message: 'All fields are mandatory. Please fill in all information.' });

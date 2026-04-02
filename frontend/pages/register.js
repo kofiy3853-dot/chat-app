@@ -58,6 +58,13 @@ export default function Register() {
       return;
     }
 
+    if (!formData.email.toLowerCase().endsWith('@ktu.edu.gh')) {
+      setError('Only @ktu.edu.gh emails are allowed.');
+      toast.error('Access Denied. Use your university email.');
+      setLoading(false);
+      return;
+    }
+
     if (!avatar) {
       setError('Please upload a profile picture.');
       toast.error('Profile picture is required.');
@@ -182,7 +189,7 @@ export default function Register() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
-                    placeholder="name@university.edu"
+                    placeholder="your-name@ktu.edu.gh"
                   />
                 </div>
 
