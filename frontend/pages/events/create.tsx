@@ -122,7 +122,7 @@ const CreateEventPage = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-500" style={{ backgroundColor: 'transparent' }}>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-500">
         <div className="w-24 h-24 bg-primary-100 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-xl shadow-primary-200/50 rotate-6">
           <CheckCircleIcon className="w-12 h-12 text-primary-600" />
         </div>
@@ -134,7 +134,7 @@ const CreateEventPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col max-w-xl mx-auto shadow-2xl relative" style={{ backgroundColor: 'transparent' }}>
+    <div className="min-h-screen bg-slate-50 flex flex-col max-w-xl mx-auto shadow-2xl relative">
       <Head>
         <title>Create Event | Campus Chat</title>
       </Head>

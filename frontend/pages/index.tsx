@@ -188,7 +188,7 @@ const MessagesPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans" style={{ backgroundColor: 'transparent' }}>
+    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden bg-white font-sans">
       <Head>
         <title>Messages | Campus Chat</title>
       </Head>
@@ -320,12 +320,12 @@ const MessagesPage: React.FC = () => {
       <NotificationPrompt />
 
       {/* ─── Stories Section ─── */}
-      <div className="px-2 pt-2 pb-1 border-b border-gray-100" style={{ backgroundColor: 'var(--bg-surface)' }}>
+      <div className="bg-white px-2 pt-2 pb-1 border-b border-gray-100">
         <SoftStories currentUser={user} />
       </div>
 
       {/* ─── Segmented Filter + Count Row ─── */}
-      <div className="sticky top-[130px] z-20 px-4 py-2.5 border-b border-gray-100 flex items-center justify-between" style={{ backgroundColor: 'var(--bg-surface)' }}>
+      <div className="sticky top-[130px] z-20 bg-white px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
         {/* Segmented Control */}
         <div className="inline-flex items-center bg-gray-100 rounded-xl p-0.5 space-x-0.5">
           {(['all', 'unread', 'groups'] as const).map((f) => (
@@ -352,7 +352,7 @@ const MessagesPage: React.FC = () => {
       </div>
 
       {/* ─── Chat List ─── */}
-      <main className="flex-1 overflow-y-auto no-scrollbar pb-[max(env(safe-area-inset-bottom,0px),100px)]" style={{ backgroundColor: 'var(--bg-surface)' }}>
+      <main className="flex-1 overflow-y-auto no-scrollbar pb-[max(env(safe-area-inset-bottom,0px),100px)] bg-white">
         <AnimatePresence mode="wait">
           {activeTab === 'messages' && (
             <motion.div

@@ -78,7 +78,7 @@ export default function Courses() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'transparent' }}>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center">
           <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
           <p className="mt-4 text-slate-500 font-black tracking-widest uppercase text-[10px]">Syncing academic data...</p>
@@ -95,7 +95,7 @@ export default function Courses() {
         <title>Courses | Campus Chat</title>
       </Head>
       
-      <div className="max-w-xl mx-auto min-h-screen shadow-2xl flex flex-col relative overflow-hidden" style={{ backgroundColor: 'transparent' }}>
+      <div className="max-w-xl mx-auto min-h-screen bg-white shadow-2xl flex flex-col relative overflow-hidden">
         {/* Header */}
         <header className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-slate-100 px-6 py-6 z-30">
           <div className="flex items-center justify-between mb-6">
