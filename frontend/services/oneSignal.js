@@ -6,11 +6,12 @@ const ONESIGNAL_APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
 export const initOneSignal = async (user) => {
   if (typeof window === 'undefined' || !ONESIGNAL_APP_ID) return;
 
-  // Prevent multiple initializations
-  if (window.OneSignal && window.OneSignal.initialized) {
+  // Prevent multiple initializations (React Strict Mode safe)
+  if (window._oneSignalInitialized) {
     console.log('OneSignal already initialized');
     return;
   }
+  window._oneSignalInitialized = true;
 
   try {
     await OneSignal.init({
