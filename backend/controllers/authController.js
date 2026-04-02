@@ -58,18 +58,16 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // Upload Avatar to Supabase
-    console.log(`[REGISTER DEBUG] File received: ${req.file ? req.file.originalname : 'NONE'}`);
-    const avatarUrl = await uploadToSupabase(req.file, 'upload');
-    console.log(`[REGISTER DEBUG] Avatar Upload Result: ${avatarUrl || 'FAILED'}`);
+    // Parallelize tasks for speed: Upload Avatar + Hash Password
+    console.log(`[REGISTER DEBUG] Starting parallel tasks...`);
+    const [avatarUrl, hashedPassword] = await Promise.all([
+      uploadToSupabase(req.file, 'upload'),
+      bcrypt.hash(password, 10)
+    ]);
     
     if (!avatarUrl) {
       return res.status(500).json({ message: 'Failed to upload profile picture' });
     }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create new user
     const user = await prisma.user.create({

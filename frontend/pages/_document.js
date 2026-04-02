@@ -114,9 +114,7 @@ export default function Document() {
               const loader = document.getElementById('initial-loader');
               if (loader) {
                 loader.style.opacity = '0';
-                setTimeout(() => {
-                  loader.style.visibility = 'hidden';
-                }, 500);
+                loader.style.visibility = 'hidden';
               }
             });
           `

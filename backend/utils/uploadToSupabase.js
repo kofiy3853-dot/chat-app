@@ -3,16 +3,12 @@ const fs = require('fs');
 const path = require('path');
 
 async function uploadToSupabase(file, bucket = 'upload') {
+  if (!supabase) {
+    console.error('Supabase client is not initialized. Cannot upload file.');
+    return null;
+  }
+
   try {
-    const { createClient } = require('@supabase/supabase-js');
-    const path = require('path');
-    const fs = require('fs');
-
-    const supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
-
     // Support both disk and memory storage
     let fileContent;
     let fileName = file.originalname;

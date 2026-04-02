@@ -3,8 +3,10 @@ self.addEventListener("install", (event) => {
     caches.open("app-cache").then(cache => {
       return cache.addAll([
         "/",
-        "/manifest.json"
-      ]);
+        "/manifest.json",
+        "/icons/icon-192.png",
+        "/favicon.ico"
+      ]).catch(err => console.warn("Initial cache error:", err));
     })
   );
   self.skipWaiting();
@@ -20,8 +22,16 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
 
-  // Ignore navigation requests (HTML pages) to prevent stale content & 404s on dynamic Next.js routes
-  if (event.request.mode === 'navigate') return;
+  // --- OFFLINE NAVIGATION SUPPORT ---
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          return caches.match("/"); // Serve the cached app shell (root) when offline
+        })
+    );
+    return;
+  }
 
   // Ignore Socket.io, API calls, and Next.js HMR
   if (url.pathname.includes('/socket.io/')) return;
