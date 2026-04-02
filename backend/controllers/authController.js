@@ -21,6 +21,8 @@ const generateToken = (userId) => {
   });
 };
 
+const uploadToSupabase = require('../utils/uploadToSupabase');
+
 // Register new user
 exports.register = async (req, res) => {
   try {
@@ -31,12 +33,28 @@ exports.register = async (req, res) => {
 
     const { email, password, name, studentId, department, role } = req.body;
 
+    // Strict validation: No single line leave blank
+    if (!name?.trim() || !email?.trim() || !password?.trim() || !studentId?.trim() || !department?.trim()) {
+      return res.status(400).json({ message: 'All fields are mandatory. Please fill in all information.' });
+    }
+
+    // Profile picture check
+    if (!req.file) {
+      return res.status(400).json({ message: 'Profile picture is mandatory. Please upload an image.' });
+    }
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email }
     });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists with this email' });
+    }
+
+    // Upload Avatar to Supabase
+    const avatarUrl = await uploadToSupabase(req.file, 'upload');
+    if (!avatarUrl) {
+      return res.status(500).json({ message: 'Failed to upload profile picture' });
     }
 
     // Hash password
@@ -51,6 +69,7 @@ exports.register = async (req, res) => {
         name,
         studentId,
         department,
+        avatar: avatarUrl,
         role: role ? role.toUpperCase() : 'STUDENT'
       }
     });
