@@ -40,7 +40,7 @@ const CampusPage = () => {
   if (!user) return null;
 
   return (
-    <div className="h-[100dvh] bg-slate-50 flex flex-col font-sans max-w-xl mx-auto shadow-2xl relative overflow-hidden">
+    <div className="h-[100dvh] flex flex-col font-sans max-w-xl mx-auto shadow-2xl relative overflow-hidden" style={{ backgroundColor: 'transparent' }}>
       <Head>
         <title>Campus Center | Campus Chat</title>
       </Head>
