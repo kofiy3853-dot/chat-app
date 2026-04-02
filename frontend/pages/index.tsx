@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, useEffect as uE } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon';
 import PlusIcon from '@heroicons/react/24/outline/PlusIcon';
 import EllipsisVerticalIcon from '@heroicons/react/24/outline/EllipsisVerticalIcon';
@@ -333,6 +334,29 @@ const MessagesPage: React.FC = () => {
       <div className="bg-white px-2 pt-2 pb-1 border-b border-gray-100">
         <SoftStories currentUser={user} />
       </div>
+
+      {/* ─── Nana AI Hub Link ─── */}
+      {!search && (
+        <div className="bg-white px-4 pt-3 pb-1">
+          <Link href="/nana">
+            <div className="relative group overflow-hidden bg-gradient-to-br from-primary-600 to-indigo-700 rounded-2xl p-4 shadow-lg shadow-primary-200 cursor-pointer active:scale-[0.98] transition-all">
+              <div className="absolute top-[-10px] right-[-10px] p-3 opacity-20 group-hover:scale-110 transition-transform">
+                 <SparklesIcon className="w-20 h-20 text-white" />
+              </div>
+              <div className="flex items-center space-x-3.5 relative z-10">
+                <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white font-black text-xl border border-white/30 shadow-inner">N</div>
+                <div>
+                  <h3 className="text-white font-black text-sm tracking-tight mb-0.5">Nana AI Hub</h3>
+                  <p className="text-white/80 text-[11px] font-bold uppercase tracking-widest flex items-center">
+                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                    Campus Assistant • Active Now
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+      )}
 
       {/* ─── Segmented Filter + Count Row ─── */}
       <div className="sticky top-[130px] z-20 bg-white px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
