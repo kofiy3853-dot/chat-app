@@ -27,6 +27,7 @@ import { toast } from 'react-hot-toast';
 const MessagesPage: React.FC = () => {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [imgError, setImgError] = useState(false);
   const [conversations, setConversations] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -45,6 +46,10 @@ const MessagesPage: React.FC = () => {
     setUser(localUser);
     fetchData();
   }, [router]);
+
+  const avatarUrl = useMemo(() => {
+    return user ? getFullFileUrl(user.avatar) : null;
+  }, [user]);
 
   // Close overflow menu on outside click
   useEffect(() => {
@@ -161,7 +166,6 @@ const MessagesPage: React.FC = () => {
   };
 
   const totalUnread = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
-  const avatarUrl = getFullFileUrl(user?.avatar);
 
   if (!user) return null;
 
@@ -180,24 +184,18 @@ const MessagesPage: React.FC = () => {
             aria-label="Profile"
             className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active:scale-95 transition-all bg-white"
           >
-            {avatarUrl ? (
+            {avatarUrl && !imgError ? (
               <img 
                 src={avatarUrl} 
                 className="w-full h-full object-cover" 
                 alt="" 
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                  const parent = (e.target as HTMLImageElement).parentElement;
-                  if (parent) {
-                    const fallback = parent.querySelector('.avatar-fallback');
-                    if (fallback) (fallback as HTMLElement).style.display = 'flex';
-                  }
-                }}
+                onError={() => setImgError(true)}
               />
-            ) : null}
-            <div className={`avatar-fallback w-full h-full flex items-center justify-center bg-gradient-to-br ${getAvatarColor(user?.name)} text-white text-xs font-bold ${avatarUrl ? 'hidden' : 'flex'}`}>
-              {getInitials(user?.name)}
-            </div>
+            ) : (
+              <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${getAvatarColor(user?.name)} text-white text-xs font-bold`}>
+                {getInitials(user?.name)}
+              </div>
+            )}
           </button>
 
           {/* Title */}

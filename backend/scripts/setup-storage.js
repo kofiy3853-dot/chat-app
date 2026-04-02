@@ -30,8 +30,8 @@ async function setupStorage() {
       console.log(`Creating bucket "${BUCKET_NAME}"...`);
       const { data, error: createError } = await supabase.storage.createBucket(BUCKET_NAME, {
         public: true,
-        allowedMimeTypes: ['image/*', 'audio/*', 'video/*', 'application/pdf'],
-        fileSizeLimit: 52428800 // 50MB
+        fileSizeLimit: 52428800, // 50MB
+        allowedMimeTypes: ['image/*', 'video/*', 'audio/*', 'application/pdf', 'application/octet-stream', 'text/plain', 'image/jpg', 'image/jpeg', 'image/png', 'image/gif', 'image/webp']
       });
       
       if (createError) throw createError;

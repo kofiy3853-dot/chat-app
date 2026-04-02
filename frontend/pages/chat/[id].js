@@ -32,6 +32,8 @@ export default function ChatPage() {
   const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showMediaGallery, setShowMediaGallery] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [modalImgError, setModalImgError] = useState(false);
   
   const { callUser } = useCall();
 
@@ -230,25 +232,18 @@ export default function ChatPage() {
                     const fullUrl = getFullFileUrl(avatar);
                     return (
                       <>
-                        {fullUrl && (
+                        {fullUrl && !imgError ? (
                           <img 
                             src={fullUrl} 
                             className="w-full h-full object-cover rounded-full" 
                             alt="" 
-                            onError={(e) => {
-                              const target = e.target;
-                              target.style.display = 'none';
-                              const parent = target.parentElement;
-                              if (parent) {
-                                const fallback = parent.querySelector('.avatar-fallback');
-                                if (fallback) fallback.style.display = 'flex';
-                              }
-                            }}
+                            onError={() => setImgError(true)}
                           />
+                        ) : (
+                          <div className={`w-full h-full rounded-full bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center`}>
+                            {getInitials(name)}
+                          </div>
                         )}
-                        <div className={`avatar-fallback w-full h-full rounded-full bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center ${fullUrl ? 'hidden' : 'flex'}`}>
-                          {getInitials(name)}
-                        </div>
                       </>
                     );
                   })()}
@@ -375,25 +370,18 @@ export default function ChatPage() {
                       const fullUrl = getFullFileUrl(avatar);
                       return (
                         <>
-                          {fullUrl && (
+                          {fullUrl && !modalImgError ? (
                             <img 
                               src={fullUrl} 
                               className="w-full h-full object-cover" 
                               alt="" 
-                              onError={(e) => {
-                                const target = e.target;
-                                target.style.display = 'none';
-                                const parent = target.parentElement;
-                                if (parent) {
-                                  const fallback = parent.querySelector('.avatar-fallback');
-                                  if (fallback) fallback.style.display = 'flex';
-                                }
-                              }}
+                              onError={() => setModalImgError(true)}
                             />
+                          ) : (
+                            <div className={`w-full h-full bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center`}>
+                              {getInitials(name)}
+                            </div>
                           )}
-                          <div className={`avatar-fallback w-full h-full bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center ${fullUrl ? 'hidden' : 'flex'}`}>
-                            {getInitials(name)}
-                          </div>
                         </>
                       );
                     })()}
