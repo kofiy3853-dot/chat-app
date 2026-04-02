@@ -2,42 +2,47 @@ const { createClient } = require('redis');
 
 const REDIS_URL = process.env.REDIS_URL;
 let redisClient = null;
+let _warnedOnce = false;
 
 if (REDIS_URL) {
   redisClient = createClient({
     url: REDIS_URL,
     socket: {
+      connectTimeout: 5000,
       reconnectStrategy: (retries) => {
-        if (retries > 5) {
-          console.warn('Redis: Max retries reached. Giving up.');
-          return false; // Stop reconnecting
+        if (retries >= 1) {
+          // After first failure, stop trying
+          return false;
         }
-        return Math.min(retries * 500, 2000);
+        return 500;
       }
     }
   });
 
-  redisClient.on('error', (err) => {
-    if (redisClient?.isOpen) {
-      console.error('Redis Client Error:', err.message);
+  // Suppress all error events - we handle them in connectRedis
+  redisClient.on('error', () => {
+    if (!_warnedOnce) {
+      _warnedOnce = true;
+      console.warn('[Redis] Connection unavailable — push scaling disabled. App continues normally.');
     }
   });
-  redisClient.on('connect', () => console.log('Redis: Client connected'));
-  redisClient.on('ready', () => console.log('Redis: Client ready'));
+
+  redisClient.on('connect', () => console.log('[Redis] Client connected'));
+  redisClient.on('ready', () => console.log('[Redis] Client ready'));
 }
 
 const connectRedis = async () => {
-  if (redisClient && !redisClient.isOpen) {
-    try {
-      await redisClient.connect();
-    } catch (err) {
-      // Log only once if connection fails
-      console.warn('Redis: Failed to connect on startup. Scaling disabled.');
-    }
+  if (!redisClient) return;
+
+  try {
+    await redisClient.connect();
+  } catch (err) {
+    // Reset client to null so server.js won't try to use it
+    redisClient = null;
   }
 };
 
 module.exports = {
-  redisClient,
+  get redisClient() { return redisClient; },
   connectRedis
 };
