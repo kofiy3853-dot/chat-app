@@ -15,7 +15,7 @@ import {
   ClockIcon
 } from '@heroicons/react/24/outline';
 import { getSocket } from '../services/socket';
-import { formatRelativeTime } from '../utils/helpers';
+import { formatRelativeTime, getInitials, getAvatarColor, getFullFileUrl } from '../utils/helpers';
 
 const TABS = [
   { id: 'ALL', label: 'All', icon: BellIcon },
@@ -263,7 +263,15 @@ export default function Activity() {
                             </span>
                             {activity.sender && (
                               <div className="flex items-center space-x-1">
-                                <img src={activity.sender.avatar || '/avatars/default.png'} className="w-4 h-4 rounded-full" />
+                                {activity.sender.avatar ? (
+                                  <img src={getFullFileUrl(activity.sender.avatar)} className="w-4 h-4 rounded-full object-cover" />
+                                ) : (
+                                  <div className={`w-4 h-4 rounded-full flex items-center justify-center bg-gradient-to-br ${getAvatarColor(activity.sender.name)}`}>
+                                    <span className="text-[8px] font-bold text-white leading-none">
+                                      {getInitials(activity.sender.name)}
+                                    </span>
+                                  </div>
+                                )}
                                 <span className="text-[10px] font-black text-slate-400 truncate">{activity.sender.name}</span>
                               </div>
                             )}
