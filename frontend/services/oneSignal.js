@@ -28,20 +28,24 @@ export const initOneSignal = async (user) => {
       });
 
       if (user && user.id) {
-        // Link user in OneSignal
+        // Link user in OneSignal (v16 method)
         await OneSignal.login(user.id);
         
-        // Save Player ID to backend
-        const playerId = await OneSignal.getUserId();
+        // Save Push Subscription ID to backend (v16 method)
+        const playerId = OneSignal.User.PushSubscription.id;
+        console.log('OneSignal v16 Subscription ID:', playerId);
+
         if (playerId) {
           try {
             await pushAPI.updateOneSignalId(playerId).catch(() => {});
             console.log('OneSignal ID synced');
-          } catch (err) {}
+          } catch (err) {
+            console.error('Push ID sync failed:', err);
+          }
         }
       }
 
-      // Handle Notification Clicks
+      // Handle Notification Clicks (v16 method)
       OneSignal.Notifications.addEventListener('click', (event) => {
         const data = event.notification.additionalData;
         if (data && data.chat_id) {
