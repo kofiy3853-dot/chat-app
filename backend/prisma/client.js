@@ -10,19 +10,25 @@ const { Pool } = require('pg');
 // ---------------------------------------------------------------------------------
 const patchUrl = (url) => {
   if (!url) return url;
-  if (!url.includes('sslaccept=')) {
-    const separator = url.includes('?') ? '&' : '?';
-    url = `${url}${separator}sslaccept=accept_invalid_certs`;
-  }
-  if (!url.includes('sslmode=')) {
-    const separator = url.includes('?') ? '&' : '?';
-    url = `${url}${separator}sslmode=no-verify`;
-  }
-  return url;
+  
+  // Strip existing SSL parameters to avoid conflicts
+  let cleanUrl = url.split('?')[0];
+  let params = new URLSearchParams(url.split('?')[1] || '');
+  
+  params.delete('sslmode');
+  params.delete('sslaccept');
+  params.set('sslmode', 'no-verify');
+  params.set('sslaccept', 'accept_invalid_certs');
+  
+  return `${cleanUrl}?${params.toString()}`;
 };
 
-if (process.env.DATABASE_URL) process.env.DATABASE_URL = patchUrl(process.env.DATABASE_URL);
-if (process.env.DIRECT_URL) process.env.DIRECT_URL = patchUrl(process.env.DIRECT_URL);
+if (process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = patchUrl(process.env.DATABASE_URL);
+}
+if (process.env.DIRECT_URL) {
+  process.env.DIRECT_URL = patchUrl(process.env.DIRECT_URL);
+}
 
 // Now read the connection string after patching
 const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;

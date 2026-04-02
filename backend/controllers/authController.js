@@ -110,6 +110,7 @@ exports.login = async (req, res) => {
     }
 
     const { email, password } = req.body;
+    console.log(`[LOGIN DEBUG] Received Body: email=${email}, hasPassword=${!!password}`);
 
     // Step 1: Find user in DB
     step = 'db_query';
