@@ -1,30 +1,38 @@
 const { createClient } = require('redis');
 
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+const REDIS_URL = process.env.REDIS_URL;
+let redisClient = null;
 
-const redisClient = createClient({
-  url: REDIS_URL,
-  socket: {
-    reconnectStrategy: (retries) => {
-      if (retries > 20) {
-        console.error('Redis: Max retries reached. Stopping reconnection.');
-        return new Error('Max retries reached');
+if (REDIS_URL) {
+  redisClient = createClient({
+    url: REDIS_URL,
+    socket: {
+      reconnectStrategy: (retries) => {
+        if (retries > 5) {
+          console.warn('Redis: Max retries reached. Giving up.');
+          return false; // Stop reconnecting
+        }
+        return Math.min(retries * 500, 2000);
       }
-      return Math.min(retries * 100, 3000);
     }
-  }
-});
+  });
 
-redisClient.on('error', (err) => console.error('Redis Client Error', err));
-redisClient.on('connect', () => console.log('Redis: Client connected'));
-redisClient.on('ready', () => console.log('Redis: Client ready'));
+  redisClient.on('error', (err) => {
+    if (redisClient?.isOpen) {
+      console.error('Redis Client Error:', err.message);
+    }
+  });
+  redisClient.on('connect', () => console.log('Redis: Client connected'));
+  redisClient.on('ready', () => console.log('Redis: Client ready'));
+}
 
 const connectRedis = async () => {
-  if (!redisClient.isOpen) {
+  if (redisClient && !redisClient.isOpen) {
     try {
       await redisClient.connect();
     } catch (err) {
-      console.error('Failed to connect to Redis:', err);
+      // Log only once if connection fails
+      console.warn('Redis: Failed to connect on startup. Scaling disabled.');
     }
   }
 };

@@ -83,6 +83,11 @@ const io = new Server(server, {
 // Redis Adapter for Socket.io
 (async () => {
   try {
+    if (!redisClient) {
+      console.log('Redis: Not configured (REDIS_URL missing) — skipping scaling adapter.');
+      return;
+    }
+
     await connectRedis();
     if (redisClient.isOpen) {
       const pubClient = redisClient;
@@ -93,7 +98,6 @@ const io = new Server(server, {
     }
   } catch (err) {
     console.error('Redis: Failed to initialize Socket.io adapter:', err.message);
-    // Continue without Redis adapter - horizontal scaling won't work but single instance will
   }
 })();
 app.use(express.json());
