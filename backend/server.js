@@ -103,8 +103,40 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check
-app.get('/health', (req, res) => res.status(200).json({ status: 'ok', timestamp: new Date(), version: '1.0.4-colored-headers' }));
+// Basic health check
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok', timestamp: new Date(), version: '1.0.5-diagnostics' }));
+
+// Detailed diagnostic health check — exposes env var presence and live DB connectivity
+app.get('/health/detailed', async (req, res) => {
+  const checks = {
+    timestamp: new Date(),
+    env: {
+      DATABASE_URL: !!process.env.DATABASE_URL,
+      DIRECT_URL: !!process.env.DIRECT_URL,
+      JWT_SECRET: !!process.env.JWT_SECRET,
+      JWT_EXPIRE: !!process.env.JWT_EXPIRE,
+      SUPABASE_URL: !!process.env.SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      NODE_ENV: process.env.NODE_ENV || 'not set'
+    },
+    database: { status: 'untested', error: null }
+  };
+
+  try {
+    // Run a trivial DB query to confirm live connectivity
+    await prisma.$queryRawUnsafe('SELECT 1 AS alive');
+    checks.database.status = 'connected';
+  } catch (err) {
+    checks.database.status = 'FAILED';
+    checks.database.error = err.message;
+  }
+
+  const allGood = checks.database.status === 'connected' &&
+                  checks.env.JWT_SECRET &&
+                  (checks.env.DATABASE_URL || checks.env.DIRECT_URL);
+
+  res.status(allGood ? 200 : 500).json(checks);
+});
 
 // Routes
 console.log('Registering routes...');
