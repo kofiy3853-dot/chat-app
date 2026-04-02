@@ -55,7 +55,7 @@ async function subscribeToPush(registration) {
 }
 
 const publicPages = ['/login', '/register'];
-const hideNavbarPages = ['/login', '/register', '/chat/[id]', '/courses/[id]'];
+const hideNavbarPages = ['/login', '/register', '/chat/[id]', '/courses/[id]', '/events/create', '/anonymous/create'];
 
 export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
