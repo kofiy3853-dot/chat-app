@@ -8,6 +8,16 @@ const SAFARI_WEB_ID = "web.onesignal.auto.428d294a-5ce2-44bb-bee0-dec3149a5564";
 export const initOneSignal = async (user) => {
   if (typeof window === 'undefined' || !ONESIGNAL_APP_ID) return;
 
+  // --- 🛡️ DOMAIN GUARD ---
+  const isLocalhost = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
+  const isAllowedVercel = window.location.hostname === 'chat-app-kappa-rose.vercel.app';
+  
+  // If we aren't on native and aren't on the official domain or localhost, skip to avoid "Init Error"
+  if (!Capacitor.isNativePlatform() && !isLocalhost && !isAllowedVercel) {
+    console.warn(`[OneSignal] Initialization skipped on this domain to avoid errors.`);
+    return;
+  }
+
   // --- NATIVE MOBILE PLATFORMS (Capacitor) ---
   if (Capacitor.isNativePlatform()) {
     try {
