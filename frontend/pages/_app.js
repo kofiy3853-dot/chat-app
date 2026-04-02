@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import { initSocket, getSocket } from '../services/socket';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { CallProvider } from '../context/CallContext';
+import { initOneSignal } from '../services/oneSignal';
 import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'react-hot-toast';
 import '../styles/globals.css';
@@ -74,7 +75,8 @@ export default function MyApp({ Component, pageProps }) {
               permission = await Notification.requestPermission();
             }
             if (permission === 'granted' && VAPID_PUBLIC_KEY) {
-              subscribeToPush(reg);
+              const currentUser = JSON.parse(localStorage.getItem('user'));
+              initOneSignal(currentUser);
             }
           }
         }).catch(err => console.error('SW error', err));
@@ -131,9 +133,8 @@ export default function MyApp({ Component, pageProps }) {
   useEffect(() => {
     if (!authorized) return;
     navigator.serviceWorker.ready.then((reg) => {
-      if ('Notification' in window && Notification.permission === 'granted' && VAPID_PUBLIC_KEY) {
-        subscribeToPush(reg);
-      }
+      const currentUser = JSON.parse(localStorage.getItem('user'));
+      initOneSignal(currentUser);
     }).catch(() => {});
   }, [authorized]);
 

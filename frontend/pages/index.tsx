@@ -22,6 +22,7 @@ import SoftStories from '../components/SoftStories';
 import { getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
 import NewChatModal from '../components/NewChatModal';
+import NotificationPrompt from '../components/NotificationPrompt';
 import { toast } from 'react-hot-toast';
 
 const MessagesPage: React.FC = () => {
@@ -298,6 +299,8 @@ const MessagesPage: React.FC = () => {
           )}
         </div>
       </header>
+
+      <NotificationPrompt />
 
       {/* ─── Stories Section ─── */}
       <div className="bg-white px-2 pt-2 pb-1 border-b border-gray-100">

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { authAPI } from '../services/api';
 import { initSocket } from '../services/socket';
+import { initOneSignal } from '../services/oneSignal';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
 
 export default function Login() {
@@ -30,6 +31,9 @@ export default function Login() {
 
       // Initialize socket
       initSocket();
+      
+      // Initialize OneSignal
+      initOneSignal(user);
 
       // Redirect to inbox
       router.push('/');

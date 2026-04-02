@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { authAPI } from '../services/api';
 import { initSocket } from '../services/socket';
+import { initOneSignal } from '../services/oneSignal';
 import { 
   AcademicCapIcon, 
   CameraIcon, 
@@ -94,6 +95,9 @@ export default function Register() {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       initSocket();
+      
+      // Initialize OneSignal
+      initOneSignal(user);
 
       toast.success('Account created successfully!');
       router.push('/');

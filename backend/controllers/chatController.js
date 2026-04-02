@@ -3,6 +3,7 @@ const uploadToSupabase = require('../utils/uploadToSupabase');
 const fs = require('fs');
 const path = require('path');
 const { getWebPush } = require('../utils/webPushHelper');
+const { sendPushNotification } = require('../utils/oneSignal');
 
 
 // Get user's conversations
@@ -397,41 +398,55 @@ exports.sendMessage = async (req, res) => {
           unreadCount
         });
 
-        // WEBPUSH: Send push notification to all user's registered devices
+        // WEBPUSH (legacy VAPID): keep for any device still subscribed
         try {
           const subscriptions = await prisma.pushSubscription.findMany({
             where: { userId: recipient.userId }
           });
-          
           if (subscriptions.length > 0) {
             const wp = getWebPush();
-            if (!wp) return; // VAPID keys not configured, skip
-
-            const payload = JSON.stringify({
-              title: notification.title,
-              body: notification.content,
-              url: `/chat/${conversationId}`,
-              unreadCount
-            });
-
-            for (const sub of subscriptions) {
-              const pushSubscription = {
-                endpoint: sub.endpoint,
-                keys: { p256dh: sub.p256dh, auth: sub.auth }
-              };
-              
-              wp.sendNotification(pushSubscription, payload).catch(async (err) => {
-                if (err.statusCode === 404 || err.statusCode === 410) {
-                  // Subscription has expired or is no longer valid
-                  await prisma.pushSubscription.delete({ where: { id: sub.id } });
-                } else {
-                  console.error('Push error:', err);
-                }
+            if (wp) {
+              const payload = JSON.stringify({
+                title: notification.title,
+                body: notification.content,
+                url: `/chat/${conversationId}`,
+                unreadCount
               });
+              for (const sub of subscriptions) {
+                const pushSubscription = { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } };
+                wp.sendNotification(pushSubscription, payload).catch(async (err) => {
+                  if (err.statusCode === 404 || err.statusCode === 410) {
+                    await prisma.pushSubscription.delete({ where: { id: sub.id } });
+                  } else {
+                    console.error('VAPID push error:', err);
+                  }
+                });
+              }
             }
           }
         } catch (pushErr) {
-          console.error('Failed to process web push:', pushErr);
+          console.error('Failed to process VAPID push:', pushErr);
+        }
+
+        // ONESIGNAL: Send push to the recipient's registered device
+        try {
+          const recipientUser = await prisma.user.findUnique({
+            where: { id: recipient.userId },
+            select: { onesignal_player_id: true, name: true }
+          });
+          if (recipientUser?.onesignal_player_id) {
+            const msgPreview = content
+              ? (content.length > 80 ? content.substring(0, 80) + '…' : content)
+              : 'Sent an attachment';
+            await sendPushNotification([recipientUser.onesignal_player_id], {
+              title: `💬 ${message.sender.name}`,
+              body: msgPreview,
+              chatId: conversationId,
+              senderName: message.sender.name
+            });
+          }
+        } catch (osErr) {
+          console.error('[OneSignal] Error in sendMessage push:', osErr.message);
         }
       }));
     }

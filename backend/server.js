@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const { Server } = require('socket.io');
+const { createAdapter } = require('@socket.io/redis-adapter');
+const { redisClient, connectRedis } = require('./utils/redis');
 const cors = require('cors');
 const prisma = require('./prisma/client');
 const authRoutes = require('./routes/authRoutes');
@@ -77,6 +79,16 @@ const io = new Server(server, {
   pingInterval: 30000,
   connectTimeout: 45000
 });
+
+// Redis Adapter for Socket.io
+(async () => {
+  await connectRedis();
+  const pubClient = redisClient;
+  const subClient = pubClient.duplicate();
+  await subClient.connect();
+  io.adapter(createAdapter(pubClient, subClient));
+  console.log('Redis: Socket.io adapter initialized');
+})();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Make prisma and io available to routes

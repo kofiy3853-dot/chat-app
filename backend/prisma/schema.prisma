@@ -8,20 +8,21 @@ datasource db {
 
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  password      String
-  name          String
-  avatar        String?
-  role          Role      @default(STUDENT)
-  studentId     String?   @unique
-  department    String?
-  isOnline      Boolean   @default(false)
-  lastSeen      DateTime  @default(now())
-  status        String?   @default("Available")
-  socketId      String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  password             String
+  name                 String
+  avatar               String?
+  role                 Role      @default(STUDENT)
+  studentId            String?   @unique
+  department           String?
+  isOnline             Boolean   @default(false)
+  lastSeen             DateTime  @default(now())
+  status               String?   @default("Available")
+  socketId             String?
+  onesignal_player_id  String?   // OneSignal push player/subscription ID
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   sentMessages      Message[]
   reactions         Reaction[]

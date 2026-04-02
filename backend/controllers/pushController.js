@@ -36,3 +36,27 @@ exports.subscribe = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+/**
+ * Update user's OneSignal Player ID
+ */
+exports.updateOneSignalId = async (req, res) => {
+  try {
+    const { onesignal_player_id } = req.body;
+    const userId = req.user.id;
+
+    if (!onesignal_player_id) {
+      return res.status(400).json({ message: 'OneSignal Player ID is required' });
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { onesignal_player_id }
+    });
+
+    res.json({ message: 'OneSignal ID updated successfully' });
+  } catch (error) {
+    console.error('Update OneSignal ID error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
