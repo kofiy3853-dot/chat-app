@@ -25,14 +25,16 @@ import {
 import { getCurrentUser, groupMessagesByDate, getInitials, getAvatarColor, formatMessageTime, getFullFileUrl } from '../utils/helpers';
 import dynamic from 'next/dynamic';
 import { AttachmentBubble, VoiceBubble } from './ChatMedia';
+import { 
+  initDB, 
+  cacheMessages, 
+  getCachedMessages, 
+  queueMessage, 
+  getOutboxMessages, 
+  removeFromOutbox 
+} from '../utils/indexedDB';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
-
-/**
- * ChatBox Component
- * Handles the display of messages, alignment, timestamps, and input logic.
- * Structured to separate MessageList, Bubble, and Input actions.
- */
 export default function ChatBox({ conversationId }) {
   // --- 1. State Management ---
   const typingTimeoutRef = useRef(null);
@@ -70,36 +72,42 @@ export default function ChatBox({ conversationId }) {
     const savedBg = localStorage.getItem('chat_bg_color');
     if (savedBg) setBgColor(savedBg);
 
-    console.log('[DEBUG] ChatBox initialized for user:', user?.id);
+    // Sync outbox if we come online
+    const handleOnline = () => syncOutbox();
+    window.addEventListener('online', handleOnline);
+
+    return () => window.removeEventListener('online', handleOnline);
   }, []);
 
   useEffect(() => {
     if (conversationId) {
       console.log(`[DEBUG] Loading conversation: ${conversationId}`);
       
-      // --- CACHE-FIRST LOGIC ---
-      const cacheKey = `cached_messages_${conversationId}`;
-      const savedMessages = localStorage.getItem(cacheKey);
-      
-      if (savedMessages) {
+      // --- CACHE-FIRST LOGIC (IndexedDB) ---
+      const loadCachedData = async () => {
         try {
-          const parsed = JSON.parse(savedMessages);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setMessages(parsed);
-            setLoading(false); // Disable spinner immediately if cache exists
+          const cached = await getCachedMessages(conversationId);
+          const outboxRaw = await getOutboxMessages();
+          const outbox = outboxRaw.filter(m => m.conversationId === conversationId);
+          
+          if (cached && cached.length > 0) {
+            setMessages([...cached, ...outbox]);
+            setLoading(false);
+          } else if (outbox.length > 0) {
+            setMessages(outbox);
+            setLoading(false);
           } else {
             setLoading(true);
           }
         } catch (e) {
           setLoading(true);
         }
-      } else {
-        setLoading(true);
-      }
+      };
       
+      loadCachedData();
       setError(null);
       
-      const socket = getSocket();
+      const socket = initSocket();
       if (socket) {
         socket.emit('join-conversation', conversationId);
         markAsRead(conversationId);
@@ -107,6 +115,7 @@ export default function ChatBox({ conversationId }) {
 
       fetchMessages();
       setupSocketListeners();
+      syncOutbox();
     }
 
     return () => {
@@ -131,10 +140,14 @@ export default function ChatBox({ conversationId }) {
     try {
       const response = await chatAPI.getMessages(conversationId);
       const newMessages = response.data.messages || [];
-      setMessages(newMessages);
+      setMessages(prev => {
+         // Merge with outbox
+         const outbox = prev.filter(m => m.id?.toString().startsWith('temp'));
+         return [...newMessages, ...outbox];
+      });
       
-      // Update cache for instant load next time
-      localStorage.setItem(`cached_messages_${conversationId}`, JSON.stringify(newMessages));
+      // Update persistent IndexedDB cache
+      await cacheMessages(conversationId, newMessages);
       
       console.log(`[DEBUG] Rendered ${newMessages.length} messages`);
     } catch (err) {
@@ -142,6 +155,29 @@ export default function ChatBox({ conversationId }) {
       setError('Failed to load chat');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const syncOutbox = async () => {
+    if (!navigator.onLine) return;
+    try {
+      const outbox = await getOutboxMessages();
+      if (outbox.length === 0) return;
+
+      console.log('[OFFLINE] Syncing outbox...', outbox.length);
+      for (const msg of outbox) {
+        if (!msg.fileUrl) { // Only sync text for now for simplicity, attachments are harder offline
+           sendMessage({ 
+             conversationId: msg.conversationId, 
+             content: msg.content, 
+             tempId: msg.tempId, 
+             replyToId: msg.replyToId 
+           });
+           await removeFromOutbox(msg.tempId);
+        }
+      }
+    } catch (err) {
+      console.error('Outbox sync failed:', err);
     }
   };
 
@@ -238,6 +274,14 @@ export default function ChatBox({ conversationId }) {
     setNewMessage('');
     setMediaFile(null);
     setReplyTo(null);
+
+    // --- OFFLINE QUEUING LOGIC ---
+    if (!navigator.onLine) {
+        await queueMessage({ ...msgData, conversationId });
+        console.log('[OFFLINE] Message queued to outbox');
+        return;
+    }
+
     setIsSending(true);
 
     try {

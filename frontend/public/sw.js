@@ -27,8 +27,23 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .catch(() => {
-          return caches.match("/"); // Serve the cached app shell (root) when offline
+          // If the network fails, serve the cached root (our App Shell)
+          return caches.match("/"); 
         })
+    );
+    return;
+  }
+
+  // Cache-First with Network Update for static assets (images, styles, local scripts)
+  if (url.origin === self.origin && (url.pathname.startsWith('/_next/static/') || url.pathname.includes('/icons/') || url.pathname.includes('/sounds/'))) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        return cached || fetch(event.request).then(response => {
+          const clone = response.clone();
+          caches.open("app-cache").then(cache => cache.put(event.request, clone));
+          return response;
+        });
+      })
     );
     return;
   }
