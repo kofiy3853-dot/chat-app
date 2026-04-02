@@ -6,11 +6,14 @@ const { Pool } = require('pg');
 // IMPORTANT: DATABASE_URL uses pgbouncer (port 6543) which is for Prisma Migrate only.
 // The pg.Pool needs a DIRECT connection (port 5432) to work correctly at runtime.
 // Use DIRECT_URL if available, otherwise fall back to DATABASE_URL.
-const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+const rawUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
-if (!connectionString) {
+if (!rawUrl) {
   console.error('[DB ERROR] Neither DIRECT_URL nor DATABASE_URL is set! Cannot connect to database.');
 }
+
+// Strip query params like ?sslmode=require that conflict with the `ssl: {rejectUnauthorized}` option below
+const connectionString = rawUrl ? rawUrl.split('?')[0] : '';
 
 const pool = new Pool({
   connectionString,
