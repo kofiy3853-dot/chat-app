@@ -9,10 +9,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ||
 // Create axios instance
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 35000, // Handle backend cold starts (Render free tier)
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  timeout: 35000 // Handle backend cold starts (Render free tier)
 });
 
 // Request interceptor to add auth token
@@ -70,9 +67,7 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-  register: (data) => api.post('/auth/register', data, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   getMe: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/profile', data),
@@ -110,11 +105,7 @@ export const chatAPI = {
   addReaction: (messageId, emoji) => 
     api.post(`/chat/messages/${messageId}/reaction`, { emoji }),
   uploadMessageAttachment: (formData) => 
-    api.post('/chat/messages/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    }),
+    api.post('/chat/messages/upload', formData),
   archiveConversation: (id) => api.put(`/chat/conversations/${id}/archive`),
   deleteConversation: (id) => api.delete(`/chat/conversations/${id}`),
   clearChat: (id) => api.delete(`/chat/conversations/${id}/clear`)
@@ -134,9 +125,7 @@ export const courseAPI = {
   
   // Materials
   getMaterials: (id) => api.get(`/courses/${id}/materials`),
-  addMaterial: (id, data) => api.post(`/courses/${id}/materials`, data, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  addMaterial: (id, data) => api.post(`/courses/${id}/materials`, data),
   deleteMaterial: (courseId, materialId) => 
     api.delete(`/courses/${courseId}/materials/${materialId}`),
   
@@ -144,9 +133,7 @@ export const courseAPI = {
   getAssignments: (id) => api.get(`/courses/${id}/assignments`),
   createAssignment: (id, data) => api.post(`/courses/${id}/assignments`, data),
   submitAssignment: (assignmentId, data) => 
-    api.post(`/courses/assignments/${assignmentId}/submit`, data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    }),
+    api.post(`/courses/assignments/${assignmentId}/submit`, data),
   getSubmissions: (assignmentId) => 
     api.get(`/courses/assignments/${assignmentId}/submissions`),
   postAnnouncement: (id, content) => api.post(`/courses/${id}/announcements`, { content })
@@ -158,9 +145,7 @@ export const statusAPI = {
   getStatuses: () => api.get('/status'),
   viewStatus: (statusId) => api.post(`/status/${statusId}/view`),
   getViewers: (statusId) => api.get(`/status/${statusId}/viewers`),
-  uploadImage: (formData) => api.post('/status/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
+  uploadImage: (formData) => api.post('/status/upload', formData)
 };
 
 // Event API
