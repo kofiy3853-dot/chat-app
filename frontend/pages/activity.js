@@ -33,6 +33,7 @@ export default function Activity() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [dismissingIds, setDismissingIds] = useState(new Set());
 
   const fetchActivities = useCallback(async (pageNum = 1, shouldAppend = false) => {
     try {
@@ -88,7 +89,13 @@ export default function Activity() {
   const markAllRead = async () => {
     try {
       await userAPI.markNotificationsAsRead();
-      setActivities(prev => prev.map(a => ({ ...a, isRead: true })));
+      // Dismiss all — fade out then clear
+      const allIds = new Set(activities.map(a => a.id));
+      setDismissingIds(allIds);
+      setTimeout(() => {
+        setActivities([]);
+        setDismissingIds(new Set());
+      }, 400);
     } catch (err) {
       console.error(err);
     }
@@ -97,7 +104,12 @@ export default function Activity() {
   const handleActivityClick = async (activity) => {
     if (!activity.isRead) {
       userAPI.markNotificationsAsRead({ notificationIds: [activity.id] }).catch(console.error);
-      setActivities(prev => prev.map(a => a.id === activity.id ? { ...a, isRead: true } : a));
+      // Fade out then remove
+      setDismissingIds(prev => new Set([...prev, activity.id]));
+      setTimeout(() => {
+        setActivities(prev => prev.filter(a => a.id !== activity.id));
+        setDismissingIds(prev => { const s = new Set(prev); s.delete(activity.id); return s; });
+      }, 350);
     }
 
     if (activity.actionUrl) {
@@ -240,7 +252,10 @@ export default function Activity() {
                     <div
                       key={activity.id}
                       onClick={() => handleActivityClick(activity)}
-                      className={`group relative p-4 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer active:scale-[0.98] ${!activity.isRead ? 'ring-1 ring-primary-100' : ''}`}
+                      className={`group relative p-4 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer active:scale-[0.98] ${!activity.isRead ? 'ring-1 ring-primary-100' : ''} ${
+                        dismissingIds.has(activity.id) ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100'
+                      }`}
+                      style={{ transition: 'opacity 0.35s ease, transform 0.35s ease' }}
                     >
                       {!activity.isRead && (
                         <div className="absolute right-4 top-4 w-2 h-2 bg-primary-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-pulse"></div>

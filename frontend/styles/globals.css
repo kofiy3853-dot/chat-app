@@ -2,10 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  /* Override any browser dark-mode injection on form controls, inputs, etc. */
+  color-scheme: light;
 }
 
 html,
@@ -14,6 +16,10 @@ body {
     Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Force light mode — prevent OS dark mode from bleeding into the app */
+  color-scheme: light only;
+  background-color: #F5F8FF;
+  color: #1A1D3A;
 }
 
 /* Custom scrollbar */
