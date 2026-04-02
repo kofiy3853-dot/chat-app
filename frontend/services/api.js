@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
+    ? 'https://veritas-uk6l.onrender.com/api' 
+    : 'http://localhost:5000/api');
 
 // Create axios instance
 const api = axios.create({
