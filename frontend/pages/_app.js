@@ -127,12 +127,13 @@ export default function MyApp({ Component, pageProps }) {
 
     // A. Public Routes Bypass
     if (publicPages.includes(path)) {
-      setAuthorized(!!token); // Allow /login, but set authorized if token exists
+      setAuthorized(!!token);
       setIsReady(true);
       
       // If logged in and trying to access /login, redirect to their home
       if (token && user && path === '/login') {
-         router.push(user.role === 'NANA' ? '/nana' : '/');
+         const target = user.role === 'NANA' ? '/nana' : '/';
+         if (path !== target) router.replace(target);
       }
       return;
     }
@@ -141,7 +142,7 @@ export default function MyApp({ Component, pageProps }) {
     if (!token || !user) {
       setAuthorized(false);
       setIsReady(true);
-      if (path !== '/login') router.push('/login');
+      if (path !== '/login') router.replace('/login');
       return;
     }
 
@@ -152,7 +153,7 @@ export default function MyApp({ Component, pageProps }) {
     if (role === 'NANA') {
       if (!path.startsWith('/nana') && path !== '/logout') {
         console.warn(`[RBAC] Nana role unauthorized for path: ${path}. Redirecting to Hub.`);
-        router.push('/nana');
+        router.replace('/nana');
         return;
       }
     }
@@ -160,7 +161,7 @@ export default function MyApp({ Component, pageProps }) {
     // C.2 Student/Instructor Protection
     if ((role === 'STUDENT' || role === 'INSTRUCTOR') && path.startsWith('/admin')) {
       console.warn(`[RBAC] Access Denied for role ${role} to ${path}`);
-      router.push('/');
+      router.replace('/');
       return;
     }
 
