@@ -70,7 +70,9 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-  register: (data) => api.post('/auth/register', data),
+  register: (data) => api.post('/auth/register', data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
   login: (data) => api.post('/auth/login', data),
   getMe: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/profile', data),
