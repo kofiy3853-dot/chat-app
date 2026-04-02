@@ -3,17 +3,25 @@ const { PrismaClient } = require('@prisma/client');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const { Pool } = require('pg');
 
-// Parse the connection string safely, supporting both encoded and raw passwords
-let connectionString = process.env.DATABASE_URL;
+// IMPORTANT: DATABASE_URL uses pgbouncer (port 6543) which is for Prisma Migrate only.
+// The pg.Pool needs a DIRECT connection (port 5432) to work correctly at runtime.
+// Use DIRECT_URL if available, otherwise fall back to DATABASE_URL.
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
-// In Prisma 7, stripping query parameters might cause issues with pgbouncer modes
-// if (connectionString) {
-//   connectionString = connectionString.split('?')[0];
-// }
+if (!connectionString) {
+  console.error('[DB ERROR] Neither DIRECT_URL nor DATABASE_URL is set! Cannot connect to database.');
+}
 
 const pool = new Pool({
   connectionString,
   ssl: { rejectUnauthorized: false },
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
+
+pool.on('error', (err) => {
+  console.error('[PG POOL ERROR]', err.message);
 });
 
 const adapter = new PrismaPg(pool);
