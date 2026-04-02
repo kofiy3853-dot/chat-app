@@ -3,13 +3,34 @@ const { PrismaClient } = require('@prisma/client');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const { Pool } = require('pg');
 
-// IMPORTANT: DATABASE_URL uses pgbouncer (port 6543) which is for Prisma Migrate only.
-// The pg.Pool needs a DIRECT connection (port 5432) to work correctly at runtime.
-// Use DIRECT_URL if available, otherwise fall back to DATABASE_URL.
+// ---------------------------------------------------------------------------------
+// FIX FOR RENDER/SUPABASE SSL: 
+// Forcefully override connection strings to bypass strict SSL certificate chain checks.
+// This handles both Node (pg pool) and Prisma Rust Engine.
+// ---------------------------------------------------------------------------------
+const patchUrl = (url) => {
+  if (!url) return url;
+  if (!url.includes('sslaccept=')) {
+    const separator = url.includes('?') ? '&' : '?';
+    url = `${url}${separator}sslaccept=accept_invalid_certs`;
+  }
+  if (!url.includes('sslmode=')) {
+    const separator = url.includes('?') ? '&' : '?';
+    url = `${url}${separator}sslmode=no-verify`;
+  }
+  return url;
+};
+
+if (process.env.DATABASE_URL) process.env.DATABASE_URL = patchUrl(process.env.DATABASE_URL);
+if (process.env.DIRECT_URL) process.env.DIRECT_URL = patchUrl(process.env.DIRECT_URL);
+
+// Now read the connection string after patching
 const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error('[DB ERROR] Neither DIRECT_URL nor DATABASE_URL is set! Cannot connect to database.');
+} else {
+  console.log('[DB OVERRIDE] Applied SSL bypass to database connection strings.');
 }
 
 const pool = new Pool({
@@ -19,6 +40,7 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
 });
+
 
 pool.on('error', (err) => {
   console.error('[PG POOL ERROR]', err.message);
