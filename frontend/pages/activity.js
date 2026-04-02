@@ -20,6 +20,7 @@ import { formatRelativeTime } from '../utils/helpers';
 const TABS = [
   { id: 'ALL', label: 'All', icon: BellIcon },
   { id: 'MENTIONS', label: 'Mentions', icon: AtSymbolIcon },
+  { id: 'SYSTEM', label: 'System', icon: SparklesIcon },
   { id: 'GROUPS', label: 'Groups', icon: UserGroupIcon },
   { id: 'ANNOUNCEMENTS', label: 'Announcements', icon: MegaphoneIcon }
 ];
@@ -46,6 +47,8 @@ export default function Activity() {
       setHasMore(response.data.hasMore);
     } catch (error) {
       console.error('Failed to fetch activities:', error);
+      const { toast } = require('react-hot-toast');
+      toast.error('Failed to sync activity updates');
     } finally {
       setLoading(false);
       setIsFetchingMore(false);
@@ -107,7 +110,8 @@ export default function Activity() {
   const filteredActivities = activities.filter(a => {
     if (activeTab === 'ALL') return true;
     if (activeTab === 'MENTIONS') return a.type === 'MENTION';
-    if (activeTab === 'GROUPS') return a.type === 'COURSE_INVITE' || a.type === 'SYSTEM' && a.title.toLowerCase().includes('group');
+    if (activeTab === 'SYSTEM') return a.type === 'SYSTEM';
+    if (activeTab === 'GROUPS') return a.type === 'COURSE_INVITE' || (a.type === 'SYSTEM' && (a.title.toLowerCase().includes('group') || a.title.toLowerCase().includes('course')));
     if (activeTab === 'ANNOUNCEMENTS') return a.type === 'ANNOUNCEMENT';
     return true;
   });
@@ -117,6 +121,7 @@ export default function Activity() {
     if (type === 'ANNOUNCEMENT') return MegaphoneIcon;
     if (type === 'COURSE_INVITE') return UserPlusIcon;
     if (type === 'MESSAGE') return ChatBubbleLeftRightIcon;
+    if (type === 'SYSTEM') return SparklesIcon;
     if (title?.toLowerCase().includes('group')) return UserGroupIcon;
     if (title?.toLowerCase().includes('status')) return SparklesIcon;
     return BellIcon;
@@ -127,7 +132,7 @@ export default function Activity() {
       case 'MENTION': return 'bg-rose-100 text-rose-600';
       case 'ANNOUNCEMENT': return 'bg-amber-100 text-amber-600';
       case 'MESSAGE': return 'bg-blue-100 text-blue-600';
-      case 'SYSTEM': return 'bg-indigo-100 text-indigo-600';
+      case 'SYSTEM': return 'bg-primary-100 text-primary-600';
       default: return 'bg-slate-100 text-slate-600';
     }
   };

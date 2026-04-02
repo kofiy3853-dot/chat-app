@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -37,6 +38,27 @@ api.interceptors.response.use(
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';
+      }
+    } else if (error.response) {
+      // Show error notification for other server errors
+      const message = error.response.data?.message || 'Something went wrong. Please try again.';
+      if (typeof window !== 'undefined') {
+        toast.error(message, { 
+          id: 'api-error', // Prevent multiple identical toasts
+          position: 'top-center',
+          style: {
+            background: '#333',
+            color: '#fff',
+            borderRadius: '16px',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }
+        });
+      }
+    } else if (error.request) {
+      // Network error (no response received)
+      if (typeof window !== 'undefined') {
+        toast.error('Network error. Check your connection.', { id: 'network-error' });
       }
     }
     return Promise.reject(error);

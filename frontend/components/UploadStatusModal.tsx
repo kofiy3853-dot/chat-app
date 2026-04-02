@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, PhotoIcon, PencilIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import api, { statusAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 
 interface UploadStatusModalProps {
   onClose: () => void;
@@ -54,8 +55,7 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('Failed to upload status:', error);
-      alert('Failed to upload status. Please try again.');
+      toast.error('Failed to upload status. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
       >
         <div className="p-6 border-b border-slate-50 flex items-center justify-between">
           <h3 className="text-xl font-black text-slate-800 tracking-tight">Post Status</h3>
-          <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
+          <button onClick={onClose} title="Close modal" aria-label="Close modal" className="p-2 hover:bg-slate-50 rounded-full transition-colors">
             <XMarkIcon className="w-6 h-6 text-slate-400" />
           </button>
         </div>
@@ -102,7 +102,9 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
               className="hidden" 
               ref={fileInputRef} 
               accept="image/*" 
-              onChange={handleFileChange} 
+              onChange={handleFileChange}
+              title="Upload image"
+              aria-label="Upload image"
             />
           </div>
 
@@ -128,6 +130,8 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
                        <button
                          key={color}
                          onClick={() => setBgColor(color)}
+                         title={`Select ${color} background`}
+                         aria-label={`Select ${color} background`}
                          className={`w-8 h-8 rounded-full border-2 transition-transform active:scale-90 ${bgColor === color ? 'border-white scale-110' : 'border-transparent opacity-50'}`}
                          style={{ backgroundColor: color }}
                        />
@@ -145,6 +149,8 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
                     <img src={previewUrl!} className="w-full h-full object-cover" alt="" />
                     <button 
                       onClick={() => { setSelectedFile(null); setPreviewUrl(null); setType('TEXT'); }}
+                      title="Remove image"
+                      aria-label="Remove image"
                       className="absolute top-3 right-3 p-2 bg-black/50 backdrop-blur-md rounded-full text-white"
                     >
                       <XMarkIcon className="w-5 h-5" />

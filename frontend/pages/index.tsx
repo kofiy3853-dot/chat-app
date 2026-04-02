@@ -22,6 +22,7 @@ import SoftStories from '../components/SoftStories';
 import { getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
 import NewChatModal from '../components/NewChatModal';
+import { toast } from 'react-hot-toast';
 
 const MessagesPage: React.FC = () => {
   const router = useRouter();
@@ -155,10 +156,7 @@ const MessagesPage: React.FC = () => {
     try {
       await chatAPI.deleteConversation(id);
     } catch (err) {
-      console.error('Failed to delete chat:', err);
-      // Rollback on failure
-      setConversations(originalConversations);
-      alert('Could not delete chat. Please try again.');
+      toast.error('Could not delete chat. Please try again.');
     }
   };
 
@@ -178,7 +176,7 @@ const MessagesPage: React.FC = () => {
         <div className="flex items-center justify-between mb-3">
           {/* Avatar */}
           <button
-            onClick={() => router.push('/profile')}
+            onClick={() => router.push('/account')}
             aria-label="Profile"
             className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active:scale-95 transition-all"
           >

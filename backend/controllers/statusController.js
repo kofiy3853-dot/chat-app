@@ -1,5 +1,6 @@
 const prisma = require('../prisma/client');
 const { v4: uuidv4 } = require('uuid');
+const uploadToSupabase = require('../utils/uploadToSupabase');
 
 exports.createStatus = async (req, res) => {
   try {
@@ -36,19 +37,27 @@ exports.createStatus = async (req, res) => {
 
     res.status(201).json(status);
   } catch (error) {
-    console.error('Error creating status:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('[STATUS ERROR] createStatus failed:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
 
 exports.uploadImage = async (req, res) => {
   try {
-    if (!req.files || !req.files.file) {
+    if (!req.files || (!req.files.file && !req.files.image)) {
+      console.error('[STATUS ERROR] No files received in uploadImage');
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const file = req.files.file[0];
-    const fileUrl = file.path.replace(/\\/g, '/'); // normalize path for all OS
+    const file = req.files.file ? req.files.file[0] : req.files.image[0];
+    
+    // Upload to Supabase cloud storage (Memory Buffer)
+    const fileUrl = await uploadToSupabase(file, 'chat-attachments');
+    
+    if (!fileUrl) {
+      console.error('[STATUS ERROR] Supabase upload failed for status image');
+      return res.status(500).json({ message: 'Failed to upload to cloud storage' });
+    }
 
     res.json({
       fileUrl,
@@ -56,8 +65,8 @@ exports.uploadImage = async (req, res) => {
       fileSize: file.size
     });
   } catch (err) {
-    console.error('Error uploading status image:', err);
-    res.status(500).json({ message: 'Failed to upload image' });
+    console.error('[STATUS ERROR] uploadImage exception:', err);
+    res.status(500).json({ message: 'Failed to upload image', error: err.message });
   }
 };
 

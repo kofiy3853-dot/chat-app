@@ -132,15 +132,13 @@ exports.getNotifications = async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
+    // Fetch notifications without the missing 'sender' relation
     const notifications = await prisma.notification.findMany({
       where: { recipientId: req.user.id },
       orderBy: { createdAt: 'desc' },
       skip,
       take: parseInt(limit),
       include: {
-        sender: {
-          select: { id: true, name: true, avatar: true }
-        },
         message: {
           select: {
             id: true,
@@ -152,12 +150,32 @@ exports.getNotifications = async (req, res) => {
       }
     });
 
+    // Manually fetch sender information for notifications that have a senderId
+    const senderIds = [...new Set(notifications.map(n => n.senderId).filter(Boolean))];
+    let senders = [];
+    if (senderIds.length > 0) {
+      senders = await prisma.user.findMany({
+        where: { id: { in: senderIds } },
+        select: { id: true, name: true, avatar: true }
+      });
+    }
+
+    // Map senders back to notifications
+    const notificationsWithSenders = notifications.map(notif => ({
+      ...notif,
+      sender: senders.find(s => s.id === notif.senderId) || null
+    }));
+
     res.json({ 
-      notifications,
+      notifications: notificationsWithSenders,
       hasMore: notifications.length === parseInt(limit)
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('[NOTIF ERROR] getNotifications failed:', error);
+    res.status(500).json({ 
+      message: 'Server error while fetching notifications', 
+      error: error.message 
+    });
   }
 };
 

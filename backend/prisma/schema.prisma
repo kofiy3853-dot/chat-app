@@ -37,8 +37,6 @@ model User {
   createdEvents     Event[]       @relation("EventCreator")
   joinedEvents      EventParticipant[]
   announcements     Announcement[]
-
-  @@map("users")
 }
 
 model Status {
@@ -56,7 +54,6 @@ model Status {
   views           StatusView[]
 
   @@index([userId, expiresAt])
-  @@map("statuses")
 }
 
 model StatusView {
@@ -69,7 +66,6 @@ model StatusView {
   viewer    User     @relation(fields: [viewerId], references: [id], onDelete: Cascade)
 
   @@unique([statusId, viewerId])
-  @@map("status_views")
 }
 
 model PushSubscription {
@@ -82,8 +78,6 @@ model PushSubscription {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   createdAt DateTime @default(now())
-  
-  @@map("push_subscriptions")
 }
 
 model Conversation {
@@ -107,7 +101,6 @@ model Conversation {
   lastMessageId String?   @unique
 
   @@index([lastMessageAt(sort: Desc)])
-  @@map("conversations")
 }
 
 model ConversationParticipant {
@@ -124,7 +117,6 @@ model ConversationParticipant {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@unique([userId, conversationId])
-  @@map("conversation_participants")
 }
 
 model Message {
@@ -156,7 +148,6 @@ model Message {
   @@index([conversationId, createdAt(sort: Desc)])
   @@index([courseId, createdAt(sort: Desc)])
   @@index([senderId, createdAt])
-  @@map("messages")
 }
 
 model Reaction {
@@ -170,7 +161,6 @@ model Reaction {
   message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@unique([userId, messageId])
-  @@map("reactions")
 }
 
 model ReadReceipt {
@@ -183,7 +173,6 @@ model ReadReceipt {
   message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@unique([userId, messageId])
-  @@map("read_receipts")
 }
 
 model Course {
@@ -208,8 +197,6 @@ model Course {
   messages     Message[]    @relation("CourseMessages")
   materials    Material[]
   assignments  Assignment[]
-
-  @@map("courses")
 }
 
 model Material {
@@ -229,8 +216,6 @@ model Material {
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   uploaderId  String
   uploader    User     @relation("MaterialUploader", fields: [uploaderId], references: [id])
-
-  @@map("materials")
 }
 
 model Assignment {
@@ -246,8 +231,6 @@ model Assignment {
   courseId    String
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   submissions Submission[]
-
-  @@map("assignments")
 }
 
 model Submission {
@@ -265,7 +248,6 @@ model Submission {
   student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([assignmentId, studentId])
-  @@map("submissions")
 }
 
 model Notification {
@@ -287,7 +269,6 @@ model Notification {
 
   @@index([recipientId, isRead])
   @@index([recipientId, createdAt])
-  @@map("notifications")
 }
 
 enum EventCategory {

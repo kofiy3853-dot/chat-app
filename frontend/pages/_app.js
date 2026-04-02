@@ -189,7 +189,39 @@ export default function MyApp({ Component, pageProps }) {
   return (
     <CallProvider>
       <div className="min-h-screen bg-gray-50 font-['Outfit',sans-serif]">
-        <Toaster />
+        <Toaster 
+          position="top-center"
+          reverseOrder={false}
+          gutter={8}
+          toastOptions={{
+            duration: 5000,
+            style: {
+              background: '#fff',
+              color: '#1e293b',
+              borderRadius: '20px',
+              padding: '12px 20px',
+              fontSize: '14px',
+              fontWeight: '700',
+              boxShadow: '0 10px 40px -10px rgba(0,0,0,0.15)',
+            },
+            success: {
+              iconTheme: {
+                primary: '#4f46e5',
+                secondary: '#fff',
+              },
+            },
+            error: {
+              style: {
+                background: '#1e293b',
+                color: '#fff',
+              },
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
         <main className={shouldHideNavbar ? '' : 'pb-20'}>
           {isOffline && (
             <div className="bg-rose-500 text-white text-center py-2 text-sm font-black uppercase tracking-widest sticky top-0 z-50 shadow-lg">
