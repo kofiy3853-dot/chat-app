@@ -6,15 +6,15 @@ export function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // Read saved preference, or fallback to OS preference
+    // Read saved preference, default to light if NOT set
     const saved = localStorage.getItem('theme');
     if (saved) {
       setIsDark(saved === 'dark');
       document.documentElement.setAttribute('data-theme', saved);
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDark(prefersDark);
-      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      // FORCE default to 'light' mode even if OS is dark (per user request)
+      setIsDark(false);
+      document.documentElement.setAttribute('data-theme', 'light');
     }
   }, []);
 
