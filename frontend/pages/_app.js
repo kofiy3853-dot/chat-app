@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import { initSocket, getSocket } from '../services/socket';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { CallProvider } from '../context/CallContext';
+import { ThemeProvider } from '../context/ThemeContext';
 import { initOneSignal } from '../services/oneSignal';
 import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'react-hot-toast';
@@ -188,8 +189,9 @@ export default function MyApp({ Component, pageProps }) {
   if (!isReady) return null;
 
   return (
+    <ThemeProvider>
     <CallProvider>
-      <div className="min-h-screen bg-gray-50 font-['Outfit',sans-serif]">
+      <div className="min-h-screen font-['Outfit',sans-serif]" style={{ backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
         <Toaster 
           position="top-center"
           reverseOrder={false}
@@ -249,5 +251,6 @@ export default function MyApp({ Component, pageProps }) {
         <CallInterface />
       </div>
     </CallProvider>
+    </ThemeProvider>
   );
 }

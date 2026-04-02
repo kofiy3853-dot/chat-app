@@ -2,6 +2,200 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Light Mode (Default) ───────────────────────────────── */
+:root,
+[data-theme="light"] {
+  --bg-page:          #F5F8FF;
+  --bg-surface:       #FFFFFF;
+  --bg-surface-2:     #F0F2FF;
+  --bg-input:         #F1F3FF;
+  --bg-navbar:        #FFFFFF;
+
+  --text-primary:     #1A1D3A;
+  --text-secondary:   #6B7280;
+  --text-muted:       #94A3B8;
+
+  --border:           #E8EAF6;
+  --border-light:     #F0F2FF;
+
+  --bubble-me-start:  #6B73FF;
+  --bubble-me-end:    #8E96FF;
+  --bubble-me-text:   #FFFFFF;
+  --bubble-other-bg:  #FFFFFF;
+  --bubble-other-text:#1A1D3A;
+
+  --header-start:     #6B73FF;
+  --header-end:       #8E96FF;
+
+  --unread-dot:       #6B73FF;
+  --online-dot:       #22C55E;
+
+  color-scheme: light;
+}
+
+/* ─── Dark Mode (WhatsApp-style) ────────────────────────── */
+[data-theme="dark"] {
+  --bg-page:          #0D0F1A;
+  --bg-surface:       #1A1D2E;
+  --bg-surface-2:     #252840;
+  --bg-input:         #1E2133;
+  --bg-navbar:        #1A1D2E;
+
+  --text-primary:     #E2E8F0;
+  --text-secondary:   #94A3B8;
+  --text-muted:       #64748B;
+
+  --border:           #2D3150;
+  --border-light:     #252840;
+
+  --bubble-me-start:  #4F56E8;
+  --bubble-me-end:    #6B73FF;
+  --bubble-me-text:   #FFFFFF;
+  --bubble-other-bg:  #1E2133;
+  --bubble-other-text:#E2E8F0;
+
+  --header-start:     #1A1D2E;
+  --header-end:       #252840;
+
+  --unread-dot:       #818CF8;
+  --online-dot:       #4ADE80;
+
+  color-scheme: dark;
+}
+
+/* ─── Base Reset ─────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ─── Design Token Classes ───────────────────────────────── */
+.bg-app        { background-color: var(--bg-page); }
+.bg-surface    { background-color: var(--bg-surface); }
+.bg-surface-2  { background-color: var(--bg-surface-2); }
+.bg-input-area { background-color: var(--bg-input); }
+.bg-navbar-bar { background-color: var(--bg-navbar); }
+
+.text-app-primary   { color: var(--text-primary); }
+.text-app-secondary { color: var(--text-secondary); }
+.text-app-muted     { color: var(--text-muted); }
+
+.border-app    { border-color: var(--border); }
+.border-app-light { border-color: var(--border-light); }
+
+.bg-header-gradient {
+  background: linear-gradient(135deg, var(--header-start) 0%, var(--header-end) 100%);
+}
+
+.bg-fab-gradient {
+  background: linear-gradient(135deg, #6B73FF, #8E96FF);
+}
+
+.badge-gradient {
+  background: linear-gradient(135deg, #6B73FF, #8E96FF);
+}
+
+.chat-bubble-me {
+  background: linear-gradient(135deg, var(--bubble-me-start), var(--bubble-me-end));
+  color: var(--bubble-me-text);
+  box-shadow: 0 4px 15px rgba(107, 115, 255, 0.25);
+}
+
+.chat-bubble-other {
+  background: var(--bubble-other-bg);
+  color: var(--bubble-other-text);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* ─── Global Theme Overrides ─────────────────────────────── */
+/* Ensure white cards respect dark mode */
+[data-theme="dark"] .bg-white {
+  background-color: var(--bg-surface) !important;
+}
+
+[data-theme="dark"] .bg-slate-50,
+[data-theme="dark"] .bg-gray-50 {
+  background-color: var(--bg-surface-2) !important;
+}
+
+[data-theme="dark"] .text-slate-900,
+[data-theme="dark"] .text-slate-800,
+[data-theme="dark"] .text-gray-900 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .text-slate-600,
+[data-theme="dark"] .text-slate-500,
+[data-theme="dark"] .text-gray-600 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .text-slate-400,
+[data-theme="dark"] .text-slate-300,
+[data-theme="dark"] .text-gray-400 {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .border-slate-100,
+[data-theme="dark"] .border-gray-100 {
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .bg-slate-100 {
+  background-color: var(--bg-surface-2) !important;
+}
+
+[data-theme="dark"] .shadow-sm,
+[data-theme="dark"] .shadow {
+  --tw-shadow-color: rgba(0,0,0,0.4);
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* ─── Utilities ──────────────────────────────────────────── */
+.soft-shadow { box-shadow: 0 8px 24px rgba(107, 115, 255, 0.08); }
+
+.premium-card {
+  background: var(--bg-surface);
+  border-radius: 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;

@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import ProfileCard from '../components/ProfileCard';
 import { authAPI } from '../services/api';
 import { disconnectSocket } from '../services/socket';
+import { useTheme } from '../context/ThemeContext';
 import { 
   ArrowRightOnRectangleIcon,
   KeyIcon,
@@ -12,11 +13,14 @@ import {
   GlobeAltIcon,
   LockClosedIcon,
   SwatchIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  MoonIcon,
+  SunIcon
 } from '@heroicons/react/24/outline';
 
 export default function Account() {
   const router = useRouter();
+  const { isDark, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeBg, setActiveBg] = useState('bg-slate-50/50');
@@ -101,7 +105,7 @@ export default function Account() {
         <title>Account | Campus Chat</title>
       </Head>
       
-      <div className="min-h-screen bg-slate-50/50 pb-20">
+      <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--bg-page)' }}>
         <div className="max-w-2xl mx-auto p-4 lg:pt-12 space-y-8">
           
           {/* Header */}
@@ -119,14 +123,48 @@ export default function Account() {
           <div className="space-y-6">
             {/* Appearance (Special Row) */}
             <div className="space-y-3">
-              <h3 className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Appearance</h3>
-              <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/40 border border-slate-100">
+              <h3 className="px-4 text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>Appearance</h3>
+              <div className="rounded-3xl p-6 shadow-xl border" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+                {/* Dark Mode Toggle */}
+                <div className="flex items-center justify-between mb-6 pb-5" style={{ borderBottom: '1px solid var(--border)' }}>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ backgroundColor: isDark ? '#252840' : '#EEF0FF' }}>
+                      {isDark 
+                        ? <MoonIcon className="w-5 h-5" style={{ color: '#818CF8' }} />
+                        : <SunIcon className="w-5 h-5 text-primary-500" />}
+                    </div>
+                    <div>
+                      <span className="block text-sm font-black" style={{ color: 'var(--text-primary)' }}>Dark Mode</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{isDark ? 'On' : 'Off'}</span>
+                    </div>
+                  </div>
+                  {/* WhatsApp-style pill toggle */}
+                  <button
+                    onClick={toggleTheme}
+                    className="relative w-14 h-7 rounded-full transition-all duration-300 focus:outline-none"
+                    style={{ backgroundColor: isDark ? '#6B73FF' : '#E2E8F0' }}
+                  >
+                    <span 
+                      className="absolute top-0.5 left-0.5 w-6 h-6 rounded-full shadow-md transition-all duration-300 flex items-center justify-center"
+                      style={{ 
+                        backgroundColor: isDark ? '#FFFFFF' : '#FFFFFF',
+                        transform: isDark ? 'translateX(28px)' : 'translateX(0px)'
+                      }}
+                    >
+                      {isDark 
+                        ? <MoonIcon className="w-3.5 h-3.5" style={{ color: '#6B73FF' }} />
+                        : <SunIcon className="w-3.5 h-3.5 text-amber-400" />}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Chat background */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <SwatchIcon className="w-5 h-5 text-primary-500" />
-                    <span className="text-sm font-black text-slate-700">Chat Theme</span>
+                    <span className="text-sm font-black" style={{ color: 'var(--text-primary)' }}>Chat Theme</span>
                   </div>
-                  <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Select background</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Background</span>
                 </div>
                 <div className="grid grid-cols-6 gap-3">
                   {[
