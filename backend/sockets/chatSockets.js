@@ -1,5 +1,7 @@
 const prisma = require('../prisma/client');
 const { socketAuthMiddleware } = require('../middleware/authMiddleware');
+const { getNanaAiResponse } = require('../services/nanaAi');
+const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
 
 const setupChatSockets = (io) => {
   // Apply auth middleware to socket connections
@@ -275,6 +277,94 @@ const setupChatSockets = (io) => {
         socket.emit('message-sent', { 
           message: { ...message, tempId: data.tempId } 
         });
+
+        // --- 🤖 Nana AI Trigger ---
+        if (content && (content.includes('@Nana') || content.toLowerCase().startsWith('nana'))) {
+          (async () => {
+             try {
+                // Ensure Nana is in the conversation (upsert participant)
+                await prisma.conversationParticipant.upsert({
+                  where: {
+                    userId_conversationId: {
+                      userId: NANA_USER_ID,
+                      conversationId: conversationId
+                    }
+                  },
+                  create: {
+                    userId: NANA_USER_ID,
+                    conversationId: conversationId,
+                    role: 'MEMBER'
+                  },
+                  update: {} // already exists
+                });
+
+                // Show Nana as typing...
+                io.to(`conversation:${conversationId}`).emit('user-typing', {
+                  userId: NANA_USER_ID,
+                  userName: 'Nana',
+                  conversationId,
+                  isTyping: true
+                });
+
+                // Fetch short history for context (last 5-10 messages)
+                const history = await prisma.message.findMany({
+                  where: { conversationId, isDeleted: false },
+                  orderBy: { createdAt: 'desc' },
+                  take: 10,
+                  include: { sender: { select: { id: true, name: true } } }
+                });
+
+                // Get AI response
+                const aiResponse = await getNanaAiResponse(content, history.reverse());
+
+                // Create message and update conversation
+                const nanaMessage = await prisma.$transaction(async (tx) => {
+                  const m = await tx.message.create({
+                    data: {
+                      conversationId,
+                      senderId: NANA_USER_ID,
+                      content: aiResponse,
+                      type: 'TEXT'
+                    },
+                    include: {
+                      sender: {
+                        select: {
+                          id: true,
+                          name: true,
+                          avatar: true
+                        }
+                      }
+                    }
+                  });
+                  await tx.conversation.update({
+                    where: { id: conversationId },
+                    data: {
+                      lastMessageId: m.id,
+                      lastMessageAt: new Date()
+                    }
+                  });
+                  return m;
+                });
+
+                // Stop typing
+                io.to(`conversation:${conversationId}`).emit('user-typing', {
+                  userId: NANA_USER_ID,
+                  userName: 'Nana',
+                  conversationId,
+                  isTyping: false
+                });
+
+                // Emit new message broadcast
+                io.to(`conversation:${conversationId}`).emit('new-message', {
+                  message: nanaMessage,
+                  conversationId
+                });
+
+             } catch (aiErr) {
+                console.error('[Nana AI Handler Error]:', aiErr);
+             }
+          })();
+        }
       } catch (error) {
         console.error(`[NOTIF ERROR] send-message handler crashed:`, error);
         socket.emit('error', { message: error.message });
