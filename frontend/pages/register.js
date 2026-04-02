@@ -7,9 +7,8 @@ import { initSocket } from '../services/socket';
 import { 
   AcademicCapIcon, 
   CameraIcon, 
-  UserCircleIcon,
-  XMarkIcon,
-  CheckBadgeIcon
+  UserIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 
@@ -53,13 +52,15 @@ export default function Register() {
 
     // Strict validation
     if (!formData.name.trim() || !formData.email.trim() || !formData.studentId.trim() || !formData.department.trim()) {
-      setError('All campus details are mandatory.');
+      setError('All fields are mandatory.');
+      toast.error('Please fill in all campus details.');
       setLoading(false);
       return;
     }
 
     if (!avatar) {
       setError('Please upload a profile picture.');
+      toast.error('Profile picture is required.');
       setLoading(false);
       return;
     }
@@ -83,15 +84,11 @@ export default function Register() {
       const response = await authAPI.register(data);
       const { token, user } = response.data;
 
-      // Store auth data
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-
-      // Initialize socket
       initSocket();
 
-      toast.success('Welcome to Campus Chat!');
-      // Redirect to inbox
+      toast.success('Account created successfully!');
       router.push('/');
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed. Please try again.';
@@ -105,218 +102,184 @@ export default function Register() {
   return (
     <>
       <Head>
-        <title>Sign Up | Campus Chat</title>
+        <title>Create Account | Campus Chat</title>
       </Head>
 
-      <div className="min-h-screen bg-white flex flex-col justify-center py-12 px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-           <div className="flex justify-center">
-              <div className="w-16 h-16 bg-blue-600 rounded-[2rem] flex items-center justify-center shadow-xl shadow-blue-200 rotate-3">
-                 <AcademicCapIcon className="w-10 h-10 text-white -rotate-3" />
-              </div>
-           </div>
-           <h2 className="mt-8 text-center text-3xl font-black tracking-tight text-gray-900 uppercase italic">
-              Join the Hub
-           </h2>
-           <p className="mt-2 text-center text-sm font-bold text-gray-400 uppercase tracking-widest">
-              Create your global campus identity
-           </p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+        <div className="max-w-xl w-full">
+          {/* Logo & Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4 shadow-lg shadow-primary-200">
+              <AcademicCapIcon className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Create Account</h1>
+            <p className="text-gray-500 mt-2">Join your global campus network</p>
+          </div>
 
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-xl">
-          <div className="bg-white py-12 px-6 shadow-2xl shadow-blue-100 rounded-[3rem] border border-gray-50 sm:px-12">
+          {/* Registration Card */}
+          <div className="bg-white rounded-[2rem] shadow-xl border border-gray-100 p-8 sm:p-12">
             {error && (
-              <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-xl text-sm font-bold flex items-center space-x-3">
-                 <XMarkIcon className="w-5 h-5 shrink-0" />
-                 <span>{error}</span>
+              <div className="mb-8 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">
+                {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Avatar Upload Section */}
-              <div className="flex flex-col items-center justify-center space-y-4">
-                 <div className="relative group">
-                    <div 
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`w-32 h-32 rounded-[2.5rem] border-4 flex items-center justify-center overflow-hidden cursor-pointer transition-all duration-300 ${
-                        avatarPreview ? 'border-blue-500 shadow-xl scale-105' : 'border-dashed border-gray-200 hover:border-blue-400 bg-gray-50'
-                      }`}
-                    >
-                       {avatarPreview ? (
-                          <img src={avatarPreview} className="w-full h-full object-cover" alt="Preview" />
-                       ) : (
-                          <div className="flex flex-col items-center space-y-1 text-gray-400">
-                             <UserCircleIcon className="w-12 h-12" />
-                             <span className="text-[10px] font-black uppercase tracking-tighter">Choose Photo</span>
-                          </div>
-                       )}
-                       
-                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <CameraIcon className="w-8 h-8 text-white" />
-                       </div>
-                    </div>
-                    {avatarPreview && (
-                       <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center border-4 border-white shadow-lg">
-                          <CheckBadgeIcon className="w-4 h-4 text-white" />
-                       </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Avatar Selection */}
+              <div className="flex flex-col items-center justify-center mb-4">
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative group cursor-pointer"
+                >
+                  <div className={`w-24 h-24 rounded-full border-2 overflow-hidden bg-gray-50 flex items-center justify-center transition-colors ${
+                    avatarPreview ? 'border-primary-600' : 'border-dashed border-gray-300 hover:border-primary-400'
+                  }`}>
+                    {avatarPreview ? (
+                      <img src={avatarPreview} className="w-full h-full object-cover" alt="Avatar" />
+                    ) : (
+                      <UserIcon className="w-10 h-10 text-gray-300" />
                     )}
-                 </div>
-                 <input 
-                    type="file" 
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept="image/*"
-                    className="hidden"
-                 />
-                 <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest italic animate-pulse">
-                    Profile Picture Required*
-                 </p>
+                    
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-full">
+                      <CameraIcon className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  {avatarPreview && (
+                    <div className="absolute -bottom-1 -right-1 bg-primary-600 text-white p-1 rounded-full border-2 border-white">
+                      <CheckIcon className="w-3 h-3" />
+                    </div>
+                  )}
+                </div>
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <span className="text-xs font-medium text-gray-400 mt-3">Upload Profile Photo*</span>
               </div>
 
-              <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-                {/* Full Name */}
+              {/* Form Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">
-                    Full Name
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                   <input
                     type="text"
+                    required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="block w-full px-5 py-4 bg-gray-50 border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 rounded-2xl text-sm font-bold text-gray-900 transition-all placeholder:text-gray-300"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
                     placeholder="John Doe"
-                    required
                   />
                 </div>
 
-                {/* Email Address */}
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">
-                    Email Address
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                   <input
                     type="email"
+                    required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="block w-full px-5 py-4 bg-gray-50 border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 rounded-2xl text-sm font-bold text-gray-900 transition-all placeholder:text-gray-300"
-                    placeholder="john@campus.edu"
-                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
+                    placeholder="name@university.edu"
                   />
                 </div>
 
-                {/* Role Toggles */}
                 <div className="sm:col-span-2">
-                   <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-3 leading-none">
-                     I am a...
-                   </label>
-                   <div className="grid grid-cols-2 gap-4">
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, role: 'STUDENT' })}
-                        className={`py-4 px-6 rounded-2xl border-2 font-black text-[11px] uppercase tracking-widest transition-all ${
-                          formData.role === 'STUDENT' 
-                            ? 'border-blue-600 bg-blue-600 text-white shadow-xl shadow-blue-200 scale-105' 
-                            : 'border-gray-50 bg-gray-50 text-gray-400 hover:border-gray-100'
-                        }`}
-                      >
-                        Student
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, role: 'INSTRUCTOR' })}
-                        className={`py-4 px-6 rounded-2xl border-2 font-black text-[11px] uppercase tracking-widest transition-all ${
-                          formData.role === 'INSTRUCTOR' 
-                            ? 'border-indigo-600 bg-indigo-600 text-white shadow-xl shadow-indigo-200 scale-105' 
-                            : 'border-gray-50 bg-gray-50 text-gray-400 hover:border-gray-100'
-                        }`}
-                      >
-                        Instructor
-                      </button>
-                   </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Account Type</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, role: 'STUDENT' })}
+                      className={`px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                        formData.role === 'STUDENT' 
+                          ? 'border-primary-600 bg-primary-50 text-primary-600' 
+                          : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100'
+                      }`}
+                    >
+                      Student
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, role: 'INSTRUCTOR' })}
+                      className={`px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                        formData.role === 'INSTRUCTOR' 
+                          ? 'border-primary-600 bg-primary-50 text-primary-600' 
+                          : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100'
+                      }`}
+                    >
+                      Instructor
+                    </button>
+                  </div>
                 </div>
 
-                {/* ID and Dept */}
                 <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {formData.role === 'INSTRUCTOR' ? 'Staff ID' : 'Student ID'}
                   </label>
                   <input
                     type="text"
+                    required
                     value={formData.studentId}
                     onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
-                    className="block w-full px-5 py-4 bg-gray-50 border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 rounded-2xl text-sm font-bold text-gray-900 transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
                     placeholder="XX-XXXX"
-                    required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">
-                    Department
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
                   <input
                     type="text"
+                    required
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="block w-full px-5 py-4 bg-gray-50 border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 rounded-2xl text-sm font-bold text-gray-900 transition-all"
-                    placeholder="CS / ENG"
-                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
+                    placeholder="e.g. Computer Science"
                   />
                 </div>
 
-                {/* Passwords */}
                 <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">
-                    Password
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
                   <input
                     type="password"
+                    required
+                    minLength={6}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="block w-full px-5 py-4 bg-gray-50 border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 rounded-2xl text-sm font-bold text-gray-900 transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
                     placeholder="••••••••"
-                    required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">
-                    Confirm
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm</label>
                   <input
                     type="password"
+                    required
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="block w-full px-5 py-4 bg-gray-50 border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 rounded-2xl text-sm font-bold text-gray-900 transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
                     placeholder="••••••••"
-                    required
                   />
                 </div>
               </div>
 
-              <div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="group relative w-full flex justify-center py-5 px-4 border border-transparent text-[11px] font-black uppercase tracking-[0.3em] rounded-[1.5rem] text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-2xl shadow-blue-300 active:scale-[0.98] transition-all disabled:opacity-50"
-                >
-                  {loading ? (
-                    <div className="flex items-center space-x-3">
-                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                       <span>Confirming...</span>
-                    </div>
-                  ) : (
-                    'Finalize Registration'
-                  )}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-primary-600 text-white py-4 rounded-2xl font-bold hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary-100 mt-4 active:scale-95"
+              >
+                {loading ? 'Processing...' : 'Create Account'}
+              </button>
             </form>
 
-            <div className="mt-10 pt-8 border-t border-gray-50 text-center">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                Already part of the hub?{' '}
-                <Link href="/login" className="text-blue-600 hover:text-blue-800 transition-colors underline underline-offset-4 decoration-blue-200">
-                  Login here
+            <div className="mt-8 text-center">
+              <p className="text-sm text-gray-500">
+                Already have an account?{' '}
+                <Link href="/login" className="text-primary-600 hover:underline font-semibold">
+                  Sign in
                 </Link>
               </p>
             </div>
