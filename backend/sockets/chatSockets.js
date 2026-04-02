@@ -279,7 +279,13 @@ const setupChatSockets = (io) => {
         });
 
         // --- 🤖 Nana AI Trigger ---
-        if (content && (content.includes('@Nana') || content.toLowerCase().startsWith('nana'))) {
+        const isNanaMentioned = content && (
+          content.includes('@Nana') || 
+          content.toLowerCase().includes('nana') ||
+          content.includes(NANA_USER_ID)
+        );
+
+        if (isNanaMentioned) {
           (async () => {
              try {
                 // Ensure Nana is in the conversation (upsert participant)

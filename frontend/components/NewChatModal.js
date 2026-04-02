@@ -116,17 +116,41 @@ export default function NewChatModal({ isOpen, onClose }) {
                 </button>
               ))}
             </div>
-          ) : search.trim() ? (
+          ) : !search.trim() ? (
+            <div className="p-2">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4 mb-3">Suggested</h3>
+              <button
+                onClick={() => startChat('7951b52c-b14e-486a-a802-8e0a9fa2495b')}
+                className="w-full flex items-center space-x-4 p-4 bg-primary-50/50 hover:bg-primary-50 rounded-2xl transition-all group border border-primary-100 shadow-sm"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary-500 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary-500/20 overflow-hidden shrink-0">
+                  <div className="animate-pulse absolute inset-0 bg-white/20"></div>
+                  <span>N</span>
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm font-black text-gray-900 truncate">Nana</p>
+                    <span className="px-1.5 py-0.5 bg-primary-500 text-[8px] font-black text-white rounded-md uppercase tracking-tighter">AI Assistant</span>
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium truncate mt-0.5">Ask me about campus life, courses, or events!</p>
+                  <div className="flex items-center space-x-1.5 mt-1">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-tight">Active Now</span>
+                  </div>
+                </div>
+              </button>
+              
+              <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+                <p className="text-gray-400 text-sm font-medium italic mt-4">Type to search for friends and classmates</p>
+              </div>
+            </div>
+          ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center px-6">
               <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                 <MagnifyingGlassIcon className="w-8 h-8 text-gray-300" />
               </div>
               <p className="text-gray-900 font-bold text-lg">No results found</p>
               <p className="text-gray-500 text-sm mt-1">We couldn't find anyone matching "{search}"</p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-              <p className="text-gray-400 text-sm font-medium italic">Type to search for friends and classmates</p>
             </div>
           )}
         </div>

@@ -151,6 +151,17 @@ const MessagesPage: React.FC = () => {
     }
   };
 
+  const startNanaChat = async () => {
+    try {
+      const nanaId = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
+      const response = await chatAPI.getOrCreateDirectConversation(nanaId);
+      router.push(`/chat/${response.data.conversation.id}`);
+    } catch (err) {
+      console.error('Failed to start Nana chat:', err);
+      toast.error('Nana is currently offline');
+    }
+  };
+
   const filteredConversations = useMemo(() => {
     let filtered = conversations;
     if (chatFilter === 'unread') filtered = filtered.filter(c => (c.unreadCount || 0) > 0);
@@ -395,10 +406,20 @@ const MessagesPage: React.FC = () => {
                 className="absolute bottom-16 right-0 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden py-1"
               >
                 <button
+                  onClick={() => { startNanaChat(); setShowFAB(false); }}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-black text-primary-600 hover:bg-primary-50 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600 shadow-sm shadow-primary-500/20">
+                    <ChatBubbleOvalLeftEllipsisIcon className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <span>✨ Ask Nana AI</span>
+                </button>
+                <div className="h-px bg-gray-100 mx-2" />
+                <button
                   onClick={() => { setIsModalOpen(true); setShowFAB(false); }}
                   className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center text-primary-600">
+                  <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-600">
                     <ChatBubbleOvalLeftEllipsisIcon className="w-4 h-4" />
                   </div>
                   <span>New Chat</span>
