@@ -3,8 +3,19 @@ const bcrypt = require('bcryptjs');
 const prisma = require('../prisma/client');
 const { validationResult } = require('express-validator');
 
+// Startup check for critical env vars
+if (!process.env.JWT_SECRET) {
+  console.error('[AUTH FATAL] JWT_SECRET environment variable is not set! Login will fail.');
+}
+if (!process.env.DIRECT_URL && !process.env.DATABASE_URL) {
+  console.error('[AUTH FATAL] No database URL configured! DB queries will fail.');
+}
+
 // Generate JWT token
 const generateToken = (userId) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is not configured on this server.');
+  }
   return jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
@@ -62,6 +73,7 @@ exports.register = async (req, res) => {
 
 // Login user
 exports.login = async (req, res) => {
+  let step = 'validation';
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -70,33 +82,45 @@ exports.login = async (req, res) => {
 
     const { email, password } = req.body;
 
-    // Find user
+    // Step 1: Find user in DB
+    step = 'db_query';
+    console.log(`[LOGIN] Attempting login for: ${email}`);
     const user = await prisma.user.findUnique({
       where: { email }
     });
     if (!user) {
+      console.log(`[LOGIN] No user found for: ${email}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
+    // Step 2: Check password
+    step = 'bcrypt';
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log(`[LOGIN] Password mismatch for: ${email}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate token
+    // Step 3: Generate JWT
+    step = 'jwt_sign';
     const token = generateToken(user.id);
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
 
+    console.log(`[LOGIN] Success for: ${email}`);
     res.json({
       message: 'Login successful',
       token,
       user: userWithoutPassword
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error(`[LOGIN ERROR] Failed at step '${step}':`, error.message);
+    res.status(500).json({
+      message: 'Server error during login',
+      step,          // tells you exactly which step failed
+      error: error.message
+    });
   }
 };
 
