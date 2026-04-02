@@ -2,7 +2,7 @@ const supabase = require('./supabaseClient');
 const fs = require('fs');
 const path = require('path');
 
-async function uploadToSupabase(file, bucket = 'chat-attachments') {
+async function uploadToSupabase(file, bucket = 'upload') {
   try {
     const { createClient } = require('@supabase/supabase-js');
     const path = require('path');
