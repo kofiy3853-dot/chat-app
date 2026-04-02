@@ -153,15 +153,8 @@ const MessagesPage: React.FC = () => {
     }
   };
 
-  const startNanaChat = async () => {
-    try {
-      const nanaId = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
-      const response = await chatAPI.getOrCreateDirectConversation(nanaId);
-      router.push(`/chat/${response.data.conversation.id}`);
-    } catch (err) {
-      console.error('Failed to start Nana chat:', err);
-      toast.error('Nana is currently offline');
-    }
+  const startNanaChat = () => {
+    router.push('/nana');
   };
 
   const filteredConversations = useMemo(() => {

@@ -1,4 +1,5 @@
 import React, { useRef, useCallback } from 'react';
+import { useRouter } from 'next/router';
 import { formatShortTime, getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
 
 interface User {
@@ -57,6 +58,7 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
   onLongPress,
   isSelected
 }) => {
+  const router = useRouter();
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
 
   const startPress = useCallback(() => {
@@ -113,7 +115,16 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
       )}
 
       {/* Avatar */}
-      <div className="relative flex-shrink-0 mr-3">
+      <div 
+        className="relative flex-shrink-0 mr-3 cursor-pointer"
+        onClick={(e) => {
+           const NANA_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
+           if (otherParticipant?.id === NANA_ID) {
+             e.stopPropagation();
+             router.push('/nana');
+           }
+        }}
+      >
         <div className="w-12 h-12 rounded-full overflow-hidden">
           {avatarUrl ? (
             <img

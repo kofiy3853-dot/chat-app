@@ -120,7 +120,7 @@ export default function NewChatModal({ isOpen, onClose }) {
             <div className="p-2">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4 mb-3">Suggested</h3>
               <button
-                onClick={() => startChat('7951b52c-b14e-486a-a802-8e0a9fa2495b')}
+                onClick={() => { router.push('/nana'); onClose(); }}
                 className="w-full flex items-center space-x-4 p-4 bg-primary-50/50 hover:bg-primary-50 rounded-2xl transition-all group border border-primary-100 shadow-sm"
               >
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary-500 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary-500/20 overflow-hidden shrink-0">

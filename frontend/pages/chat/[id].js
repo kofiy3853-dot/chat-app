@@ -228,7 +228,14 @@ export default function ChatPage() {
 
             <div
               className="flex items-center space-x-3 cursor-pointer min-w-0"
-              onClick={() => setShowProfile(true)}
+              onClick={() => {
+                const NANA_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
+                if (otherParticipant?.userId === NANA_ID) {
+                  router.push('/nana');
+                } else {
+                  setShowProfile(true);
+                }
+              }}
             >
               <div className="relative">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold overflow-hidden ring-2 ring-white/30 bg-white/20`}>
