@@ -108,17 +108,7 @@ export default function Document() {
         </div>
         <Main />
         <NextScript />
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            window.addEventListener('load', function() {
-              const loader = document.getElementById('initial-loader');
-              if (loader) {
-                loader.style.opacity = '0';
-                loader.style.visibility = 'hidden';
-              }
-            });
-          `
-        }} />
+
       </body>
     </Html>
   )

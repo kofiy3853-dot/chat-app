@@ -125,6 +125,14 @@ export default function MyApp({ Component, pageProps }) {
         if (token) initSocket();
       }
       setIsReady(true);
+      setTimeout(() => {
+        const loader = document.getElementById('initial-loader');
+        if (loader) {
+          loader.style.opacity = '0';
+          loader.style.visibility = 'hidden';
+          setTimeout(() => loader.remove(), 500);
+        }
+      }, 50);
     };
     authCheck(router.asPath);
     router.events.on('routeChangeComplete', authCheck);
