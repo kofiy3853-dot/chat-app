@@ -231,6 +231,12 @@ export default function ChatBox({ conversationId }) {
       ));
     });
 
+    socket.on('chat-cleared', ({ conversationId: cid }) => {
+      if (cid === conversationId) {
+        setMessages([]);
+      }
+    });
+
     socket.on('message-sent', (sent) => {
       const sentMsg = sent.message || sent;
       setMessages(prev => prev.map(m => (m.tempId && m.tempId === sentMsg.tempId) ? sentMsg : m));
