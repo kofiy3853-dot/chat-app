@@ -82,6 +82,12 @@ export default function Account() {
   }
 
   const sections = [
+    ...(user?.role === 'ADMIN' ? [{
+      title: 'Administration',
+      items: [
+        { icon: ShieldCheckIcon, label: 'Admin Command Center', color: 'bg-indigo-600 text-white', href: '/admin', badge: 'Active' }
+      ]
+    }] : []),
     {
       title: 'Security & Access',
       items: [
@@ -98,6 +104,12 @@ export default function Account() {
       ]
     }
   ];
+
+  const handleItemClick = (item) => {
+    if (item.href) {
+      router.push(item.href);
+    }
+  };
 
   return (
     <>
@@ -197,6 +209,7 @@ export default function Account() {
                     {section.items.map((item, i) => (
                       <button 
                         key={i} 
+                        onClick={() => handleItemClick(item)}
                         className="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50 transition-all group active:bg-slate-100"
                       >
                         <div className="flex items-center space-x-4">
