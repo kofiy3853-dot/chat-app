@@ -98,26 +98,6 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
           <p className="text-xs font-medium text-gray-700 mt-1 truncate w-full text-center">My Status</p>
         </div>
 
-        {/* Nana AI Status */}
-        <div 
-          onClick={async () => {
-             try {
-                const { chatAPI } = await import('../services/api');
-                const res = await chatAPI.getOrCreateDirectConversation('7951b52c-b14e-486a-a802-8e0a9fa2495b');
-                window.location.href = `/chat/${res.data.conversation.id}`;
-             } catch(e) {}
-          }}
-          className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 outline-none rounded-lg p-1 group"
-        >
-          <div className="relative p-[2.5px] rounded-full bg-gradient-to-tr from-primary-500 via-indigo-500 to-purple-600 shadow-lg shadow-primary-500/20 group-active:scale-90 transition-transform">
-            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white bg-slate-900 flex items-center justify-center relative">
-               <div className="absolute inset-0 bg-primary-500 opacity-20 animate-pulse"></div>
-               <span className="text-white font-black text-xl italic relative z-10">N</span>
-            </div>
-          </div>
-          <p className="text-[10px] font-black text-primary-600 mt-1 uppercase tracking-tighter">Ask Nana</p>
-        </div>
-
         {/* Other Users' Statuses */}
         {groups.map((group, index) => (
           <div 

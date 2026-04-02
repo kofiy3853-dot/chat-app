@@ -10,7 +10,9 @@ const { sendPushNotification } = require('../utils/oneSignal');
 exports.getConversations = async (req, res) => {
   try {
     const userId = req.user.id;
-    const conversations = await prisma.conversation.findMany({
+    const NANA_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
+
+    let conversations = await prisma.conversation.findMany({
       where: {
         participants: {
           some: {
@@ -58,6 +60,92 @@ exports.getConversations = async (req, res) => {
         lastMessageAt: 'desc'
       }
     });
+
+    // --- 🤖 Nana Auto-Create Logic ---
+    const hasNana = conversations.some(c => 
+      c.type === 'DIRECT' && 
+      c.participants.some(p => p.userId === NANA_ID)
+    );
+
+    if (!hasNana && userId !== NANA_ID) {
+      try {
+        const newNanaConv = await prisma.$transaction(async (tx) => {
+          const conv = await tx.conversation.create({
+            data: {
+              type: 'DIRECT',
+              participants: {
+                createMany: {
+                  data: [
+                    { userId: userId, role: 'MEMBER' },
+                    { userId: NANA_ID, role: 'MEMBER' }
+                  ]
+                }
+              }
+            },
+            include: {
+              participants: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      avatar: true,
+                      isOnline: true,
+                      lastSeen: true
+                    }
+                  }
+                }
+              }
+            }
+          });
+
+          const welcomeMsg = await tx.message.create({
+            data: {
+              conversationId: conv.id,
+              senderId: NANA_ID,
+              content: "Hi there! 👋 I'm Nana, your campus AI assistant. Feel free to ask me anything about academy, social life, or campus events!",
+              type: 'TEXT'
+            },
+            include: {
+              sender: { select: { id: true, name: true, avatar: true } }
+            }
+          });
+
+          const updatedConv = await tx.conversation.update({
+            where: { id: conv.id },
+            data: { 
+              lastMessageId: welcomeMsg.id, 
+              lastMessageAt: welcomeMsg.createdAt 
+            },
+            include: {
+              participants: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      avatar: true,
+                      isOnline: true,
+                      lastSeen: true
+                    }
+                  }
+                }
+              },
+              lastMessage: {
+                include: {
+                  sender: { select: { id: true, name: true, avatar: true } },
+                  readReceipts: true
+                }
+              }
+            }
+          });
+          return updatedConv;
+        });
+        conversations.unshift(newNanaConv);
+      } catch (err) {
+        console.error('[Nana Auto-Create Error]:', err);
+      }
+    }
 
     const conversationIds = conversations.map(c => c.id);
     const unreadCounts = await prisma.message.groupBy({
