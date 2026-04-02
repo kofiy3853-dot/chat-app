@@ -174,8 +174,10 @@ export default function Register() {
               {/* Form Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                   <input
+                    id="name"
+                    name="name"
                     type="text"
                     required
                     value={formData.name}
@@ -186,8 +188,10 @@ export default function Register() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                   <input
+                    id="email"
+                    name="email"
                     type="email"
                     required
                     value={formData.email}
@@ -226,10 +230,12 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-2">
                     {formData.role === 'INSTRUCTOR' ? 'Staff ID' : 'Student ID'}
                   </label>
                   <input
+                    id="studentId"
+                    name="studentId"
                     type="text"
                     required
                     value={formData.studentId}
@@ -240,8 +246,10 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                  <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-2">Department</label>
                   <input
+                    id="department"
+                    name="department"
                     type="text"
                     required
                     value={formData.department}
@@ -252,8 +260,10 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
                   <input
+                    id="password"
+                    name="password"
                     type="password"
                     required
                     minLength={6}
@@ -265,8 +275,10 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm</label>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
                   <input
+                    id="confirmPassword"
+                    name="confirmPassword"
                     type="password"
                     required
                     value={formData.confirmPassword}
