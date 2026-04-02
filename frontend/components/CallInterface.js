@@ -117,7 +117,7 @@ export default function CallInterface() {
   }, [callAccepted, callEnded]);
 
   return (
-    <div className="relative z-[999999]">
+    <>
       {/* Outgoing call (Caller's 'Calling...' screen) */}
       {call.isCalling && !callAccepted && (
         <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[999999] w-[90%] max-w-sm pointer-events-auto">
@@ -263,6 +263,6 @@ export default function CallInterface() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
