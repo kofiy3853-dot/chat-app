@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import Router from 'next/router';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
@@ -37,7 +38,9 @@ api.interceptors.response.use(
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        if (Router.pathname !== '/login') {
+          Router.push('/login');
+        }
       }
     } else if (error.response) {
       // Show error notification for other server errors

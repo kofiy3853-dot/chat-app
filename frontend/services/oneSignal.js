@@ -1,3 +1,4 @@
+import Router from 'next/router';
 import { pushAPI } from './api';
 import { Capacitor } from '@capacitor/core';
 
@@ -30,7 +31,9 @@ export const initOneSignal = async (user) => {
       OneSignal.Notifications.addEventListener('click', (event) => {
           const data = event.notification.additionalData;
           if (data && data.chat_id) {
-              window.location.href = `/chat/${data.chat_id}`;
+            if (typeof window !== 'undefined') {
+              Router.push(`/chat/${data.chat_id}`);
+            }
           }
       });
 
@@ -69,7 +72,9 @@ export const initOneSignal = async (user) => {
       OneSignal.Notifications.addEventListener('click', (event) => {
         const data = event.notification.additionalData;
         if (data && data.chat_id) {
-          window.location.href = `/chat/${data.chat_id}`;
+          if (typeof window !== 'undefined') {
+            Router.push(`/chat/${data.chat_id}`);
+          }
         }
       });
     } catch (err) {

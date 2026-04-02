@@ -17,12 +17,15 @@ import {
 import { getCurrentUser } from '../utils/helpers';
 import { chatAPI, userAPI } from '../services/api';
 import { getSocket } from '../services/socket';
-import SoftChatList from '../components/SoftChatList';
-import SoftStories from '../components/SoftStories';
+import dynamic from 'next/dynamic';
 import { getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
-import NewChatModal from '../components/NewChatModal';
-import NotificationPrompt from '../components/NotificationPrompt';
+
+
+const SoftChatList = dynamic(() => import('../components/SoftChatList'), { ssr: false, loading: () => <div className="p-4 text-center text-sm text-gray-400">Loading chats...</div> });
+const SoftStories = dynamic(() => import('../components/SoftStories'), { ssr: false });
+const NewChatModal = dynamic(() => import('../components/NewChatModal'), { ssr: false });
+const NotificationPrompt = dynamic(() => import('../components/NotificationPrompt'), { ssr: false });
 import { toast } from 'react-hot-toast';
 
 const MessagesPage: React.FC = () => {
@@ -45,6 +48,17 @@ const MessagesPage: React.FC = () => {
     const localUser = getCurrentUser();
     if (!localUser) { router.push('/login'); return; }
     setUser(localUser);
+    
+    // Optimistic cache loading for instant SPA feeling
+    const cachedChats = localStorage.getItem('cached_conversations');
+    if (cachedChats) {
+      try {
+        setConversations(JSON.parse(cachedChats));
+        setLoading(false);
+      } catch (e) {
+        console.error('Cache parse error');
+      }
+    }
     fetchData();
   }, [router]);
 
@@ -128,7 +142,10 @@ const MessagesPage: React.FC = () => {
   const fetchData = async () => {
     try {
       const convRes = await chatAPI.getConversations();
-      setConversations(convRes.data.conversations || []);
+      const newChats = convRes.data.conversations || [];
+      setConversations(newChats);
+      // Update cache
+      localStorage.setItem('cached_conversations', JSON.stringify(newChats));
     } catch (err) {
       console.error('Fetch data error:', err);
     } finally {
