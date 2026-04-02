@@ -82,12 +82,19 @@ const io = new Server(server, {
 
 // Redis Adapter for Socket.io
 (async () => {
-  await connectRedis();
-  const pubClient = redisClient;
-  const subClient = pubClient.duplicate();
-  await subClient.connect();
-  io.adapter(createAdapter(pubClient, subClient));
-  console.log('Redis: Socket.io adapter initialized');
+  try {
+    await connectRedis();
+    if (redisClient.isOpen) {
+      const pubClient = redisClient;
+      const subClient = pubClient.duplicate();
+      await subClient.connect();
+      io.adapter(createAdapter(pubClient, subClient));
+      console.log('Redis: Socket.io adapter initialized');
+    }
+  } catch (err) {
+    console.error('Redis: Failed to initialize Socket.io adapter:', err.message);
+    // Continue without Redis adapter - horizontal scaling won't work but single instance will
+  }
 })();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
