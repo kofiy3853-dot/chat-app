@@ -2,7 +2,10 @@ const { OpenAI } = require('openai');
 
 let openai = null;
 if (process.env.OPENAI_API_KEY) {
-  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  openai = new OpenAI({ 
+    apiKey: process.env.OPENAI_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  });
 } else {
   console.warn('[Nana AI] Warning: OPENAI_API_KEY is not set. Nana will use fallback responses.');
 }
@@ -47,7 +50,7 @@ const getNanaAiResponse = async (userMessage, history = []) => {
     }
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "openai/gpt-4o-mini",
       messages: messages,
       max_tokens: 500,
       temperature: 0.7
