@@ -1,64 +1,66 @@
-import OneSignal from 'react-onesignal';
-import { userAPI, pushAPI } from './api';
+import { pushAPI } from './api';
 
 const ONESIGNAL_APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
+const SAFARI_WEB_ID = "web.onesignal.auto.428d294a-5ce2-44bb-bee0-dec3149a5564";
 
 export const initOneSignal = async (user) => {
   if (typeof window === 'undefined' || !ONESIGNAL_APP_ID) return;
 
-  // Prevent multiple initializations (React Strict Mode safe)
+  // 1. Setup Deferred Push (Modern v16 Method)
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  
+  // Prevent duplicate logical calls inside our helper
   if (window._oneSignalInitialized) {
     console.log('OneSignal already initialized');
     return;
   }
   window._oneSignalInitialized = true;
 
-  try {
-    await OneSignal.init({
-      appId: ONESIGNAL_APP_ID,
-      allowLocalhostAsSecureOrigin: true, // Only for development
-      notifyButton: {
-        enable: false, // We'll use our own button or prompt
-      },
-    });
+  window.OneSignalDeferred.push(async (OneSignal) => {
+    try {
+      await OneSignal.init({
+        appId: ONESIGNAL_APP_ID,
+        safari_web_id: SAFARI_WEB_ID,
+        allowLocalhostAsSecureOrigin: true,
+        notifyButton: {
+          enable: true,
+        },
+      });
 
-    if (user && user.id) {
-      // 1. Link user in OneSignal
-      await OneSignal.login(user.id);
-      
-      // 2. Get Subscription ID (Player ID)
-      const playerId = await OneSignal.getUserId();
-      console.log('OneSignal Player ID:', playerId);
-
-      if (playerId) {
-        // 3. Save to backend
-        try {
-          await pushAPI.updateOneSignalId(playerId);
-          console.log('OneSignal ID saved to backend');
-        } catch (err) {
-          console.error('Failed to save OneSignal ID to backend:', err);
+      if (user && user.id) {
+        // Link user in OneSignal
+        await OneSignal.login(user.id);
+        
+        // Save Player ID to backend
+        const playerId = await OneSignal.getUserId();
+        if (playerId) {
+          try {
+            await pushAPI.updateOneSignalId(playerId).catch(() => {});
+            console.log('OneSignal ID synced');
+          } catch (err) {}
         }
       }
+
+      // Handle Notification Clicks
+      OneSignal.Notifications.addEventListener('click', (event) => {
+        const data = event.notification.additionalData;
+        if (data && data.chat_id) {
+          window.location.href = `/chat/${data.chat_id}`;
+        }
+      });
+    } catch (err) {
+      console.error('OneSignal v16 Init Error:', err);
     }
+  });
 
-    // Handle Notification Clicks
-    OneSignal.on('notificationClick', (event) => {
-      console.log('OneSignal Notification Clicked:', event);
-      if (event.notification.additionalData && event.notification.additionalData.chat_id) {
-        const chatId = event.notification.additionalData.chat_id;
-        window.location.href = `/chat/${chatId}`;
-      }
-    });
-
-  } catch (err) {
-    console.error('OneSignal Init Error:', err);
-  }
 };
 
 export const requestOneSignalPermission = async () => {
-  try {
-    await OneSignal.showNativePrompt();
-  } catch (err) {
-    console.error('OneSignal permission prompt error:', err);
-  }
+    if (typeof window !== 'undefined' && window.OneSignal) {
+        try {
+            await window.OneSignal.showNativePrompt();
+        } catch (err) {
+            console.error('OneSignal permission prompt error:', err);
+        }
+    }
 };

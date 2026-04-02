@@ -11,21 +11,6 @@ export default function Document() {
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <meta name="theme-color" content="#6B73FF" />
         <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            window.OneSignalDeferred = window.OneSignalDeferred || [];
-            OneSignalDeferred.push(async function(OneSignal) {
-              await OneSignal.init({
-                appId: "9844a8d0-4dbb-40a7-aa57-2a0de509b4e1",
-                safari_web_id: "web.onesignal.auto.428d294a-5ce2-44bb-bee0-dec3149a5564",
-                allowLocalhostAsSecureOrigin: true,
-                notifyButton: {
-                  enable: true,
-                },
-              });
-            });
-          `
-        }} />
         <style>{`
           #initial-loader {
             position: fixed;
