@@ -87,7 +87,26 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (id) {
-      setLoading(true);
+      // --- CACHE-FIRST LOGIC (CONVERSATION) ---
+      const cacheKey = `cached_conversation_${id}`;
+      const savedConv = localStorage.getItem(cacheKey);
+      
+      if (savedConv) {
+        try {
+          const parsed = JSON.parse(savedConv);
+          if (parsed && typeof parsed === 'object') {
+            setConversation(parsed);
+            setLoading(false); // Disable spinner immediately
+          } else {
+            setLoading(true);
+          }
+        } catch (e) {
+          setLoading(true);
+        }
+      } else {
+        setLoading(true);
+      }
+      
       fetchConversation();
       fetchMessages();
       joinConversation(id);
@@ -119,8 +138,10 @@ export default function ChatPage() {
   const fetchConversation = async () => {
     try {
       const response = await chatAPI.getConversationById(id);
-      if (response.data.conversation) {
-        setConversation(response.data.conversation);
+      const conv = response.data.conversation;
+      if (conv) {
+        setConversation(conv);
+        localStorage.setItem(`cached_conversation_${id}`, JSON.stringify(conv));
       }
     } catch (error) {
       console.error('Failed to fetch conversation:', error);

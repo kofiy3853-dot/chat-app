@@ -76,7 +76,27 @@ export default function ChatBox({ conversationId }) {
   useEffect(() => {
     if (conversationId) {
       console.log(`[DEBUG] Loading conversation: ${conversationId}`);
-      setLoading(true);
+      
+      // --- CACHE-FIRST LOGIC ---
+      const cacheKey = `cached_messages_${conversationId}`;
+      const savedMessages = localStorage.getItem(cacheKey);
+      
+      if (savedMessages) {
+        try {
+          const parsed = JSON.parse(savedMessages);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMessages(parsed);
+            setLoading(false); // Disable spinner immediately if cache exists
+          } else {
+            setLoading(true);
+          }
+        } catch (e) {
+          setLoading(true);
+        }
+      } else {
+        setLoading(true);
+      }
+      
       setError(null);
       
       const socket = getSocket();
@@ -110,8 +130,13 @@ export default function ChatBox({ conversationId }) {
   const fetchMessages = async () => {
     try {
       const response = await chatAPI.getMessages(conversationId);
-      setMessages(response.data.messages || []);
-      console.log(`[DEBUG] Rendered ${response.data.messages?.length || 0} messages`);
+      const newMessages = response.data.messages || [];
+      setMessages(newMessages);
+      
+      // Update cache for instant load next time
+      localStorage.setItem(`cached_messages_${conversationId}`, JSON.stringify(newMessages));
+      
+      console.log(`[DEBUG] Rendered ${newMessages.length} messages`);
     } catch (err) {
       console.error('[DEBUG] Fetch error:', err);
       setError('Failed to load chat');
