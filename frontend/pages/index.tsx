@@ -178,15 +178,26 @@ const MessagesPage: React.FC = () => {
           <button
             onClick={() => router.push('/account')}
             aria-label="Profile"
-            className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active:scale-95 transition-all"
+            className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active:scale-95 transition-all bg-white"
           >
             {avatarUrl ? (
-              <img src={avatarUrl} className="w-full h-full object-cover" alt="" />
-            ) : (
-              <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${getAvatarColor(user?.name)} text-white text-xs font-bold ring-1 ring-white/20`}>
-                {getInitials(user?.name)}
-              </div>
-            )}
+              <img 
+                src={avatarUrl} 
+                className="w-full h-full object-cover" 
+                alt="" 
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  const parent = (e.target as HTMLImageElement).parentElement;
+                  if (parent) {
+                    const fallback = parent.querySelector('.avatar-fallback');
+                    if (fallback) (fallback as HTMLElement).style.display = 'flex';
+                  }
+                }}
+              />
+            ) : null}
+            <div className={`avatar-fallback w-full h-full flex items-center justify-center bg-gradient-to-br ${getAvatarColor(user?.name)} text-white text-xs font-bold ${avatarUrl ? 'hidden' : 'flex'}`}>
+              {getInitials(user?.name)}
+            </div>
           </button>
 
           {/* Title */}

@@ -174,26 +174,26 @@ export const getCurrentUser = () => {
 // Reconstruct full URL for files/avatars
 export const getFullFileUrl = (url) => {
   if (!url) return null;
-  // Supabase public URLs and blob URLs are returned as-is
-  if (url.startsWith('http') || url.startsWith('blob:')) return url;
   
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL 
-    ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] 
-    : 'http://localhost:5000';
+  // 1. If it's already an absolute URL (Supabase, external) or a local blob
+  if (url.startsWith('http') || url.startsWith('blob:')) {
+    return url;
+  }
+  
+  // 2. Otherwise assume it's a relative path from our own backend
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const baseUrl = apiUrl.split('/api')[0];
     
-  // Format the url path 
-  let formattedPath = url;
-  
-  // If it doesn't start with a slash, we need to inspect it
-  if (!formattedPath.startsWith('/')) {
-    // Legacy local files were often just saved as UUID strings without folders
-    if (!formattedPath.includes('uploads/')) {
-      formattedPath = `/uploads/${formattedPath}`;
+  let path = url;
+  if (!path.startsWith('/')) {
+    // Legacy local files might not have a leading slash
+    if (!path.includes('uploads/')) {
+      path = `/uploads/${path}`;
     } else {
-      formattedPath = `/${formattedPath}`;
+      path = `/${path}`;
     }
   }
     
-  return `${baseUrl}${formattedPath}`;
+  return `${baseUrl}${path}`;
 };
 

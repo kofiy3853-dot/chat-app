@@ -224,22 +224,37 @@ export default function ChatPage() {
               onClick={() => setShowProfile(true)}
             >
               <div className="relative">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold overflow-hidden ring-2 ring-white/30`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold overflow-hidden ring-2 ring-white/30 bg-white/20`}>
                   {(() => {
                     const avatar = otherParticipant?.user?.avatar;
-                    const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0] : 'http://localhost:5000';
-                    const fullUrl = avatar ? (avatar.startsWith('http') ? avatar : `${baseUrl}${avatar}`) : null;
-                    return fullUrl ? (
-                      <img src={fullUrl} className="w-full h-full object-cover rounded-full" alt="" />
-                    ) : (
-                      <div className={`w-full h-full rounded-full bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center`}>
-                        {getInitials(name)}
-                      </div>
+                    const fullUrl = getFullFileUrl(avatar);
+                    return (
+                      <>
+                        {fullUrl && (
+                          <img 
+                            src={fullUrl} 
+                            className="w-full h-full object-cover rounded-full" 
+                            alt="" 
+                            onError={(e) => {
+                              const target = e.target;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                const fallback = parent.querySelector('.avatar-fallback');
+                                if (fallback) fallback.style.display = 'flex';
+                              }
+                            }}
+                          />
+                        )}
+                        <div className={`avatar-fallback w-full h-full rounded-full bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center ${fullUrl ? 'hidden' : 'flex'}`}>
+                          {getInitials(name)}
+                        </div>
+                      </>
                     );
                   })()}
                 </div>
                 {isOnline && (
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></span>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full transition-all"></span>
                 )}
               </div>
 
@@ -354,14 +369,32 @@ export default function ChatPage() {
               <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
                 {/* Giant Avatar */}
                 <div className="relative mb-6 group">
-                  <div className={`w-32 h-32 rounded-3xl bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden`}>
+                  <div className={`w-32 h-32 rounded-3xl flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden bg-slate-100`}>
                     {(() => {
                       const avatar = otherParticipant?.user?.avatar;
                       const fullUrl = getFullFileUrl(avatar);
-                      return fullUrl ? (
-                        <img src={fullUrl} className="w-full h-full object-cover" alt="" />
-                      ) : (
-                        getInitials(name)
+                      return (
+                        <>
+                          {fullUrl && (
+                            <img 
+                              src={fullUrl} 
+                              className="w-full h-full object-cover" 
+                              alt="" 
+                              onError={(e) => {
+                                const target = e.target;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  const fallback = parent.querySelector('.avatar-fallback');
+                                  if (fallback) fallback.style.display = 'flex';
+                                }
+                              }}
+                            />
+                          )}
+                          <div className={`avatar-fallback w-full h-full bg-gradient-to-tr ${getAvatarColor(name)} flex items-center justify-center ${fullUrl ? 'hidden' : 'flex'}`}>
+                            {getInitials(name)}
+                          </div>
+                        </>
                       );
                     })()}
                   </div>

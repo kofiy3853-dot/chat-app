@@ -57,7 +57,10 @@ exports.register = async (req, res) => {
     }
 
     // Upload Avatar to Supabase
+    console.log(`[REGISTER DEBUG] File received: ${req.file ? req.file.originalname : 'NONE'}`);
     const avatarUrl = await uploadToSupabase(req.file, 'upload');
+    console.log(`[REGISTER DEBUG] Avatar Upload Result: ${avatarUrl || 'FAILED'}`);
+    
     if (!avatarUrl) {
       return res.status(500).json({ message: 'Failed to upload profile picture' });
     }
@@ -69,7 +72,7 @@ exports.register = async (req, res) => {
     // Create new user
     const user = await prisma.user.create({
       data: {
-        email,
+        email: email.toLowerCase(),
         password: hashedPassword,
         name,
         studentId,
@@ -78,6 +81,8 @@ exports.register = async (req, res) => {
         role: role ? role.toUpperCase() : 'STUDENT'
       }
     });
+
+    console.log(`[REGISTER DEBUG] User created in DB with avatar: ${user.avatar ? 'YES' : 'NO'}`);
 
     // Generate token
     const token = generateToken(user.id);
