@@ -107,7 +107,7 @@ export default function ChatBox({ conversationId }) {
       loadCachedData();
       setError(null);
       
-      const socket = initSocket();
+      const socket = getSocket();
       if (socket) {
         socket.emit('join-conversation', conversationId);
         markAsRead(conversationId);
