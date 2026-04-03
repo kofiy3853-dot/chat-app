@@ -9,7 +9,12 @@ export const initOneSignal = async (user) => {
   if (typeof window === 'undefined' || !ONESIGNAL_APP_ID) return;
 
   // --- 🛡️ DOMAIN GUARD ---
-  const isLocalhost = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
+  const isLocalhost = 
+    window.location.hostname.includes('localhost') || 
+    window.location.hostname.includes('127.0.0.1') || 
+    window.location.hostname.startsWith('192.168.') || 
+    window.location.hostname.startsWith('10.');
+    
   const isAllowedVercel = window.location.hostname === 'chat-app-kappa-rose.vercel.app';
   
   // If we aren't on native and aren't on the official domain or localhost, skip to avoid "Init Error"
