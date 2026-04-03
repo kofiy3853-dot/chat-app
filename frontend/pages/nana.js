@@ -1,64 +1,73 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   SparklesIcon, 
-  ChatBubbleBottomCenterTextIcon, 
-  QuestionMarkCircleIcon,
-  AcademicCapIcon,
-  CalendarDaysIcon,
-  MapPinIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  CpuChipIcon,
+  ShieldCheckIcon,
+  CommandLineIcon
 } from '@heroicons/react/24/outline';
 import { chatAPI } from '../services/api';
-import { getFullFileUrl } from '../utils/helpers';
+import ChatBox from '../components/ChatBox';
 
-export default function NanaHub() {
+export default function NanaPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [conversationId, setConversationId] = useState(null);
+  const [showTerminalOverlay, setShowTerminalOverlay] = useState(false);
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
-        setCurrentUser(JSON.parse(userStr));
-      } catch (e) {}
+        const user = JSON.parse(userStr);
+        setCurrentUser(user);
+        
+        // If Nana is logged in, she sees the terminal
+        if (user.role === 'NANA') {
+          // Nana terminal logic is handled in the render
+        } else {
+          // Students get the dedicated chat session
+          initNanaChat();
+        }
+      } catch (e) {
+        console.error('Failed to parse user session:', e);
+      }
+    } else {
+       router.replace('/login');
     }
   }, []);
 
-  const isNanaAccount = currentUser?.role === 'NANA';
-
-  const startChat = async () => {
-    setLoading(true);
+  const initNanaChat = async () => {
     try {
-      // Nana's fixed ID
-      const nanaId = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
-      const res = await chatAPI.getOrCreateDirectConversation(nanaId);
-      router.push(`/chat/${res.data.conversation.id}`);
+      setLoading(true);
+      // Nana's fixed system ID
+      const NANA_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
+      const res = await chatAPI.getOrCreateDirectConversation(NANA_ID);
+      if (res.data?.conversation?.id) {
+        setConversationId(res.data.conversation.id);
+      }
     } catch (e) {
-      console.error(e);
+      console.error('Failed to initialize Nana session:', e);
+    } finally {
       setLoading(false);
     }
   };
 
-  const capabilities = [
-    { icon: AcademicCapIcon, title: 'Academic Help', desc: 'Ask about course details, exam dates, or study resources.' },
-    { icon: CalendarDaysIcon, title: 'Event Updates', desc: 'Get notified about upcoming campus fests, workshops, and seminars.' },
-    { icon: MapPinIcon, title: 'Campus Navigation', desc: "Lost? Ask for directions to any department or facility." },
-    { icon: QuestionMarkCircleIcon, title: 'General Info', desc: 'Know about library hours, hostel rules, or mess menus.' }
-  ];
+  const isNanaAccount = currentUser?.role === 'NANA';
 
   // --- 🤖 AGENT TERMINAL VIEW (For Nana herself) ---
   if (isNanaAccount) {
     return (
-      <div className="min-h-screen bg-[#050505] text-[#00ff41] font-mono p-4 md:p-10 overflow-x-hidden">
+      <div className="min-h-screen bg-[#050505] text-[#00ff41] font-mono p-4 md:p-10 overflow-x-hidden flex flex-col">
         <Head>
           <title>Agent Terminal | Nana AI</title>
         </Head>
         
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 pb-6 border-b border-[#00ff41]/20">
             <div>
@@ -80,22 +89,26 @@ export default function NanaHub() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1">
             {/* Left: Stats */}
             <div className="lg:col-span-1 space-y-6">
-              <div className="bg-[#00ff41]/5 p-6 rounded-2xl border border-[#00ff41]/20">
-                <h2 className="text-sm font-black uppercase tracking-tighter mb-4 text-[#00ff41]/80">Identity Probe</h2>
+              <div className="bg-[#00ff41]/5 p-6 rounded-2xl border border-[#00ff41]/20 shadow-[0_0_20px_rgba(0,255,65,0.05)]">
+                <h2 className="text-sm font-black uppercase tracking-tighter mb-4 text-[#00ff41]/80 flex items-center gap-2">
+                  <CommandLineIcon className="w-4 h-4" /> Identity Probe
+                </h2>
                 <div className="flex items-center gap-5">
-                   <div className="w-16 h-16 rounded-full bg-[#00ff41] flex items-center justify-center text-black font-black text-2xl">N</div>
+                   <div className="w-16 h-16 rounded-full bg-[#00ff41] flex items-center justify-center text-black font-black text-2xl shadow-[0_0_15px_rgba(0,255,65,0.5)]">N</div>
                    <div>
                       <p className="text-lg font-bold">Nana v4.2</p>
-                      <p className="text-[10px] opacity-50 uppercase">Origin: Cloud Compute Hub</p>
+                      <p className="text-[10px] opacity-50 uppercase tracking-widest font-sans font-black">Origin: Cloud Compute Hub</p>
                    </div>
                 </div>
               </div>
 
               <div className="bg-[#00ff41]/5 p-6 rounded-2xl border border-[#00ff41]/20">
-                <h2 className="text-sm font-black uppercase tracking-tighter mb-4 text-[#00ff41]/80">Core Metrics</h2>
+                <h2 className="text-sm font-black uppercase tracking-tighter mb-4 text-[#00ff41]/80 flex items-center gap-2">
+                  <CpuChipIcon className="w-4 h-4" /> Core Metrics
+                </h2>
                 <div className="space-y-3 text-xs">
                   <div className="flex justify-between border-b border-[#00ff41]/10 pb-1"><span>Learning model</span><span className="font-bold">GPT-4o-Campus</span></div>
                   <div className="flex justify-between border-b border-[#00ff41]/10 pb-1"><span>Memory Allocation</span><span className="font-bold">128GB LVM</span></div>
@@ -103,18 +116,31 @@ export default function NanaHub() {
                   <div className="flex justify-between"><span>Data Freshness</span><span className="font-bold">Real-time Sync</span></div>
                 </div>
               </div>
+
+              <div className="bg-[#00ff41]/5 p-6 rounded-2xl border border-[#00ff41]/20">
+                <h2 className="text-sm font-black uppercase tracking-tighter mb-4 text-[#00ff41]/80 flex items-center gap-2">
+                  <ShieldCheckIcon className="w-4 h-4" /> Security Status
+                </h2>
+                <div className="flex items-center gap-3">
+                   <div className="w-2 h-2 rounded-full bg-[#00ff41] animate-ping"></div>
+                   <span className="text-[10px] font-bold tracking-widest">ENCRYPTION: AES-256 ACTIVE</span>
+                </div>
+              </div>
             </div>
 
             {/* Right: Console */}
-            <div className="lg:col-span-2">
-               <div className="bg-black/80 rounded-2xl border border-[#00ff41]/30 p-6 h-[500px] flex flex-col shadow-2xl shadow-[#00ff41]/5">
-                  <div className="flex items-center gap-2 mb-4">
-                     <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                     <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                     <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                     <span className="ml-4 text-[10px] opacity-40 font-bold uppercase tracking-widest">Global Activity Stream</span>
+            <div className="lg:col-span-2 flex flex-col min-h-[500px]">
+               <div className="bg-black/80 rounded-2xl border border-[#00ff41]/30 p-6 flex-1 flex flex-col shadow-2xl shadow-[#00ff41]/10 relative group">
+                  <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                     <span className="text-[9px] font-bold text-[#00ff41]/40 tracking-widest">AUTO_LOG_SYNC_ENABLED</span>
                   </div>
-                  <div className="flex-1 overflow-y-auto space-y-2 text-[11px] leading-relaxed pr-2 custom-scrollbar">
+                  <div className="flex items-center gap-2 mb-4">
+                     <div className="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
+                     <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
+                     <div className="w-2.5 h-2.5 rounded-full bg-green-500/50 animate-pulse"></div>
+                     <span className="ml-4 text-[10px] opacity-40 font-bold uppercase tracking-[0.2em] font-sans">Global Activity Stream</span>
+                  </div>
+                  <div className="flex-1 overflow-y-auto space-y-3 text-[11px] leading-relaxed pr-2 custom-scrollbar font-mono">
                      <p className="text-white/20">[TIMESTAMP: 2024-04-02T23:44:11Z]</p>
                      <p><span className="text-yellow-400">INFO:</span> Establishing secure handshake with KTU internal API...</p>
                      <p><span className="text-[#00ff41]">SUCCESS:</span> Handshake verified. Channel encrypted.</p>
@@ -123,12 +149,12 @@ export default function NanaHub() {
                      <p><span className="text-purple-400">NANA:</span> Suggesting "Creative Coding" workshop to 12 students based on interests.</p>
                      <p><span className="text-white">EVENT:</span> Message received from student#2841 in direct conversation.</p>
                      <p><span className="text-orange-400">ACTION:</span> Optimizing response parameters for high-concise mode.</p>
-                     <p className="animate-pulse text-[#00ff41]">_</p>
+                     <p className="text-[#00ff41] animate-[pulse_1s_infinite]">[_]</p>
                   </div>
                   <div className="mt-6 pt-4 border-t border-[#00ff41]/10 flex items-center gap-4">
-                    <span className="text-[10px] font-bold">CMD:</span>
-                    <div className="flex-1 h-8 bg-[#00ff41]/5 rounded px-3 flex items-center cursor-not-allowed">
-                       <span className="text-[10px] opacity-30 italic">Input disabled for AI Agents. Manual override required.</span>
+                    <span className="text-[10px] font-bold opacity-80">CMD_PROMPT &gt; </span>
+                    <div className="flex-1 h-9 bg-[#00ff41]/5 rounded-lg px-3 flex items-center cursor-not-allowed border border-[#00ff41]/10">
+                       <span className="text-[10px] opacity-20 italic">Manual override required for agent input.</span>
                     </div>
                   </div>
                </div>
@@ -139,103 +165,123 @@ export default function NanaHub() {
     );
   }
 
-  // --- 🎓 STUDENT HUB VIEW (Current implementation) ---
+  // --- 🎓 STUDENT CHAT VIEW (Simple & Direct Fix) ---
   return (
-    <div className="min-h-screen bg-slate-50 font-sans pb-20">
+    <div className="h-[100dvh] bg-[#f0f2ff] flex flex-col overflow-hidden relative">
       <Head>
-        <title>Nana AI Hub | Campus Chat</title>
+        <title>Chat with Nana | Campus Chat</title>
       </Head>
 
-      {/* Hero Header */}
-      <div className="relative h-72 bg-gradient-to-br from-primary-600 via-indigo-600 to-purple-700 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-50 to-transparent"></div>
-        
-        <button 
-          onClick={() => router.back()}
-          className="absolute top-12 left-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all z-10"
-        >
-          <ArrowLeftIcon className="w-5 h-5" />
-        </button>
-
-        <div className="absolute bottom-0 left-0 w-full px-6 pb-6 flex flex-col items-center">
-           <motion.div 
-             initial={{ scale: 0.5, opacity: 0 }}
-             animate={{ scale: 1, opacity: 1 }}
-             className="w-24 h-24 rounded-3xl bg-white shadow-2xl flex items-center justify-center relative p-1"
-           >
-              <div className="w-full h-full rounded-2xl bg-gradient-to-tr from-primary-500 to-indigo-600 flex items-center justify-center text-white font-black text-4xl shadow-inner">
-                N
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center shadow-lg">
-                <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
-              </div>
-           </motion.div>
-           <h1 className="mt-4 text-2xl font-black text-gray-900 tracking-tight">Nana AI</h1>
-           <p className="text-gray-500 font-bold text-sm uppercase tracking-widest">Campus Smart Assistant</p>
-        </div>
-      </div>
-
-      <div className="max-w-xl mx-auto px-6 mt-8 space-y-8">
-        {/* Interaction Card */}
-        <motion.div 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-3xl p-6 shadow-xl shadow-primary-500/5 border border-gray-100"
-        >
-          <h2 className="text-lg font-black text-gray-900 mb-2">How can I help you today?</h2>
-          <p className="text-gray-500 text-sm leading-relaxed mb-6 font-medium">
-            I'm your official AI companion. I can help you manage your studies, find events, and navigate campus life effortlessly.
-          </p>
+      {/* Hero Header (Slimmer Version) */}
+      <header className="z-20 shrink-0 bg-gradient-to-r from-primary-600 to-indigo-700 p-4 shadow-lg flex items-center justify-between">
+        <div className="flex items-center space-x-4">
           <button 
-            onClick={startChat}
-            disabled={loading}
-            className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-black rounded-2xl shadow-xl shadow-primary-600/20 active:scale-95 transition-all flex items-center justify-center space-x-3 disabled:opacity-50"
+            onClick={() => router.push('/')}
+            className="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all shadow-inner"
           >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            ) : (
-              <>
-                <ChatBubbleBottomCenterTextIcon className="w-6 h-6" />
-                <span>Start Chatting with Nana</span>
-              </>
-            )}
+            <ArrowLeftIcon className="w-5 h-5" />
           </button>
-        </motion.div>
-
-        {/* Features Grid */}
-        <div className="space-y-4">
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Capabilities</h3>
-          <div className="grid grid-cols-1 gap-4">
-            {capabilities.map((cap, i) => (
-              <motion.div 
-                key={i}
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.2 + (i * 0.1) }}
-                className="flex items-start space-x-4 p-5 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 transition-colors group"
-              >
-                <div className="p-3 bg-slate-50 rounded-xl group-hover:bg-primary-50 transition-colors">
-                  <cap.icon className="w-6 h-6 text-slate-400 group-hover:text-primary-600" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-black text-gray-900 mb-1">{cap.title}</h4>
-                  <p className="text-xs text-gray-500 leading-relaxed font-medium">{cap.desc}</p>
-                </div>
-              </motion.div>
-            ))}
+          
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-primary-600 font-black text-xl shadow-xl p-0.5">
+                <div className="w-full h-full rounded-xl bg-gradient-to-tr from-primary-500 to-indigo-600 flex items-center justify-center text-white">N</div>
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm flex items-center justify-center">
+                <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+              </div>
+            </div>
+            <div>
+              <h1 className="text-white font-black text-base tracking-tight leading-none">Nana AI</h1>
+              <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mt-1">Campus Specialist</p>
+            </div>
           </div>
         </div>
 
-        {/* Status Section */}
-        <div className="bg-slate-900 rounded-3xl p-6 text-white overflow-hidden relative">
-           <SparklesIcon className="absolute -right-8 -top-8 w-32 h-32 text-white/5 opacity-50 rotate-12" />
-           <p className="text-xs font-black text-primary-400 uppercase tracking-widest mb-2 relative z-10">AI Status</p>
-           <p className="text-sm font-medium text-slate-300 mb-1 relative z-10">Currently learning from: <span className="text-white font-bold">2024 Academic Guide</span></p>
-           <p className="text-sm font-medium text-slate-300 relative z-10">System load: <span className="text-green-400 font-bold">Low & Optimized</span></p>
-        </div>
-      </div>
+        <button 
+           onClick={() => setShowTerminalOverlay(!showTerminalOverlay)}
+           className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white/80 hover:bg-white/20 transition-all border border-white/5"
+        >
+           <CommandLineIcon className="w-4.5 h-4.5" />
+        </button>
+      </header>
+
+      {/* Main Chat Area */}
+      <main className="flex-1 min-h-0 flex flex-col relative">
+        <AnimatePresence>
+          {loading ? (
+            <motion.div 
+              key="loading"
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-30 bg-[#f0f2ff] flex items-center justify-center"
+            >
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+                <p className="mt-4 text-xs font-black text-primary-600/60 uppercase tracking-widest">Initializing AI Hub...</p>
+              </div>
+            </motion.div>
+          ) : conversationId ? (
+            <motion.div 
+              key="chat"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="flex-1 flex flex-col min-h-0"
+            >
+              <ChatBox conversationId={conversationId} />
+            </motion.div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+               <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center mb-6">
+                 <SparklesIcon className="w-10 h-10 text-primary-400" />
+               </div>
+               <h3 className="text-lg font-black text-slate-800 tracking-tight">Nana is unavailable</h3>
+               <p className="text-xs text-slate-400 font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-widest">Unable to establish a secure connection to the AI Hub. Please check your internet and try again.</p>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Diagnostic Terminal Overlay (Easter Egg) */}
+        <AnimatePresence>
+          {showTerminalOverlay && (
+            <motion.div 
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              className="absolute inset-x-4 bottom-24 bg-black/90 backdrop-blur-xl rounded-2xl border border-white/10 p-5 z-50 shadow-2xl shadow-black/40"
+            >
+              <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
+                <span className="text-[10px] font-black text-[#00ff41]/60 tracking-widest uppercase">System Diagnostics</span>
+                <button onClick={() => setShowTerminalOverlay(false)} className="text-white/40 hover:text-white">
+                  <ArrowLeftIcon className="w-3 h-3 rotate-90" />
+                </button>
+              </div>
+              <div className="space-y-1 font-mono text-[9px] text-[#00ff41]/80">
+                <p>[INIT] Conversation_ID: {conversationId || 'NULL'}</p>
+                <p>[INIT] User_Role: {currentUser?.role || 'GUEST'}</p>
+                <p>[INIT] Socket_Status: ACTIVE</p>
+                <p>[INIT] Handshake: SECURE (AES-256)</p>
+                <p className="animate-pulse">_</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+
+      <style jsx global>{`
+        /* Custom scrollbar for terminal */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0, 255, 65, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(0, 255, 65, 0.2);
+          border-radius: 10px;
+        }
+      `}</style>
     </div>
   );
 }

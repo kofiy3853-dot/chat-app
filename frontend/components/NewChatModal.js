@@ -34,9 +34,14 @@ export default function NewChatModal({ isOpen, onClose }) {
     }
   };
 
-  const startChat = async (userId) => {
+  const startChat = async (user) => {
+    if (user.role === 'NANA') {
+      router.push('/nana');
+      onClose();
+      return;
+    }
     try {
-      const response = await chatAPI.getOrCreateDirectConversation(userId);
+      const response = await chatAPI.getOrCreateDirectConversation(user.id);
       router.push(`/chat/${response.data.conversation.id}`);
       onClose();
     } catch (error) {
@@ -89,7 +94,7 @@ export default function NewChatModal({ isOpen, onClose }) {
               {results.map((user) => (
                 <button
                   key={user.id}
-                  onClick={() => startChat(user.id)}
+                  onClick={() => startChat(user)}
                   className="w-full flex items-center space-x-3 p-3 hover:bg-primary-50 rounded-2xl transition-all group border border-transparent hover:border-primary-100"
                 >
                   <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary-400 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm overflow-hidden">

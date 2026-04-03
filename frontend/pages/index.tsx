@@ -169,8 +169,16 @@ const MessagesPage: React.FC = () => {
   }, [conversations, search, user, chatFilter]);
 
   const handleChatClick = useCallback((id: string) => {
-    router.push(`/chat/${id}`);
-  }, [router]);
+    const conv = conversations.find(c => c.id === id);
+    const hasNana = conv?.participants?.some((p: any) => p.user?.role === 'NANA');
+    const isDirect = conv?.type === 'DIRECT';
+
+    if (isDirect && hasNana) {
+      router.push('/nana');
+    } else {
+      router.push(`/chat/${id}`);
+    }
+  }, [router, conversations]);
 
   const handleDelete = async (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
