@@ -140,7 +140,9 @@ export default function MyApp({ Component, pageProps }) {
   // 3. UI Decision Helpers
   const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
   const user = userStr ? JSON.parse(userStr) : null;
-  const shouldHideNavbar = hideNavbarPages.includes(router.pathname) || (authorized && user?.role === 'NANA');
+  // Nana sees the navbar on the communicator (/), but hides it on her Terminal (/nana)
+  const isNanaTerminal = router.pathname.startsWith('/nana');
+  const shouldHideNavbar = hideNavbarPages.includes(router.pathname) || (user?.role === 'NANA' && isNanaTerminal);
 
   return (
     <ThemeProvider>

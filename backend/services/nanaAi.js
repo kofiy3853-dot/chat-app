@@ -40,8 +40,9 @@ const getNanaAiResponse = async (userMessage, history = []) => {
     // Add conversation history
     // Filter out messages with no content to avoid API errors
     history.filter(m => m.content && m.content.trim()).forEach(m => {
+      const isNana = m.sender?.role === 'NANA' || m.senderId === NANA_USER_ID;
       messages.push({
-        role: (m.senderId === NANA_USER_ID || m.sender?.id === NANA_USER_ID) ? "assistant" : "user",
+        role: isNana ? "assistant" : "user",
         content: m.content || ""
       });
     });

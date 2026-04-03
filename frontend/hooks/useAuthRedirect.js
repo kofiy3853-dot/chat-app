@@ -40,9 +40,13 @@ export default function useAuthRedirect(user, isReady) {
     const role = user.role;
 
     // A. Nana Role: Only allowed on /nana
+    // A. Nana Role: Allowed on /nana and its sub-paths, as well as the root index (communicator)
     if (role === 'NANA') {
-      if (!path.startsWith('/nana')) {
-        router.replace('/nana');
+      const allowedNanaPaths = ['/nana', '/'];
+      const isAllowed = allowedNanaPaths.some(p => path === p || path.startsWith('/nana/'));
+      if (!isAllowed) {
+        console.log(`[AUTH] Nana restricted from ${path}, sending back to communicator.`);
+        router.replace('/');
       }
     }
 

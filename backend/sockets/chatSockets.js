@@ -1,8 +1,6 @@
 const prisma = require('../prisma/client');
 const { socketAuthMiddleware } = require('../middleware/authMiddleware');
 const { getNanaAiResponse } = require('../services/nanaAi');
-const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
-
 const setupChatSockets = (io) => {
   // Apply auth middleware to socket connections
   io.use(socketAuthMiddleware);
@@ -313,7 +311,7 @@ const setupChatSockets = (io) => {
                   where: { conversationId, isDeleted: false },
                   orderBy: { createdAt: 'desc' },
                   take: 15,
-                  include: { sender: { select: { id: true, name: true } } }
+                  include: { sender: { select: { id: true, name: true, role: true } } }
                 });
 
                 // 3. Call Nana AI brain
@@ -337,7 +335,7 @@ const setupChatSockets = (io) => {
 
                 // 5. Stop typing + broadcast
                 io.to(`conversation:${conversationId}`).emit('user-typing', {
-                  userId: NANA_USER_ID,
+                  userId: realNanaId,
                   userName: 'Nana',
                   conversationId,
                   isTyping: false
@@ -347,12 +345,49 @@ const setupChatSockets = (io) => {
                   conversationId
                 });
                 
-                console.log(`[Nana AI Trigger] Response sent successfully.`);
+                // 6. Handle notification for the student (parallel)
+                const chatParticipants = await prisma.conversationParticipant.findMany({
+                  where: { conversationId },
+                  select: { userId: true }
+                });
+                
+                const recipients = chatParticipants.filter(p => p.userId !== realNanaId);
+                await Promise.all(recipients.map(async (recipient) => {
+                  // Only notify if recipient is NOT viewing the conversation actively
+                  const viewingRoom = io.sockets.adapter.rooms.get(`viewing:${conversationId}`);
+                  let isActive = false;
+                  if (viewingRoom) {
+                    for (const sid of viewingRoom) {
+                      const s = io.sockets.sockets.get(sid);
+                      if (s?.user?.id === recipient.userId) { isActive = true; break; }
+                    }
+                  }
+
+                  if (!isActive) {
+                    const notification = await prisma.notification.create({
+                      data: {
+                        type: 'MESSAGE',
+                        title: `New message from Nana AI`,
+                        content: aiResponse.length > 50 ? aiResponse.substring(0, 50) + '...' : aiResponse,
+                        recipientId: recipient.userId,
+                        senderId: realNanaId,
+                        messageId: nanaMessage.id
+                      }
+                    });
+
+                    const count = await prisma.notification.count({ where: { recipientId: recipient.userId, isRead: false } });
+                    io.to(`user:${recipient.userId}`).emit('new-notification', { notification, unreadCount: count });
+                  }
+                }));
+
+                console.log(`[Nana AI Trigger] Response sent successfully with notifications.`);
 
              } catch (aiErr) {
                 console.error('[Nana AI Handler Error]:', aiErr);
+                const nanaProfile = await prisma.user.findFirst({ where: { role: 'NANA' }, select: { id: true } });
+                const realId = nanaProfile ? nanaProfile.id : 'nana-system';
                 io.to(`conversation:${conversationId}`).emit('user-typing', {
-                  userId: NANA_USER_ID,
+                  userId: realId,
                   userName: 'Nana',
                   conversationId,
                   isTyping: false

@@ -71,7 +71,7 @@ export const initOneSignal = async (user) => {
         safari_web_id: SAFARI_WEB_ID,
         allowLocalhostAsSecureOrigin: true,
         notifyButton: {
-          enable: true,
+          enable: false, // Disabling the generic bell icon for a cleaner UI
         },
       });
 
