@@ -20,7 +20,8 @@ import {
   DocumentDuplicateIcon,
   VideoCameraIcon,
   CalendarDaysIcon,
-  FaceSmileIcon as FaceSmileOutline
+  FaceSmileIcon as FaceSmileOutline,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import { getCurrentUser, groupMessagesByDate, getInitials, getAvatarColor, formatMessageTime, getFullFileUrl } from '../utils/helpers';
 import dynamic from 'next/dynamic';
@@ -41,6 +42,7 @@ export default function ChatBox({ conversationId }) {
   const isCurrentlyTyping = useRef(false);
 
   const [messages, setMessages] = useState([]);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [typingUsers, setTypingUsers] = useState([]);
@@ -523,7 +525,7 @@ const MessageBubble = React.memo(({
             }}
             onTouchEnd={(e) => clearTimeout(e.currentTarget.dataset.timer)}
             onTouchMove={(e) => clearTimeout(e.currentTarget.dataset.timer)}
-            className={`group relative p-3 rounded-2xl shadow-sm border select-none touch-none ${
+            className={`group relative p-3 rounded-2xl shadow-sm border select-none touch-pan-y ${
               isMine ? 'bg-primary-600 border-primary-500 text-white rounded-tr-none hover:bg-primary-700' : 'bg-white border-slate-100 text-slate-800 rounded-tl-none hover:bg-slate-50'
             }`}
           >
@@ -620,7 +622,7 @@ const MessageBubble = React.memo(({
                       </div>
                     ) : (
                       /* Default Text Bubble */
-                      <p className="text-sm font-medium leading-relaxed break-words">{message.content}</p>
+                      <p className="text-sm font-medium leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
                     )}
                   </>
                 )}
@@ -698,7 +700,26 @@ const MessageBubble = React.memo(({
   return (
     <div className={`flex-1 flex flex-col min-h-0 transition-colors duration-500 ${bgColor}`}>
       {/* Scrollable Message Area */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-6 pb-2 scroll-smooth scrollbar-hide">
+      <div 
+        ref={scrollContainerRef} 
+        onScroll={() => {
+          if (scrollContainerRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+            setShowScrollBottom(scrollHeight - scrollTop - clientHeight > 300);
+          }
+        }}
+        className="flex-1 overflow-y-auto pt-6 pb-4 scrollbar-hide overscroll-contain relative"
+        style={{ overflowAnchor: 'auto' }}
+      >
+        {/* Floating Scroll to Bottom Button */}
+        {showScrollBottom && (
+          <button
+            onClick={() => scrollToBottom()}
+            className="fixed bottom-32 right-6 p-2.5 bg-white/90 backdrop-blur rounded-full shadow-lg border border-slate-100 text-primary-600 hover:bg-slate-50 transition-all animate-bounce z-50 ring-4 ring-primary-500/5"
+          >
+            <ChevronDownIcon className="w-5 h-5 stroke-[3px]" />
+          </button>
+        )}
         {loading ? (
           <div className="h-full flex items-center justify-center">
               <div className="flex flex-col items-center">
@@ -756,11 +777,17 @@ const MessageBubble = React.memo(({
           ))
         )}
         
-        {/* Typing Overlay (Absolute/Bottom) */}
+        {/* Premium Typing Indicator Overlay */}
         {typingUsers.length > 0 && (
-          <div className="px-6 py-2 flex items-center space-x-2 text-slate-400 italic text-[10px] font-bold">
-            <div className="flex space-x-1"><span className="w-1 h-1 bg-slate-300 rounded-full" /><span className="w-1 h-1 bg-slate-300 rounded-full" /></div>
-            <span>{typingUsers[0].name} typing...</span>
+          <div className="px-6 py-3 flex items-center space-x-3 bg-gradient-to-r from-white/80 to-transparent backdrop-blur-sm animate-in fade-in slide-in-from-left-4 duration-500">
+            <div className="flex space-x-1.5 items-center h-4">
+              <span className="w-1.5 h-1.5 bg-primary-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <span className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <span className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce" />
+            </div>
+            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest bg-white/50 px-3 py-1 rounded-full border border-slate-100 shadow-sm">
+              {typingUsers[0].name} is active
+            </span>
           </div>
         )}
         <div ref={messagesEndRef} />

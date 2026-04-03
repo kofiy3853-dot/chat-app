@@ -9,6 +9,7 @@ import { initOneSignal } from '../services/oneSignal';
 import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'react-hot-toast';
 import useAuthRedirect from '../hooks/useAuthRedirect';
+import { BellIcon } from '@heroicons/react/24/outline';
 import '../styles/globals.css';
 
 const CallInterface = dynamic(() => import('../components/CallInterface'), { ssr: false });
@@ -66,6 +67,11 @@ export default function MyApp({ Component, pageProps }) {
   const [isOffline, setIsOffline] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
+  // --- Hydrate User Context ---
+  const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+  const user = userStr ? JSON.parse(userStr) : null;
+  const currentUser = user; // Alias for useAuthRedirect
+
   // 1. Core Lifecycle & Global Side-effects
   useEffect(() => {
     // 1.1 Service Worker (Update Skip/Claim)
@@ -120,8 +126,84 @@ export default function MyApp({ Component, pageProps }) {
     };
   }, []);
 
-  // 2. Centralized Auth & Role Routing Hook
-  const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user')) : null;
+  // 2. Global Notification & Socket Events
+  useEffect(() => {
+    if (!authorized) return;
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleNewMessage = (data) => {
+      // Don't show toast if we are already in the conversation
+      if (router.pathname === '/chat/[id]' && router.query.id === data.conversationId) return;
+      
+      const msg = data.message;
+      if (msg.senderId === user?.id) return; // Don't notify self
+
+      toast.custom((t) => (
+        <div
+          className={`${
+            t.visible ? 'animate-in fade-in slide-in-from-top-full duration-300' : 'animate-out fade-out slide-out-to-top-full duration-300'
+          } max-w-sm w-full bg-white/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active:scale-95 transition-all mb-4`}
+          onClick={() => {
+            router.push(`/chat/${data.conversationId}`);
+            toast.dismiss(t.id);
+          }}
+        >
+          <div className="flex-1 w-0">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 pt-0.5">
+                <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-bold shadow-lg shadow-primary-500/20">
+                  {msg.sender?.name?.charAt(0) || 'U'}
+                </div>
+              </div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-black text-slate-900 tracking-tight">
+                  {msg.sender?.name || 'New Message'}
+                </p>
+                <p className="text-xs font-medium text-slate-500 truncate mt-0.5">
+                  {msg.content || 'Sent an attachment'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ), { duration: 4000, position: 'top-center' });
+    };
+
+    const handleNewNotification = (data) => {
+      if (router.pathname === '/activity') return;
+      
+      toast.custom((t) => (
+        <div
+          className={`${
+            t.visible ? 'animate-in fade-in zoom-in-95' : 'animate-out fade-out zoom-out-95'
+          } max-w-xs w-full bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-center space-x-3 text-white border border-slate-800`}
+          onClick={() => {
+            router.push('/activity');
+            toast.dismiss(t.id);
+          }}
+        >
+          <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center">
+            <BellIcon className="w-4 h-4" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-black uppercase tracking-widest">{data.title || 'New Alert'}</p>
+            <p className="text-[10px] opacity-70 mt-0.5 truncate">{data.content}</p>
+          </div>
+        </div>
+      ), { duration: 5000 });
+    };
+
+    socket.on('new-message', handleNewMessage);
+    socket.on('new-notification', handleNewNotification);
+
+    return () => {
+      socket.off('new-message', handleNewMessage);
+      socket.off('new-notification', handleNewNotification);
+    };
+  }, [authorized, router.pathname, router.query.id, user?.id]);
+
+  // 3. Centralized Auth & Role Routing Hook
   useAuthRedirect(currentUser, isReady);
 
   // 3. Splash Screen / Loader Management
@@ -138,8 +220,6 @@ export default function MyApp({ Component, pageProps }) {
   if (!isReady) return null;
 
   // 3. UI Decision Helpers
-  const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-  const user = userStr ? JSON.parse(userStr) : null;
   // Nana sees the navbar on the communicator (/), but hides it on her Terminal (/nana)
   const isNanaTerminal = router.pathname.startsWith('/nana');
   const shouldHideNavbar = hideNavbarPages.includes(router.pathname) || (user?.role === 'NANA' && isNanaTerminal);

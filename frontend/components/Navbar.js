@@ -156,7 +156,7 @@ export default function Navbar() {
           <div className="relative">
             <BellIcon className={`w-6 h-6 ${isActive('/activity') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+              <span className="absolute -top-1 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
