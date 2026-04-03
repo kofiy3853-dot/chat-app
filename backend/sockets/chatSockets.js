@@ -279,13 +279,20 @@ const setupChatSockets = (io) => {
         });
 
         // --- 🤖 Nana AI Trigger ---
+        // 1. Identification: Is Nana in this conversation?
+        const isNanaInConversation = chatParticipants.some(p => p.userId === NANA_USER_ID);
+        // 2. Persona: Is this a 1-on-1 "Specialist Mode" session or a group mention?
+        const isDirectWithNana = isNanaInConversation && chatParticipants.length === 2;
+
+        // 3. Logic: Should we wake up the AI?
         const isNanaMentioned = content && (
           content.includes('@Nana') || 
           content.toLowerCase().includes('nana') ||
-          content.includes(NANA_USER_ID)
+          content.includes(NANA_USER_ID) ||
+          isDirectWithNana // In 1-on-1, every message is for Nana!
         );
 
-        if (isNanaMentioned) {
+        if (isNanaMentioned && socket.user.id !== NANA_USER_ID) {
           (async () => {
              try {
                 // Ensure Nana is in the conversation (upsert participant)
