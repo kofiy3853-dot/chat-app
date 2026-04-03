@@ -101,7 +101,7 @@ export default function Register() {
 
       // Redirect based on role-based path from server
       toast.success('Account created successfully!');
-      router.push(response.data.redirectTo || '/');
+      router.replace(response.data.redirectTo || '/');
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed. Please try again.';
       setError(msg);

@@ -8,6 +8,7 @@ import { ThemeProvider } from '../context/ThemeContext';
 import { initOneSignal } from '../services/oneSignal';
 import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'react-hot-toast';
+import useAuthRedirect from '../hooks/useAuthRedirect';
 import '../styles/globals.css';
 
 const CallInterface = dynamic(() => import('../components/CallInterface'), { ssr: false });
@@ -67,47 +68,50 @@ export default function MyApp({ Component, pageProps }) {
 
   // 1. Core Lifecycle & Global Side-effects
   useEffect(() => {
-    // 1.1 Service Worker & Push (OneSignal)
+    // 1.1 Service Worker (Update Skip/Claim)
     if (typeof window !== 'undefined' && "serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/sw.js").then(async (reg) => {
-          if ("Notification" in window) {
-            let permission = Notification.permission;
-            if (permission === 'default') {
-              permission = await Notification.requestPermission();
-            }
-            if (permission === 'granted' && VAPID_PUBLIC_KEY) {
-              const currentUser = JSON.parse(localStorage.getItem('user'));
-              if (currentUser) initOneSignal(currentUser);
-            }
+        navigator.serviceWorker.register("/sw.js").then(reg => {
+          reg.onupdatefound = () => {
+            const installing = reg.installing;
+            installing.onstatechange = () => {
+              if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+                window.location.reload(); // Refresh immediately on PWA update
+              }
+            };
+          };
+          if (reg.active) {
+            const userStr = localStorage.getItem('user');
+            if (userStr) initOneSignal(JSON.parse(userStr));
           }
         }).catch(err => console.error('SW error', err));
       });
     }
 
-    // 1.2 Offline Monitoring
+    // 1.2 Health Ping & Global Listeners
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     if (typeof navigator !== 'undefined') setIsOffline(!navigator.onLine);
 
-    // 1.3 Install Prompt
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
+    const handleBeforeInstallPrompt = (e) => { e.preventDefault(); setDeferredPrompt(e); };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // 1.4 Backend Health Ping
-    const pingBackend = async () => {
-      try {
-        const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://campus-chat-backend.onrender.com';
-        const baseUrl = rawUrl.replace(/\/api$/, '');
-        await fetch(`${baseUrl}/health`).catch(() => {});
-      } catch(e) {}
+    const ping = () => {
+      const url = process.env.NEXT_PUBLIC_API_URL || '';
+      fetch(url.replace(/\/api$/, '') + '/health').catch(() => {});
     };
-    pingBackend();
+    ping();
+
+    // 1.4 Initial Auth Hydration
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    if (token && user) {
+       setAuthorized(true);
+       initSocket();
+    }
+    setIsReady(true);
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -116,84 +120,17 @@ export default function MyApp({ Component, pageProps }) {
     };
   }, []);
 
-  // 2. Unified Auth & RBAC Logic
-  const authCheck = (url) => {
-    if (!router.isReady) return;
-    
-    const path = url.split('?')[0];
-    const userStr = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    const user = userStr ? JSON.parse(userStr) : null;
+  // 2. Centralized Auth & Role Routing Hook
+  const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user')) : null;
+  useAuthRedirect(currentUser, isReady);
 
-    // A. Public Routes Bypass
-    if (publicPages.includes(path)) {
-      setAuthorized(!!token);
-      setIsReady(true);
-      
-      // If logged in and trying to access /login, redirect to their home
-      if (token && user && path === '/login') {
-         const target = user.role === 'NANA' ? '/nana' : '/';
-         if (path !== target) router.replace(target);
-      }
-      return;
-    }
-
-    // B. Guard Protected Routes
-    if (!token || !user) {
-      setAuthorized(false);
-      setIsReady(true);
-      if (path !== '/login') router.replace('/login');
-      return;
-    }
-
-    // C. Role-Based Access Control (RBAC)
-    const role = user.role || 'STUDENT';
-
-    // C.1 Nana Restriction (Nana ONLY allowed on /nana)
-    if (role === 'NANA') {
-      if (!path.startsWith('/nana') && path !== '/logout') {
-        console.warn(`[RBAC] Nana role unauthorized for path: ${path}. Redirecting to Hub.`);
-        router.replace('/nana');
-        return;
-      }
-    }
-
-    // C.2 Student/Instructor Protection
-    if ((role === 'STUDENT' || role === 'INSTRUCTOR') && path.startsWith('/admin')) {
-      console.warn(`[RBAC] Access Denied for role ${role} to ${path}`);
-      router.replace('/');
-      return;
-    }
-
-    // Success! 
-    setAuthorized(true);
-    setIsReady(true);
-    
-    // Auto-init socket if not already done
-    if (token) initSocket();
-  };
-
-  useEffect(() => {
-    // Initial check on mount/load
-    authCheck(router.asPath);
-
-    // Watch for route transitions
-    const handleRouteChange = (url) => authCheck(url);
-    router.events.on('routeChangeStart', handleRouteChange);
-    
-    return () => router.events.off('routeChangeStart', handleRouteChange);
-  }, [router.isReady, router.asPath]);
-
+  // 3. Splash Screen / Loader Management
   useEffect(() => {
     if (isReady) {
       const loader = document.getElementById('initial-loader');
       if (loader) {
         loader.style.opacity = '0';
-        loader.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => {
-          loader.style.display = 'none';
-          loader.remove();
-        }, 500);
+        setTimeout(() => { loader.style.display = 'none'; loader.remove(); }, 500);
       }
     }
   }, [isReady]);

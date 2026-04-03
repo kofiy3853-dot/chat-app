@@ -35,8 +35,8 @@ export default function Login() {
       // Initialize OneSignal
       initOneSignal(user);
 
-      toast.success('Account created successfully!');
-      router.push(response.data.redirectTo || '/');
+      toast.success('Signed in successfully!');
+      router.replace(response.data.redirectTo || '/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
