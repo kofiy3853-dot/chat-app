@@ -95,6 +95,8 @@ export const chatAPI = {
   getConversationById: (id) => api.get(`/chat/conversations/${id}`),
   getOrCreateDirectConversation: (userId) => 
     api.post('/chat/conversations/direct', { userId }),
+  getNanaSession: () =>
+    api.post('/chat/conversations/nana'),
   createGroupConversation: (name, participantIds) => 
     api.post('/chat/conversations/group', { name, participantIds }),
   getMessages: (conversationId, page = 1, limit = 50) => 

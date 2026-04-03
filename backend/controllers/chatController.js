@@ -5,12 +5,13 @@ const path = require('path');
 const { getWebPush } = require('../utils/webPushHelper');
 const { sendPushNotification } = require('../utils/oneSignal');
 
+const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
+const NANA_SESSION_MARKER = '__nana__';
 
 // Get user's conversations
 exports.getConversations = async (req, res) => {
   try {
     const userId = req.user.id;
-    const NANA_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
 
     let conversations = await prisma.conversation.findMany({
       where: {
@@ -61,91 +62,6 @@ exports.getConversations = async (req, res) => {
       }
     });
 
-    // --- 🤖 Nana Auto-Create Logic ---
-    const hasNana = conversations.some(c => 
-      c.type === 'DIRECT' && 
-      c.participants.some(p => p.userId === NANA_ID)
-    );
-
-    if (!hasNana && userId !== NANA_ID) {
-      try {
-        const newNanaConv = await prisma.$transaction(async (tx) => {
-          const conv = await tx.conversation.create({
-            data: {
-              type: 'DIRECT',
-              participants: {
-                createMany: {
-                  data: [
-                    { userId: userId, role: 'MEMBER' },
-                    { userId: NANA_ID, role: 'MEMBER' }
-                  ]
-                }
-              }
-            },
-            include: {
-              participants: {
-                include: {
-                  user: {
-                    select: {
-                      id: true,
-                      name: true,
-                      avatar: true,
-                      isOnline: true,
-                      lastSeen: true
-                    }
-                  }
-                }
-              }
-            }
-          });
-
-          const welcomeMsg = await tx.message.create({
-            data: {
-              conversationId: conv.id,
-              senderId: NANA_ID,
-              content: "Hi there! 👋 I'm Nana, your campus AI assistant. Feel free to ask me anything about academy, social life, or campus events!",
-              type: 'TEXT'
-            },
-            include: {
-              sender: { select: { id: true, name: true, avatar: true } }
-            }
-          });
-
-          const updatedConv = await tx.conversation.update({
-            where: { id: conv.id },
-            data: { 
-              lastMessageId: welcomeMsg.id, 
-              lastMessageAt: welcomeMsg.createdAt 
-            },
-            include: {
-              participants: {
-                include: {
-                  user: {
-                    select: {
-                      id: true,
-                      name: true,
-                      avatar: true,
-                      isOnline: true,
-                      lastSeen: true
-                    }
-                  }
-                }
-              },
-              lastMessage: {
-                include: {
-                  sender: { select: { id: true, name: true, avatar: true } },
-                  readReceipts: true
-                }
-              }
-            }
-          });
-          return updatedConv;
-        });
-        conversations.unshift(newNanaConv);
-      } catch (err) {
-        console.error('[Nana Auto-Create Error]:', err);
-      }
-    }
 
     const conversationIds = conversations.map(c => c.id);
     const unreadCounts = await prisma.message.groupBy({
@@ -172,6 +88,99 @@ exports.getConversations = async (req, res) => {
 
     res.json({ conversations: conversationsWithUnread });
   } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Get or create Nana AI session — Nana is a system agent, not a participant
+exports.getOrCreateNanaSession = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Build a reusable include block
+    const include = {
+      participants: {
+        include: {
+          user: {
+            select: { id: true, name: true, avatar: true, isOnline: true, lastSeen: true }
+          }
+        }
+      },
+      lastMessage: {
+        include: {
+          sender: { select: { id: true, name: true, avatar: true } },
+          readReceipts: true
+        }
+      }
+    };
+
+    // Look for an existing Nana session for this student
+    let conversation = await prisma.conversation.findFirst({
+      where: {
+        name: NANA_SESSION_MARKER,
+        type: 'DIRECT',
+        isActive: true,
+        participants: { some: { userId } }
+      },
+      include
+    });
+
+    if (!conversation) {
+      try {
+        conversation = await prisma.$transaction(async (tx) => {
+          // Create the conversation — only the student is a participant
+          const conv = await tx.conversation.create({
+            data: {
+              type: 'DIRECT',
+              name: NANA_SESSION_MARKER,
+              participants: {
+                create: [{ userId, role: 'MEMBER' }]
+              }
+            }
+          });
+
+          // Post Nana's welcome message (senderId = NANA_USER_ID for display, not a participant)
+          const welcome = await tx.message.create({
+            data: {
+              conversationId: conv.id,
+              senderId: NANA_USER_ID,
+              content: "Hi there! 👋 I'm Nana, your campus AI assistant powered by KTU. Ask me anything about courses, events, or campus life!",
+              type: 'TEXT'
+            }
+          });
+
+          return tx.conversation.update({
+            where: { id: conv.id },
+            data: { lastMessageId: welcome.id, lastMessageAt: welcome.createdAt },
+            include
+          });
+        });
+      } catch (createErr) {
+        // Race condition: another request may have created it
+        if (createErr.code === 'P2002' || createErr.code === 'P2003') {
+          conversation = await prisma.conversation.findFirst({
+            where: { name: NANA_SESSION_MARKER, type: 'DIRECT', isActive: true, participants: { some: { userId } } },
+            include
+          });
+        } else {
+          throw createErr;
+        }
+      }
+    }
+
+    if (!conversation) {
+      return res.status(500).json({ message: 'Failed to create Nana session' });
+    }
+
+    // Attach Nana's profile to the response so the frontend can display her identity
+    const nanaProfile = await prisma.user.findUnique({
+      where: { id: NANA_USER_ID },
+      select: { id: true, name: true, avatar: true }
+    });
+
+    res.json({ conversation, nanaProfile });
+  } catch (error) {
+    console.error('[getOrCreateNanaSession] Error:', error.message, error.code);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

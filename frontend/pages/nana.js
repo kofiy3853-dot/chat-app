@@ -44,9 +44,7 @@ export default function NanaPage() {
   const initNanaChat = async () => {
     try {
       setLoading(true);
-      // Nana's fixed system ID
-      const NANA_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
-      const res = await chatAPI.getOrCreateDirectConversation(NANA_ID);
+      const res = await chatAPI.getNanaSession();
       if (res.data?.conversation?.id) {
         setConversationId(res.data.conversation.id);
       }

@@ -9,6 +9,7 @@ router.use(authMiddleware);
 // Conversation routes
 router.get('/total-unread', chatController.getTotalUnreadMessages);
 router.get('/conversations', chatController.getConversations);
+router.post('/conversations/nana', chatController.getOrCreateNanaSession);
 router.post('/conversations/direct', chatController.getOrCreateDirectConversation);
 router.post('/conversations/group', chatController.createGroupConversation);
 router.get('/conversations/:id', chatController.getConversationById);

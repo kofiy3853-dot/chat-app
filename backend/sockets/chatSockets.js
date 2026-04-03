@@ -200,10 +200,17 @@ const setupChatSockets = (io) => {
         });
 
         // Handle notifications for participants not in the room in parallel
-        const chatParticipants = await prisma.conversationParticipant.findMany({
-          where: { conversationId },
-          select: { userId: true }
-        });
+        const [chatParticipants, conversation] = await Promise.all([
+          prisma.conversationParticipant.findMany({
+            where: { conversationId },
+            select: { userId: true }
+          }),
+          prisma.conversation.findUnique({
+            where: { id: conversationId },
+            select: { id: true, name: true, type: true }
+          })
+        ]);
+
         const recipients = chatParticipants.filter(p => p.userId !== socket.user.id);
         console.log(`[NOTIF DEBUG] Found ${recipients.length} recipient(s) to potentially notify.`);
 
@@ -279,25 +286,17 @@ const setupChatSockets = (io) => {
         });
 
         // --- 🤖 Nana AI Trigger Logic ---
-        const isNanaParticipating = chatParticipants.some(p => p.userId === NANA_USER_ID);
+        // Identify session by marker name — Nana is a system agent (not a participant)
+        const NANA_SESSION_MARKER = '__nana__';
+        const isNanaSession = conversation.name === NANA_SESSION_MARKER;
         const nameMatch = content && (content.toLowerCase().includes('nana') || content.includes('@Nana'));
-        
-        // If it's a direct chat (2 participants) and Nana is one of them, it's always for Nana
-        const isDirectNanaChat = isNanaParticipating && chatParticipants.length === 2;
 
-        if ((isDirectNanaChat || nameMatch) && socket.user.id !== NANA_USER_ID) {
-          console.log(`[Nana AI Trigger] Triggered for conv:${conversationId}. Direct:${isDirectNanaChat}, Mentioned:${!!nameMatch}`);
+        if ((isNanaSession || nameMatch) && socket.user.id !== NANA_USER_ID) {
+          console.log(`[Nana AI Trigger] Triggered for conv:${conversationId}. Session:${isNanaSession}, Mention:${!!nameMatch}`);
           
           (async () => {
              try {
-                // 1. Ensure Nana is actually a participant record
-                await prisma.conversationParticipant.upsert({
-                  where: { userId_conversationId: { userId: NANA_USER_ID, conversationId } },
-                  create: { userId: NANA_USER_ID, conversationId, role: 'MEMBER' },
-                  update: {} 
-                });
-
-                // 2. Typing indicator
+                // 1. Typing indicator
                 io.to(`conversation:${conversationId}`).emit('user-typing', {
                   userId: NANA_USER_ID,
                   userName: 'Nana',
@@ -305,7 +304,7 @@ const setupChatSockets = (io) => {
                   isTyping: true
                 });
 
-                // 3. Contextual History
+                // 2. Build contextual history
                 const history = await prisma.message.findMany({
                   where: { conversationId, isDeleted: false },
                   orderBy: { createdAt: 'desc' },
@@ -313,11 +312,11 @@ const setupChatSockets = (io) => {
                   include: { sender: { select: { id: true, name: true } } }
                 });
 
-                // 4. Brain Call
+                // 3. Call Nana AI brain
                 console.log(`[Nana AI Trigger] Fetching brain response...`);
                 const aiResponse = await getNanaAiResponse(content, history.reverse());
                 
-                // 5. Save & Emit
+                // 4. Save & Emit
                 const nanaMessage = await prisma.$transaction(async (tx) => {
                   const m = await tx.message.create({
                     data: { conversationId, senderId: NANA_USER_ID, content: aiResponse, type: 'TEXT' },
@@ -332,7 +331,7 @@ const setupChatSockets = (io) => {
                   return m;
                 });
 
-                // 6. Finalize
+                // 5. Stop typing + broadcast
                 io.to(`conversation:${conversationId}`).emit('user-typing', {
                   userId: NANA_USER_ID,
                   userName: 'Nana',
@@ -357,6 +356,7 @@ const setupChatSockets = (io) => {
              }
           })();
         }
+
       } catch (error) {
         console.error(`[SOCKET ERROR] send-message handler crashed:`, error);
         socket.emit('error', { message: error.message });
