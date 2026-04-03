@@ -184,10 +184,26 @@ export default function MyApp({ Component, pageProps }) {
     return () => router.events.off('routeChangeStart', handleRouteChange);
   }, [router.isReady, router.asPath]);
 
-  // 3. UI Decision Helpers
-  const shouldHideNavbar = hideNavbarPages.includes(router.pathname) || (authorized && JSON.parse(localStorage.getItem('user'))?.role === 'NANA');
+  useEffect(() => {
+    if (isReady) {
+      const loader = document.getElementById('initial-loader');
+      if (loader) {
+        loader.style.opacity = '0';
+        loader.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+          loader.style.display = 'none';
+          loader.remove();
+        }, 500);
+      }
+    }
+  }, [isReady]);
 
   if (!isReady) return null;
+
+  // 3. UI Decision Helpers
+  const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+  const user = userStr ? JSON.parse(userStr) : null;
+  const shouldHideNavbar = hideNavbarPages.includes(router.pathname) || (authorized && user?.role === 'NANA');
 
   return (
     <ThemeProvider>
