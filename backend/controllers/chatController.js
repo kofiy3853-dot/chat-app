@@ -182,6 +182,33 @@ exports.getOrCreateDirectConversation = async (req, res) => {
     const { userId } = req.body;
     const currentUserId = req.user.id;
 
+    if (!userId) {
+      return res.status(400).json({ message: 'userId is required' });
+    }
+
+    // Validate the target user actually exists first
+    const targetUser = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+    if (!targetUser) {
+      return res.status(404).json({ message: 'Target user not found' });
+    }
+
+    const conversationInclude = {
+      participants: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+              isOnline: true,
+              lastSeen: true
+            }
+          }
+        }
+      },
+      lastMessage: true
+    };
+
     // Check if conversation already exists
     let conversation = await prisma.conversation.findFirst({
       where: {
@@ -192,56 +219,51 @@ exports.getOrCreateDirectConversation = async (req, res) => {
         ],
         isActive: true
       },
-      include: {
-        participants: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-                isOnline: true,
-                lastSeen: true
-              }
-            }
-          }
-        },
-        lastMessage: true
-      }
+      include: conversationInclude
     });
 
     if (!conversation) {
-      // Create new conversation
-      conversation = await prisma.conversation.create({
-        data: {
-          type: 'DIRECT',
-          participants: {
-            create: [
-              { userId: currentUserId, role: 'OWNER' },
-              { userId: userId, role: 'OWNER' }
-            ]
-          }
-        },
-        include: {
-          participants: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  avatar: true,
-                  isOnline: true,
-                  lastSeen: true
-                }
-              }
+      try {
+        // Create new conversation — wrap in try/catch for race-condition safety
+        conversation = await prisma.conversation.create({
+          data: {
+            type: 'DIRECT',
+            participants: {
+              create: [
+                { userId: currentUserId, role: 'OWNER' },
+                { userId: userId, role: 'OWNER' }
+              ]
             }
-          }
+          },
+          include: conversationInclude
+        });
+      } catch (createError) {
+        // P2002 = Unique constraint failed (race condition: another request already created it)
+        if (createError.code === 'P2002' || createError.code === 'P2003') {
+          conversation = await prisma.conversation.findFirst({
+            where: {
+              type: 'DIRECT',
+              AND: [
+                { participants: { some: { userId: currentUserId } } },
+                { participants: { some: { userId: userId } } }
+              ],
+              isActive: true
+            },
+            include: conversationInclude
+          });
+        } else {
+          throw createError;
         }
-      });
+      }
+    }
+
+    if (!conversation) {
+      return res.status(500).json({ message: 'Failed to resolve conversation' });
     }
 
     res.json({ conversation });
   } catch (error) {
+    console.error('[getOrCreateDirectConversation] Error:', error.message, error.code);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
