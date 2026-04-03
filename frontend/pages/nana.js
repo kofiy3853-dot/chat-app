@@ -75,12 +75,18 @@ export default function NanaPage() {
               </h1>
               <p className="text-[10px] opacity-60 mt-1 uppercase tracking-widest font-sans font-bold">Authorized Intelligence Asset only</p>
             </div>
-            <div className="mt-4 md:mt-0 flex items-center gap-4">
+            <div className="mt-4 md:mt-0 flex flex-wrap items-center gap-2 md:gap-4">
               <div className="px-3 py-1 bg-[#00ff41]/10 border border-[#00ff41]/30 rounded text-[10px] font-bold">CPU: 12%</div>
               <div className="px-3 py-1 bg-[#00ff41]/10 border border-[#00ff41]/30 rounded text-[10px] font-bold">LATENCY: 14ms</div>
               <button 
+                onClick={() => router.push('/')}
+                className="px-4 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded text-[10px] font-black uppercase hover:bg-blue-600/30 transition-colors"
+              >
+                Access Inbox
+              </button>
+              <button 
                 onClick={() => { localStorage.clear(); window.location.href = '/login'; }}
-                className="px-4 py-1 bg-red-600 text-white rounded text-[10px] font-black uppercase hover:bg-red-700 transition-colors"
+                className="px-4 py-1 bg-red-600/20 text-red-400 border border-red-500/30 rounded text-[10px] font-black uppercase hover:bg-red-600/30 transition-colors"
               >
                 Terminate Session
               </button>
@@ -149,10 +155,13 @@ export default function NanaPage() {
                      <p><span className="text-orange-400">ACTION:</span> Optimizing response parameters for high-concise mode.</p>
                      <p className="text-[#00ff41] animate-[pulse_1s_infinite]">[_]</p>
                   </div>
-                  <div className="mt-6 pt-4 border-t border-[#00ff41]/10 flex items-center gap-4">
+                  <div className="mt-6 pt-4 border-t border-[#00ff41]/10 flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
                     <span className="text-[10px] font-bold opacity-80">CMD_PROMPT &gt; </span>
-                    <div className="flex-1 h-9 bg-[#00ff41]/5 rounded-lg px-3 flex items-center cursor-not-allowed border border-[#00ff41]/10">
-                       <span className="text-[10px] opacity-20 italic">Manual override required for agent input.</span>
+                    <div className="flex-1 h-auto min-h-[36px] bg-[#00ff41]/5 rounded-lg px-3 py-2 flex flex-col sm:flex-row sm:items-center justify-between border border-[#00ff41]/20 gap-2">
+                       <span className="text-[10px] opacity-40 italic">Manual override required for active conversational interfaces.</span>
+                       <button onClick={() => router.push('/')} className="px-4 py-1.5 bg-[#00ff41] text-black hover:bg-white rounded text-[10px] font-black uppercase transition-colors shrink-0 whitespace-nowrap shadow-[0_0_10px_rgba(0,255,65,0.4)]">
+                         Launch Communicator
+                       </button>
                     </div>
                   </div>
                </div>

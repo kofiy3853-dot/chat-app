@@ -125,25 +125,39 @@ exports.getOrCreateNanaSession = async (req, res) => {
       include
     });
 
+    // Fetch the authentic Nana Profile from the DB
+    const nanaProfile = await prisma.user.findFirst({
+      where: { role: 'NANA' },
+      select: { id: true, name: true, avatar: true }
+    });
+
+    if (!nanaProfile) {
+      return res.status(500).json({ message: 'Nana system user not found in the database. Please ensure the NANA user is initialized.' });
+    }
+    const realNanaId = nanaProfile.id;
+
     if (!conversation) {
       try {
         conversation = await prisma.$transaction(async (tx) => {
-          // Create the conversation — only the student is a participant
+          // Create the conversation — include NANA so she can view/reply in her inbox
           const conv = await tx.conversation.create({
             data: {
               type: 'DIRECT',
               name: NANA_SESSION_MARKER,
               participants: {
-                create: [{ userId, role: 'MEMBER' }]
+                create: [
+                  { userId, role: 'MEMBER' },
+                  { userId: realNanaId, role: 'MEMBER' }
+                ]
               }
             }
           });
 
-          // Post Nana's welcome message (senderId = NANA_USER_ID for display, not a participant)
+          // Post Nana's welcome message (senderId = realNanaId for display)
           const welcome = await tx.message.create({
             data: {
               conversationId: conv.id,
-              senderId: NANA_USER_ID,
+              senderId: realNanaId,
               content: "Hi there! 👋 I'm Nana, your campus AI assistant powered by KTU. Ask me anything about courses, events, or campus life!",
               type: 'TEXT'
             }
@@ -171,12 +185,6 @@ exports.getOrCreateNanaSession = async (req, res) => {
     if (!conversation) {
       return res.status(500).json({ message: 'Failed to create Nana session' });
     }
-
-    // Attach Nana's profile to the response so the frontend can display her identity
-    const nanaProfile = await prisma.user.findUnique({
-      where: { id: NANA_USER_ID },
-      select: { id: true, name: true, avatar: true }
-    });
 
     res.json({ conversation, nanaProfile });
   } catch (error) {

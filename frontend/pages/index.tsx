@@ -173,12 +173,12 @@ const MessagesPage: React.FC = () => {
     const hasNana = conv?.participants?.some((p: any) => p.user?.role === 'NANA');
     const isDirect = conv?.type === 'DIRECT';
 
-    if (isDirect && hasNana) {
+    if (isDirect && hasNana && user?.role !== 'NANA') {
       router.push('/nana');
     } else {
       router.push(`/chat/${id}`);
     }
-  }, [router, conversations]);
+  }, [router, conversations, user]);
 
   const handleDelete = async (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -337,7 +337,7 @@ const MessagesPage: React.FC = () => {
       </div>
 
       {/* ─── Nana AI Hub Link ─── */}
-      {!search && (
+      {!search && user?.role !== 'NANA' && (
         <div className="bg-white px-4 pt-3 pb-1">
           <Link href="/nana">
             <div className="relative group overflow-hidden bg-gradient-to-br from-primary-600 to-indigo-700 rounded-2xl p-4 shadow-lg shadow-primary-200 cursor-pointer active:scale-[0.98] transition-all">

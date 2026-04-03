@@ -291,8 +291,12 @@ const setupChatSockets = (io) => {
         const isNanaSession = conversation.name === NANA_SESSION_MARKER;
         const nameMatch = content && (content.toLowerCase().includes('nana') || content.includes('@Nana'));
 
-        if ((isNanaSession || nameMatch) && socket.user.id !== NANA_USER_ID) {
-          console.log(`[Nana AI Trigger] Triggered for conv:${conversationId}. Session:${isNanaSession}, Mention:${!!nameMatch}`);
+        if (isNanaSession || nameMatch) {
+          const nanaProfile = await prisma.user.findFirst({ where: { role: 'NANA' }, select: { id: true } });
+          const realNanaId = nanaProfile ? nanaProfile.id : NANA_USER_ID;
+
+          if (socket.user.id !== realNanaId) {
+            console.log(`[Nana AI Trigger] Triggered for conv:${conversationId}. Session:${isNanaSession}, Mention:${!!nameMatch}`);
           
           (async () => {
              try {
@@ -355,6 +359,7 @@ const setupChatSockets = (io) => {
                 });
              }
           })();
+          }
         }
 
       } catch (error) {
