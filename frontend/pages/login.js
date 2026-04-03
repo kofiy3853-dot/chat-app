@@ -6,6 +6,7 @@ import { authAPI } from '../services/api';
 import { initSocket } from '../services/socket';
 import { initOneSignal } from '../services/oneSignal';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 export default function Login() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function Login() {
 
     try {
       const response = await authAPI.login(formData);
-      const { token, user } = response.data;
+      const { token, user, redirectTo } = response.data;
 
       // Store auth data
       localStorage.setItem('token', token);
@@ -36,9 +37,16 @@ export default function Login() {
       initOneSignal(user);
 
       toast.success('Signed in successfully!');
-      router.replace(response.data.redirectTo || '/');
+      
+      // SINGLE redirect (important)
+      if (user.role === "NANA") {
+        router.replace("/nana");
+      } else {
+        router.replace(redirectTo || "/");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      console.error("LOGIN FRONTEND ERROR:", err.message);
+      setError(err.response?.data?.message || err.response?.data?.error || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }

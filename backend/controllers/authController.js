@@ -115,56 +115,47 @@ exports.register = async (req, res) => {
 
 // Login user
 exports.login = async (req, res) => {
-  let step = 'validation';
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    console.log("LOGIN BODY:", req.body);
 
     const { email, password } = req.body;
-    console.log(`[LOGIN DEBUG] Received Body: email=${email}, hasPassword=${!!password}`);
 
-    // Step 1: Find user in DB
-    step = 'db_query';
-    console.log(`[LOGIN] Attempting login for: ${email}`);
-    const user = await prisma.user.findUnique({
-      where: { email }
-    });
+    if (!email || !password) {
+      console.log("Missing fields");
+      return res.status(400).json({ message: "Email and password required" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+
     if (!user) {
-      console.log(`[LOGIN] No user found for: ${email}`);
-      return res.status(401).json({ message: 'Invalid credentials' });
+      console.log("User not found:", email);
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Step 2: Check password
-    step = 'bcrypt';
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      console.log(`[LOGIN] Password mismatch for: ${email}`);
-      return res.status(401).json({ message: 'Invalid credentials' });
+    const valid = await bcrypt.compare(password, user.password);
+
+    if (!valid) {
+      console.log("Wrong password for:", email);
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Step 3: Generate JWT
-    step = 'jwt_sign';
+    // Use our global generateToken instead of redeclaring 
+    // to preserve token uniformity (7d etc)
     const token = generateToken(user);
-
-    // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
 
-    console.log(`[LOGIN] Success for: ${email}`);
+    console.log("Login success:", email);
+
     res.json({
       message: 'Login successful',
       token,
       user: userWithoutPassword,
       redirectTo: getRedirectPath(user.role)
     });
-  } catch (error) {
-    console.error(`[LOGIN ERROR] Failed at step '${step}':`, error.message);
-    res.status(500).json({
-      message: 'Server error during login',
-      step,          // tells you exactly which step failed
-      error: error.message
-    });
+
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

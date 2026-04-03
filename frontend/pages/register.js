@@ -90,7 +90,7 @@ export default function Register() {
       data.append('avatar', avatar);
 
       const response = await authAPI.register(data);
-      const { token, user } = response.data;
+      const { token, user, redirectTo } = response.data;
 
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
@@ -99,11 +99,16 @@ export default function Register() {
       // Initialize OneSignal
       initOneSignal(user);
 
-      // Redirect based on role-based path from server
+      // Redirect based on role
       toast.success('Account created successfully!');
-      router.replace(response.data.redirectTo || '/');
+      if (user.role === "NANA") {
+        router.replace("/nana");
+      } else {
+        router.replace(redirectTo || "/");
+      }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Registration failed. Please try again.';
+      console.error("REGISTER FRONTEND ERROR:", err.message);
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.';
       setError(msg);
       toast.error(msg);
     } finally {
