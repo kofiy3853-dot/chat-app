@@ -226,17 +226,16 @@ export default function ChatPage() {
               <ArrowLeftIcon className="w-5 h-5 stroke-[2.5px]" />
             </Link>
 
-            <div
-              className="flex items-center space-x-3 cursor-pointer min-w-0"
-              onClick={() => {
-                const NANA_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
-                if (otherParticipant?.userId === NANA_ID) {
-                  router.push('/nana');
-                } else {
-                  setShowProfile(true);
-                }
-              }}
-            >
+              <div
+                className="flex items-center space-x-3 cursor-pointer min-w-0"
+                onClick={() => {
+                  if (otherParticipant?.user?.role === 'NANA') {
+                    router.push('/nana');
+                  } else {
+                    setShowProfile(true);
+                  }
+                }}
+              >
               <div className="relative">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold overflow-hidden ring-2 ring-white/30 bg-white/20`}>
                   {(() => {

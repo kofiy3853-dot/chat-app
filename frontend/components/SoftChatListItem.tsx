@@ -7,6 +7,7 @@ interface User {
   name: string;
   avatar?: string;
   isOnline?: boolean;
+  role?: string;
 }
 
 interface Participant {
@@ -118,8 +119,7 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
       <div 
         className="relative flex-shrink-0 mr-3 cursor-pointer"
         onClick={(e) => {
-           const NANA_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
-           if (otherParticipant?.id === NANA_ID) {
+           if (otherParticipant?.role === 'NANA') {
              e.stopPropagation();
              router.push('/nana');
            }
