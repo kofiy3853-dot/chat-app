@@ -46,14 +46,19 @@ exports.register = async (req, res) => {
     }
 
     const { email, password, name, studentId, department, role } = req.body;
+    
+    console.log(`[REGISTER ATTEMPT] Name: ${name}, Email: ${email}, Role: ${role}, StudentID: ${studentId}`);
 
-    // Email domain restriction: ktu.edu.gh only
-    if (!email?.toLowerCase().endsWith('@ktu.edu.gh')) {
-      return res.status(400).json({ message: 'Access Denied. Only university emails (@ktu.edu.gh) are permitted to join this hub.' });
+    // Email domain restriction: ktu.edu.gh only (case insensitive)
+    const normalizedEmail = email?.trim().toLowerCase();
+    if (!normalizedEmail || !normalizedEmail.endsWith('@stu.ktu.edu.gh') && !normalizedEmail.endsWith('@staff.ktu.edu.gh') && !normalizedEmail.endsWith('@ktu.edu.gh')) {
+      return res.status(400).json({ 
+        message: 'Access Denied. Registration is restricted to KTU university emails (@stu.ktu.edu.gh, @staff.ktu.edu.gh, or @ktu.edu.gh).' 
+      });
     }
 
     // Strict validation: No single line leave blank
-    if (!name?.trim() || !email?.trim() || !password?.trim() || !studentId?.trim() || !department?.trim()) {
+    if (!name?.trim() || !normalizedEmail || !password?.trim() || !studentId?.trim() || !department?.trim()) {
       return res.status(400).json({ message: 'All fields are mandatory. Please fill in all information.' });
     }
 
@@ -82,17 +87,29 @@ exports.register = async (req, res) => {
     }
 
     // Create new user
-    const user = await prisma.user.create({
-      data: {
-        email: email.toLowerCase(),
-        password: hashedPassword,
-        name,
-        studentId,
-        department,
-        avatar: avatarUrl,
-        role: role ? role.toUpperCase() : 'STUDENT'
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: {
+          email: email.toLowerCase(),
+          password: hashedPassword,
+          name,
+          studentId,
+          department,
+          avatar: avatarUrl,
+          role: role ? role.toUpperCase() : 'STUDENT'
+        }
+      });
+    } catch (dbError) {
+      console.error(`[REGISTER ERROR] DB Creation Failed:`, dbError);
+      if (dbError.code === 'P2002') {
+        const field = dbError.meta?.target?.[0] || 'account';
+        return res.status(400).json({ 
+          message: `This ${field === 'studentId' ? 'Student ID' : field} is already registered. Please try a different one or sign in.` 
+        });
       }
-    });
+      throw dbError; // Pass to general catch
+    }
 
     console.log(`[REGISTER DEBUG] User created in DB with avatar: ${user.avatar ? 'YES' : 'NO'}`);
 
@@ -109,7 +126,8 @@ exports.register = async (req, res) => {
       redirectTo: getRedirectPath(user.role)
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error(`[REGISTER FATAL] Server Error:`, error);
+    res.status(500).json({ message: 'Server error during registration', error: error.message });
   }
 };
 
