@@ -87,7 +87,7 @@ export default function ProfileCard({ user, onUpdate }) {
               onClick={() => setIsEditing(true)}
               className="p-2.5 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-xl transition-all shadow-lg active:scale-95 group"
             >
-              <PencilSquareIcon className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+              <PencilSquareIcon className="w-5 h-5 transition-transform" />
             </button>
           )}
         </div>
@@ -115,7 +115,7 @@ export default function ProfileCard({ user, onUpdate }) {
             {isEditing && (
               <label 
                 htmlFor="avatar-upload"
-                className="absolute bottom-0 right-0 p-2 bg-white text-primary-600 rounded-lg shadow-lg border border-slate-100 hover:scale-110 active:scale-90 transition-all z-20 cursor-pointer"
+                className="absolute bottom-0 right-0 p-2 bg-white text-primary-600 rounded-lg shadow-lg border border-slate-100 hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer"
               >
                 <CameraIcon className="w-4 h-4" />
                 <input 
@@ -247,7 +247,7 @@ export default function ProfileCard({ user, onUpdate }) {
                 <div className="flex flex-col">
                   <span className="text-[8px] font-black text-slate-400 tracking-widest">Academic Status</span>
                   <div className="flex items-center mt-1 text-emerald-600 space-x-1.5">
-                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
                     <span className="text-[10px] font-black">Active Member</span>
                   </div>
                 </div>

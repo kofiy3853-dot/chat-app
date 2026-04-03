@@ -190,7 +190,7 @@ export default function Account() {
                     <button
                       key={theme.name}
                       onClick={() => setChatBg(theme.color)}
-                      className={`relative w-full aspect-square rounded-2xl ${theme.color} border-2 transition-all hover:scale-110 active:scale-95 flex items-center justify-center ${
+                      className={`relative w-full aspect-square rounded-2xl ${theme.color} border-2 transition-all hover:scale-105 active:scale-95 flex items-center justify-center ${
                         activeBg === theme.color ? 'border-primary-500 shadow-lg shadow-primary-500/20' : 'border-slate-50'
                       }`}
                     >
@@ -213,7 +213,7 @@ export default function Account() {
                         className="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50 transition-all group active:bg-slate-100"
                       >
                         <div className="flex items-center space-x-4">
-                          <div className={`w-11 h-11 rounded-2xl ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm`}>
+                          <div className={`w-11 h-11 rounded-2xl ${item.color} flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm`}>
                             <item.icon className="w-5 h-5" />
                           </div>
                           <div className="text-left">
