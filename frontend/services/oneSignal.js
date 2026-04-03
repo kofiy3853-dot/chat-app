@@ -97,18 +97,3 @@ export const initOneSignal = async (user) => {
     }
   });
 };
-
-export const requestOneSignalPermission = async () => {
-    if (typeof window === 'undefined') return;
-
-    if (Capacitor.isNativePlatform()) {
-        try {
-            const OneSignal = require('onesignal-cordova-plugin');
-            OneSignal.Notifications.requestPermission(true);
-        } catch (err) {}
-    } else if (window.OneSignal) {
-        try {
-            await window.OneSignal.showNativePrompt();
-        } catch (err) {}
-    }
-};

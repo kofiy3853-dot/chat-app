@@ -25,7 +25,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 const SoftChatList = dynamic(() => import('../components/SoftChatList'), { ssr: false, loading: () => <div className="p-4 text-center text-sm text-gray-400">Loading chats...</div> });
 const SoftStories = dynamic(() => import('../components/SoftStories'), { ssr: false });
 const NewChatModal = dynamic(() => import('../components/NewChatModal'), { ssr: false });
-const NotificationPrompt = dynamic(() => import('../components/NotificationPrompt'), { ssr: false });
 import { toast } from 'react-hot-toast';
 
 const MessagesPage: React.FC = () => {
@@ -328,8 +327,6 @@ const MessagesPage: React.FC = () => {
           )}
         </div>
       </header>
-
-      <NotificationPrompt />
 
       {/* ─── Stories Section ─── */}
       <div className="bg-white px-2 pt-2 pb-1 border-b border-gray-100">
