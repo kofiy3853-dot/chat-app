@@ -14,6 +14,7 @@ exports.searchUsers = async (req, res) => {
       where: {
         AND: [
           { id: { not: currentUserId } },
+          { role: { not: 'NANA' } },
           {
             OR: [
               { name: { contains: query, mode: 'insensitive' } },
