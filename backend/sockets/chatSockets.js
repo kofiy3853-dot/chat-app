@@ -278,40 +278,26 @@ const setupChatSockets = (io) => {
           message: { ...message, tempId: data.tempId } 
         });
 
-        // --- 🤖 Nana AI Trigger ---
-        // 1. Identification: Is Nana in this conversation?
-        const isNanaInConversation = chatParticipants.some(p => p.userId === NANA_USER_ID);
-        // 2. Persona: Is this a 1-on-1 "Specialist Mode" session or a group mention?
-        const isDirectWithNana = isNanaInConversation && chatParticipants.length === 2;
+        // --- 🤖 Nana AI Trigger Logic ---
+        const isNanaParticipating = chatParticipants.some(p => p.userId === NANA_USER_ID);
+        const nameMatch = content && (content.toLowerCase().includes('nana') || content.includes('@Nana'));
+        
+        // If it's a direct chat (2 participants) and Nana is one of them, it's always for Nana
+        const isDirectNanaChat = isNanaParticipating && chatParticipants.length === 2;
 
-        // 3. Logic: Should we wake up the AI?
-        const isNanaMentioned = content && (
-          content.includes('@Nana') || 
-          content.toLowerCase().includes('nana') ||
-          content.includes(NANA_USER_ID) ||
-          isDirectWithNana // In 1-on-1, every message is for Nana!
-        );
-
-        if (isNanaMentioned && socket.user.id !== NANA_USER_ID) {
+        if ((isDirectNanaChat || nameMatch) && socket.user.id !== NANA_USER_ID) {
+          console.log(`[Nana AI Trigger] Triggered for conv:${conversationId}. Direct:${isDirectNanaChat}, Mentioned:${!!nameMatch}`);
+          
           (async () => {
              try {
-                // Ensure Nana is in the conversation (upsert participant)
+                // 1. Ensure Nana is actually a participant record
                 await prisma.conversationParticipant.upsert({
-                  where: {
-                    userId_conversationId: {
-                      userId: NANA_USER_ID,
-                      conversationId: conversationId
-                    }
-                  },
-                  create: {
-                    userId: NANA_USER_ID,
-                    conversationId: conversationId,
-                    role: 'MEMBER'
-                  },
-                  update: {} // already exists
+                  where: { userId_conversationId: { userId: NANA_USER_ID, conversationId } },
+                  create: { userId: NANA_USER_ID, conversationId, role: 'MEMBER' },
+                  update: {} 
                 });
 
-                // Show Nana as typing...
+                // 2. Typing indicator
                 io.to(`conversation:${conversationId}`).emit('user-typing', {
                   userId: NANA_USER_ID,
                   userName: 'Nana',
@@ -319,67 +305,60 @@ const setupChatSockets = (io) => {
                   isTyping: true
                 });
 
-                // Fetch short history for context (last 5-10 messages)
+                // 3. Contextual History
                 const history = await prisma.message.findMany({
                   where: { conversationId, isDeleted: false },
                   orderBy: { createdAt: 'desc' },
-                  take: 10,
+                  take: 15,
                   include: { sender: { select: { id: true, name: true } } }
                 });
 
-                // Get AI response
+                // 4. Brain Call
+                console.log(`[Nana AI Trigger] Fetching brain response...`);
                 const aiResponse = await getNanaAiResponse(content, history.reverse());
-
-                // Create message and update conversation
+                
+                // 5. Save & Emit
                 const nanaMessage = await prisma.$transaction(async (tx) => {
                   const m = await tx.message.create({
-                    data: {
-                      conversationId,
-                      senderId: NANA_USER_ID,
-                      content: aiResponse,
-                      type: 'TEXT'
-                    },
+                    data: { conversationId, senderId: NANA_USER_ID, content: aiResponse, type: 'TEXT' },
                     include: {
-                      sender: {
-                        select: {
-                          id: true,
-                          name: true,
-                          avatar: true
-                        }
-                      }
+                      sender: { select: { id: true, name: true, avatar: true } }
                     }
                   });
                   await tx.conversation.update({
                     where: { id: conversationId },
-                    data: {
-                      lastMessageId: m.id,
-                      lastMessageAt: new Date()
-                    }
+                    data: { lastMessageId: m.id, lastMessageAt: new Date() }
                   });
                   return m;
                 });
 
-                // Stop typing
+                // 6. Finalize
                 io.to(`conversation:${conversationId}`).emit('user-typing', {
                   userId: NANA_USER_ID,
                   userName: 'Nana',
                   conversationId,
                   isTyping: false
                 });
-
-                // Emit new message broadcast
                 io.to(`conversation:${conversationId}`).emit('new-message', {
                   message: nanaMessage,
                   conversationId
                 });
+                
+                console.log(`[Nana AI Trigger] Response sent successfully.`);
 
              } catch (aiErr) {
                 console.error('[Nana AI Handler Error]:', aiErr);
+                io.to(`conversation:${conversationId}`).emit('user-typing', {
+                  userId: NANA_USER_ID,
+                  userName: 'Nana',
+                  conversationId,
+                  isTyping: false
+                });
              }
           })();
         }
       } catch (error) {
-        console.error(`[NOTIF ERROR] send-message handler crashed:`, error);
+        console.error(`[SOCKET ERROR] send-message handler crashed:`, error);
         socket.emit('error', { message: error.message });
       }
     });
