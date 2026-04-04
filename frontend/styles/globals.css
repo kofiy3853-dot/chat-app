@@ -4,14 +4,14 @@
 
 /* ═══════════════════════════════════════════════════════
    SINGLE SOURCE OF TRUTH — KTU Campus Chat Design Tokens
-   Primary brand colour: #2E8BC0  (Sea Blue)
+   Primary brand colour: #3ABEF9  (Light Blue)
    ═══════════════════════════════════════════════════════ */
 :root {
   /* ── Brand ── */
-  --primary:         #2E8BC0;   /* KTU Sea Blue — navbar, buttons, highlights */
-  --primary-dark:    #2478a8;
-  --primary-light:   #e8f4fb;
-  --primary-shadow:  rgba(46, 139, 192, 0.2);
+  --primary:         #3ABEF9;   /* KTU Light Blue — navbar, buttons, highlights */
+  --primary-dark:    #00a3ff;
+  --primary-light:   #e0f5ff;
+  --primary-shadow:  rgba(58, 190, 249, 0.2);
 
   /* ── Surfaces ── */
   --bg-page:         #ffffff;   /* Pure white background as requested */

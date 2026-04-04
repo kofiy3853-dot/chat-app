@@ -62,7 +62,7 @@ export default function Login() {
         <div className="max-w-md w-full">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4 shadow-lg shadow-primary-200">
               <AcademicCapIcon className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Campus Chat</h1>
@@ -88,7 +88,7 @@ export default function Login() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="your@email.edu"
                   required
                 />
@@ -104,7 +104,7 @@ export default function Login() {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="••••••••"
                   required
                 />
@@ -113,7 +113,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-primary-50"
               >
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>
@@ -122,7 +122,7 @@ export default function Login() {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-500">
                 Don't have an account?{' '}
-                <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+                <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium hover:underline">
                   Sign up
                 </Link>
               </p>

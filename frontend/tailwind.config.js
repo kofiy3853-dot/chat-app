@@ -11,27 +11,27 @@ module.exports = {
       },
       colors: {
         primary: {
-          50:  '#e8f4fb',
-          100: '#c5e2f3',
-          200: '#9fd0ea',
-          300: '#6fbde1',
-          400: '#50aed9',
-          500: '#2E8BC0',   // KTU Sea Blue (primary brand)
-          600: '#2E8BC0',   // primary-600 → navy nav, buttons, highlights
-          700: '#2478a8',
-          800: '#1b648f',
-          900: '#104a6a',
+          50:  '#f0faff',
+          100: '#e0f5ff',
+          200: '#baeaff',
+          300: '#7ccbff',
+          400: '#3abef9',   // Light Sky Blue (New Primary)
+          500: '#3abef9',   // Primary brand
+          600: '#00a3ff',   // Vibrant deep sky blue
+          700: '#0085d6',
+          800: '#0067a9',
+          900: '#004a7c',
         },
         ktu: {
           orange: '#E77917',
-          blue:   '#2E8BC0',
+          blue:   '#3ABEF9',
         },
         soft: {
           bg:      '#ffffff',
           card:    '#ffffff',
-          primary: '#2E8BC0',
+          primary: '#3ABEF9',
           secondary: '#E77917',
-          accent:  '#1b648f',
+          accent:  '#00a3ff',
           text: {
             primary:   '#111827',
             secondary: '#6b7280',

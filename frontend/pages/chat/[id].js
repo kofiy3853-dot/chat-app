@@ -226,10 +226,9 @@ export default function ChatPage() {
       </Head>
 
       <div className="max-w-xl mx-auto h-full flex-1 overflow-hidden flex flex-col shadow-2xl relative bg-app w-full border-x border-slate-100">
-        {/* Header - Blue Gradient */}
+        {/* Header - Sea Blue */}
         <header
-          className="sticky top-0 z-[100] px-4 pt-[max(env(safe-area-inset-top,0px),16px)] pb-4 flex items-center justify-between bg-indigo-600 shadow-xl shrink-0"
-          style={{ background: 'linear-gradient(135deg, #6B73FF 0%, #8E96FF 100%)' }}
+          className="sticky top-0 z-[100] px-4 pt-[max(env(safe-area-inset-top,0px),16px)] pb-4 flex items-center justify-between bg-primary-600 shadow-xl shrink-0"
         >
           {/* Left: back + avatar + name */}
           <div className="flex items-center space-x-3 min-w-0">

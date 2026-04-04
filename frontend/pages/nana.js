@@ -179,8 +179,8 @@ export default function NanaPage() {
         <title>Chat with Nana | Campus Chat</title>
       </Head>
 
-      {/* Hero Header (Slimmer Version) */}
-      <header className="z-20 shrink-0 bg-gradient-to-r from-primary-600 to-indigo-700 p-4 shadow-lg flex items-center justify-between">
+      {/* Header - Sea Blue */}
+      <header className="z-20 shrink-0 bg-primary-600 p-4 shadow-lg flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button 
             onClick={() => router.push('/')}

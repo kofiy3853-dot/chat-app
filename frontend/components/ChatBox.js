@@ -20,8 +20,8 @@ import {
   DocumentDuplicateIcon,
   VideoCameraIcon,
   CalendarDaysIcon,
-  FaceSmileIcon as FaceSmileOutline,
-  ChevronDownIcon
+  ChevronDownIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { getCurrentUser, groupMessagesByDate, getInitials, getAvatarColor, formatMessageTime, getFullFileUrl } from '../utils/helpers';
 import dynamic from 'next/dynamic';
@@ -94,7 +94,7 @@ const MessageBubble = React.memo(({
 
   return (
     <div 
-      className={`flex w-full mb-4 px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200 overflow-hidden`}
+      className={`flex w-full mb-4 px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200`}
       style={{ transform: `translateX(${swipeOffset}px)` }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -286,8 +286,8 @@ const MessageBubble = React.memo(({
                         <button onClick={() => { setEditingMessageId(message.id); setEditingContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
                           <PencilIcon className="w-3.5 h-3.5" /> <span>Edit</span>
                         </button>
-                        <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-0 rounded-lg">
-                          <TrashIcon className="w-3.5 h-3.5" /> <span>Delete</span>
+                        <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-lg">
+                          <TrashIcon className="w-3.5 h-3.5" /> <span>Delete message</span>
                         </button>
                       </>
                     )}
@@ -953,7 +953,7 @@ export default function ChatBox({ conversationId }) {
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                     className="p-2 text-slate-400 hover:text-primary-600 transition-colors"
                   >
-                    <FaceSmileOutline className="w-5 h-5 stroke-[2.2px]" />
+                    <FaceSmileIcon className="w-5 h-5 stroke-[2.2px]" />
                   </button>
                   <textarea
                     value={newMessage}
