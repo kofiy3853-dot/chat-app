@@ -9,21 +9,22 @@ export const AVAILABLE_THEMES = [
   { id: 'red', name: 'Crimson', color: '#dc2626', textColor: '#fca5a5' },
   { id: 'blue', name: 'Cobalt', color: '#2563eb', textColor: '#93c5fd' },
   { id: 'violet', name: 'Amethyst', color: '#7c3aed', textColor: '#c4b5fd' },
-  { id: 'matrix', name: 'Matrix', color: '#00ff41', textColor: '#00ff41' }
+  { id: 'matrix', name: 'Matrix', color: '#00ff41', textColor: '#00ff41' },
+  { id: 'white', name: 'White', color: '#ffffff', textColor: '#2e8bc0' }
 ];
 
 const ThemeContext = createContext({ 
-  theme: 'light', 
+  theme: 'white', 
   setTheme: () => {},
   availableThemes: AVAILABLE_THEMES
 });
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState('light');
+  const [theme, setThemeState] = useState('white');
 
   useEffect(() => {
     // Read saved preference
-    const saved = localStorage.getItem('theme_v2') || 'light';
+    const saved = localStorage.getItem('theme_v2') || 'white';
     setThemeState(saved);
     document.documentElement.setAttribute('data-theme', saved);
   }, []);

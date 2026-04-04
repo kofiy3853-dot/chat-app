@@ -176,6 +176,23 @@
   color-scheme: dark;
 }
 
+[data-theme="white"] {
+  --primary:         var(--sea-blue);
+  --bg-navbar:       #ffffff;
+  --text-navbar:     var(--sea-blue);
+  --status-bar:      #ffffff;
+  --bg-page:         #ffffff;
+  --bg-surface:      #ffffff;
+  --bg-surface-2:    var(--bg-cloud-white);
+  --text-primary:    var(--text-jet-black);
+  --text-secondary:  var(--text-slate-gray);
+  --bubble-me-bg:    var(--sea-blue);
+  --bubble-me-text:  #ffffff;
+  --bubble-other-bg: var(--bg-soft-mist);
+  --bubble-other-text:var(--text-jet-black);
+  --border:          #f1f5f9;
+}
+
 /* ═══════════════════════ Safe Area Support ══════════════════ */
 :root {
   --safe-top: env(safe-area-inset-top, 0px);
