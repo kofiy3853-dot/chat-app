@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+﻿import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { chatAPI } from '../services/api';
 import { getSocket, sendMessage, sendTyping, markAsRead, addReaction, editMessage, deleteMessage } from '../services/socket';
@@ -36,6 +36,256 @@ import {
 } from '../utils/indexedDB';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
+// --- Memoized Message Bubble Component (defined at module scope to prevent remounting on ChatBox re-renders) ---
+const MessageBubble = React.memo(({ 
+  message, 
+  isMine, 
+  showSender, 
+  currentUser, 
+  activeMenuId, 
+  setActiveMenuId, 
+  editingMessageId, 
+  editingContent, 
+  setEditingMessageId, 
+  setEditingContent, 
+  handleEdit, 
+  addReaction, 
+  deleteMessage,
+  handleJoinCall,
+  onReply
+}) => {
+  const timestamp = formatMessageTime(message.createdAt);
+  const isTemp = message.id?.toString().startsWith('temp');
+
+  const [touchStart, setTouchStart] = useState(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!touchStart || isMine) return;
+    const currentTouch = e.targetTouches[0].clientX;
+    const diff = currentTouch - touchStart;
+    if (diff > 0 && diff < 80) setSwipeOffset(diff);
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeOffset > 50) onReply(message);
+    setSwipeOffset(0);
+    setTouchStart(null);
+  };
+
+  const bubbleClasses = `group relative p-3 rounded-2xl shadow-sm border select-none touch-pan-y break-word ${
+    isMine ? 'bg-primary-600 border-primary-500 text-white rounded-tr-none hover:bg-primary-700' : 'bg-white border-slate-100 text-slate-800 rounded-tl-none hover:bg-slate-50'
+  }`;
+
+  return (
+    <div 
+      className={`flex w-full mb-4 px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200 overflow-hidden`}
+      style={{ transform: `translateX(${swipeOffset}px)` }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div className={`flex max-w-[85%] items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+        <div className="relative group shrink-0">
+          <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+            {(() => {
+              if (message.sender?.role === 'NANA') return 'N';
+              const avatar = message.sender?.avatar;
+              const fullUrl = getFullFileUrl(avatar);
+              return fullUrl ? (
+                <img src={fullUrl} className="w-full h-full object-cover" alt="" />
+              ) : (
+                getInitials(message.sender?.name)
+              );
+            })()}
+          </div>
+        </div>
+
+        <div className={`flex flex-col min-w-0 ${isMine ? 'items-end' : 'items-start'}`}>
+          {showSender && !isMine && (
+            <div className="flex items-center space-x-1.5 mb-1 ml-1 uppercase">
+              <span className="text-[10px] font-bold text-slate-400">{message.sender?.name}</span>
+              {message.sender?.role === 'LECTURER' && (
+                <span className="text-[8px] font-black px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-md border border-rose-100 flex items-center">
+                  <CheckBadgeIcon className="w-2.5 h-2.5 mr-0.5" />
+                  LECTURER
+                </span>
+              )}
+              {message.sender?.role === 'COURSE_REP' && (
+                <span className="text-[8px] font-black px-1.5 py-0.5 bg-primary-50 text-primary-600 rounded-md border border-primary-100 flex items-center">
+                   <div className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-pulse mr-1" />
+                   COURSE REP
+                </span>
+              )}
+            </div>
+          )}
+          
+          <div 
+            onMouseDown={(e) => {
+              const timer = setTimeout(() => {
+                if (!message.isDeleted && !editingMessageId) setActiveMenuId(message.id);
+                if (navigator.vibrate) navigator.vibrate(50);
+              }, 500);
+              e.currentTarget.dataset.timer = timer;
+            }}
+            onMouseUp={(e) => clearTimeout(e.currentTarget.dataset.timer)}
+            onMouseLeave={(e) => clearTimeout(e.currentTarget.dataset.timer)}
+            onTouchStart={(e) => {
+              const timer = setTimeout(() => {
+                if (!message.isDeleted && !editingMessageId) setActiveMenuId(message.id);
+                if (navigator.vibrate) navigator.vibrate(50);
+              }, 500);
+              e.currentTarget.dataset.timer = timer;
+            }}
+            onTouchEnd={(e) => clearTimeout(e.currentTarget.dataset.timer)}
+            onTouchMove={(e) => clearTimeout(e.currentTarget.dataset.timer)}
+            className={bubbleClasses}
+          >
+            {message.replyTo && !message.isDeleted && (
+              <div className={`mb-2 p-2 rounded-lg border-l-4 text-[10px] bg-black/5 ${isMine ? 'border-white/40' : 'border-primary-500 bg-primary-50'}`}>
+                <p className="font-black uppercase tracking-tight opacity-60">
+                   Replying to {message.replyTo.sender?.name || 'User'}
+                </p>
+                <p className="truncate opacity-80">{message.replyTo.content || 'Attachment'}</p>
+              </div>
+            )}
+
+            {editingMessageId === message.id ? (
+              <div className="min-w-[180px]">
+                <textarea 
+                  autoFocus 
+                  value={editingContent} 
+                  onChange={e => setEditingContent(e.target.value)}
+                  className="w-full bg-transparent border-none p-0 text-sm focus:ring-0 resize-none"
+                />
+                <div className="flex justify-end space-x-2 mt-2">
+                  <button onClick={() => setEditingMessageId(null)} className="text-[10px] font-bold opacity-60">Cancel</button>
+                  <button onClick={handleEdit} className="text-[10px] font-bold text-emerald-400">Save</button>
+                </div>
+              </div>
+            ) : message.isDeleted ? (
+              <span className="text-xs italic opacity-50">This message was deleted</span>
+            ) : (
+              <div className="space-y-2">
+                {(message.type === 'IMAGE' || message.type === 'FILE') && message.fileUrl && (
+                  <AttachmentBubble message={message} />
+                )}
+                {message.type === 'VOICE' && message.fileUrl && (
+                  <VoiceBubble message={message} />
+                )}
+                {message.attachments?.map((a, i) => (
+                  <AttachmentBubble key={i} message={{ ...message, fileUrl: a.url, fileName: a.name }} />
+                ))}
+                {message.content && (
+                  <>
+                    {message.content.includes('Join here: https://') ? (
+                      <div className="min-w-[200px] sm:min-w-[240px] bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                            <VideoCameraIcon className="w-6 h-6 text-emerald-400" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Video Call</p>
+                            <p className="text-xs font-bold text-white">Call invitation sent</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); const url = message.content.split('Join here: ')[1]; window.open(url, '_blank'); }}
+                          className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black shadow-lg shadow-emerald-500/20 transition-colors flex items-center justify-center space-x-2"
+                        >
+                          <span>Join Call</span>
+                          <ArrowPathIcon className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : message.content.includes('🗓️ Scheduled a call') ? (
+                      <div className="min-w-[200px] sm:min-w-[240px] bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <div className="w-10 h-10 rounded-full bg-primary-500/20 flex items-center justify-center">
+                            <CalendarDaysIcon className="w-6 h-6 text-primary-300" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-primary-300">Appointment</p>
+                            <p className="text-xs font-bold text-white">Call Scheduled</p>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-white/80 font-medium mb-3">{message.content.replace('🗓️ Scheduled a call for ', '')}</p>
+                        <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-black border border-white/10 transition-colors">Add to Calendar</button>
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap break-word">{message.content}</p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            <div className={`flex items-center mt-1.5 space-x-1 justify-end ${isMine ? 'text-white/60' : 'text-slate-400'}`}>
+              <span className="text-[9px] font-bold italic">{timestamp}</span>
+              {isMine && (
+                isTemp ? (
+                  <ArrowPathIcon className="w-2.5 h-2.5 animate-spin" />
+                ) : (
+                  <div className="flex -space-x-1">
+                    {(message.readReceipts?.length > 0) ? (
+                      <>
+                        <CheckIcon className="w-3 h-3 stroke-[4px] text-emerald-400 drop-shadow-sm" />
+                        <CheckIcon className="w-3 h-3 stroke-[4px] text-emerald-400 drop-shadow-sm" />
+                      </>
+                    ) : (
+                      <CheckIcon className="w-3 h-3 stroke-[4px] text-white/50" />
+                    )}
+                  </div>
+                )
+              )}
+            </div>
+
+            {activeMenuId === message.id && (
+              <>
+                <div 
+                  className="fixed inset-0 z-[1999]" 
+                  onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
+                  onTouchStart={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
+                />
+                <div 
+                  className={`absolute z-[2000] bottom-full mb-2 bg-white rounded-xl shadow-2xl border border-slate-100 min-w-[140px] overflow-hidden ${isMine ? 'right-0' : 'left-0'}`}
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div className="flex justify-around p-2 bg-slate-50 border-b border-slate-100">
+                    {['❤️', '👍', '🔥', '😂'].map(e => (
+                      <button key={e} onClick={() => { addReaction(message.id, e); setActiveMenuId(null); }} className="hover:scale-125 transition-transform">
+                        {e}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="p-1 flex flex-col">
+                    <button onClick={() => { navigator.clipboard.writeText(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
+                      <DocumentDuplicateIcon className="w-3.5 h-3.5" /> <span>Copy text</span>
+                    </button>
+                    {isMine && !message.isDeleted && (
+                      <>
+                        <button onClick={() => { setEditingMessageId(message.id); setEditingContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
+                          <PencilIcon className="w-3.5 h-3.5" /> <span>Edit</span>
+                        </button>
+                        <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-lg">
+                          <TrashIcon className="w-3.5 h-3.5" /> <span>Delete</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export default function ChatBox({ conversationId }) {
   // --- 1. State Management ---
   const typingTimeoutRef = useRef(null);
@@ -480,297 +730,14 @@ export default function ChatBox({ conversationId }) {
   // --- 5. Data Grouping ---
   const groupedMessages = useMemo(() => groupMessagesByDate(messages), [messages]);
 
-  // --- 6. Helper Components ---
-// --- Memoized Message Bubble Component ---
-const MessageBubble = React.memo(({ 
-  message, 
-  isMine, 
-  showSender, 
-  currentUser, 
-  activeMenuId, 
-  setActiveMenuId, 
-  editingMessageId, 
-  editingContent, 
-  setEditingMessageId, 
-  setEditingContent, 
-  handleEdit, 
-  addReaction, 
-  deleteMessage,
-  handleJoinCall,
-  onReply
-}) => {
-  const timestamp = formatMessageTime(message.createdAt);
-  const isTemp = message.id?.toString().startsWith('temp');
-  const avatarName = message.sender?.name || 'User';
 
-  const [touchStart, setTouchStart] = useState(null);
-  const [swipeOffset, setSwipeOffset] = useState(0);
-
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    if (!touchStart || isMine) return; // Only allow swipe-to-reply on other's messages for now or both
-    const currentTouch = e.targetTouches[0].clientX;
-    const diff = currentTouch - touchStart;
-    
-    // Swipe Right to Reply (max 80px)
-    if (diff > 0 && diff < 80) {
-      setSwipeOffset(diff);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (swipeOffset > 50) {
-      onReply(message);
-    }
-    setSwipeOffset(0);
-    setTouchStart(null);
-  };
-
-  const bubbleClasses = `group relative p-3 rounded-2xl shadow-sm border select-none touch-pan-y break-word ${
-    isMine ? 'bg-primary-600 border-primary-500 text-white rounded-tr-none hover:bg-primary-700' : 'bg-white border-slate-100 text-slate-800 rounded-tl-none hover:bg-slate-50'
-  }`;
-
-  return (
-    <div 
-      className={`flex w-full mb-4 px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200 overflow-hidden`}
-      style={{ transform: `translateX(${swipeOffset}px)` }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <div className={`flex max-w-[85%] items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
-        {/* Avatar (Left only) */}
-          <div className="relative group shrink-0">
-            <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
-              {(() => {
-                if (message.sender?.role === 'NANA') return 'N';
-                const avatar = message.sender?.avatar;
-                const fullUrl = getFullFileUrl(avatar);
-                return fullUrl ? (
-                  <img src={fullUrl} className="w-full h-full object-cover" alt="" />
-                ) : (
-                  getInitials(message.sender?.name)
-                );
-              })()}
-            </div>
-          </div>
-
-        <div className={`flex flex-col min-w-0 ${isMine ? 'items-end' : 'items-start'}`}>
-          {showSender && !isMine && (
-            <div className="flex items-center space-x-1.5 mb-1 ml-1 uppercase">
-              <span className="text-[10px] font-bold text-slate-400">{message.sender?.name}</span>
-              {message.sender?.role === 'LECTURER' && (
-                <span className="text-[8px] font-black px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-md border border-rose-100 flex items-center">
-                  <CheckBadgeIcon className="w-2.5 h-2.5 mr-0.5" />
-                  LECTURER
-                </span>
-              )}
-              {message.sender?.role === 'COURSE_REP' && (
-                <span className="text-[8px] font-black px-1.5 py-0.5 bg-primary-50 text-primary-600 rounded-md border border-primary-100 flex items-center">
-                   <div className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-pulse mr-1" />
-                   COURSE REP
-                </span>
-              )}
-            </div>
-          )}
-          
-          <div 
-            onMouseDown={(e) => {
-              const timer = setTimeout(() => {
-                if (!message.isDeleted && !editingMessageId) setActiveMenuId(message.id);
-                if (navigator.vibrate) navigator.vibrate(50); // Haptic feedback
-              }, 500);
-              e.currentTarget.dataset.timer = timer;
-            }}
-            onMouseUp={(e) => clearTimeout(e.currentTarget.dataset.timer)}
-            onMouseLeave={(e) => clearTimeout(e.currentTarget.dataset.timer)}
-            onTouchStart={(e) => {
-              const timer = setTimeout(() => {
-                if (!message.isDeleted && !editingMessageId) setActiveMenuId(message.id);
-                if (navigator.vibrate) navigator.vibrate(50);
-              }, 500);
-              e.currentTarget.dataset.timer = timer;
-            }}
-            onTouchEnd={(e) => clearTimeout(e.currentTarget.dataset.timer)}
-            onTouchMove={(e) => clearTimeout(e.currentTarget.dataset.timer)}
-            className={bubbleClasses}
-          >
-            {/* Reply Context */}
-            {message.replyTo && !message.isDeleted && (
-              <div className={`mb-2 p-2 rounded-lg border-l-4 text-[10px] bg-black/5 ${isMine ? 'border-white/40' : 'border-primary-500 bg-primary-50'}`}>
-                <p className="font-black uppercase tracking-tight opacity-60">
-                   Replying to {message.replyTo.sender?.name || 'User'}
-                </p>
-                <p className="truncate opacity-80">{message.replyTo.content || 'Attachment'}</p>
-              </div>
-            )}
-
-            {/* Message Context */}
-            {editingMessageId === message.id ? (
-              <div className="min-w-[180px]">
-                <textarea 
-                  autoFocus 
-                  value={editingContent} 
-                  onChange={e => setEditingContent(e.target.value)}
-                  className="w-full bg-transparent border-none p-0 text-sm focus:ring-0 resize-none"
-                />
-                <div className="flex justify-end space-x-2 mt-2">
-                  <button onClick={() => setEditingMessageId(null)} className="text-[10px] font-bold opacity-60">Cancel</button>
-                  <button onClick={handleEdit} className="text-[10px] font-bold text-emerald-400">Save</button>
-                </div>
-              </div>
-            ) : message.isDeleted ? (
-              <span className="text-xs italic opacity-50">This message was deleted</span>
-            ) : (
-              <div className="space-y-2">
-                {/* Media Support (Real messages) */}
-                {(message.type === 'IMAGE' || message.type === 'FILE') && message.fileUrl && (
-                  <AttachmentBubble message={message} />
-                )}
-                {message.type === 'VOICE' && message.fileUrl && (
-                  <VoiceBubble message={message} />
-                )}
-
-                {/* Temp message attachments mapping */}
-                {message.attachments?.map((a, i) => (
-                  <AttachmentBubble 
-                    key={i} 
-                    message={{ ...message, fileUrl: a.url, fileName: a.name }} 
-                  />
-                ))}
-                
-                {/* Content Rendering Logic */}
-                {message.content && (
-                  <>
-                    {/* 1. Call Link Card Detection */}
-                    {message.content.includes('Join here: https://') ? (
-                      <div className="min-w-[200px] sm:min-w-[240px] bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                            <VideoCameraIcon className="w-6 h-6 text-emerald-400" />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Video Call</p>
-                            <p className="text-xs font-bold text-white">Call invitation sent</p>
-                          </div>
-                        </div>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const url = message.content.split('Join here: ')[1];
-                            window.open(url, '_blank');
-                          }}
-                          className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black shadow-lg shadow-emerald-500/20 transition-colors flex items-center justify-center space-x-2"
-                        >
-                          <span>Join Call</span>
-                          <ArrowPathIcon className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : 
-                    /* 2. Scheduled Call Detection */
-                    message.content.includes('🗓️ Scheduled a call') ? (
-                      <div className="min-w-[200px] sm:min-w-[240px] bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <div className="w-10 h-10 rounded-full bg-primary-500/20 flex items-center justify-center">
-                            <CalendarDaysIcon className="w-6 h-6 text-primary-300" />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-primary-300">Appointment</p>
-                            <p className="text-xs font-bold text-white">Call Scheduled</p>
-                          </div>
-                        </div>
-                        <p className="text-[11px] text-white/80 font-medium mb-3">
-                          {message.content.replace('🗓️ Scheduled a call for ', '')}
-                        </p>
-                        <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-black border border-white/10 transition-colors">
-                          Add to Calendar
-                        </button>
-                      </div>
-                    ) : (
-                      /* Default Text Bubble */
-                      <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap break-word">{message.content}</p>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Timestamp Meta */}
-            <div className={`flex items-center mt-1.5 space-x-1 justify-end ${isMine ? 'text-white/60' : 'text-slate-400'}`}>
-              <span className="text-[9px] font-bold italic">{timestamp}</span>
-              {isMine && (
-                isTemp ? (
-                  <ArrowPathIcon className="w-2.5 h-2.5 animate-spin" />
-                ) : (
-                  <div className="flex -space-x-1">
-                    {/* Double Tick Logic */}
-                    {(message.readReceipts?.length > 0) ? (
-                      <>
-                        <CheckIcon className="w-3 h-3 stroke-[4px] text-emerald-400 drop-shadow-sm" />
-                        <CheckIcon className="w-3 h-3 stroke-[4px] text-emerald-400 drop-shadow-sm" />
-                      </>
-                    ) : (
-                      <CheckIcon className="w-3 h-3 stroke-[4px] text-white/50" />
-                    )}
-                  </div>
-                )
-              )}
-            </div>
-
-            {/* Action Menu Popover (Inline Logic) */}
-            {activeMenuId === message.id && (
-              <>
-                {/* Invisible backdrop to close menu when tapping outside */}
-                <div 
-                  className="fixed inset-0 z-[1999]" 
-                  onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
-                  onTouchStart={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
-                />
-                <div 
-                  className={`absolute z-[2000] bottom-full mb-2 bg-white rounded-xl shadow-2xl border border-slate-100 min-w-[140px] overflow-hidden ${isMine ? 'right-0' : 'left-0'}`}
-                  onClick={e => e.stopPropagation()}
-                >
-                  <div className="flex justify-around p-2 bg-slate-50 border-b border-slate-100">
-                    {['❤️', '👍', '🔥', '😂'].map(e => (
-                      <button key={e} onClick={() => { addReaction(message.id, e); setActiveMenuId(null); }} className="hover:scale-125 transition-transform">
-                        {e}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="p-1 flex flex-col">
-                    <button onClick={() => { navigator.clipboard.writeText(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
-                      <DocumentDuplicateIcon className="w-3.5 h-3.5" /> <span>Copy text</span>
-                    </button>
-                    {isMine && !message.isDeleted && (
-                      <>
-                        <button onClick={() => { setEditingMessageId(message.id); setEditingContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
-                          <PencilIcon className="w-3.5 h-3.5" /> <span>Edit</span>
-                        </button>
-                        <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-lg">
-                          <TrashIcon className="w-3.5 h-3.5" /> <span>Delete</span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-  // --- 7. Final Render ---
+  // --- 6. Final Render ---
   const canSend = !isLocked || userRoleRef.current === 'LECTURER' || userRoleRef.current === 'COURSE_REP' || currentUser?.role === 'LECTURER' || currentUser?.role === 'ADMIN';
 
   return (
-    <div className={`flex flex-col h-full bg-white transition-all duration-700 ${bgColor}`}>
+    <div className={`flex-1 flex flex-col min-h-0 relative transition-colors duration-500 ${bgColor} overflow-hidden`}>
       {/* Scrollable Message Area */}
+
       <div 
         ref={scrollContainerRef} 
         onScroll={() => {
