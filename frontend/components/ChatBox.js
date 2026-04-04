@@ -80,7 +80,7 @@ const MessageBubble = React.memo(({
   };
 
   const bubbleClasses = isNana 
-    ? `group relative p-4 rounded-2xl shadow-sm border select-none animate-fade-in w-full bg-slate-50 border-slate-200 text-slate-800 leading-relaxed break-word`
+    ? `group relative p-5 rounded-[24px] shadow-sm border select-none animate-fade-in w-full bg-white border-slate-100 text-slate-800 leading-relaxed break-words`
     : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} animate-fade-in select-none touch-pan-y`;
 
   const nanaStyles = isNana ? {
@@ -95,13 +95,13 @@ const MessageBubble = React.memo(({
 
   return (
     <div 
-      className={`flex w-full mb-4 px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200`}
+      className={`flex w-full mb-5 px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200`}
       style={{ transform: `translateX(${swipeOffset}px)` }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div className={`flex ${isNana ? 'w-full' : 'max-w-[85%]'} items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+      <div className={`flex ${isNana ? 'w-full' : 'max-w-[90%]'} items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
         {!isNana && (
           <div className="relative group shrink-0">
             <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role?.toUpperCase() === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
@@ -233,17 +233,17 @@ const MessageBubble = React.memo(({
                         <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-black border border-white/10 transition-colors">Add to Calendar</button>
                       </div>
                     ) : isNana ? (
-                      <div className="markdown-body">
+                      <div className="markdown-body w-full">
                         <Markdown
                           options={{
                             overrides: {
-                              h2: { component: ({children}) => <h2 className="text-lg font-black text-slate-800 mb-2 mt-2">{children}</h2> },
-                              h3: { component: ({children}) => <h3 className="text-base font-black text-slate-800 mb-1 mt-2">{children}</h3> },
-                              p: { component: ({children}) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p> },
-                              ul: { component: ({children}) => <ul className="list-disc ml-4 space-y-1 mb-2 mt-2">{children}</ul> },
-                              ol: { component: ({children}) => <ol className="list-decimal ml-4 space-y-1 mb-2 mt-2">{children}</ol> },
-                              li: { component: ({children}) => <li className="text-sm font-medium leading-relaxed">{children}</li> },
-                              strong: { component: ({children}) => <strong className="font-extrabold text-primary-700">{children}</strong> }
+                              h2: { component: ({children}) => <h2 className="text-xl font-black text-primary-700 mb-3 mt-1 leading-tight">{children}</h2> },
+                              h3: { component: ({children}) => <h3 className="text-lg font-black text-slate-800 mb-2 mt-2">{children}</h3> },
+                              p: { component: ({children}) => <p className="mb-4 last:mb-0 leading-relaxed text-slate-700">{children}</p> },
+                              ul: { component: ({children}) => <ul className="list-disc ml-5 space-y-2 mb-4 mt-2">{children}</ul> },
+                              ol: { component: ({children}) => <ol className="list-decimal ml-5 space-y-2 mb-4 mt-2">{children}</ol> },
+                              li: { component: ({children}) => <li className="text-[15px] font-medium leading-relaxed text-slate-600">{children}</li> },
+                              strong: { component: ({children}) => <strong className="font-extrabold text-primary-800 bg-primary-50 px-1 rounded">{children}</strong> }
                             }
                           }}
                         >
@@ -251,7 +251,7 @@ const MessageBubble = React.memo(({
                         </Markdown>
                       </div>
                     ) : (
-                      <p className={`font-medium leading-relaxed whitespace-pre-wrap break-word text-sm`}>{message.content}</p>
+                      <p className={`font-medium leading-relaxed whitespace-pre-wrap break-words text-sm`}>{message.content}</p>
                     )}
                   </>
                 )}
