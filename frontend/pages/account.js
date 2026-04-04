@@ -20,7 +20,7 @@ import {
 
 export default function Account() {
   const router = useRouter();
-  const { isDark, toggleTheme } = useTheme();
+  const { theme, setTheme, availableThemes } = useTheme();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeBg, setActiveBg] = useState('bg-slate-50/50');
@@ -133,68 +133,48 @@ export default function Account() {
 
           {/* Settings Sections */}
           <div className="space-y-6">
-            {/* Appearance (Special Row) */}
+            {/* Theme Hub - 10 Dynamic Options */}
             <div className="space-y-3">
-              <h3 className="px-4 text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>Appearance</h3>
-              <div className="rounded-3xl p-6 shadow-xl border" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
-                {/* Dark Mode Toggle */}
-                <div className="flex items-center justify-between mb-6 pb-5" style={{ borderBottom: '1px solid var(--border)' }}>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ backgroundColor: isDark ? '#252840' : '#EEF0FF' }}>
-                      {isDark 
-                        ? <MoonIcon className="w-5 h-5" style={{ color: '#818CF8' }} />
-                        : <SunIcon className="w-5 h-5 text-primary-500" />}
-                    </div>
-                    <div>
-                      <span className="block text-sm font-black" style={{ color: 'var(--text-primary)' }}>Dark Mode</span>
-                      <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{isDark ? 'On' : 'Off'}</span>
-                    </div>
+              <div className="flex items-center justify-between px-4">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>Theme Hub</h3>
+                <span className="px-2 py-0.5 bg-primary-100 text-primary-700 text-[8px] font-black uppercase rounded">10 Options</span>
+              </div>
+              <div className="rounded-[2.5rem] p-6 shadow-2xl border transition-all duration-500" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/30">
+                    <SwatchIcon className="w-6 h-6 text-white" />
                   </div>
-                  {/* WhatsApp-style pill toggle */}
-                  <button
-                    onClick={toggleTheme}
-                    className="relative w-14 h-7 rounded-full transition-all duration-300 focus:outline-none"
-                    style={{ backgroundColor: isDark ? '#6B73FF' : '#E2E8F0' }}
-                  >
-                    <span 
-                      className="absolute top-0.5 left-0.5 w-6 h-6 rounded-full shadow-md transition-all duration-300 flex items-center justify-center"
-                      style={{ 
-                        backgroundColor: isDark ? '#FFFFFF' : '#FFFFFF',
-                        transform: isDark ? 'translateX(28px)' : 'translateX(0px)'
-                      }}
-                    >
-                      {isDark 
-                        ? <MoonIcon className="w-3.5 h-3.5" style={{ color: '#6B73FF' }} />
-                        : <SunIcon className="w-3.5 h-3.5 text-amber-400" />}
-                    </span>
-                  </button>
+                  <div>
+                    <span className="block text-sm font-black" style={{ color: 'var(--text-primary)' }}>Visual Identity</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Current: {availableThemes.find(t => t.id === theme)?.name}</span>
+                  </div>
                 </div>
 
-                {/* Chat background */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <SwatchIcon className="w-5 h-5 text-primary-500" />
-                    <span className="text-sm font-black" style={{ color: 'var(--text-primary)' }}>Chat Theme</span>
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Background</span>
-                </div>
-                <div className="grid grid-cols-6 gap-3">
-                  {[
-                    { color: 'bg-slate-50/50', name: 'Default' },
-                    { color: 'bg-blue-50/50', name: 'Ocean' },
-                    { color: 'bg-emerald-50/50', name: 'Sage' },
-                    { color: 'bg-rose-50/50', name: 'Rose' },
-                    { color: 'bg-slate-900', name: 'Dark' },
-                    { color: 'bg-amber-50/30', name: 'Gold' }
-                  ].map((theme) => (
+                <div className="grid grid-cols-5 gap-4">
+                  {availableThemes.map((t) => (
                     <button
-                      key={theme.name}
-                      onClick={() => setChatBg(theme.color)}
-                      className={`relative w-full aspect-square rounded-2xl ${theme.color} border-2 transition-all hover:scale-105 active:scale-95 flex items-center justify-center ${
-                        activeBg === theme.color ? 'border-primary-500 shadow-lg shadow-primary-500/20' : 'border-slate-50'
-                      }`}
+                      key={t.id}
+                      onClick={() => setTheme(t.id)}
+                      className="group relative flex flex-col items-center space-y-2 focus:outline-none"
                     >
-                      {activeBg === theme.color && <CheckCircleIcon className="w-5 h-5 text-primary-500 bg-white rounded-full p-0.5" />}
+                      <div 
+                        className={`w-full aspect-square rounded-2xl border-4 transition-all duration-300 flex items-center justify-center shadow-sm group-hover:scale-110 group-active:scale-95 ${
+                          theme === t.id ? 'border-primary-500 scale-110 shadow-xl shadow-primary-500/20' : 'border-transparent hover:border-slate-200'
+                        }`}
+                        style={{ backgroundColor: t.color }}
+                      >
+                        {theme === t.id && (
+                          <div className="bg-primary-500 rounded-full p-1 shadow-lg animate-in zoom-in-50 duration-300">
+                            <CheckCircleIcon className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                        {theme !== t.id && (
+                          <div className="w-2 h-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: t.textColor }}></div>
+                        )}
+                      </div>
+                      <span className="text-[8px] font-black uppercase tracking-tighter truncate w-full text-center" style={{ color: theme === t.id ? 'var(--primary)' : 'var(--text-muted)' }}>
+                        {t.name.split(' ')[0]}
+                      </span>
                     </button>
                   ))}
                 </div>

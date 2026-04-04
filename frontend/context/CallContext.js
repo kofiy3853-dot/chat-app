@@ -245,6 +245,7 @@ export const CallProvider = ({ children }) => {
       ringtoneRef.current.pause();
       ringtoneRef.current.currentTime = 0;
     }
+    setCallEnded(false);
 
     try {
       const localStream = await navigator.mediaDevices.getUserMedia({ 
@@ -280,6 +281,7 @@ export const CallProvider = ({ children }) => {
     const socket = getSocket();
     const currentUser = getCurrentUser();
     if (!socket || !currentUser) return;
+    setCallEnded(false);
 
     try {
       const localStream = await navigator.mediaDevices.getUserMedia({ 

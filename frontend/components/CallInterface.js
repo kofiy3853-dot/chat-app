@@ -41,33 +41,9 @@ export default function CallInterface() {
   // Attach remote stream to userVideoRef
   useEffect(() => {
     if (userVideoRef.current && remoteStream) {
-      console.log('[CallInterface] Attaching remote stream');
       userVideoRef.current.srcObject = remoteStream;
       userVideoRef.current.play().catch(e => console.warn('[CallInterface] Remote play error:', e));
-
-      // Workaround for some mobile browsers to ensure audio plays
-      // Ensuring only ONE audio object exists to prevent echo/double audio (Previous bug)
-      if (!remoteAudioRef.current) {
-        remoteAudioRef.current = new Audio();
-        remoteAudioRef.current.playsInline = true;
-        remoteAudioRef.current.autoplay = true;
-      }
-      
-      if (remoteAudioRef.current.srcObject !== remoteStream) {
-        remoteAudioRef.current.srcObject = remoteStream;
-        remoteAudioRef.current.muted = false;
-        remoteAudioRef.current.play().catch(e => console.warn('[CallInterface] Native audio play error:', e));
-      }
     }
-
-    return () => {
-      if (remoteAudioRef.current) {
-        console.log('[CallInterface] Stopping remote audio');
-        remoteAudioRef.current.pause();
-        remoteAudioRef.current.srcObject = null;
-        remoteAudioRef.current = null;
-      }
-    };
   }, [remoteStream, callAccepted]);
 
   useEffect(() => {
@@ -242,7 +218,13 @@ export default function CallInterface() {
               onClick={toggleMute}
               className={`w-14 h-14 rounded-[2rem] flex items-center justify-center transition-all ${isMuted ? 'bg-rose-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
             >
-              {isMuted ? <MicrophoneIcon className="w-7 h-7" /> : <SpeakerWaveIcon className="w-7 h-7" />}
+              {isMuted ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-7 h-7">
+                  <path d="M19.38 20.89L3.11 4.62M11.5 5.5V11.5M11.5 15.5C11.5 16.6 10.6 17.5 9.5 17.5C8.4 17.5 7.5 16.6 7.5 15.5V11.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M15.5 11.5V12M15.5 14C15.22 15.11 14.39 16.03 13.3 16.48M18.5 11.5V12C18.5 15.87 15.37 19 11.5 19C10.6 19 9.74 18.83 8.95 18.52" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M11.5 19V22M8 22H15" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : <MicrophoneIcon className="w-7 h-7" />}
             </button>
             
             <button 

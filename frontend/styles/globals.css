@@ -7,37 +7,145 @@
    Primary brand colour: #3ABEF9  (Light Blue)
    ═══════════════════════════════════════════════════════ */
 :root {
-  /* ── Brand ── */
+  /* ── Brand (Anchor - consistent across themes) ── */
   --primary: #2e8bc0;           /* Official KTU Sea Blue */
   --primary-hover: #2579a9;
-  --primary-light: #e8f4fb;
+  --primary-light: rgba(46, 139, 192, 0.1);
   --primary-shadow: rgba(46, 139, 192, 0.2);
 
-  /* ── Surfaces ── */
-  --bg-page:         #ffffff;   /* Pure white background as requested */
+  /* ── Default (Light) ── */
+  --bg-page:         #ffffff;   
   --bg-surface:      #ffffff;
   --bg-surface-2:    #f9fafb;
   --bg-input:        #f5f5f5;
   --bg-navbar:       #2E8BC0;
 
-  /* ── Text ── */
-  --text-primary:    #000000;   /* Black text for maximum readability */
+  --text-primary:    #000000;   
   --text-secondary:  #4b5563;
   --text-muted:      #9ca3af;
-  --text-navbar:     #ffffff;   /* White text on sea blue navbar */
+  --text-navbar:     #ffffff;   
 
-  /* ── Borders ── */
   --border:          #e5e7eb;
   --border-light:    #f3f4f6;
 
-  /* ── Chat Bubbles ── */
   --bubble-me-bg:    #2E8BC0;
   --bubble-me-text:  #ffffff;
   --bubble-other-bg: #F5F5F5;
   --bubble-other-text:#000000;
   --bubble-radius:   18px;
+}
 
-  color-scheme: light only;
+[data-theme="dark"] {
+  --bg-page:         #0a0a0a;
+  --bg-surface:      #121212;
+  --bg-surface-2:    #1a1a1a;
+  --bg-input:        #1e1e1e;
+  --text-primary:    #ffffff;
+  --text-secondary:  #a0a0a0;
+  --text-muted:      #606060;
+  --border:          #252525;
+  --bubble-other-bg: #1e1e1e;
+  --bubble-other-text:#ffffff;
+  color-scheme: dark;
+}
+
+[data-theme="midnight"] {
+  --bg-page:         #020617;
+  --bg-surface:      #0f172a;
+  --bg-surface-2:    #1e293b;
+  --bg-input:        #1e293b;
+  --text-primary:    #f1f5f9;
+  --text-secondary:  #94a3b8;
+  --border:          #1e293b;
+  --bubble-other-bg: #1e293b;
+  --bubble-other-text:#f1f5f9;
+  color-scheme: dark;
+}
+
+[data-theme="cream"] {
+  --bg-page:         #fdfbf7;
+  --bg-surface:      #fcfaf6;
+  --bg-surface-2:    #f5f2eb;
+  --bg-input:        #f0ece2;
+  --text-primary:    #433c36;
+  --text-secondary:  #7b7167;
+  --border:          #e8e4da;
+  --bubble-other-bg: #f0ece2;
+  --bubble-other-text:#433c36;
+}
+
+[data-theme="forest"] {
+  --bg-page:         #050806;
+  --bg-surface:      #0a0f0d;
+  --bg-surface-2:    #121b18;
+  --bg-input:        #121b18;
+  --text-primary:    #e8edea;
+  --text-secondary:  #a1b3aa;
+  --border:          #1b2e25;
+  --bubble-other-bg: #121b18;
+  --bubble-other-text:#e8edea;
+  color-scheme: dark;
+}
+
+[data-theme="ocean"] {
+  --bg-page:         #0b1a26;
+  --bg-surface:      #112534;
+  --bg-surface-2:    #1a3447;
+  --bg-input:        #1a3447;
+  --text-primary:    #e0f2fe;
+  --text-secondary:  #a5cfed;
+  --border:          #1d4561;
+  --bubble-other-bg: #1a3447;
+  --bubble-other-text:#e0f2fe;
+  color-scheme: dark;
+}
+
+[data-theme="sunset"] {
+  --bg-page:         #0f0b09;
+  --bg-surface:      #1a130f;
+  --bg-surface-2:    #261c16;
+  --bg-input:        #261c16;
+  --text-primary:    #ffe4e1;
+  --text-secondary:  #deb887;
+  --border:          #33251e;
+  --bubble-other-bg: #261c16;
+  --bubble-other-text:#ffe4e1;
+  color-scheme: dark;
+}
+
+[data-theme="royal"] {
+  --bg-page:         #fcfcfd;
+  --bg-surface:      #ffffff;
+  --bg-surface-2:    #f5f7ff;
+  --text-primary:    #1e1b4b;
+  --text-secondary:  #4338ca;
+  --border:          #e0e7ff;
+  --bubble-other-bg: #f5f7ff;
+  --bubble-other-text:#1e1b4b;
+}
+
+[data-theme="ghost"] {
+  --bg-page:         #f8fafc;
+  --bg-surface:      #f8fafc;
+  --bg-surface-2:    #f1f5f9;
+  --text-primary:    #64748b;
+  --text-secondary:  #94a3b8;
+  --border:          #f1f5f9;
+  --bubble-other-bg: #f1f5f9;
+  --bubble-other-text:#64748b;
+}
+
+[data-theme="matrix"] {
+  --bg-page:         #000000;
+  --bg-surface:      #050505;
+  --bg-surface-2:    #0a0a0a;
+  --bg-input:        #0f0f0f;
+  --text-primary:    #00ff41;
+  --text-secondary:  #008f11;
+  --border:          #003b00;
+  --bubble-other-bg: #0f0f0f;
+  --bubble-other-text:#00ff41;
+  color-scheme: dark;
 }
 
 /* ═══════════════════════ Base Reset ═══════════════════════ */
