@@ -58,7 +58,7 @@ exports.createAnnouncement = async (req, res) => {
 
     const usersToNotify = await prisma.user.findMany({
       where: targetFilter,
-      select: { id: true, onesignal_player_id: true }
+      select: { id: true, fcmToken: true }
     });
 
     if (usersToNotify.length > 0) {
@@ -87,49 +87,20 @@ exports.createAnnouncement = async (req, res) => {
         });
       }
 
-      // 2. WebPush (VAPID)
+      // FCM Push
       try {
-        const { getWebPush } = require('../utils/webPushHelper');
-        const wp = getWebPush();
-        if (wp) {
-          const subscriptions = await prisma.pushSubscription.findMany({
-            where: { userId: { in: usersToNotify.map(u => u.id) } }
-          });
-          
-          if (subscriptions.length > 0) {
-            const payload = JSON.stringify({
-              title: `📢 ${title}`,
-              body: content.substring(0, 100) + '...',
-              url: '/activity'
-            });
-            
-            subscriptions.forEach(sub => {
-              const pushSubscription = { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } };
-              wp.sendNotification(pushSubscription, payload).catch(err => {
-                if (err.statusCode === 404 || err.statusCode === 410) {
-                  prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
-                }
-              });
-            });
-          }
-        }
-      } catch (wpErr) {
-        console.error('[WP] Announcement error:', wpErr);
-      }
-
-      // 3. OneSignal
-      try {
-        const { sendPushNotification } = require('../utils/notificationHelper');
-        const playerIds = usersToNotify.map(u => u.onesignal_player_id).filter(id => !!id);
-        if (playerIds.length > 0) {
-          await sendPushNotification(playerIds, {
+        const { sendPushNotification } = require('../utils/firebasePush');
+        const tokens = usersToNotify.map(u => u.fcmToken).filter(token => !!token);
+        if (tokens.length > 0) {
+          await sendPushNotification(tokens, {
             title: `📢 KTU Announcement`,
-            body: title,
-            type: 'ANNOUNCEMENT'
+            message: title,
+            url: '/activity',
+            extraData: { type: 'ANNOUNCEMENT' }
           });
         }
-      } catch (osErr) {
-        console.error('[OS] Announcement error:', osErr);
+      } catch (fcmErr) {
+        console.error('[FCM] Announcement error:', fcmErr);
       }
     }
 

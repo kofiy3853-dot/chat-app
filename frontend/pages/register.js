@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { authAPI } from '../services/api';
 import { initSocket } from '../services/socket';
-import { initOneSignal } from '../services/oneSignal';
+import { requestFirebaseNotificationPermission } from '../config/firebase';
 import { 
   AcademicCapIcon, 
   CameraIcon, 
@@ -101,8 +101,11 @@ export default function Register() {
       localStorage.setItem('user', JSON.stringify(user));
       initSocket();
       
-      // Initialize OneSignal
-      initOneSignal(user);
+      // Initialize FCM
+      const token = await requestFirebaseNotificationPermission();
+      if(token) {
+         await api.post('/notifications/fcm-token', { fcmToken: token }).catch(() => {});
+      }
 
       // Redirect based on role
       toast.success('Account created successfully!');

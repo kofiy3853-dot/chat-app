@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { authAPI } from '../services/api';
 import { initSocket } from '../services/socket';
-import { initOneSignal } from '../services/oneSignal';
+import { requestFirebaseNotificationPermission } from '../config/firebase';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -33,8 +33,11 @@ export default function Login() {
       // Initialize socket
       initSocket();
       
-      // Initialize OneSignal
-      initOneSignal(user);
+      // Initialize FCM
+      const token = await requestFirebaseNotificationPermission();
+      if(token) {
+         await api.post('/notifications/fcm-token', { fcmToken: token }).catch(() => {});
+      }
 
       toast.success('Signed in successfully!');
       

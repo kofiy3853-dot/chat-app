@@ -3,8 +3,6 @@ const router = express.Router();
 const pushController = require('../controllers/pushController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 
-router.post('/subscribe', authMiddleware, pushController.subscribe);
-router.post('/onesignal-id', authMiddleware, pushController.updateOneSignalId);
-router.get('/vapid-public-key', authMiddleware, pushController.getPublicKey);
+router.post('/fcm-token', authMiddleware, pushController.updateFcmToken);
 
 module.exports = router;

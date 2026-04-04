@@ -1,6 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-
+const prisma = require('./prisma/client');
 async function testConnection() {
   try {
     console.log('Testing connection to Supabase PostgreSQL...');

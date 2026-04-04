@@ -183,7 +183,7 @@ export const anonymousAPI = {
 export const pushAPI = {
   subscribe: (data) => api.post('/notifications/subscribe', data),
   getPublicKey: () => api.get('/notifications/vapid-public-key'),
-  updateOneSignalId: (playerId) => api.post('/notifications/onesignal-id', { onesignal_player_id: playerId })
+  updateFcmToken: (fcmToken) => api.post('/notifications/fcm-token', { fcmToken })
 };
 
 export default api;

@@ -1,62 +1,25 @@
 const prisma = require('../prisma/client');
-const { getWebPush } = require('../utils/webPushHelper');
-
-exports.getPublicKey = (req, res) => {
-  res.json({ publicKey: process.env.VAPID_PUBLIC_KEY || null });
-};
-
-exports.subscribe = async (req, res) => {
-  try {
-    const { endpoint, keys } = req.body;
-    const userId = req.user.id;
-
-    if (!endpoint || !keys) {
-      return res.status(400).json({ message: 'Invalid subscription object' });
-    }
-
-    // Save or update subscription
-    await prisma.pushSubscription.upsert({
-      where: { endpoint },
-      update: {
-        p256dh: keys.p256dh,
-        auth: keys.auth,
-        userId
-      },
-      create: {
-        endpoint,
-        p256dh: keys.p256dh,
-        auth: keys.auth,
-        userId
-      }
-    });
-
-    res.status(201).json({ message: 'Subscribed to push notifications' });
-  } catch (error) {
-    console.error('Subscription error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};
 
 /**
- * Update user's OneSignal Player ID
+ * Update user's Firebase Cloud Messaging (FCM) Token
  */
-exports.updateOneSignalId = async (req, res) => {
+exports.updateFcmToken = async (req, res) => {
   try {
-    const { onesignal_player_id } = req.body;
+    const { fcmToken } = req.body;
     const userId = req.user.id;
 
-    if (!onesignal_player_id) {
-      return res.status(400).json({ message: 'OneSignal Player ID is required' });
+    if (!fcmToken) {
+      return res.status(400).json({ message: 'FCM Token is required' });
     }
 
     await prisma.user.update({
       where: { id: userId },
-      data: { onesignal_player_id }
+      data: { fcmToken }
     });
 
-    res.json({ message: 'OneSignal ID updated successfully' });
+    res.json({ message: 'FCM Token updated successfully' });
   } catch (error) {
-    console.error('Update OneSignal ID error:', error);
+    console.error('Update FCM Token error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

@@ -22,7 +22,7 @@ model User {
   lastSeen             DateTime  @default(now())
   status               String?   @default("Available")
   socketId             String?
-  onesignal_player_id  String?   // OneSignal push player/subscription ID
+  fcmToken             String?   // Firebase Cloud Messaging device token
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 

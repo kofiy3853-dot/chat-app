@@ -3,7 +3,7 @@ const uploadToSupabase = require('../utils/uploadToSupabase');
 const fs = require('fs');
 const path = require('path');
 const { getWebPush } = require('../utils/webPushHelper');
-const { sendPushNotification } = require('../utils/oneSignal');
+const { sendPushNotification } = require('../utils/firebasePush');
 
 const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
 const NANA_SESSION_MARKER = '__nana__';
@@ -581,25 +581,27 @@ exports.sendMessage = async (req, res) => {
           console.error('Failed to process VAPID push:', pushErr);
         }
 
-        // ONESIGNAL: Send push to the recipient's registered device
+        // FCM: Send push to the recipient's registered device
         try {
           const recipientUser = await prisma.user.findUnique({
             where: { id: recipient.userId },
-            select: { onesignal_player_id: true, name: true }
+            select: { fcmToken: true, name: true }
           });
-          if (recipientUser?.onesignal_player_id) {
+          if (recipientUser?.fcmToken) {
             const msgPreview = content
               ? (content.length > 80 ? content.substring(0, 80) + '…' : content)
               : 'Sent an attachment';
-            await sendPushNotification([recipientUser.onesignal_player_id], {
+            await sendPushNotification([recipientUser.fcmToken], {
               title: `💬 ${message.sender.name}`,
-              body: msgPreview,
-              chatId: conversationId,
-              senderName: message.sender.name
+              message: msgPreview,
+              extraData: {
+                chatId: conversationId.toString(),
+                senderName: message.sender.name
+              }
             });
           }
-        } catch (osErr) {
-          console.error('[OneSignal] Error in sendMessage push:', osErr.message);
+        } catch (fcmErr) {
+          console.error('[FCM] Error in sendMessage push:', fcmErr.message);
         }
       }));
     }

@@ -5,7 +5,8 @@ import { initSocket, getSocket } from '../services/socket';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { CallProvider } from '../context/CallContext';
 import { ThemeProvider } from '../context/ThemeContext';
-import { initOneSignal } from '../services/oneSignal';
+import { requestFirebaseNotificationPermission, onMessageListener } from '../config/firebase';
+import { pushAPI } from '../services/api';
 import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'react-hot-toast';
 import useAuthRedirect from '../hooks/useAuthRedirect';
@@ -117,7 +118,11 @@ export default function MyApp({ Component, pageProps }) {
           };
           if (reg.active) {
             const userStr = localStorage.getItem('user');
-            if (userStr) initOneSignal(JSON.parse(userStr));
+            if (userStr) {
+               requestFirebaseNotificationPermission().then(token => {
+                 if(token) pushAPI.updateFcmToken(token).catch(console.error);
+               });
+            }
           }
         }).catch(err => console.error('SW error', err));
       });
@@ -242,6 +247,23 @@ export default function MyApp({ Component, pageProps }) {
 
     socket.on('new-message', handleNewMessage);
     socket.on('new-notification', handleNewNotification);
+
+    // FCM Foreground Message handling
+    onMessageListener().then((payload: any) => {
+      if(payload?.notification) {
+        toast.custom((t) => (
+          <div
+            className="max-w-sm w-full bg-[#2e8bc0] rounded flex items-center p-3 text-white cursor-pointer"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            <div className="flex-1">
+              <p className="text-sm font-semibold">{payload.notification.title}</p>
+              <p className="text-xs mt-1">{payload.notification.body}</p>
+            </div>
+          </div>
+        ), { duration: 4000 });
+      }
+    }).catch(err => console.error('FCM listener error:', err));
 
     return () => {
       socket.off('new-message', handleNewMessage);
