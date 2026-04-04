@@ -889,22 +889,31 @@ exports.archiveConversation = async (req, res) => {
   }
 };
 
-// Delete conversation (soft delete for user)
+// Delete conversation (soft delete for user, hard delete for NANA session)
 exports.deleteConversation = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
 
     const participant = await prisma.conversationParticipant.findUnique({
-      where: { userId_conversationId: { userId, conversationId: id } }
+      where: { userId_conversationId: { userId, conversationId: id } },
+      include: { conversation: true }
     });
 
     if (!participant) return res.status(404).json({ message: 'Participant not found' });
 
-    await prisma.conversationParticipant.update({
-      where: { id: participant.id },
-      data: { isDeleted: true }
-    });
+    if (participant.conversation.name === NANA_SESSION_MARKER) {
+      // Hard delete to easily reset ephemeral NANA sessions
+      await prisma.conversation.delete({
+        where: { id: id }
+      });
+    } else {
+      // Soft delete for normal peer conversations
+      await prisma.conversationParticipant.update({
+        where: { id: participant.id },
+        data: { isDeleted: true }
+      });
+    }
 
     res.json({ message: 'Conversation deleted' });
   } catch (error) {
@@ -918,13 +927,34 @@ exports.deleteMultipleConversations = async (req, res) => {
     const { conversationIds } = req.body;
     const userId = req.user.id;
 
-    await prisma.conversationParticipant.updateMany({
+    // Find if any of the target conversations are NANA sessions
+    const nanaConvs = await prisma.conversation.findMany({
       where: {
-        userId,
-        conversationId: { in: conversationIds }
-      },
-      data: { isDeleted: true }
+        id: { in: conversationIds },
+        name: NANA_SESSION_MARKER
+      }
     });
+    
+    const nanaConvIds = nanaConvs.map(c => c.id);
+    const normalConvIds = conversationIds.filter(id => !nanaConvIds.includes(id));
+
+    // Hard delete NANA sessions
+    if (nanaConvIds.length > 0) {
+      await prisma.conversation.deleteMany({
+        where: { id: { in: nanaConvIds } }
+      });
+    }
+
+    // Soft delete normal sessions for the current user
+    if (normalConvIds.length > 0) {
+      await prisma.conversationParticipant.updateMany({
+        where: {
+          userId,
+          conversationId: { in: normalConvIds }
+        },
+        data: { isDeleted: true }
+      });
+    }
 
     res.json({ message: 'Conversations deleted' });
   } catch (error) {

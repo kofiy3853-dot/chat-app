@@ -327,36 +327,6 @@ const MessagesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="flex items-center backdrop-blur-sm rounded-xl px-3.5 py-2.5 space-x-2 border border-white/10"
-          style={{ backgroundColor: 'rgba(0,0,0,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
-        >
-          <MagnifyingGlassIcon className="w-4 h-4 flex-shrink-0" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 50%)' }} />
-          <input
-            id="search"
-            name="search"
-            type="text"
-            placeholder="Search chats..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-sm font-medium"
-            style={{ color: 'var(--text-navbar)' }}
-          />
-          {search ? (
-            <button onClick={() => setSearch('')} aria-label="Clear search">
-              <XMarkIcon className="w-4 h-4" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 50%)' }} />
-            </button>
-          ) : (
-            <button
-              aria-label="Filter options"
-              onClick={() => setChatFilter(chatFilter === 'all' ? 'unread' : 'all')}
-              className="flex-shrink-0"
-              style={{ color: chatFilter !== 'all' ? 'var(--text-navbar)' : 'color-mix(in srgb, var(--text-navbar), transparent 60%)' }}
-            >
-              <AdjustmentsHorizontalIcon className="w-4 h-4" />
-            </button>
-          )}
-        </div>
       </header>
 
       {/* ─── Stories Section ─── */}

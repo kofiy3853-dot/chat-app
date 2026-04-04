@@ -311,18 +311,20 @@ const setupChatSockets = (io) => {
         });
 
         // --- 🤖 Nana AI Trigger Logic ---
-        // Identify session by marker name — Nana is a system agent (not a participant)
+        const nanaProfile = await prisma.user.findFirst({ where: { role: 'NANA' }, select: { id: true, name: true } });
+        const realNanaId = nanaProfile ? nanaProfile.id : 'sys-nana-id';
+        const realNanaName = nanaProfile ? nanaProfile.name : 'Nana';
+
+        // Identify session by marker name, explicit mention, or direct chat
         const NANA_SESSION_MARKER = '__nana__';
         const isNanaSession = convInfo?.name === NANA_SESSION_MARKER;
         const nameMatch = content && (content.toLowerCase().includes('nana') || content.includes('@Nana'));
+        const hasNanaParticipant = chatParticipants.some(p => p.userId === realNanaId);
+        const isDirectWithNana = convInfo?.type === 'DIRECT' && hasNanaParticipant;
 
-        if (isNanaSession || nameMatch) {
-          const nanaProfile = await prisma.user.findFirst({ where: { role: 'NANA' }, select: { id: true, name: true } });
-          const realNanaId = nanaProfile ? nanaProfile.id : NANA_USER_ID;
-          const realNanaName = nanaProfile ? nanaProfile.name : 'Nana';
-
+        if (isNanaSession || nameMatch || isDirectWithNana) {
           if (socket.user.id !== realNanaId) {
-            console.log(`[Nana AI Trigger] Triggered for conv:${conversationId}. Session:${isNanaSession}, Mention:${!!nameMatch}`);
+            console.log(`[Nana AI Trigger] Triggered for conv:${conversationId}. Session:${isNanaSession}, Mention:${!!nameMatch}, Direct:${isDirectWithNana}`);
           
           (async () => {
              try {
