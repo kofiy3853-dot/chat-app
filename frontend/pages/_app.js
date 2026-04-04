@@ -132,12 +132,23 @@ export default function MyApp({ Component, pageProps }) {
     const socket = getSocket();
     if (!socket) return;
 
+    const playNotificationSound = () => {
+      try {
+        const audio = new Audio('/sounds/ding.mp3');
+        audio.play().catch(e => console.log('[Sound] Autoplay blocked or failed:', e));
+      } catch (err) {
+        console.warn('[Sound] Audio error:', err);
+      }
+    };
+
     const handleNewMessage = (data) => {
       // Don't show toast if we are already in the conversation
       if (router.pathname === '/chat/[id]' && router.query.id === data.conversationId) return;
       
       const msg = data.message;
       if (msg.senderId === user?.id) return; // Don't notify self
+
+      playNotificationSound();
 
       toast.custom((t) => (
         <div
@@ -176,6 +187,8 @@ export default function MyApp({ Component, pageProps }) {
       // Fix: Don't show generic notification toast for messages/mentions 
       // because handleNewMessage already shows a much prettier toast for them.
       if (data.notification?.type === 'MESSAGE' || data.notification?.type === 'MENTION') return;
+
+      playNotificationSound();
 
       toast.custom((t) => (
         <div
