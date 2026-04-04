@@ -177,13 +177,13 @@ export default function Activity() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen pb-20" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Head>
         <title>Activity | Campus Chat</title>
       </Head>
 
       {/* Header */}
-      <div className="sticky top-0 bg-white/80 backdrop-blur-xl z-30 border-b border-slate-200/60 shadow-sm">
+      <div className="sticky top-0 backdrop-blur-xl z-30 border-b shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
         <div className="max-w-xl mx-auto px-6 py-5 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tighter">Activity</h1>

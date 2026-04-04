@@ -174,7 +174,7 @@ export default function NanaPage() {
 
   // --- 🎓 STUDENT CHAT VIEW (Simple & Direct Fix) ---
   return (
-    <div className="h-[100dvh] bg-[#f0f2ff] flex flex-col overflow-hidden relative">
+    <div className="h-[100dvh] flex flex-col overflow-hidden relative" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Head>
         <title>Chat with Nana | Campus Chat</title>
       </Head>

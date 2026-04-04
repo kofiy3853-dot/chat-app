@@ -220,7 +220,7 @@ const MessagesPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden bg-white font-sans">
+    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Head>
         <title>Messages | Campus Chat</title>
       </Head>
@@ -353,13 +353,13 @@ const MessagesPage: React.FC = () => {
       </header>
 
       {/* ─── Stories Section ─── */}
-      <div className="bg-white px-2 pt-2 pb-1 border-b border-gray-100">
+      <div className="px-2 pt-2 pb-1 border-b" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
         <SoftStories currentUser={user} />
       </div>
 
       {/* ─── Nana AI Hub Link ─── */}
       {!search && user?.role !== 'NANA' && (
-        <div className="bg-white px-4 pt-3 pb-1">
+        <div className="px-4 pt-3 pb-1" style={{ backgroundColor: 'var(--bg-page)' }}>
           <Link href="/nana">
             <div className="relative group overflow-hidden bg-gradient-to-br from-primary-600 to-indigo-700 rounded-2xl p-4 shadow-lg shadow-primary-200 cursor-pointer active:scale-[0.98] transition-all">
               <div className="absolute top-[-10px] right-[-10px] p-3 opacity-20 group-hover:scale-110 transition-transform">
@@ -381,9 +381,9 @@ const MessagesPage: React.FC = () => {
       )}
 
       {/* ─── Segmented Filter + Count Row ─── */}
-      <div className="sticky top-[130px] z-20 bg-white px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
+      <div className="sticky top-[130px] z-20 px-4 py-2.5 border-b flex items-center justify-between shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
         {/* Segmented Control */}
-        <div className="inline-flex items-center bg-gray-100 rounded-xl p-0.5 space-x-0.5">
+        <div className="inline-flex items-center rounded-xl p-0.5 space-x-0.5" style={{ backgroundColor: 'var(--bg-page)' }}>
           {(['all', 'courses', 'groups', 'unread'] as const).map((f) => (
             <button
               key={f}
@@ -408,7 +408,7 @@ const MessagesPage: React.FC = () => {
       </div>
 
       {/* ─── Chat List ─── */}
-      <main className="flex-1 overflow-y-auto no-scrollbar pb-[max(env(safe-area-inset-bottom,0px),100px)] bg-white">
+      <main className="flex-1 overflow-y-auto no-scrollbar pb-[max(env(safe-area-inset-bottom,0px),100px)]" style={{ backgroundColor: 'var(--bg-page)' }}>
         <AnimatePresence mode="wait">
           {activeTab === 'messages' && (
             <motion.div

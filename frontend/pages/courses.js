@@ -95,9 +95,9 @@ export default function Courses() {
         <title>Courses | Campus Chat</title>
       </Head>
       
-      <div className="max-w-xl mx-auto min-h-screen bg-white shadow-2xl flex flex-col relative overflow-hidden">
+      <div className="max-w-xl mx-auto min-h-screen shadow-2xl flex flex-col relative overflow-hidden" style={{ backgroundColor: 'var(--bg-page)' }}>
         {/* Header */}
-        <header className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-slate-100 px-6 py-6 z-30">
+        <header className="sticky top-0 backdrop-blur-xl border-b px-6 py-6 z-30" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Courses</h1>
