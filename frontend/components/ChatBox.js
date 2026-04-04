@@ -315,15 +315,39 @@ export default function ChatBox({ conversationId }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [error, setError] = useState(null);
-  const [editingMessageId, setEditingMessageId] = useState(null);
-  const [editingContent, setEditingContent] = useState('');
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
-  const [isSending, setIsSending] = useState(false);
   const [mediaFile, setMediaFile] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const audioChunksRef = useRef([]);
+
+  // Nana Session Logic
+  const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
+  const isNanaSession = (messages && messages.some(m => m.senderId === NANA_USER_ID || m.sender?.role === 'NANA')) || 
+                        (conversationId === '__nana__');
+
+  // 1. Session Greeting Logic
+  useEffect(() => {
+    if (isNanaSession && messages.length === 0) {
+      const hasGreeted = sessionStorage.getItem(`greeted_${conversationId}`);
+      if (!hasGreeted) {
+        sessionStorage.setItem(`greeted_${conversationId}`, 'true');
+      }
+    }
+  }, [isNanaSession, messages.length, conversationId]);
+
+  const QUICK_ACTIONS = [
+    { label: '📚 Courses Help', query: 'Tell me about available courses' },
+    { label: '📅 Campus Events', query: 'What events are happening this week?' },
+    { label: '🍲 Food on Campus', query: 'Where can I get good food on campus?' },
+    { label: '🏫 Departments', query: 'List all departments in KTU' },
+    { label: '🛒 Buy & Sell', query: 'How do I use the campus marketplace?' },
+  ];
+
+  const handleQuickAction = (query) => {
+    setNewMessage(query);
+  };
 
   // --- Real-time Course Features ---
   const [convData, setConvData] = useState(null);
@@ -565,9 +589,10 @@ export default function ChatBox({ conversationId }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = async (e, overrideContent = null) => {
     if (e) e.preventDefault();
-    if ((!newMessage.trim() && !mediaFile) || isSending) return;
+    const contentToSend = overrideContent || newMessage;
+    if ((!contentToSend.trim() && !mediaFile) || isSending) return;
 
     if (isRecording) {
       stopRecording();
@@ -582,7 +607,7 @@ export default function ChatBox({ conversationId }) {
     const msgData = {
       id: tempId,
       tempId,
-      content: newMessage.trim(),
+      content: contentToSend.trim(),
       senderId: currentUser.id || currentUser._id,
       sender: currentUser,
       createdAt: new Date().toISOString(),
@@ -711,7 +736,6 @@ export default function ChatBox({ conversationId }) {
   }, []);
 
   const handleDeleteMessage = useCallback((msgId) => {
-    // Basic optimistic UI check - if we have a real ID, delete via socket
     if (msgId && !msgId.toString().startsWith('temp')) {
       deleteMessage(msgId);
     }
@@ -720,7 +744,6 @@ export default function ChatBox({ conversationId }) {
   const handleReplyTo = useCallback((msg) => {
     if (msg?.isDeleted) return;
     setReplyTo(msg);
-    // Vibrate if available for sensory feedback on swipe
     if (navigator.vibrate) navigator.vibrate(20);
   }, []);
 
@@ -728,13 +751,11 @@ export default function ChatBox({ conversationId }) {
     const val = e.target.value;
     setNewMessage(val);
 
-    // Only emit typing(true) if it's the first character in a session
     if (!isCurrentlyTyping.current && val.trim().length > 0) {
       isCurrentlyTyping.current = true;
       sendTyping(conversationId, true);
     }
 
-    // Reset timer
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     
     typingTimeoutRef.current = setTimeout(() => {
@@ -752,8 +773,6 @@ export default function ChatBox({ conversationId }) {
 
   return (
     <div className={`flex-1 flex flex-col min-h-0 relative transition-colors duration-500 bg-white overflow-hidden`}>
-      {/* Scrollable Message Area */}
-
       <div 
         ref={scrollContainerRef} 
         onScroll={() => {
@@ -766,7 +785,6 @@ export default function ChatBox({ conversationId }) {
         className="flex-1 overflow-y-auto p-4 scrollbar-hide overscroll-contain relative"
         style={{ overflowAnchor: 'auto' }}
       >
-        {/* Floating Scroll to Bottom Button */}
         {showScrollBottom && (
           <button
             onClick={() => scrollToBottom()}
@@ -791,13 +809,34 @@ export default function ChatBox({ conversationId }) {
               <p className="text-xs text-slate-400 font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-wider">Choose a contact from your inbox to start a secure encrypted chat session.</p>
             </div>
         ) : messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50/30">
-              <div className="w-16 h-16 rounded-3xl bg-white shadow-lg flex items-center justify-center mb-4 opacity-50">
-                <PaperAirplaneIcon className="w-8 h-8 text-primary-300" />
-              </div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Your conversation starts here</p>
-              <p className="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-widest">Say hello to break the ice!</p>
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-700">
+            <div className="w-20 h-20 rounded-[28px] bg-primary-50 flex items-center justify-center mb-6 shadow-sm border border-primary-100">
+              <SparklesIcon className="w-10 h-10 text-primary-600" />
             </div>
+            <h3 className="text-xl font-black text-slate-800 tracking-tight">
+              {isNanaSession ? "Nana is here to help!" : "No messages yet"}
+            </h3>
+            <p className="text-xs text-slate-400 font-bold mt-2 max-w-[240px] leading-relaxed uppercase tracking-widest">
+              {isNanaSession 
+                ? "Ask about courses, food, or campus events. I'm your KTU specialist!" 
+                : "Your conversation history will appear here. Start by sending a message below."}
+            </p>
+            
+            {isNanaSession && (
+              <div className="mt-8 grid grid-cols-1 gap-2 w-full max-w-xs">
+                {QUICK_ACTIONS.slice(0, 3).map((action, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSendMessage(null, action.query)}
+                    className="p-3 bg-white border border-slate-100 rounded-2xl text-[11px] font-black text-slate-600 hover:border-primary-300 hover:text-primary-600 transition-all text-left shadow-sm flex items-center gap-2 group"
+                  >
+                    <span className="group-hover:scale-110 transition-transform">{action.label.split(' ')[0]}</span>
+                    <span>{action.label.split(' ').slice(1).join(' ')}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         ) : (
           Object.entries(groupedMessages).map(([date, dateMsgs]) => (
             <div key={date} className="px-2">
@@ -832,7 +871,6 @@ export default function ChatBox({ conversationId }) {
           ))
         )}
         
-        {/* Premium Typing Indicator Overlay */}
         {typingUsers.length > 0 && (
           <div className="px-6 py-3 flex items-center space-x-3 bg-gradient-to-r from-white/80 to-transparent backdrop-blur-sm animate-in fade-in slide-in-from-left-4 duration-500">
             <div className="flex space-x-1.5 items-center h-4">
@@ -850,6 +888,20 @@ export default function ChatBox({ conversationId }) {
 
       {/* Footer Input Area */}
       <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-white border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] shrink-0 relative">
+        {isNanaSession && messages.length > 0 && (
+          <div className="flex items-center space-x-2 px-1 mb-3 overflow-x-auto no-scrollbar pb-1">
+            {QUICK_ACTIONS.map((action, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSendMessage(null, action.query)}
+                className="whitespace-nowrap px-4 py-2 bg-slate-50 border border-slate-100 rounded-full text-[10px] font-extrabold text-slate-500 hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 transition-all flex items-center gap-1.5 shadow-sm"
+              >
+                <span>{action.label.split(' ')[0]}</span>
+                <span>{action.label.split(' ').slice(1).join(' ')}</span>
+              </button>
+            ))}
+          </div>
+        )}
         {showEmojiPicker && (
           <div className="absolute bottom-full right-4 mb-4 z-50 shadow-2xl animate-in slide-in-from-bottom-5">
             <EmojiPicker 

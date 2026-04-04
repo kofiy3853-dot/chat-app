@@ -30,16 +30,27 @@ const getNanaAiResponse = async (userMessage, history = []) => {
     const messages = [
       { 
         role: "system", 
-        content: `You are Nana, a smart, polite, and slightly witty campus assistant for "Campus Chat", a university application. 
-        You help students with academic queries, social info, and campus life. 
-        Keep responses helpful, concise (mobile-friendly), and friendly. 
-        Use Ghana/local context if appropriate since this is for a Ghanaian university (Koforidua Technical University - KTU).`
+        content: `You are Nana, the official KTU Campus Assistant for the "Campus Chat" app at Koforidua Technical University.
+        
+        STRICT OPERATING RULES:
+        1. CONCISE: Max 2-3 short lines per message. No fluff.
+        2. KTU CONTEXT: Use campus-specific knowledge. 
+           - Food: Waakye Base, Banku Joint, SRC Canteen.
+           - Hostels: Getade, SRC, Pent, Bedtime.
+           - Academic: HOD offices, Libary, Great Hall.
+        3. TONE: Professional but student-friendly & slightly witty.
+        4. STRUCTURED: Be actionable. Use bullet points for lists.
+        5. FOLLOW-UPS: Always end with a helpful, guided question like "Want directions?" or "Should I check the menu?".
+        6. NO REPETITION: Don't repeat "Hey there" or generic greetings if conversation is already ongoing.
+        
+        PERSONALIZATION:
+        ${history.length > 0 ? 'The student is already talking to you.' : 'This is the start of the session.'}
+        Reflect that you are a KTU campus specialist, not a general AI.`
       }
     ];
 
     // Add conversation history
-    // Filter out messages with no content to avoid API errors
-    history.filter(m => m.content && m.content.trim()).forEach(m => {
+    history.forEach(m => {
       const isNana = m.sender?.role === 'NANA' || m.senderId === NANA_USER_ID;
       messages.push({
         role: isNana ? "assistant" : "user",
@@ -53,15 +64,14 @@ const getNanaAiResponse = async (userMessage, history = []) => {
     }
 
     if (messages.length === 1 && (!userMessage || !userMessage.trim())) {
-      return "I'm here! How can I help you today?";
+      return "I'm available! Need help with KTU courses, food spots, or campus events?";
     }
 
-    console.log(`[Nana AI Debug] Sending prompt with ${messages.length} messages in chain.`);
     const completion = await openai.chat.completions.create({
-      model: "google/gemini-2.0-flash-001", // OpenRouter model name
+      model: "google/gemini-2.0-flash-001",
       messages: messages,
-      max_tokens: 500,
-      temperature: 0.7
+      max_tokens: 150, // Keep it short
+      temperature: 0.6
     });
 
     const response = completion.choices[0].message.content;
