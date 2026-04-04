@@ -182,44 +182,44 @@ export default function Activity() {
         <title>Activity | Campus Chat</title>
       </Head>
 
-      {/* Header */}
-      <div className="sticky top-0 backdrop-blur-xl z-30 border-b shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
-        <div className="max-w-xl mx-auto px-6 py-5 flex items-center justify-between">
+      {/* Header - Royal Blue */}
+      <header className="sticky top-0 z-30 bg-primary-600 px-4 pt-[max(env(safe-area-inset-top,0px),40px)] pb-3 shadow-md transition-colors">
+        <div className="flex items-center justify-between mb-3 px-2">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tighter">Activity</h1>
+            <h1 className="text-xl font-black text-white tracking-tight leading-tight">Activity</h1>
             <div className="flex items-center space-x-1.5 mt-0.5">
-              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-pulse"></div>
-              <p className="text-[10px] font-bold text-primary-600 uppercase tracking-[0.2em]">Live Updates</p>
+              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+              <p className="text-[10px] font-bold text-white/70 uppercase tracking-[0.2em]">Live Updates</p>
             </div>
           </div>
           <button 
             onClick={markAllRead}
-            className="p-2.5 bg-slate-50 text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded-2xl transition-all border border-slate-100"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-all"
           >
-            <CheckIcon className="w-5 h-5 stroke-[2.5px]" />
+            <CheckIcon className="w-4 h-4 stroke-[3px]" />
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="max-w-xl mx-auto px-4 overflow-x-auto">
-          <div className="flex items-center space-x-2 pb-4 pt-1 px-2 no-scrollbar">
+        {/* Tabs Bar (Transparent on Blue) */}
+        <div className="overflow-x-auto no-scrollbar pt-1">
+          <div className="flex items-center space-x-2 pb-1 px-2">
             {TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-2xl whitespace-nowrap transition-all text-xs font-black uppercase tracking-wider ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all text-[10px] font-black uppercase tracking-wider ${
                   activeTab === tab.id 
-                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' 
-                    : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100'
+                    ? 'bg-white text-primary-600 shadow-sm' 
+                    : 'bg-white/10 text-white/70 hover:text-white'
                 }`}
               >
-                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'stroke-[2.5px]' : ''}`} />
+                <tab.icon className={`w-3.5 h-3.5 ${activeTab === tab.id ? 'stroke-[2.5px]' : ''}`} />
                 <span>{tab.label}</span>
               </button>
             ))}
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Activity List */}
       <div className="max-w-xl mx-auto p-4 space-y-6">

@@ -118,7 +118,7 @@ export default function Navbar() {
         className="flex justify-between items-center rounded-2xl h-16 px-3 pointer-events-auto"
         style={{
           backgroundColor: 'var(--primary)',          /* sea blue */
-          boxShadow: '0 -4px 24px rgba(46,139,192,0.30)'
+          boxShadow: '0 -4px 24px rgba(37, 99, 235, 0.20)'
         }}
       >
         {/* Chats */}

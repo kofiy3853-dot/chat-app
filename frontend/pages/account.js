@@ -118,15 +118,15 @@ export default function Account() {
       </Head>
       
       <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--bg-page)' }}>
-        <div className="max-w-2xl mx-auto p-4 lg:pt-12 space-y-8">
-          
-          {/* Header */}
-          <div className="flex items-center justify-between px-2">
-            <div>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Account</h1>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Manage your academic profile</p>
-            </div>
+        {/* Header - Royal Blue */}
+        <header className="sticky top-0 z-30 bg-primary-600 px-4 pt-[max(env(safe-area-inset-top,0px),40px)] pb-5 shadow-md transition-all">
+          <div className="max-w-xl mx-auto px-2">
+            <h1 className="text-xl font-black text-white tracking-tight leading-tight">Account</h1>
+            <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest mt-0.5">Academic Profile & Settings</p>
           </div>
+        </header>
+
+        <div className="max-w-2xl mx-auto p-4 space-y-8">
 
           {/* Profile Card */}
           <ProfileCard user={user} onUpdate={handleUpdateProfile} />

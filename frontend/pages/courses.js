@@ -96,42 +96,42 @@ export default function Courses() {
       </Head>
       
       <div className="max-w-xl mx-auto min-h-screen shadow-2xl flex flex-col relative overflow-hidden" style={{ backgroundColor: 'var(--bg-page)' }}>
-        {/* Header */}
-        <header className="sticky top-0 backdrop-blur-xl border-b px-6 py-6 z-30" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
-          <div className="flex items-center justify-between mb-6">
+        {/* Header - Royal Blue */}
+        <header className="sticky top-0 z-30 bg-primary-600 px-4 pt-[max(env(safe-area-inset-top,0px),40px)] pb-4 shadow-md transition-colors">
+          <div className="flex items-center justify-between mb-4 px-2">
             <div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Courses</h1>
-              <p className="text-[10px] font-black text-primary-600 uppercase tracking-[0.2em] mt-2">Manage your studies</p>
+              <h1 className="text-xl font-black text-white tracking-tight leading-tight">Courses</h1>
+              <p className="text-[10px] font-bold text-white/70 uppercase tracking-[0.2em] mt-0.5">Academic Center</p>
             </div>
             <button 
               onClick={() => setShowModal(true)}
-              className="p-3 bg-slate-900 text-white rounded-2xl shadow-lg hover:shadow-primary-500/20 active:scale-95 transition-all duration-300 transform active:rotate-12"
+              className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-all shadow-lg"
             >
-              <PlusIcon className="w-6 h-6 stroke-[3px]" />
+              <PlusIcon className="w-5 h-5 stroke-[3px]" />
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3 px-2">
             <div className="relative group">
-              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
+              <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
               <input
                 type="text"
                 placeholder="Search codes or names..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-slate-50 border-none px-12 py-3.5 rounded-2xl text-sm font-bold placeholder:text-slate-300 focus:ring-2 focus:ring-primary-500/20 transition-all shadow-inner"
+                className="w-full bg-white/10 backdrop-blur-md border border-white/10 px-10 py-2.5 rounded-xl text-sm font-medium text-white placeholder:text-white/40 outline-none focus:bg-white/20 transition-all"
               />
             </div>
 
-            <div className="flex space-x-1 p-1 bg-slate-50 rounded-2xl overflow-x-auto scrollbar-hide">
+            <div className="flex bg-white/10 p-0.5 rounded-xl overflow-x-auto no-scrollbar">
               {['ALL', 'ONGOING', 'COMPLETED'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setFilter(tab)}
-                  className={`flex-1 py-2 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
                     filter === tab 
-                      ? 'bg-white text-primary-600 shadow-md' 
-                      : 'text-slate-400 hover:text-slate-600'
+                      ? 'bg-white text-primary-600 shadow-sm' 
+                      : 'text-white/60 hover:text-white'
                   }`}
                 >
                   {tab}
