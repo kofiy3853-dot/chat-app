@@ -181,6 +181,42 @@ export default function Account() {
               </div>
             </div>
 
+            {/* Chat Wallpaper Hub */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-4">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>Chat Wallpaper</h3>
+                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase rounded">6 Presets</span>
+              </div>
+              <div className="rounded-[2.5rem] p-6 shadow-2xl border transition-all" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+                <div className="grid grid-cols-6 gap-3">
+                  {[
+                    { id: 'bg-white', name: 'Original', color: '#ffffff' },
+                    { id: 'bg-slate-50/50', name: 'Dotted', color: '#f8fafc' },
+                    { id: 'bg-[#fffbeb]', name: 'Parchment', color: '#fffbeb' },
+                    { id: 'bg-[#0f172a]', name: 'Midnight', color: '#0f172a' },
+                    { id: 'bg-sky-50', name: 'Cloud', color: '#f0f9ff' },
+                    { id: 'bg-primary-500', name: 'Sea', color: '#2E8BC0' }
+                  ].map((bg) => (
+                    <button
+                      key={bg.id}
+                      onClick={() => setChatBg(bg.id)}
+                      className={`relative flex flex-col items-center space-y-2 group transition-all`}
+                    >
+                      <div 
+                        className={`w-full aspect-square rounded-xl border-2 transition-all shadow-sm flex items-center justify-center ${
+                          activeBg === bg.id ? 'border-primary-500 scale-110 shadow-lg' : 'border-slate-100 hover:border-slate-300'
+                        }`}
+                        style={{ backgroundColor: bg.color }}
+                      >
+                        {activeBg === bg.id && <CheckCircleIcon className="w-4 h-4 text-primary-500" />}
+                      </div>
+                      <span className="text-[7px] font-black uppercase tracking-tighter text-slate-400">{bg.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {sections.map((section, idx) => (
               <div key={idx} className="space-y-3">
                 <h3 className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{section.title}</h3>

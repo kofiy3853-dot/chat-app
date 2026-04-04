@@ -177,10 +177,16 @@ const EventTab = () => {
                     <CalendarIcon className="w-4 h-4 text-primary-500" />
                     <p className="text-[10px] font-bold text-slate-700 truncate">{format(new Date(event.dateTime || event.startTime), 'p')}</p>
                   </div>
-                  <div className="flex items-center space-x-3 bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                  <a 
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Koforidua Technical University ' + (event.location || event.locationValue))}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center space-x-3 bg-slate-50 p-3 rounded-2xl border border-slate-100/50 hover:bg-primary-50 transition-colors"
+                  >
                     <MapPinIcon className="w-4 h-4 text-emerald-500" />
                     <p className="text-[10px] font-bold text-slate-700 truncate">{event.location || event.locationValue}</p>
-                  </div>
+                  </a>
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">

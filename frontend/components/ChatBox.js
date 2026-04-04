@@ -794,7 +794,7 @@ export default function ChatBox({ conversationId }) {
   const canSend = !isLocked || userRoleRef.current === 'LECTURER' || userRoleRef.current === 'COURSE_REP' || currentUser?.role === 'LECTURER' || currentUser?.role === 'ADMIN';
 
   return (
-    <div className={`flex-1 flex flex-col min-h-0 relative transition-colors duration-500 bg-white overflow-hidden`}>
+    <div className={`flex-1 flex flex-col min-h-0 relative transition-colors duration-500 ${bgColor} overflow-hidden`}>
       <div 
         ref={scrollContainerRef} 
         onScroll={() => {
