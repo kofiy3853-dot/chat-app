@@ -209,13 +209,12 @@ const setupChatSockets = (io) => {
           return m;
         });
 
-        // Broadcast to conversation room (including tempId so the sender recognizes it)
-        console.log(`[NOTIF DEBUG] Message ${message.id} created. Broadcasting new-message to room conversation:${conversationId}`);
+        // Broadcast to conversation room 
+        console.log(`[NOTIF DEBUG] Message ${message.id} created. Broadcasting new-message.`);
         io.to(`conversation:${conversationId}`).emit('new-message', {
           message: { ...message, tempId: data.tempId },
           conversationId
         });
-
         // Handle notifications for participants not in the room in parallel
         const [chatParticipants, conversation] = await Promise.all([
           prisma.conversationParticipant.findMany({
@@ -230,6 +229,15 @@ const setupChatSockets = (io) => {
 
         const recipients = chatParticipants.filter(p => p.userId !== socket.user.id);
         console.log(`[NOTIF DEBUG] Found ${recipients.length} recipient(s) to potentially notify.`);
+
+        // Reliability Fix: Also emit direct to recipients' personal rooms 
+        // to ensure they get the 'new-message' toast (even without joining room yet).
+        recipients.forEach(r => {
+          io.to(`user:${r.userId}`).emit('new-message', {
+            message,
+            conversationId
+          });
+        });
 
         const mentionRegex = /@\[([^\]]+)\]\(([^)]+)\)/g;
         const mentions = [...content.matchAll(mentionRegex)];
@@ -362,6 +370,14 @@ const setupChatSockets = (io) => {
                 io.to(`conversation:${conversationId}`).emit('new-message', {
                   message: nanaMessage,
                   conversationId
+                });
+
+                // Reliability Fix: Also emit direct to recipients' personal rooms for Nana responses
+                recipients.forEach(r => {
+                  io.to(`user:${r.userId}`).emit('new-message', {
+                    message: nanaMessage,
+                    conversationId
+                  });
                 });
                 
                 // 6. Handle notification for the student (parallel)

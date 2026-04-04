@@ -173,6 +173,10 @@ export default function MyApp({ Component, pageProps }) {
     const handleNewNotification = (data) => {
       if (router.pathname === '/activity') return;
       
+      // Fix: Don't show generic notification toast for messages/mentions 
+      // because handleNewMessage already shows a much prettier toast for them.
+      if (data.notification?.type === 'MESSAGE' || data.notification?.type === 'MENTION') return;
+
       toast.custom((t) => (
         <div
           className={`${
