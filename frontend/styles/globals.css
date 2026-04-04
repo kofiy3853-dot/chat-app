@@ -76,9 +76,7 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-page);
   color: var(--text-primary);
-  height: 100%;
-  width: 100%;
-  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ─── Design Token Classes ───────────────────────────────── */
@@ -120,14 +118,47 @@ html, body {
 }
 
 /* ─── Global Theme Overrides ─────────────────────────────── */
-[data-theme="dark"] .bg-white { background-color: var(--bg-surface) !important; }
-[data-theme="dark"] .bg-slate-50, [data-theme="dark"] .bg-gray-50 { background-color: var(--bg-surface-2) !important; }
-[data-theme="dark"] .text-slate-900, [data-theme="dark"] .text-slate-800, [data-theme="dark"] .text-gray-900 { color: var(--text-primary) !important; }
-[data-theme="dark"] .text-slate-600, [data-theme="dark"] .text-slate-500, [data-theme="dark"] .text-gray-600 { color: var(--text-secondary) !important; }
-[data-theme="dark"] .text-slate-400, [data-theme="dark"] .text-slate-300, [data-theme="dark"] .text-gray-400 { color: var(--text-muted) !important; }
-[data-theme="dark"] .border-slate-100, [data-theme="dark"] .border-gray-100 { border-color: var(--border) !important; }
-[data-theme="dark"] .bg-slate-100 { background-color: var(--bg-surface-2) !important; }
-[data-theme="dark"] .shadow-sm, [data-theme="dark"] .shadow { --tw-shadow-color: rgba(0,0,0,0.4); }
+/* Ensure white cards respect dark mode */
+[data-theme="dark"] .bg-white {
+  background-color: var(--bg-surface) !important;
+}
+
+[data-theme="dark"] .bg-slate-50,
+[data-theme="dark"] .bg-gray-50 {
+  background-color: var(--bg-surface-2) !important;
+}
+
+[data-theme="dark"] .text-slate-900,
+[data-theme="dark"] .text-slate-800,
+[data-theme="dark"] .text-gray-900 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .text-slate-600,
+[data-theme="dark"] .text-slate-500,
+[data-theme="dark"] .text-gray-600 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .text-slate-400,
+[data-theme="dark"] .text-slate-300,
+[data-theme="dark"] .text-gray-400 {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .border-slate-100,
+[data-theme="dark"] .border-gray-100 {
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .bg-slate-100 {
+  background-color: var(--bg-surface-2) !important;
+}
+
+[data-theme="dark"] .shadow-sm,
+[data-theme="dark"] .shadow {
+  --tw-shadow-color: rgba(0,0,0,0.4);
+}
 
 /* ─── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -150,17 +181,138 @@ html, body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
 }
 
-.line-clamp-1, .line-clamp-2 {
+.line-clamp-1 {
   display: -webkit-box;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.line-clamp-1 { -webkit-line-clamp: 1; }
-.line-clamp-2 { -webkit-line-clamp: 2; }
 
-.break-word {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  /* Override any browser dark-mode injection on form controls, inputs, etc. */
+  color-scheme: light;
+}
+
+html,
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Force light mode — prevent OS dark mode from bleeding into the app */
+  color-scheme: light only;
+  background-color: #F5F8FF;
+  color: #1A1D3A;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.typing-dot {
+  background: #cbd5e1;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ─── Design System: Premium Periwinkle Soft UI ─── */
+
+:root {
+  --primary-blue: #6B73FF;
+  --primary-purple: #9B59FF;
+  --bg-soft: #F5F8FF;
+  --text-main: #1A1D3A;
+  --text-muted: #8B90A0;
+}
+
+.bg-app {
+  background: var(--bg-soft);
+}
+
+.bg-header-gradient {
+  background: linear-gradient(135deg, #6B73FF 0%, #7F87FF 50%, #8E96FF 100%);
+}
+
+.bg-fab-gradient {
+  background: linear-gradient(135deg, #6B73FF, #8E96FF);
+}
+
+.badge-gradient {
+  background: linear-gradient(135deg, #6B73FF, #8E96FF);
+}
+
+.chat-bubble-me {
+  background: linear-gradient(135deg, #6B73FF, #8E96FF);
+  color: white;
+  box-shadow: 0 4px 15px rgba(107, 115, 255, 0.25);
+}
+
+.chat-bubble-other {
+  background: white;
+  color: var(--text-main);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.soft-shadow {
+  box-shadow: 0 8px 24px rgba(107, 115, 255, 0.08);
+}
+
+.premium-card {
+  background: white;
+  border-radius: 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

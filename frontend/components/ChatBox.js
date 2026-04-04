@@ -479,21 +479,17 @@ const MessageBubble = React.memo(({
     setTouchStart(null);
   };
 
-  const bubbleClasses = `group relative p-3 rounded-2xl shadow-sm border select-none touch-pan-y break-word ${
-    isMine ? 'bg-primary-600 border-primary-500 text-white rounded-tr-none hover:bg-primary-700' : 'bg-white border-slate-100 text-slate-800 rounded-tl-none hover:bg-slate-50'
-  }`;
-
   return (
     <div 
-      className={`flex w-full mb-4 px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200 overflow-hidden`}
+      className={`flex w-full mb-4 px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200`}
       style={{ transform: `translateX(${swipeOffset}px)` }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div className={`flex max-w-[85%] items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+      <div className={`flex max-w-[80%] items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
         {/* Avatar (Left only) */}
-          <div className="relative group shrink-0">
+          <div className="relative group">
             <div className={`w-8 h-8 rounded-xl bg-slate-200 flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'}`}>
               {(() => {
                 const avatar = message.sender?.avatar;
@@ -507,7 +503,7 @@ const MessageBubble = React.memo(({
             </div>
           </div>
 
-        <div className={`flex flex-col min-w-0 ${isMine ? 'items-end' : 'items-start'}`}>
+        <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
           {showSender && !isMine && <span className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">{message.sender?.name}</span>}
           
           <div 
@@ -529,7 +525,9 @@ const MessageBubble = React.memo(({
             }}
             onTouchEnd={(e) => clearTimeout(e.currentTarget.dataset.timer)}
             onTouchMove={(e) => clearTimeout(e.currentTarget.dataset.timer)}
-            className={bubbleClasses}
+            className={`group relative p-3 rounded-2xl shadow-sm border select-none touch-pan-y ${
+              isMine ? 'bg-primary-600 border-primary-500 text-white rounded-tr-none hover:bg-primary-700' : 'bg-white border-slate-100 text-slate-800 rounded-tl-none hover:bg-slate-50'
+            }`}
           >
             {/* Reply Context */}
             {message.replyTo && !message.isDeleted && (
@@ -624,7 +622,7 @@ const MessageBubble = React.memo(({
                       </div>
                     ) : (
                       /* Default Text Bubble */
-                      <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap break-word">{message.content}</p>
+                      <p className="text-sm font-medium leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
                     )}
                   </>
                 )}
@@ -700,7 +698,7 @@ const MessageBubble = React.memo(({
 
   // --- 7. Final Render ---
   return (
-    <div className={`flex-1 flex flex-col min-h-0 relative transition-colors duration-500 ${bgColor} overflow-hidden`}>
+    <div className={`flex-1 flex flex-col min-h-0 transition-colors duration-500 ${bgColor}`}>
       {/* Scrollable Message Area */}
       <div 
         ref={scrollContainerRef} 
@@ -710,14 +708,14 @@ const MessageBubble = React.memo(({
             setShowScrollBottom(scrollHeight - scrollTop - clientHeight > 300);
           }
         }}
-        className="flex-1 overflow-y-auto p-4 scrollbar-hide overscroll-contain relative"
+        className="flex-1 overflow-y-auto pt-6 pb-4 scrollbar-hide overscroll-contain relative"
         style={{ overflowAnchor: 'auto' }}
       >
         {/* Floating Scroll to Bottom Button */}
         {showScrollBottom && (
           <button
             onClick={() => scrollToBottom()}
-            className="absolute bottom-24 right-4 p-2.5 bg-white shadow-xl border border-slate-100 text-primary-600 rounded-full hover:bg-slate-50 transition-all z-30"
+            className="fixed bottom-32 right-6 p-2.5 bg-white/90 backdrop-blur rounded-full shadow-lg border border-slate-100 text-primary-600 hover:bg-slate-50 transition-all animate-bounce z-50 ring-4 ring-primary-500/5"
           >
             <ChevronDownIcon className="w-5 h-5 stroke-[3px]" />
           </button>
@@ -796,7 +794,7 @@ const MessageBubble = React.memo(({
       </div>
 
       {/* Footer Input Area */}
-      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-white border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] shrink-0">
+      <div className="p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-white border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] shrink-0">
         <form onSubmit={handleSendMessage} className="flex flex-col space-y-2">
           {replyTo && (
             <div className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border-l-4 border-primary-500 mx-1 mb-1 animate-in slide-in-from-bottom-2">

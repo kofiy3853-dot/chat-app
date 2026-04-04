@@ -18,7 +18,6 @@
     "@capacitor/keyboard": "^8.0.2",
     "@capacitor/local-notifications": "^8.0.2",
     "@capacitor/push-notifications": "^8.0.3",
-    "@capacitor/splash-screen": "^8.0.1",
     "@capacitor/status-bar": "^8.0.2",
     "@heroicons/react": "^2.0.0",
     "@types/react-window": "^1.8.8",

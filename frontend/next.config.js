@@ -8,7 +8,6 @@ const nextConfig = {
   // Static HTML export for Native App (Capacitor) wrapper
   output: process.env.VERCEL ? undefined : 'export',
   images: { unoptimized: true },
-  trailingSlash: true,
   // Compress responses
   compress: true,
 }
