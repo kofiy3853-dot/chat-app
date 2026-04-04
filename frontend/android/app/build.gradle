@@ -24,11 +24,8 @@ android {
     }
 }
 
-repositories {
-    flatDir{
-        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
-    }
-}
+
+// Removed flatDir since it's deprecated and libs reflect empty folders
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')

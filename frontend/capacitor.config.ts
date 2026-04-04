@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Campus Chat',
   webDir: 'out',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'http',
+    cleartext: true
   }
 };
 

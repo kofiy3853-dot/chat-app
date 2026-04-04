@@ -2,10 +2,30 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import Router from 'next/router';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
-    ? 'https://veritas-uk6l.onrender.com/api' 
-    : 'http://localhost:5000/api');
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+
+  if (typeof window !== 'undefined') {
+    // If we're on a real device or emulator, localhost won't work
+    // 10.0.2.2 is the special alias for the host machine in Android Emulator
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      // Check if we are likely running in a mobile environment
+      // Capacitor usually runs on localhost or a custom scheme
+      return 'http://10.0.2.2:5000/api';
+    }
+
+    if (host !== 'localhost') {
+       return 'https://veritas-uk6l.onrender.com/api';
+    }
+  }
+
+  return 'http://localhost:5000/api';
+};
+
+const API_URL = getBaseUrl();
 
 // Create axios instance
 const api = axios.create({
