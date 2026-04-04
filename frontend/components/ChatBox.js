@@ -56,6 +56,7 @@ const MessageBubble = React.memo(({
 }) => {
   const timestamp = formatMessageTime(message.createdAt);
   const isTemp = message.id?.toString().startsWith('temp');
+  const isNana = message.sender?.role?.toUpperCase() === 'NANA';
 
   const [touchStart, setTouchStart] = useState(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -77,9 +78,21 @@ const MessageBubble = React.memo(({
     setTouchStart(null);
   };
 
-  const bubbleClasses = `group relative p-3 rounded-2xl shadow-sm border select-none touch-pan-y break-word ${
-    isMine ? 'bg-primary-600 border-primary-500 text-white rounded-tr-none hover:bg-primary-700' : 'bg-white border-slate-100 text-slate-800 rounded-tl-none hover:bg-slate-50'
-  }`;
+  const bubbleClasses = isNana 
+    ? `group relative p-4 rounded-2xl shadow-md border select-none touch-pan-y w-full bg-slate-50 border-slate-200 text-slate-800 leading-relaxed`
+    : `group relative p-3 rounded-2xl shadow-sm border select-none touch-pan-y break-word ${
+        isMine ? 'bg-primary-600 border-primary-500 text-white rounded-tr-none hover:bg-primary-700' : 'bg-white border-slate-100 text-slate-800 rounded-tl-none hover:bg-slate-50'
+      }`;
+
+  const nanaStyles = isNana ? {
+    display: "block",
+    width: "100%",
+    maxWidth: "100%",
+    wordBreak: "normal",
+    whiteSpace: "pre-wrap",
+    overflowWrap: "break-word",
+    wordWrap: "break-word"
+  } : {};
 
   return (
     <div 
@@ -89,26 +102,30 @@ const MessageBubble = React.memo(({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div className={`flex max-w-[85%] items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
-        <div className="relative group shrink-0">
-          <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role?.toUpperCase() === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
-            {(() => {
-              if (message.sender?.role?.toUpperCase() === 'NANA') return 'N';
-              const avatar = message.sender?.avatar;
-              const fullUrl = getFullFileUrl(avatar);
-              return fullUrl ? (
-                <img src={fullUrl} className="w-full h-full object-cover" alt="" />
-              ) : (
-                getInitials(message.sender?.name)
-              );
-            })()}
+      <div className={`flex ${isNana ? 'w-full' : 'max-w-[85%]'} items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+        {!isNana && (
+          <div className="relative group shrink-0">
+            <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role?.toUpperCase() === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+              {(() => {
+                const avatar = message.sender?.avatar;
+                const fullUrl = getFullFileUrl(avatar);
+                return fullUrl ? (
+                  <img src={fullUrl} className="w-full h-full object-cover" alt="" />
+                ) : (
+                  getInitials(message.sender?.name)
+                );
+              })()}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className={`flex flex-col min-w-0 ${isMine ? 'items-end' : 'items-start'}`}>
+        <div className={`flex flex-col min-w-0 ${isNana ? 'w-full' : isMine ? 'items-end' : 'items-start'}`}>
           {showSender && !isMine && (
-            <div className="flex items-center space-x-1.5 mb-1 ml-1 uppercase">
-              <span className="text-[10px] font-bold text-slate-400">{message.sender?.name}</span>
+            <div className={`flex items-center space-x-1.5 mb-1 ${isNana ? 'ml-0' : 'ml-1'} uppercase`}>
+              <span className="text-[10px] font-black text-primary-600 flex items-center gap-1">
+                {isNana && <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-pulse" />}
+                {message.sender?.name}
+              </span>
               {message.sender?.role?.toUpperCase() === 'LECTURER' && (
                 <span className="text-[8px] font-black px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-md border border-rose-100 flex items-center">
                   <CheckBadgeIcon className="w-2.5 h-2.5 mr-0.5" />
@@ -144,6 +161,7 @@ const MessageBubble = React.memo(({
             onTouchEnd={(e) => clearTimeout(e.currentTarget.dataset.timer)}
             onTouchMove={(e) => clearTimeout(e.currentTarget.dataset.timer)}
             className={bubbleClasses}
+            style={nanaStyles}
           >
             {message.replyTo && !message.isDeleted && (
               <div className={`mb-2 p-2 rounded-lg border-l-4 text-[10px] bg-black/5 ${isMine ? 'border-white/40' : 'border-primary-500 bg-primary-50'}`}>
@@ -216,7 +234,7 @@ const MessageBubble = React.memo(({
                         <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-black border border-white/10 transition-colors">Add to Calendar</button>
                       </div>
                     ) : (
-                      <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap break-word">{message.content}</p>
+                      <p className={`font-medium leading-relaxed whitespace-pre-wrap break-word ${isNana ? 'text-base text-slate-700' : 'text-sm'}`}>{message.content}</p>
                     )}
                   </>
                 )}
@@ -270,7 +288,7 @@ const MessageBubble = React.memo(({
                         <button onClick={() => { setEditingMessageId(message.id); setEditingContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
                           <PencilIcon className="w-3.5 h-3.5" /> <span>Edit</span>
                         </button>
-                        <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-lg">
+                        <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-0 rounded-lg">
                           <TrashIcon className="w-3.5 h-3.5" /> <span>Delete</span>
                         </button>
                       </>
