@@ -230,8 +230,8 @@ export default function ChatList() {
     return content.length > 40 ? content.substring(0, 40) + '...' : content;
   };
 
-  const filteredConversations = useMemo(() => {
-    return conversations.filter(conv => {
+  const groupedConversations = useMemo(() => {
+    const filtered = conversations.filter(conv => {
       const name = getConversationName(conv).toLowerCase();
       const lastMsg = (conv.lastMessage?.content || '').toLowerCase();
       if (search && !(name.includes(search.toLowerCase()) || lastMsg.includes(search.toLowerCase()))) return false;
@@ -241,7 +241,50 @@ export default function ChatList() {
       if (filter === 'READ') return (conv.unreadCount || 0) === 0;
       return true;
     });
+
+    return {
+      hubs: filtered.filter(c => c.type === 'GROUP' && (c.name?.toLowerCase().includes('hub') || c.name?.toLowerCase().includes('faculty'))),
+      courses: filtered.filter(c => c.type === 'COURSE'),
+      direct: filtered.filter(c => c.type === 'DIRECT'),
+      other: filtered.filter(c => c.type === 'GROUP' && !(c.name?.toLowerCase().includes('hub') || c.name?.toLowerCase().includes('faculty')))
+    };
   }, [conversations, search, filter, favorites, getConversationName]);
+
+  const renderConvRow = (conversation) => (
+    <div key={conversation.id} className="relative">
+      <ChatListItem 
+        conversation={conversation}
+        currentUser={currentUser}
+        favorites={favorites}
+        typingInConvs={typingInConvs}
+        getConversationName={getConversationName}
+        getLastMessagePreview={getLastMessagePreview}
+        getMessageStatus={getMessageStatus}
+        toggleFavorite={toggleFavorite}
+        handleArchive={handleArchive}
+        handleDelete={handleDelete}
+        setLongPressedId={setLongPressedId}
+        pressTimer={pressTimer}
+      />
+      {longPressedId === conversation.id && (
+        <>
+          <div 
+            className="fixed inset-0 z-[100] bg-black/5" 
+            onClick={() => setLongPressedId(null)}
+          />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] flex flex-col items-center">
+            <button 
+              onClick={(e) => { handleDelete(e, conversation.id); setLongPressedId(null); }}
+              className="bg-red-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center space-x-2 active:scale-95 transition-transform"
+            >
+              <TrashIcon className="w-5 h-5 text-white" />
+              <span className="text-sm font-black uppercase tracking-wider">Delete Chat</span>
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
 
   if (loading) {
      return (
@@ -289,8 +332,11 @@ export default function ChatList() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
-        {filteredConversations.length === 0 ? (
+      <div className="flex-1 overflow-y-auto divide-y divide-gray-50 pb-20">
+        {(groupedConversations.hubs.length === 0 && 
+          groupedConversations.courses.length === 0 && 
+          groupedConversations.direct.length === 0 && 
+          groupedConversations.other.length === 0) ? (
           <div className="flex flex-col items-center justify-center h-full p-12 text-center">
             <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6">
               <ArchiveBoxIcon className="w-10 h-10 text-blue-400" />
@@ -301,42 +347,40 @@ export default function ChatList() {
             </p>
           </div>
         ) : (
-          filteredConversations.map((conversation) => (
-          <div key={conversation.id} className="relative">
-            <ChatListItem 
-              conversation={conversation}
-              currentUser={currentUser}
-              favorites={favorites}
-              typingInConvs={typingInConvs}
-              getConversationName={getConversationName}
-              getLastMessagePreview={getLastMessagePreview}
-              getMessageStatus={getMessageStatus}
-              toggleFavorite={toggleFavorite}
-              handleArchive={handleArchive}
-              handleDelete={handleDelete}
-              setLongPressedId={setLongPressedId}
-              pressTimer={pressTimer}
-            />
-            {longPressedId === conversation.id && (
-              <>
-                <div 
-                  className="fixed inset-0 z-[100] bg-black/5" 
-                  onClick={() => setLongPressedId(null)}
-                />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] flex flex-col items-center">
-                  <button 
-                    onClick={(e) => { handleDelete(e, conversation.id); setLongPressedId(null); }}
-                    className="bg-red-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center space-x-2 active:scale-95 transition-transform"
-                  >
-                    <TrashIcon className="w-5 h-5 text-white" />
-                    <span className="text-sm font-black uppercase tracking-wider">Delete Chat</span>
-                  </button>
-                </div>
-              </>
+          <>
+            {/* Academic Hubs */}
+            {groupedConversations.hubs.length > 0 && (
+              <div className="py-2">
+                <h3 className="px-6 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Academic Hubs</h3>
+                {groupedConversations.hubs.map((conversation) => renderConvRow(conversation))}
+              </div>
             )}
-          </div>
-        ))
-      )}
+
+            {/* Courses */}
+            {groupedConversations.courses.length > 0 && (
+              <div className="py-2">
+                <h3 className="px-6 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Courses</h3>
+                {groupedConversations.courses.map((conversation) => renderConvRow(conversation))}
+              </div>
+            )}
+
+            {/* Direct Messages */}
+            {groupedConversations.direct.length > 0 && (
+              <div className="py-2">
+                <h3 className="px-6 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Direct Messages</h3>
+                {groupedConversations.direct.map((conversation) => renderConvRow(conversation))}
+              </div>
+            )}
+
+            {/* Others/Groups (not hubs) */}
+            {groupedConversations.other.length > 0 && (
+              <div className="py-2">
+                <h3 className="px-6 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Other Groups</h3>
+                {groupedConversations.other.map((conversation) => renderConvRow(conversation))}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

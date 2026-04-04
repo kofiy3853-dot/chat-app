@@ -23,6 +23,8 @@ export default function Register() {
     confirmPassword: '',
     studentId: '',
     department: '',
+    faculty: '',
+    level: '',
     role: 'STUDENT'
   });
   const [avatar, setAvatar] = useState(null);
@@ -52,7 +54,8 @@ export default function Register() {
     setError('');
 
     // Strict validation
-    if (!formData.name.trim() || !formData.email.trim() || !formData.studentId.trim() || !formData.department.trim()) {
+    const { name, email, studentId, department, faculty, level, password } = formData;
+    if (!name.trim() || !email.trim() || !studentId.trim() || !department.trim() || !faculty || !level) {
       setError('All fields are mandatory.');
       toast.error('Please fill in all campus details.');
       setLoading(false);
@@ -86,6 +89,8 @@ export default function Register() {
       data.append('password', formData.password);
       data.append('studentId', formData.studentId);
       data.append('department', formData.department);
+      data.append('faculty', formData.faculty);
+      data.append('level', formData.level);
       data.append('role', formData.role);
       data.append('avatar', avatar);
 
@@ -209,11 +214,11 @@ export default function Register() {
 
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Account Type</label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-3">
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, role: 'STUDENT' })}
-                      className={`px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                      className={`px-3 py-3 rounded-xl border-2 text-[10px] font-black uppercase transition-all ${
                         formData.role === 'STUDENT' 
                           ? 'border-primary-600 bg-primary-50 text-primary-600' 
                           : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100'
@@ -223,21 +228,64 @@ export default function Register() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, role: 'INSTRUCTOR' })}
-                      className={`px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
-                        formData.role === 'INSTRUCTOR' 
+                      onClick={() => setFormData({ ...formData, role: 'COURSE_REP' })}
+                      className={`px-3 py-3 rounded-xl border-2 text-[10px] font-black uppercase transition-all ${
+                        formData.role === 'COURSE_REP' 
                           ? 'border-primary-600 bg-primary-50 text-primary-600' 
                           : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100'
                       }`}
                     >
-                      Instructor
+                      CR
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, role: 'LECTURER' })}
+                      className={`px-3 py-3 rounded-xl border-2 text-[10px] font-black uppercase transition-all ${
+                        formData.role === 'LECTURER' 
+                          ? 'border-primary-600 bg-primary-50 text-primary-600' 
+                          : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100'
+                      }`}
+                    >
+                      Lecturer
+                    </button>
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2 grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Faculty</label>
+                    <select
+                      value={formData.faculty}
+                      onChange={(e) => setFormData({ ...formData, faculty: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm font-bold uppercase"
+                    >
+                      <option value="" disabled>Select</option>
+                      {['EBIS', 'FAST', 'FOE', 'FBME', 'FAS', 'FVAST'].map(f => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Current Level</label>
+                    <select
+                      value={formData.level}
+                      onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm font-bold"
+                    >
+                      <option value="" disabled>Select</option>
+                      {['100', '200', '300', '400'].map(l => (
+                        <option key={l} value={l}>Level {l}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-2">
-                    {formData.role === 'INSTRUCTOR' ? 'Staff ID' : 'Student ID'}
+                    {formData.role === 'LECTURER' ? 'Staff ID' : 'Student ID'}
                   </label>
                   <input
                     id="studentId"
