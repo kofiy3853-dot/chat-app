@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { chatAPI } from '../services/api';
 import { getSocket, sendMessage, sendTyping, markAsRead, addReaction, editMessage, deleteMessage } from '../services/socket';
@@ -91,9 +91,9 @@ const MessageBubble = React.memo(({
     >
       <div className={`flex max-w-[85%] items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
         <div className="relative group shrink-0">
-          <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+          <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role?.toUpperCase() === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
             {(() => {
-              if (message.sender?.role === 'NANA') return 'N';
+              if (message.sender?.role?.toUpperCase() === 'NANA') return 'N';
               const avatar = message.sender?.avatar;
               const fullUrl = getFullFileUrl(avatar);
               return fullUrl ? (
@@ -109,13 +109,13 @@ const MessageBubble = React.memo(({
           {showSender && !isMine && (
             <div className="flex items-center space-x-1.5 mb-1 ml-1 uppercase">
               <span className="text-[10px] font-bold text-slate-400">{message.sender?.name}</span>
-              {message.sender?.role === 'LECTURER' && (
+              {message.sender?.role?.toUpperCase() === 'LECTURER' && (
                 <span className="text-[8px] font-black px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-md border border-rose-100 flex items-center">
                   <CheckBadgeIcon className="w-2.5 h-2.5 mr-0.5" />
                   LECTURER
                 </span>
               )}
-              {message.sender?.role === 'COURSE_REP' && (
+              {message.sender?.role?.toUpperCase() === 'COURSE_REP' && (
                 <span className="text-[8px] font-black px-1.5 py-0.5 bg-primary-50 text-primary-600 rounded-md border border-primary-100 flex items-center">
                    <div className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-pulse mr-1" />
                    COURSE REP

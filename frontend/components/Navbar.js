@@ -7,7 +7,7 @@ import {
   UserCircleIcon,
   PlusIcon,
   CalendarDaysIcon,
-  BuildingLibraryIcon
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
 import NewChatModal from './NewChatModal';
@@ -165,12 +165,15 @@ export default function Navbar() {
         </Link>
         
         <Link 
-          href="/campus"
+          href="/nana"
           className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-colors"
-          style={{ color: isActive('/campus') ? '#6B73FF' : 'var(--text-muted)' }}
+          style={{ color: isActive('/nana') ? '#6B73FF' : 'var(--text-muted)' }}
         >
-          <BuildingLibraryIcon className={`w-6 h-6 ${isActive('/campus') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
-          <span className="text-[10px] font-semibold tracking-wide">Campus</span>
+          <div className="relative">
+             <SparklesIcon className={`w-6 h-6 ${isActive('/nana') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
+             <div className="absolute -top-1 -right-1 w-2 h-2 bg-indigo-500 rounded-full animate-ping opacity-75"></div>
+          </div>
+          <span className="text-[10px] font-semibold tracking-wide">Nana AI</span>
         </Link>
 
         <Link 
