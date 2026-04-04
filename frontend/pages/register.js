@@ -127,8 +127,8 @@ export default function Register() {
         <title>Create Account | Campus Chat</title>
       </Head>
 
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-        <div className="max-w-xl w-full">
+      <div className="h-full w-full overflow-y-auto bg-gray-50 px-4 py-8 flex flex-col">
+        <div className="max-w-xl w-full mx-auto my-auto shrink-0">
           {/* Logo & Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4 shadow-lg shadow-primary-200">
