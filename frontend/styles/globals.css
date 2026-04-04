@@ -173,6 +173,25 @@
   color-scheme: dark;
 }
 
+/* ═══════════════════════ Safe Area Support ══════════════════ */
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-top {
+  padding-top: max(var(--safe-top), 16px);
+}
+
+.header-safe {
+  padding-top: var(--safe-top);
+}
+
+body {
+  /* Match header background to status bar area */
+  background-color: var(--bg-page);
+}
+
 /* ═══════════════════════ Base Reset ═══════════════════════ */
 *, *::before, *::after {
   box-sizing: border-box;

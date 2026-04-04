@@ -113,7 +113,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-40 px-5 pb-5 pt-2 pointer-events-none">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-40 px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)] pointer-events-none">
       <div
         className="flex justify-between items-center rounded-2xl h-16 px-3 pointer-events-auto"
         style={{

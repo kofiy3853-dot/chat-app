@@ -142,7 +142,7 @@ export default function Courses() {
         </header>
 
         {/* Course Grid */}
-        <main className="flex-1 overflow-y-auto px-6 py-6 pb-24 scrollbar-hide">
+        <main className="flex-1 overflow-y-auto px-6 py-6 pb-[max(env(safe-area-inset-bottom),100px)] scrollbar-hide">
           {filteredCourses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-6 -rotate-6 transition-transform hover:rotate-0 duration-500">
