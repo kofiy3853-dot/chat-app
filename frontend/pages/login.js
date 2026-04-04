@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { authAPI } from '../services/api';
+import { authAPI, pushAPI } from '../services/api';
 import { initSocket } from '../services/socket';
 import { requestFirebaseNotificationPermission } from '../config/firebase';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
@@ -34,9 +34,9 @@ export default function Login() {
       initSocket();
       
       // Initialize FCM
-      const token = await requestFirebaseNotificationPermission();
-      if(token) {
-         await api.post('/notifications/fcm-token', { fcmToken: token }).catch(() => {});
+      const fcmToken = await requestFirebaseNotificationPermission();
+      if(fcmToken) {
+         await pushAPI.updateFcmToken(fcmToken).catch(() => {});
       }
 
       toast.success('Signed in successfully!');
