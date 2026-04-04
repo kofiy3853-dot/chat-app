@@ -34,6 +34,7 @@ import {
   getOutboxMessages, 
   removeFromOutbox 
 } from '../utils/indexedDB';
+import Markdown from 'markdown-to-jsx';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 // --- Memoized Message Bubble Component (defined at module scope to prevent remounting on ChatBox re-renders) ---
@@ -231,8 +232,26 @@ const MessageBubble = React.memo(({
                         <p className="text-[11px] text-white/80 font-medium mb-3">{message.content.replace('🗓️ Scheduled a call for ', '')}</p>
                         <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-black border border-white/10 transition-colors">Add to Calendar</button>
                       </div>
+                    ) : isNana ? (
+                      <div className="markdown-body">
+                        <Markdown
+                          options={{
+                            overrides: {
+                              h2: { component: ({children}) => <h2 className="text-lg font-black text-slate-800 mb-2 mt-2">{children}</h2> },
+                              h3: { component: ({children}) => <h3 className="text-base font-black text-slate-800 mb-1 mt-2">{children}</h3> },
+                              p: { component: ({children}) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p> },
+                              ul: { component: ({children}) => <ul className="list-disc ml-4 space-y-1 mb-2 mt-2">{children}</ul> },
+                              ol: { component: ({children}) => <ol className="list-decimal ml-4 space-y-1 mb-2 mt-2">{children}</ol> },
+                              li: { component: ({children}) => <li className="text-sm font-medium leading-relaxed">{children}</li> },
+                              strong: { component: ({children}) => <strong className="font-extrabold text-primary-700">{children}</strong> }
+                            }
+                          }}
+                        >
+                          {message.content}
+                        </Markdown>
+                      </div>
                     ) : (
-                      <p className={`font-medium leading-relaxed whitespace-pre-wrap break-word ${isNana ? 'text-base text-slate-700' : 'text-sm'}`}>{message.content}</p>
+                      <p className={`font-medium leading-relaxed whitespace-pre-wrap break-word text-sm`}>{message.content}</p>
                     )}
                   </>
                 )}

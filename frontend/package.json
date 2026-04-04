@@ -26,6 +26,7 @@
     "emoji-picker-react": "^4.18.0",
     "framer-motion": "^12.38.0",
     "idb": "^8.0.3",
+    "markdown-to-jsx": "^9.7.13",
     "next": "^14.0.0",
     "onesignal-cordova-plugin": "^5.3.6",
     "react": "^18.2.0",
