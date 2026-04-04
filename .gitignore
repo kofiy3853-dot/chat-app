@@ -19,3 +19,4 @@ backend/.env
 .vscode/
 .qoder/
 frontend/out/
+frontend/android/app/openJdk-25/

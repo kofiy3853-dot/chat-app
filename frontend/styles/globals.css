@@ -316,3 +316,9 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.break-word {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  hyphens: auto;
+}
