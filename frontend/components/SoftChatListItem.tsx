@@ -125,8 +125,8 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
            }
         }}
       >
-        <div className="w-12 h-12 rounded-full overflow-hidden">
-          {avatarUrl ? (
+        <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
+          {avatarUrl && otherParticipant?.role !== 'NANA' ? (
             <img
               src={avatarUrl}
               className="w-full h-full object-cover"
@@ -134,8 +134,8 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
               onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
           ) : (
-            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${getAvatarColor(name)}`}>
-              <span className="text-white text-sm font-bold tracking-wide">{getInitials(name)}</span>
+            <div className={`w-full h-full flex items-center justify-center ${otherParticipant?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white font-black text-lg' : `bg-gradient-to-br ${getAvatarColor(name)} text-white font-bold`}`}>
+              <span className={otherParticipant?.role === 'NANA' ? '' : 'text-sm'}>N</span>
             </div>
           )}
         </div>

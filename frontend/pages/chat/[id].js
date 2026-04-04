@@ -238,8 +238,10 @@ export default function ChatPage() {
                 }}
               >
               <div className="relative">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold overflow-hidden ring-2 ring-white/30 bg-white/20`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold overflow-hidden ring-2 ring-white/30 ${otherParticipant?.user?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 font-black px-0' : 'bg-white/20'}`}>
                   {(() => {
+                    const isNana = otherParticipant?.user?.role === 'NANA';
+                    if (isNana) return 'N';
                     const avatar = otherParticipant?.user?.avatar;
                     const fullUrl = getFullFileUrl(avatar);
                     return (

@@ -494,8 +494,9 @@ const MessageBubble = React.memo(({
       <div className={`flex max-w-[85%] items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
         {/* Avatar (Left only) */}
           <div className="relative group shrink-0">
-            <div className={`w-8 h-8 rounded-xl bg-slate-200 flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'}`}>
+            <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
               {(() => {
+                if (message.sender?.role === 'NANA') return 'N';
                 const avatar = message.sender?.avatar;
                 const fullUrl = getFullFileUrl(avatar);
                 return fullUrl ? (
