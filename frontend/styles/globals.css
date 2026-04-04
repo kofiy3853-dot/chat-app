@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+  animation: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+
 /* ═══════════════════════════════════════════════════════
    SINGLE SOURCE OF TRUTH — KTU Campus Chat Design Tokens
    Primary brand colour: #3ABEF9  (Light Blue)
@@ -20,8 +28,8 @@
   --deep-indigo:     #4338ca;
   --soft-indigo:     #e0e7ff;
   
-  --grad-indigo-pulse: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
-  --grad-cyan-glow:    linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
+  --grad-indigo-pulse: #4338ca;
+  --grad-cyan-glow:    #06b6d4;
 
   --bg-cloud-white:   #f8fafc;
   --bg-pure-white:    #ffffff;
@@ -79,7 +87,7 @@
 
 [data-theme="indigo-pulse"] {
   --primary:         #4338ca;
-  --bg-navbar:       var(--grad-indigo-pulse);
+  --bg-navbar:       #4338ca;
   --status-bar:      #4338ca;
   --bg-page:         var(--bg-pure-white);
   --bg-surface:      var(--bg-pure-white);
@@ -93,7 +101,7 @@
 
 [data-theme="cyan-glow"] {
   --primary:         var(--accent-cyan);
-  --bg-navbar:       var(--grad-cyan-glow);
+  --bg-navbar:       var(--accent-cyan);
   --status-bar:      #0891b2;
   --bg-page:         var(--bg-pure-white);
   --bg-surface:      var(--bg-pure-white);
