@@ -320,6 +320,9 @@ export default function ChatBox({ conversationId }) {
   const [mediaFile, setMediaFile] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const audioChunksRef = useRef([]);
 
   // Nana Session Logic
