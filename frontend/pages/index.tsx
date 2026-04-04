@@ -361,7 +361,7 @@ const MessagesPage: React.FC = () => {
       {!search && user?.role !== 'NANA' && (
         <div className="px-4 pt-3 pb-1" style={{ backgroundColor: 'var(--bg-page)' }}>
           <Link href="/nana">
-            <div className="relative group overflow-hidden bg-gradient-to-br from-primary-600 to-indigo-700 rounded-2xl p-4 shadow-lg shadow-primary-200 cursor-pointer active:scale-[0.98] transition-all">
+            <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 shadow-lg shadow-primary-100 cursor-pointer active:scale-[0.98] transition-all">
               <div className="absolute top-[-10px] right-[-10px] p-3 opacity-20 group-hover:scale-110 transition-transform">
                  <SparklesIcon className="w-20 h-20 text-white" />
               </div>

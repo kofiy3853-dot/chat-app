@@ -192,7 +192,7 @@ export default function NanaPage() {
           <div className="flex items-center space-x-3">
             <div className="relative">
               <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-primary-600 font-black text-xl shadow-xl p-0.5">
-                <div className="w-full h-full rounded-xl bg-gradient-to-tr from-primary-500 to-indigo-600 flex items-center justify-center text-white">N</div>
+                <div className="w-full h-full rounded-xl bg-primary-600 flex items-center justify-center text-white">N</div>
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm flex items-center justify-center">
                 <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>

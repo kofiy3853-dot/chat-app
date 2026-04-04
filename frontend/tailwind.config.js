@@ -11,27 +11,28 @@ module.exports = {
       },
       colors: {
         primary: {
-          50:  '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',   // Standard Royal Blue (New Primary)
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          50:  '#e8f4fb',
+          100: '#c5e2f3',
+          200: '#9fd0ea',
+          300: '#6fbde1',
+          400: '#50aed9',
+          500: '#2E8BC0',   // KTU Sea Blue (primary brand)
+          600: '#2E8BC0',   // primary-600 used in headers
+          700: '#1a6a92',
+          800: '#155575',
+          900: '#0d3d54',
+          950: '#072433',
         },
         ktu: {
           orange: '#E77917',
-          blue:   '#2563eb',
+          blue:   '#2E8BC0',
         },
         soft: {
           bg:      '#ffffff',
           card:    '#ffffff',
-          primary: '#2563eb',
+          primary: '#2E8BC0',
           secondary: '#E77917',
-          accent:  '#1d4ed8',
+          accent:  '#1a6a92',
           text: {
             primary:   '#111827',
             secondary: '#6b7280',

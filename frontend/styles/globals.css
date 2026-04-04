@@ -8,10 +8,10 @@
    ═══════════════════════════════════════════════════════ */
 :root {
   /* ── Brand ── */
-  --primary: #2563eb;           /* Classic Royal Blue */
-  --primary-hover: #1d4ed8;
-  --primary-light: #eff6ff;
-  --primary-shadow: rgba(37, 99, 235, 0.2);
+  --primary: #2e8bc0;           /* Official KTU Sea Blue */
+  --primary-hover: #2579a9;
+  --primary-light: #e8f4fb;
+  --primary-shadow: rgba(46, 139, 192, 0.2);
 
   /* ── Surfaces ── */
   --bg-page:         #ffffff;   /* Pure white background as requested */
