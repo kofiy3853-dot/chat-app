@@ -144,18 +144,37 @@ const setupChatSockets = (io) => {
         const { conversationId, content, type = 'TEXT', replyToId } = data;
         console.log(`[NOTIF DEBUG] send-message from user:${socket.user.id} (${socket.user.name}) to conv:${conversationId} | type:${type}`);
 
-        // Verify user is participant
-        const participant = await prisma.conversationParticipant.findUnique({
-          where: {
-            userId_conversationId: {
-              userId: socket.user.id,
-              conversationId: conversationId
-            }
+        // Verify user is participant AND check course lock status
+        const participantObj = await prisma.conversationParticipant.findUnique({
+          where: { userId_conversationId: { userId: socket.user.id, conversationId: conversationId } },
+          include: { 
+            conversation: { 
+              include: { 
+                course: {
+                  include: {
+                    memberships: {
+                      where: { userId: socket.user.id }
+                    }
+                  }
+                }
+              } 
+            } 
           }
         });
 
-        if (!participant) {
+        if (!participantObj) {
           return socket.emit('error', { message: 'Access denied' });
+        }
+
+        const conversation = participantObj.conversation;
+        if (conversation.type === 'COURSE' && conversation.course?.announcementsOnly) {
+          const userMembership = conversation.course.memberships[0];
+          const isLecturer = conversation.course.instructorId === socket.user.id;
+          const isRep = userMembership?.role === 'COURSE_REP';
+
+          if (!isLecturer && !isRep && socket.user.role !== 'ADMIN') {
+            return socket.emit('error', { message: 'This course chat is restricted to announcements only.' });
+          }
         }
 
         // Create message and update conversation in a transaction

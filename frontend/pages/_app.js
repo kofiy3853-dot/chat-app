@@ -261,7 +261,7 @@ export default function MyApp({ Component, pageProps }) {
             },
           }}
         />
-        <main className={shouldHideNavbar ? '' : 'pb-20'}>
+        <main className={shouldHideNavbar ? 'relative' : 'pb-20 relative bg-white'}>
           {isOffline && (
             <div className="bg-rose-500 text-white text-center py-2 text-sm font-black uppercase tracking-widest sticky top-0 z-50 shadow-lg">
               Offline Mode

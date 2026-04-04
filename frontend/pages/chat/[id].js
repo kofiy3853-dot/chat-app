@@ -123,11 +123,23 @@ export default function ChatPage() {
             };
           });
         });
+
+        socket.on('chat-lock-updated', ({ locked, courseId }) => {
+          setConversation(prev => {
+            if (prev?.id === courseId || prev?.course?.id === courseId) {
+              return { ...prev, course: { ...prev.course, announcementsOnly: locked } };
+            }
+            return prev;
+          });
+        });
       }
 
       return () => {
         leaveConversation(id);
-        if (socket) socket.off('user-status-changed');
+        if (socket) {
+          socket.off('user-status-changed');
+          socket.off('chat-lock-updated');
+        }
       };
     }
   }, [id]);
@@ -268,11 +280,23 @@ export default function ChatPage() {
               </div>
 
               <div className="min-w-0">
-                <h1 className="font-bold text-white truncate text-[15px] leading-tight">
+                <h1 className="font-bold text-white truncate text-[15px] leading-tight flex items-center">
                   {name}
+                  {conversation?.course?.announcementsOnly && (
+                    <span className="ml-2 px-1.5 py-0.5 bg-white/20 rounded text-[8px] font-black tracking-widest uppercase text-white/90 border border-white/10">
+                      Announcements
+                    </span>
+                  )}
                 </h1>
-                <p className="text-[11px] text-white/70 font-medium">
-                  {isOnline ? 'Online' : 'Offline'}
+                <p className="text-[11px] text-white/70 font-medium flex items-center">
+                  {conversation?.course?.announcementsOnly ? (
+                    <span className="flex items-center">
+                      <div className="w-1.5 h-1.5 bg-rose-400 rounded-full mr-1.5 animate-pulse" />
+                      Locked by Lecturer
+                    </span>
+                  ) : (
+                    isOnline ? 'Online' : 'Offline'
+                  )}
                 </p>
               </div>
             </div>

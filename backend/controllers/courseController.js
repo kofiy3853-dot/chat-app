@@ -630,8 +630,23 @@ exports.assignCourseRep = async (req, res) => {
 
     const updatedMembership = await prisma.courseMembership.update({
       where: { userId_courseId: { userId: studentId, courseId: id } },
-      data: { role: remove ? 'STUDENT' : 'COURSE_REP' }
+      data: { role: remove ? 'STUDENT' : 'COURSE_REP' },
+      include: { user: { select: { id: true, name: true, role: true } } }
     });
+
+    if (req.io) {
+      // 1. Notify the specific course room
+      req.io.to(`course:${id}`).emit('course-role-updated', { 
+        userId: studentId, 
+        courseId: id, 
+        role: updatedMembership.role 
+      });
+      // 2. Notify the specific user directly
+      req.io.to(`user:${studentId}`).emit('role-upgraded', {
+        courseId: id,
+        newRole: updatedMembership.role
+      });
+    }
 
     res.json({ message: remove ? 'Representative role removed' : 'Course Representative assigned', membership: updatedMembership });
   } catch (error) {

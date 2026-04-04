@@ -59,11 +59,26 @@ export default function ChatBox({ conversationId }) {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const audioChunksRef = useRef([]);
 
+  // --- Real-time Course Features ---
+  const [convData, setConvData] = useState(null);
+  const [isLocked, setIsLocked] = useState(false);
+  const [userRole, setUserRole] = useState('STUDENT');
+
   // --- 2. Refs ---
   const messagesEndRef = useRef(null);
   const [bgColor, setBgColor] = useState('bg-slate-50/50');
   const scrollContainerRef = useRef(null);
   const fileInputRef = useRef(null);
+  const convDataRef = useRef(null);
+  const userRoleRef = useRef('STUDENT');
+
+  useEffect(() => {
+    convDataRef.current = convData;
+  }, [convData]);
+
+  useEffect(() => {
+    userRoleRef.current = userRole;
+  }, [userRole]);
 
   // --- 3. Effects & Initialization ---
   useEffect(() => {
@@ -128,7 +143,11 @@ export default function ChatBox({ conversationId }) {
         socket.off('user-typing');
         socket.off('message-sent');
         socket.off('chat-cleared');
-        socket.off('mark-read');
+        socket.off('messages-read');
+        socket.off('message-deleted');
+        socket.off('chat-lock-updated');
+        socket.off('course-role-updated');
+        socket.off('role-upgraded');
       }
     };
   }, [conversationId]);
@@ -142,6 +161,17 @@ export default function ChatBox({ conversationId }) {
     try {
       const response = await chatAPI.getMessages(conversationId);
       const newMessages = response.data.messages || [];
+      const conversation = response.data.conversation;
+
+      if (conversation) {
+        setConvData(conversation);
+        if (conversation.type === 'COURSE' && conversation.course) {
+          setIsLocked(!!conversation.course.announcementsOnly);
+          const membership = conversation.course.memberships?.[0];
+          setUserRole(membership?.role || 'STUDENT');
+        }
+      }
+
       setMessages(prev => {
          // Merge with outbox
          const outbox = prev.filter(m => m.id?.toString().startsWith('temp'));
@@ -242,6 +272,26 @@ export default function ChatBox({ conversationId }) {
     socket.on('message-sent', (sent) => {
       const sentMsg = sent.message || sent;
       setMessages(prev => prev.map(m => (m.tempId && m.tempId === sentMsg.tempId) ? sentMsg : m));
+    });
+
+    // --- UNIVERSITY REAL-TIME FEATURES ---
+    socket.on('chat-lock-updated', ({ locked, courseId }) => {
+      // Use Ref to avoid stale closure
+      if (convDataRef.current?.courseId === courseId || convDataRef.current?.course?.id === courseId) {
+        setIsLocked(locked);
+      }
+    });
+
+    socket.on('course-role-updated', ({ userId, role, courseId }) => {
+      if (userId === currentUser?.id && (convDataRef.current?.courseId === courseId || convDataRef.current?.course?.id === courseId)) {
+        setUserRole(role);
+      }
+    });
+
+    socket.on('role-upgraded', ({ courseId, newRole }) => {
+       if (convDataRef.current?.courseId === courseId || convDataRef.current?.course?.id === courseId) {
+         setUserRole(newRole);
+       }
     });
   };
 
@@ -716,8 +766,10 @@ const MessageBubble = React.memo(({
 });
 
   // --- 7. Final Render ---
+  const canSend = !isLocked || userRoleRef.current === 'LECTURER' || userRoleRef.current === 'COURSE_REP' || currentUser?.role === 'LECTURER' || currentUser?.role === 'ADMIN';
+
   return (
-    <div className={`flex-1 flex flex-col min-h-0 relative transition-colors duration-500 ${bgColor} overflow-hidden`}>
+    <div className={`flex flex-col h-full bg-white transition-all duration-700 ${bgColor}`}>
       {/* Scrollable Message Area */}
       <div 
         ref={scrollContainerRef} 
@@ -841,17 +893,23 @@ const MessageBubble = React.memo(({
           <div className="flex items-end space-x-2">
             {!isRecording ? (
               <>
-                <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-2xl transition-all">
+                <button 
+                  type="button" 
+                  disabled={!canSend}
+                  onClick={() => fileInputRef.current?.click()} 
+                  className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-2xl transition-all disabled:opacity-30 disabled:grayscale"
+                >
                   <PaperClipIcon className="w-5 h-5 stroke-[2.5px]" />
                   <input type="file" ref={fileInputRef} className="hidden" onChange={e => setMediaFile(e.target.files[0])} />
                 </button>
                 
-                <div className="flex-1 bg-slate-100 rounded-[22px] border border-transparent focus-within:bg-white focus-within:border-slate-200 transition-all p-1">
+                <div className={`flex-1 rounded-[22px] border transition-all p-1 ${!canSend ? 'bg-slate-50 border-slate-100' : 'bg-slate-100 border-transparent focus-within:bg-white focus-within:border-slate-200'}`}>
                   <textarea
                     value={newMessage}
                     onChange={handleInputChange}
-                    placeholder="Message..."
-                    className="w-full bg-transparent border-none text-sm py-2 px-3 max-h-32 resize-none focus:ring-0 font-medium"
+                    disabled={!canSend}
+                    placeholder={canSend ? "Message..." : "Only lecturers can post here..."}
+                    className="w-full bg-transparent border-none text-sm py-2 px-3 max-h-32 resize-none focus:ring-0 font-medium disabled:text-slate-400"
                     rows={1}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                   />
@@ -860,16 +918,17 @@ const MessageBubble = React.memo(({
                 {newMessage.trim() || mediaFile ? (
                   <button 
                     type="submit" 
-                    disabled={isSending}
-                    className="p-3 bg-primary-600 text-white rounded-[18px] shadow-lg shadow-primary-600/30 active:scale-95 disabled:opacity-30"
+                    disabled={isSending || !canSend}
+                    className="p-3 bg-primary-600 text-white rounded-[18px] shadow-lg shadow-primary-600/30 active:scale-95 disabled:opacity-30 disabled:grayscale"
                   >
                     {isSending ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <PaperAirplaneIcon className="w-5 h-5 -rotate-45" />}
                   </button>
                 ) : (
                   <button 
                     type="button"
+                    disabled={!canSend}
                     onClick={startRecording}
-                    className="p-3 text-primary-600 hover:bg-primary-50 rounded-[18px]"
+                    className="p-3 text-primary-600 hover:bg-primary-50 rounded-[18px] disabled:opacity-30 disabled:grayscale"
                   >
                     <MicrophoneIcon className="w-6 h-6" />
                   </button>

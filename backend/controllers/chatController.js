@@ -55,7 +55,8 @@ exports.getConversations = async (req, res) => {
           select: {
             id: true,
             code: true,
-            name: true
+            name: true,
+            announcementsOnly: true
           }
         }
       },
@@ -436,9 +437,28 @@ exports.getMessages = async (req, res) => {
       take: parseInt(limit)
     });
 
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        participants: {
+          include: {
+            user: { select: { id: true, name: true, avatar: true, role: true } }
+          }
+        },
+        course: {
+          include: {
+            memberships: {
+              where: { userId: req.user.id }
+            }
+          }
+        }
+      }
+    });
+
     res.json({ 
       messages: messages.reverse(),
-      hasMore: messages.length === parseInt(limit)
+      hasMore: messages.length === parseInt(limit),
+      conversation
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

@@ -55,6 +55,19 @@ const setupCourseSockets = (io) => {
           return socket.emit('error', { message: 'Invalid course target' });
         }
 
+        // Lock check for students
+        if (course.announcementsOnly) {
+          const userMembership = await prisma.courseMembership.findUnique({
+            where: { userId_courseId: { userId, courseId } }
+          });
+          const isLecturer = course.instructorId === userId;
+          const isRep = userMembership?.role === 'COURSE_REP';
+
+          if (!isLecturer && !isRep && socket.user.role !== 'ADMIN') {
+            return socket.emit('error', { message: 'This chat is locked to announcements only.' });
+          }
+        }
+
         // 2. Persist Message to Supabase via Prisma
         const message = await prisma.$transaction(async (tx) => {
           const m = await tx.message.create({
