@@ -216,7 +216,7 @@ const setupChatSockets = (io) => {
           conversationId
         });
         // Handle notifications for participants not in the room in parallel
-        const [chatParticipants, conversation] = await Promise.all([
+        const [chatParticipants, convInfo] = await Promise.all([
           prisma.conversationParticipant.findMany({
             where: { conversationId },
             select: { userId: true }
@@ -313,7 +313,7 @@ const setupChatSockets = (io) => {
         // --- 🤖 Nana AI Trigger Logic ---
         // Identify session by marker name — Nana is a system agent (not a participant)
         const NANA_SESSION_MARKER = '__nana__';
-        const isNanaSession = conversation.name === NANA_SESSION_MARKER;
+        const isNanaSession = convInfo?.name === NANA_SESSION_MARKER;
         const nameMatch = content && (content.toLowerCase().includes('nana') || content.includes('@Nana'));
 
         if (isNanaSession || nameMatch) {
