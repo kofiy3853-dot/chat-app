@@ -118,19 +118,19 @@ export default function Navbar() {
         className="flex justify-between items-center rounded-2xl h-16 px-3 pointer-events-auto"
         style={{
           background: 'var(--bg-navbar)',
-          boxShadow: '0 -4px 24px var(--primary-shadow)'
+          borderTop: '1px solid var(--border)'
         }}
       >
         {/* Chats */}
         <Link
           href="/"
           className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-all"
-          style={{ color: isActive('/') ? '#ffffff' : 'rgba(255,255,255,0.60)' }}
+          style={{ color: isActive('/') ? 'var(--text-navbar)' : 'color-mix(in srgb, var(--text-navbar), transparent 40%)' }}
         >
           <div className="relative">
             <ChatBubbleLeftIcon className={`w-6 h-6 ${isActive('/') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
             {chatUnreadCount > 0 && (
-              <span className="absolute -top-1 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-white text-[10px] font-bold shadow-sm px-1"
+              <span className="absolute -top-1 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-white text-[10px] font-bold shadow-sm px-1 border border-slate-100"
                 style={{ color: 'var(--primary)' }}>
                 {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
               </span>
@@ -143,7 +143,7 @@ export default function Navbar() {
         <Link
           href="/courses"
           className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-all"
-          style={{ color: isActive('/courses') ? '#ffffff' : 'rgba(255,255,255,0.60)' }}
+          style={{ color: isActive('/courses') ? 'var(--text-navbar)' : 'color-mix(in srgb, var(--text-navbar), transparent 40%)' }}
         >
           <AcademicCapIcon className={`w-6 h-6 ${isActive('/courses') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
           <span className="text-[10px] font-semibold tracking-wide">Courses</span>
@@ -153,7 +153,7 @@ export default function Navbar() {
         <Link
           href="/activity"
           className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-all"
-          style={{ color: isActive('/activity') ? '#ffffff' : 'rgba(255,255,255,0.60)' }}
+          style={{ color: isActive('/activity') ? 'var(--text-navbar)' : 'color-mix(in srgb, var(--text-navbar), transparent 40%)' }}
         >
           <div className="relative">
             <BellIcon className={`w-6 h-6 ${isActive('/activity') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
@@ -170,7 +170,7 @@ export default function Navbar() {
         <Link
           href="/campus"
           className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-all"
-          style={{ color: isActive('/campus') ? '#ffffff' : 'rgba(255,255,255,0.60)' }}
+          style={{ color: isActive('/campus') ? 'var(--text-navbar)' : 'color-mix(in srgb, var(--text-navbar), transparent 40%)' }}
         >
           <BuildingLibraryIcon className={`w-6 h-6 ${isActive('/campus') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
           <span className="text-[10px] font-semibold tracking-wide">Campus</span>
@@ -180,7 +180,7 @@ export default function Navbar() {
         <Link
           href="/account"
           className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-all"
-          style={{ color: isActive('/account') ? '#ffffff' : 'rgba(255,255,255,0.60)' }}
+          style={{ color: isActive('/account') ? 'var(--text-navbar)' : 'color-mix(in srgb, var(--text-navbar), transparent 40%)' }}
         >
           <UserCircleIcon className={`w-6 h-6 ${isActive('/account') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
           <span className="text-[10px] font-semibold tracking-wide">Profile</span>

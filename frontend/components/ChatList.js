@@ -303,16 +303,17 @@ export default function ChatList() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white max-w-xl mx-auto border-x border-gray-50">
-      <div className="p-4 border-b border-gray-100 flex flex-col space-y-3 bg-white/80 backdrop-blur-xl sticky top-0 z-20">
+    <div className="flex flex-col h-full max-w-xl mx-auto border-x" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+      <div className="p-4 border-b flex flex-col space-y-3 backdrop-blur-xl sticky top-0 z-20" style={{ backgroundColor: 'color-mix(in srgb, var(--bg-surface), transparent 20%)', borderColor: 'var(--border)' }}>
         <div className="relative group">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
           <input 
             type="text" 
             placeholder="Search messages..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-50 border-none rounded-2xl py-3 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-100 outline-none"
+            className="w-full rounded-2xl py-3 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-primary-100 outline-none"
+            style={{ backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)' }}
           />
         </div>
         <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide pb-1">
@@ -421,9 +422,12 @@ const ChatListItem = React.memo(({
     >
       <Link
         href={`/chat/${conversation.id}`}
-        className={`flex items-center p-4 space-x-3 hover:bg-gray-50 group relative border-l-4 ${
-          (conversation.unreadCount > 0) ? 'border-primary-500 bg-primary-50/20' : 'border-transparent'
+        className={`flex items-center p-4 space-x-3 group relative border-l-4 transition-colors ${
+          (conversation.unreadCount > 0) ? 'border-primary-500' : 'border-transparent'
         }`}
+        style={{ 
+          backgroundColor: (conversation.unreadCount > 0) ? 'color-mix(in srgb, var(--primary), transparent 90%)' : 'transparent',
+        }}
       >
         <div className="relative flex-shrink-0">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-400 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-sm overflow-hidden">

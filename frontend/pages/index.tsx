@@ -220,13 +220,16 @@ const MessagesPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans" style={{ backgroundColor: 'var(--bg-page)' }}>
+    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans pt-[max(env(safe-area-inset-top,0px),110px)]" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Head>
         <title>Messages | Campus Chat</title>
       </Head>
 
       {/* ─── Header ─── */}
-      <header className="sticky top-0 z-30 bg-primary-600 px-4 pt-[max(env(safe-area-inset-top,0px),40px)] pb-3 shadow-md transition-colors">
+      <header 
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-4 pt-[max(env(safe-area-inset-top,0px),40px)] pb-3 border-b transition-all"
+        style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
+      >
         <div className="flex items-center justify-between mb-3">
           {/* Avatar */}
           <button
@@ -250,16 +253,16 @@ const MessagesPage: React.FC = () => {
 
           {/* Title and Branding */}
           <div className="flex flex-col items-center">
-            <h1 className="text-xl font-black text-white tracking-tight leading-tight">KTU Campus</h1>
-            <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest -mt-0.5">Innovating for Development</p>
+            <h1 className="text-xl font-black tracking-tight leading-tight" style={{ color: 'var(--text-navbar)' }}>KTU Campus</h1>
+            <p className="text-[10px] font-bold uppercase tracking-widest -mt-0.5" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 30%)' }}>Innovating for Development</p>
           </div>
 
-          {/* Overflow Menu */}
           <div className="relative" ref={overflowRef}>
             <button
               aria-label="More options"
               onClick={() => setShowOverflow(v => !v)}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 active:scale-95 transition-all text-white"
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 transition-all"
+              style={{ color: 'var(--text-navbar)' }}
             >
               <EllipsisVerticalIcon className="w-5 h-5" />
             </button>
@@ -271,7 +274,7 @@ const MessagesPage: React.FC = () => {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.92, y: -4 }}
                   transition={{ duration: 0.12 }}
-                  className="absolute right-0 top-11 w-52 bg-surface rounded-2xl shadow-2xl border border-app-light overflow-hidden z-50 py-1"
+                  className="absolute right-0 top-11 w-52 bg-surface rounded-2xl border border-app-light overflow-hidden z-50 py-1"
                 >
                   <button
                     className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-app-secondary hover:bg-surface-2 transition-colors"
@@ -325,8 +328,10 @@ const MessagesPage: React.FC = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="flex items-center bg-white/15 backdrop-blur-sm rounded-xl px-3.5 py-2.5 space-x-2 border border-white/10">
-          <MagnifyingGlassIcon className="w-4 h-4 text-white/50 flex-shrink-0" />
+        <div className="flex items-center backdrop-blur-sm rounded-xl px-3.5 py-2.5 space-x-2 border border-white/10"
+          style={{ backgroundColor: 'rgba(0,0,0,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+        >
+          <MagnifyingGlassIcon className="w-4 h-4 flex-shrink-0" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 50%)' }} />
           <input
             id="search"
             name="search"
@@ -334,17 +339,19 @@ const MessagesPage: React.FC = () => {
             placeholder="Search chats..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-white placeholder-white/40 text-sm font-medium"
+            className="flex-1 bg-transparent border-none outline-none text-sm font-medium"
+            style={{ color: 'var(--text-navbar)' }}
           />
           {search ? (
             <button onClick={() => setSearch('')} aria-label="Clear search">
-              <XMarkIcon className="w-4 h-4 text-white/50" />
+              <XMarkIcon className="w-4 h-4" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 50%)' }} />
             </button>
           ) : (
             <button
               aria-label="Filter options"
               onClick={() => setChatFilter(chatFilter === 'all' ? 'unread' : 'all')}
-              className={`flex-shrink-0 ${chatFilter !== 'all' ? 'text-white' : 'text-white/40'}`}
+              className="flex-shrink-0"
+              style={{ color: chatFilter !== 'all' ? 'var(--text-navbar)' : 'color-mix(in srgb, var(--text-navbar), transparent 60%)' }}
             >
               <AdjustmentsHorizontalIcon className="w-4 h-4" />
             </button>

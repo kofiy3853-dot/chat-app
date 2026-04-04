@@ -219,14 +219,15 @@ export default function Account() {
 
             {sections.map((section, idx) => (
               <div key={idx} className="space-y-3">
-                <h3 className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{section.title}</h3>
+                <h3 className="px-4 text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>{section.title}</h3>
                 <div className="rounded-3xl shadow-xl shadow-slate-200/40 border overflow-hidden" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
                   <div className="divide-y divide-slate-50">
                     {section.items.map((item, i) => (
                       <button 
                         key={i} 
                         onClick={() => handleItemClick(item)}
-                        className="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50 transition-all group active:bg-slate-100"
+                        className="w-full px-6 py-5 flex items-center justify-between transition-all group"
+                        style={{ backgroundColor: 'var(--bg-surface)' }}
                       >
                         <div className="flex items-center space-x-4">
                           <div className={`w-11 h-11 rounded-2xl ${item.color} flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm`}>

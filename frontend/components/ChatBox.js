@@ -810,7 +810,7 @@ export default function ChatBox({ conversationId }) {
         {showScrollBottom && (
           <button
             onClick={() => scrollToBottom()}
-            className="absolute bottom-24 right-4 p-2.5 bg-surface shadow-xl border border-slate-200/50 text-app-primary rounded-full hover:brightness-95 transition-all z-30"
+            className="absolute bottom-24 right-4 p-2.5 bg-surface border border-slate-200/50 text-app-primary rounded-full hover:brightness-95 transition-all z-30"
           >
             <ChevronDownIcon className="w-5 h-5 stroke-[3px]" />
           </button>
@@ -818,13 +818,13 @@ export default function ChatBox({ conversationId }) {
         {loading ? (
           <div className="h-full flex items-center justify-center">
               <div className="flex flex-col items-center">
-                  <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-600 rounded-full animate-spin shadow-sm"></div>
+                  <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-600 rounded-full animate-spin"></div>
                   <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Gathering messages...</p>
               </div>
           </div>
         ) : !conversationId ? (
             <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-surface-2/30">
-              <div className="w-20 h-20 rounded-3xl bg-surface shadow-xl flex items-center justify-center mb-6 border border-slate-200/50">
+              <div className="w-20 h-20 rounded-3xl bg-surface flex items-center justify-center mb-6 border border-slate-200/50">
                 <ChatBubbleLeftIcon className="w-10 h-10 text-primary-400" />
               </div>
               <h3 className="text-lg font-black text-app-primary tracking-tight">Select a conversation</h3>
@@ -832,7 +832,7 @@ export default function ChatBox({ conversationId }) {
             </div>
         ) : messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-700">
-            <div className="w-20 h-20 rounded-[28px] bg-surface-2 flex items-center justify-center mb-6 shadow-sm border border-slate-200/50">
+            <div className="w-20 h-20 rounded-[28px] bg-surface-2 flex items-center justify-center mb-6 border border-slate-200/50">
               <SparklesIcon className="w-10 h-10 text-primary-600" />
             </div>
             <h3 className="text-xl font-black text-app-primary tracking-tight">
@@ -850,7 +850,7 @@ export default function ChatBox({ conversationId }) {
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(null, action.query)}
-                    className="p-3 bg-surface border border-slate-200/50 rounded-2xl text-[11px] font-black text-app-primary hover:border-primary-300 hover:text-primary-600 transition-all text-left shadow-sm flex items-center gap-2 group"
+                    className="p-3 bg-surface border border-slate-200/50 rounded-2xl text-[11px] font-black text-app-primary hover:border-primary-300 hover:text-primary-600 transition-all text-left flex items-center gap-2 group"
                   >
                     <span className="group-hover:scale-110 transition-transform">{action.label.split(' ')[0]}</span>
                     <span>{action.label.split(' ').slice(1).join(' ')}</span>
@@ -863,7 +863,7 @@ export default function ChatBox({ conversationId }) {
           Object.entries(groupedMessages).map(([date, dateMsgs]) => (
             <div key={date} className="px-2">
               <div className="flex justify-center my-6 sticky top-2 z-10">
-                <span className="bg-surface/90 backdrop-blur px-3 py-1 rounded-full border border-slate-200/50 text-[9px] font-black text-app-secondary uppercase tracking-widest shadow-sm">
+                <span className="bg-surface/90 backdrop-blur px-3 py-1 rounded-full border border-slate-200/50 text-[9px] font-black text-app-secondary uppercase tracking-widest">
                   {formatMessageTime(date)}
                 </span>
               </div>
@@ -900,7 +900,7 @@ export default function ChatBox({ conversationId }) {
               <span className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
               <span className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce" />
             </div>
-            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest bg-white/50 px-3 py-1 rounded-full border border-slate-100 shadow-sm">
+            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest bg-white/50 px-3 py-1 rounded-full border border-slate-100">
               {typingUsers[0].name} is active
             </span>
           </div>

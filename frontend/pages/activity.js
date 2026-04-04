@@ -177,41 +177,44 @@ export default function Activity() {
   }
 
   return (
-    <div className="min-h-screen pb-20" style={{ backgroundColor: 'var(--bg-page)' }}>
+    <div className="min-h-screen pb-24 pt-20" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Head>
         <title>Activity | Campus Chat</title>
       </Head>
 
-      {/* Header - Royal Blue */}
-      <header className="sticky top-0 z-30 bg-primary-600 px-4 pt-[max(env(safe-area-inset-top,0px),40px)] pb-3 shadow-md transition-colors">
+      {/* Header - Fixed Unified Theme */}
+      <header 
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-4 pt-[max(env(safe-area-inset-top,0px),16px)] pb-3 border-b transition-all"
+        style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
+      >
         <div className="flex items-center justify-between mb-3 px-2">
           <div>
-            <h1 className="text-xl font-black text-white tracking-tight leading-tight">Activity</h1>
+            <h1 className="text-xl font-black tracking-tight leading-tight" style={{ color: 'var(--text-navbar)' }}>Activity</h1>
             <div className="flex items-center space-x-1.5 mt-0.5">
               <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
-              <p className="text-[10px] font-bold text-white/70 uppercase tracking-[0.2em]">Live Updates</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 30%)' }}>Live Updates</p>
             </div>
           </div>
           <button 
             onClick={markAllRead}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-all"
+            className="w-9 h-9 flex items-center justify-center rounded-full transition-all"
+            style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text-navbar)' }}
           >
             <CheckIcon className="w-4 h-4 stroke-[3px]" />
           </button>
         </div>
 
-        {/* Tabs Bar (Transparent on Blue) */}
         <div className="overflow-x-auto no-scrollbar pt-1">
           <div className="flex items-center space-x-2 pb-1 px-2">
             {TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all text-[10px] font-black uppercase tracking-wider ${
-                  activeTab === tab.id 
-                    ? 'bg-white text-primary-600 shadow-sm' 
-                    : 'bg-white/10 text-white/70 hover:text-white'
-                }`}
+                className="flex items-center space-x-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all text-[10px] font-black uppercase tracking-wider"
+                style={{ 
+                  backgroundColor: activeTab === tab.id ? 'var(--bg-page)' : 'rgba(0,0,0,0.05)', 
+                  color: activeTab === tab.id ? 'var(--primary)' : 'color-mix(in srgb, var(--text-navbar), transparent 30%)'
+                }}
               >
                 <tab.icon className={`w-3.5 h-3.5 ${activeTab === tab.id ? 'stroke-[2.5px]' : ''}`} />
                 <span>{tab.label}</span>

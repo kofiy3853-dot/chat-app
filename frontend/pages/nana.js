@@ -174,24 +174,28 @@ export default function NanaPage() {
 
   // --- 🎓 STUDENT CHAT VIEW (Simple & Direct Fix) ---
   return (
-    <div className="h-[100dvh] flex flex-col overflow-hidden relative" style={{ backgroundColor: 'var(--bg-page)' }}>
+    <div className="flex flex-col h-screen bg-app relative transition-all duration-500 overflow-hidden pt-20">
       <Head>
-        <title>Chat with Nana | Campus Chat</title>
+        <title>Nana AI | Campus Chat</title>
       </Head>
 
-      {/* Header - Sea Blue */}
-      <header className="z-20 shrink-0 bg-primary-600 p-4 shadow-lg flex items-center justify-between">
+      {/* Header - Theme Aware */}
+      <header 
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] p-4 flex items-center justify-between border-b transition-all"
+        style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
+      >
         <div className="flex items-center space-x-4">
           <button 
             onClick={() => router.push('/')}
-            className="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all shadow-inner"
+            className="p-2 rounded-xl transition-all"
+            style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text-navbar)' }}
           >
             <ArrowLeftIcon className="w-5 h-5" />
           </button>
           
           <div className="flex items-center space-x-3">
             <div className="relative">
-              <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-primary-600 font-black text-xl shadow-xl p-0.5">
+              <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-primary-600 font-black text-xl p-0.5 border border-slate-100">
                 <div className="w-full h-full rounded-xl bg-primary-600 flex items-center justify-center text-white">N</div>
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm flex items-center justify-center">
@@ -199,15 +203,16 @@ export default function NanaPage() {
               </div>
             </div>
             <div>
-              <h1 className="text-white font-black text-base tracking-tight leading-none">Nana AI</h1>
-              <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mt-1">Campus Specialist</p>
+              <h1 className="font-black text-base tracking-tight leading-none" style={{ color: 'var(--text-navbar)' }}>Nana AI</h1>
+              <p className="font-bold text-[10px] uppercase tracking-widest mt-1" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 40%)' }}>Campus Specialist</p>
             </div>
           </div>
         </div>
 
         <button 
            onClick={() => setShowTerminalOverlay(!showTerminalOverlay)}
-           className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white/80 hover:bg-white/20 transition-all border border-white/5"
+           className="w-9 h-9 rounded-xl flex items-center justify-center transition-all border border-white/5"
+           style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text-navbar)' }}
         >
            <CommandLineIcon className="w-4.5 h-4.5" />
         </button>
