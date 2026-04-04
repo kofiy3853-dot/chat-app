@@ -3,27 +3,34 @@ const prisma = require('../prisma/client');
 // Search users
 exports.searchUsers = async (req, res) => {
   try {
-    const { query } = req.query;
+    const { query, faculty, level, department } = req.query;
     const currentUserId = req.user.id;
 
-    if (!query) {
-      return res.status(400).json({ message: 'Search query is required' });
+    // Advanced filtering based on KTU academic metadata
+    const filters = {
+      AND: [
+        { id: { not: currentUserId } },
+        { role: { not: 'NANA' } },
+        { role: { not: 'ADMIN' } } // Admins are usually hidden from public student searches
+      ]
+    };
+
+    if (faculty) filters.AND.push({ faculty });
+    if (level) filters.AND.push({ level });
+    if (department) filters.AND.push({ department: { contains: department, mode: 'insensitive' } });
+
+    if (query) {
+      filters.AND.push({
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { email: { contains: query, mode: 'insensitive' } },
+          { studentId: { contains: query, mode: 'insensitive' } }
+        ]
+      });
     }
 
     const users = await prisma.user.findMany({
-      where: {
-        AND: [
-          { id: { not: currentUserId } },
-          { role: { not: 'NANA' } },
-          {
-            OR: [
-              { name: { contains: query, mode: 'insensitive' } },
-              { email: { contains: query, mode: 'insensitive' } },
-              { studentId: { contains: query, mode: 'insensitive' } }
-            ]
-          }
-        ]
-      },
+      where: filters,
       select: {
         id: true,
         email: true,
@@ -32,6 +39,8 @@ exports.searchUsers = async (req, res) => {
         role: true,
         studentId: true,
         department: true,
+        faculty: true,
+        level: true,
         isOnline: true,
         lastSeen: true
       },
@@ -57,6 +66,8 @@ exports.getUserById = async (req, res) => {
         role: true,
         studentId: true,
         department: true,
+        faculty: true,
+        level: true,
         isOnline: true,
         lastSeen: true
       }
@@ -85,6 +96,8 @@ exports.getOnlineUsers = async (req, res) => {
         role: true,
         studentId: true,
         department: true,
+        faculty: true,
+        level: true,
         isOnline: true,
         lastSeen: true
       },
@@ -116,6 +129,8 @@ exports.updateStatus = async (req, res) => {
         role: true,
         studentId: true,
         department: true,
+        faculty: true,
+        level: true,
         isOnline: true,
         lastSeen: true
       }

@@ -19,6 +19,8 @@ export default function ProfileCard({ user, onUpdate }) {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     department: user?.department || '',
+    faculty: user?.faculty || '',
+    level: user?.level || '',
     avatar: user?.avatar || '',
     status: user?.status || 'Available'
   });
@@ -65,14 +67,11 @@ export default function ProfileCard({ user, onUpdate }) {
 
   const getRoleBadgeColor = (role) => {
     switch (role?.toUpperCase()) {
-      case 'ADMIN':
-        return 'bg-rose-500 text-white shadow-rose-200';
-      case 'INSTRUCTOR':
-        return 'bg-violet-600 text-white shadow-violet-200';
-      case 'STUDENT':
-        return 'bg-emerald-600 text-white shadow-emerald-200';
-      default:
-        return 'bg-slate-600 text-white shadow-slate-200';
+      case 'ADMIN': return 'bg-rose-500 text-white shadow-rose-200';
+      case 'LECTURER': return 'bg-violet-600 text-white shadow-violet-200 font-black';
+      case 'COURSE_REP': return 'bg-amber-500 text-white shadow-amber-200 font-bold';
+      case 'STUDENT': return 'bg-emerald-600 text-white shadow-emerald-200';
+      default: return 'bg-slate-600 text-white shadow-slate-200';
     }
   };
 
@@ -138,10 +137,10 @@ export default function ProfileCard({ user, onUpdate }) {
           {isEditing ? (
             <form 
               onSubmit={handleSubmit} 
-              className="space-y-6"
+              className="space-y-4"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Full Name</label>
                   <div className="relative">
                     <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -149,13 +148,26 @@ export default function ProfileCard({ user, onUpdate }) {
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-bold text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all font-bold text-sm"
                       required
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Faculty</label>
+                  <div className="relative">
+                    <BuildingLibraryIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={formData.faculty}
+                      onChange={(e) => setFormData({ ...formData, faculty: e.target.value })}
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all font-bold text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Department</label>
                   <div className="relative">
                     <BuildingLibraryIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -163,13 +175,28 @@ export default function ProfileCard({ user, onUpdate }) {
                       type="text"
                       value={formData.department}
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-bold text-sm"
-                      placeholder="e.g. Computer Science"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all font-bold text-sm"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Current Level</label>
+                  <select
+                    value={formData.level}
+                    onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all font-black text-sm text-slate-700 hover:bg-slate-100"
+                  >
+                    <option value="">Select Level</option>
+                    <option value="100">Level 100</option>
+                    <option value="200">Level 200</option>
+                    <option value="300">Level 300</option>
+                    <option value="400">Level 400</option>
+                    <option value="OTHER">Other / Postgraduate</option>
+                  </select>
+                </div>
+
+                <div className="md:col-span-2 space-y-1">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Status Message</label>
                   <div className="relative">
                     <ChatBubbleBottomCenterTextIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -177,8 +204,7 @@ export default function ProfileCard({ user, onUpdate }) {
                       type="text"
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-bold text-sm"
-                      placeholder="What's on your mind?"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all font-bold text-sm"
                     />
                   </div>
                 </div>
@@ -188,15 +214,15 @@ export default function ProfileCard({ user, onUpdate }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-primary-600 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary-700 disabled:opacity-50 shadow-lg shadow-primary-600/20 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 bg-primary-600 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary-700 disabled:opacity-50 shadow-lg shadow-primary-600/20 transition-all flex items-center justify-center space-x-2"
                 >
                   <CheckIcon className="w-4 h-4" />
-                  <span>Update Profile</span>
+                  <span>Save Profile</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="flex-1 bg-slate-100 text-slate-500 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 bg-slate-100 text-slate-500 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center space-x-2"
                 >
                   <XMarkIcon className="w-4 h-4" />
                   <span>Dismiss</span>
@@ -205,12 +231,15 @@ export default function ProfileCard({ user, onUpdate }) {
             </form>
           ) : (
             <div 
-              className="space-y-8"
+              className="space-y-6"
             >
               {/* Identity Header */}
               <div>
                 <h2 className="text-2xl font-black text-slate-900 tracking-tight">{user?.name}</h2>
                 <div className="flex items-center space-x-2 mt-1">
+                   <span className="text-[10px] font-black text-primary-500 uppercase tracking-widest bg-primary-50 px-2 py-0.5 rounded-md border border-primary-100">
+                    Level {user?.level || 'N/A'}
+                  </span>
                   <div className="px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-tight italic">
                       "{user?.status || 'Available'}"
@@ -218,25 +247,33 @@ export default function ProfileCard({ user, onUpdate }) {
                   </div>
                 </div>
                 <p className="text-sm font-bold text-slate-400 mt-2 flex items-center">
-                  <EnvelopeIcon className="w-4 h-4 mr-2" />
+                  <EnvelopeIcon className="w-3.5 h-3.5 mr-2" />
                   {user?.email}
                 </p>
               </div>
 
               {/* Data Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-primary-100 transition-colors">
-                  <div className="flex items-center space-x-3 text-primary-600 mb-2">
-                    <BuildingLibraryIcon className="w-5 h-5" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Department</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-colors">
+                  <div className="flex items-center space-x-2 text-primary-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
+                    <BuildingLibraryIcon className="w-3.5 h-3.5" />
+                    <span>Faculty</span>
                   </div>
-                  <p className="text-sm font-bold text-slate-800">{user?.department || 'Not Specified'}</p>
+                  <p className="text-sm font-bold text-slate-800 truncate">{user?.faculty || 'Not Specified'}</p>
                 </div>
 
-                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-primary-100 transition-colors">
-                  <div className="flex items-center space-x-3 text-indigo-600 mb-2">
-                    <IdentificationIcon className="w-5 h-5" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Identification</span>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-colors">
+                  <div className="flex items-center space-x-2 text-indigo-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
+                    <BuildingLibraryIcon className="w-3.5 h-3.5" />
+                    <span>Department</span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-800 truncate">{user?.department || 'Not Specified'}</p>
+                </div>
+
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-colors md:col-span-2">
+                  <div className="flex items-center space-x-2 text-amber-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
+                    <IdentificationIcon className="w-3.5 h-3.5" />
+                    <span>Identification</span>
                   </div>
                   <p className="text-sm font-bold text-slate-800">{user?.studentId || user?.instructorId || 'N/A'}</p>
                 </div>
@@ -252,11 +289,11 @@ export default function ProfileCard({ user, onUpdate }) {
                   </div>
                 </div>
                 <div className="h-6 w-px bg-slate-100" />
-                <div className="flex flex-col">
-                  <span className="text-[8px] font-black text-slate-400 tracking-widest">Network Secure</span>
-                  <div className="flex items-center mt-1 text-primary-600 space-x-1.5">
+                <div className="flex flex-col flex-1">
+                   <span className="text-[8px] font-black text-slate-400 tracking-widest">Innovation Hub</span>
+                   <div className="flex items-center mt-1 text-primary-600 space-x-1.5">
                     <AcademicCapIcon className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-black">Verified Campus IP</span>
+                    <span className="text-[10px] font-black">KTU Student Network</span>
                   </div>
                 </div>
               </div>

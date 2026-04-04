@@ -15,7 +15,7 @@ export const initOneSignal = async (user) => {
     window.location.hostname.startsWith('192.168.') || 
     window.location.hostname.startsWith('10.');
     
-  const isAllowedVercel = window.location.hostname === 'chat-app-kappa-rose.vercel.app';
+  const isAllowedVercel = window.location.hostname === 'chat-app-kappa-rose.vercel.app' || window.location.hostname.endsWith('.ktu.edu.gh');
   
   // If we aren't on native and aren't on the official domain or localhost, skip to avoid "Init Error"
   if (!Capacitor.isNativePlatform() && !isLocalhost && !isAllowedVercel) {

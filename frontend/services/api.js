@@ -79,7 +79,12 @@ export const authAPI = {
 
 // User API
 export const userAPI = {
-  searchUsers: (query) => api.get(`/users/search?query=${query}`),
+  searchUsers: (query, faculty = '', level = '') => {
+    let url = `/users/search?query=${query}`;
+    if (faculty) url += `&faculty=${faculty}`;
+    if (level) url += `&level=${level}`;
+    return api.get(url);
+  },
   getUserById: (id) => api.get(`/users/${id}`),
   getOnlineUsers: () => api.get('/users/online'),
   updateStatus: (isOnline) => api.put('/users/status', { isOnline }),

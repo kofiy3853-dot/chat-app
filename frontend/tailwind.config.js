@@ -11,32 +11,36 @@ module.exports = {
       },
       colors: {
         primary: {
-          50: '#eef0ff',
-          100: '#dde1ff',
-          200: '#bcc5ff',
-          300: '#96a4ff',
-          400: '#7b87ff',
-          500: '#6B73FF',
-          600: '#5a60e8',
-          700: '#4a4fcf',
-          800: '#3b3fb0',
-          900: '#2e318c',
+          50: '#eef4ff',
+          100: '#dae7ff',
+          200: '#bdd5ff',
+          300: '#90bcff',
+          400: '#5da0ff',
+          500: '#005fa6',
+          600: '#004C84', // Official KTU Blue
+          700: '#003a64',
+          800: '#063252',
+          900: '#0a2c47',
+        },
+        ktu: {
+          orange: '#E77917', // Official KTU Orange
+          blue: '#004C84',
         },
         soft: {
-          bg: '#f0f2ff',
+          bg: '#f8faff',
           card: '#ffffff',
-          primary: '#6B73FF',
-          secondary: '#8B5CF6',
-          accent: '#5B8DEF',
+          primary: '#004C84',
+          secondary: '#E77917',
+          accent: '#005fa6',
           text: {
-            primary: '#1a1d3a',
-            secondary: '#6b7280',
+            primary: '#0a2c47',
+            secondary: '#64748b',
           }
         }
       },
       backgroundImage: {
-        'soft-gradient': 'linear-gradient(135deg, #6B73FF 0%, #9B59FF 100%)',
-        'header-gradient': 'linear-gradient(160deg, #6B73FF 0%, #7B87FF 60%, #9B59FF 100%)',
+        'soft-gradient': 'linear-gradient(135deg, #004C84 0%, #005fa6 100%)',
+        'header-gradient': 'linear-gradient(160deg, #004C84 0%, #005fa6 60%, #E77917 100%)',
       },
       boxShadow: {
         'soft': '0 4px 12px rgba(0,0,0,0.05)',

@@ -48,6 +48,8 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
       <div 
         style={style} 
         {...ariaAttributes}
+        role="article"
+        aria-label={`Message from ${msg.sender.name} at ${formatRelativeTime(msg.createdAt)}: ${msg.content}`}
         className={`flex ${isMe ? 'justify-end' : 'justify-start'} px-6 py-2`}
       >
         <div className={`flex flex-col max-w-[80%] ${isMe ? 'items-end' : 'items-start'}`}>
@@ -58,7 +60,7 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
             }`}
           >
             {msg.type === 'VOICE' ? (
-              <div className="flex items-center space-x-3 py-1 min-w-[140px]">
+              <div className="flex items-center space-x-3 py-1 min-w-[140px]" aria-label="Voice message">
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
                   <div className="w-3.5 h-3.5 bg-white rounded-full"></div>
                 </div>
@@ -77,7 +79,7 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
               msg.content
             )}
           </div>
-          <span className="text-[10px] font-black text-[#8B90A0] mt-1.5 uppercase tracking-widest px-2">
+          <span className="text-[10px] font-black text-[#8B90A0] mt-1.5 uppercase tracking-widest px-2" aria-hidden="true">
             {formatRelativeTime(msg.createdAt)}
           </span>
         </div>
@@ -86,7 +88,7 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
   }, [messages, currentUser]);
 
   return (
-    <div ref={containerRef} className="flex-1 min-h-0 bg-[#f5f7fb]">
+    <div ref={containerRef} className="flex-1 min-h-0 bg-[#f5f7fb]" role="log" aria-live="polite">
       {containerRef.current && (
         <List
           listRef={listRef}

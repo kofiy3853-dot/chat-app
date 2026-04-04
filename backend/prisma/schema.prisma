@@ -13,9 +13,11 @@ model User {
   password             String
   name                 String
   avatar               String?
-  role                 Role      @default(STUDENT)
   studentId            String?   @unique
-  department           String?
+  role                 Role      @default(STUDENT)
+  faculty              String?   // KTU Faculty (e.g. EBIS, FOE)
+  department           String?   // KTU Department
+  level                String?   // e.g. 100, 200, 300, 400
   isOnline             Boolean   @default(false)
   lastSeen             DateTime  @default(now())
   status               String?   @default("Available")
@@ -333,6 +335,8 @@ model EventParticipant {
 
 enum Role {
   STUDENT
+  LECTURER
+  COURSE_REP
   INSTRUCTOR
   ADMIN
   NANA
@@ -384,8 +388,11 @@ model Announcement {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetCourseId   String?   // Target specific Course group
+  targetDepartment String?   // Target specific Department Hub
+  targetAll        Boolean   @default(true)
 
   @@index([createdAt(sort: Desc)])
   @@map("announcements")

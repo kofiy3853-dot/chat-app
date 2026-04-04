@@ -12,6 +12,7 @@ import UserGroupIcon from '@heroicons/react/24/outline/UserGroupIcon';
 import CameraIcon from '@heroicons/react/24/outline/CameraIcon';
 import SparklesIcon from '@heroicons/react/24/outline/SparklesIcon';
 import ChatBubbleOvalLeftEllipsisIcon from '@heroicons/react/24/outline/ChatBubbleOvalLeftEllipsisIcon';
+import BookOpenIcon from '@heroicons/react/24/outline/BookOpenIcon';
 import AdjustmentsHorizontalIcon from '@heroicons/react/24/outline/AdjustmentsHorizontalIcon';
 import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
 import { getCurrentUser } from '../utils/helpers';
@@ -38,7 +39,7 @@ const MessagesPage: React.FC = () => {
   const [typingInConvs, setTypingInConvs] = useState<{ [key: string]: { [userId: string]: string } }>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
-  const [chatFilter, setChatFilter] = useState<'all' | 'unread' | 'groups'>('all');
+  const [chatFilter, setChatFilter] = useState<'all' | 'unread' | 'groups' | 'courses'>('all');
   const [showOverflow, setShowOverflow] = useState(false);
   const [showFAB, setShowFAB] = useState(false);
   const overflowRef = useRef<HTMLDivElement>(null);
@@ -138,6 +139,24 @@ const MessagesPage: React.FC = () => {
     };
   }, [user]);
 
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsModalOpen(true);
+      }
+      if (e.altKey) {
+        if (e.key === '1') setChatFilter('all');
+        if (e.key === '2') setChatFilter('courses');
+        if (e.key === '3') setChatFilter('groups');
+        if (e.key === '4') setChatFilter('unread');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const fetchData = async () => {
     try {
       const convRes = await chatAPI.getConversations();
@@ -160,6 +179,8 @@ const MessagesPage: React.FC = () => {
     let filtered = conversations;
     if (chatFilter === 'unread') filtered = filtered.filter(c => (c.unreadCount || 0) > 0);
     else if (chatFilter === 'groups') filtered = filtered.filter(c => c.type === 'GROUP');
+    else if (chatFilter === 'courses') filtered = filtered.filter(c => c.type === 'COURSE');
+    
     return filtered.filter(conv => {
       const name = (conv.name || conv.participants?.find((p: any) => p.userId !== user?.id)?.user?.name || '').toLowerCase();
       const lastMsg = (conv.lastMessage?.content || '').toLowerCase();
@@ -227,8 +248,11 @@ const MessagesPage: React.FC = () => {
             )}
           </button>
 
-          {/* Title */}
-          <h1 className="text-lg font-bold text-white tracking-tight">Chats</h1>
+          {/* Title and Branding */}
+          <div className="flex flex-col items-center">
+            <h1 className="text-xl font-black text-white tracking-tight leading-tight">KTU Campus</h1>
+            <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest -mt-0.5">Innovating for Development</p>
+          </div>
 
           {/* Overflow Menu */}
           <div className="relative" ref={overflowRef}>
@@ -360,7 +384,7 @@ const MessagesPage: React.FC = () => {
       <div className="sticky top-[130px] z-20 bg-white px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
         {/* Segmented Control */}
         <div className="inline-flex items-center bg-gray-100 rounded-xl p-0.5 space-x-0.5">
-          {(['all', 'unread', 'groups'] as const).map((f) => (
+          {(['all', 'courses', 'groups', 'unread'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setChatFilter(f)}
@@ -370,7 +394,7 @@ const MessagesPage: React.FC = () => {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              {f}
+              {f === 'groups' ? 'Hubs' : f}
             </button>
           ))}
         </div>

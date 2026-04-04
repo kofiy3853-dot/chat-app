@@ -135,7 +135,9 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
             />
           ) : (
             <div className={`w-full h-full flex items-center justify-center ${otherParticipant?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white font-black text-lg' : `bg-gradient-to-br ${getAvatarColor(name)} text-white font-bold`}`}>
-              <span className={otherParticipant?.role === 'NANA' ? '' : 'text-sm'}>N</span>
+              <span className={otherParticipant?.role === 'NANA' ? '' : 'text-sm'}>
+                {otherParticipant?.role === 'NANA' ? 'N' : getInitials(name)}
+              </span>
             </div>
           )}
         </div>

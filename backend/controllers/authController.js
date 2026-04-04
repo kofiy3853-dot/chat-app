@@ -24,6 +24,57 @@ const generateToken = (user) => {
   });
 };
 
+// --- KTU Department Hub Automation ---
+const checkAndJoinDepartmentHub = async (userId, departmentName) => {
+  if (!departmentName || departmentName.trim() === "") return;
+  
+  try {
+    const hubName = `${departmentName.trim()} Hub`;
+    
+    // Find or Create this specific KTU Hub
+    let hub = await prisma.conversation.findFirst({
+      where: { 
+        name: hubName,
+        type: 'GROUP'
+      }
+    });
+
+    if (!hub) {
+      console.log(`[HUB AUTO] Creating new hub: ${hubName}`);
+      hub = await prisma.conversation.create({
+        data: {
+          name: hubName,
+          type: 'GROUP',
+          onlyAdminsCanPost: false
+        }
+      });
+    }
+
+    // Ensure student is enrolled
+    const existing = await prisma.conversationParticipant.findUnique({
+      where: {
+        userId_conversationId: {
+          userId,
+          conversationId: hub.id
+        }
+      }
+    });
+
+    if (!existing) {
+      console.log(`[HUB AUTO] Enrolling user ${userId} to ${hubName}`);
+      await prisma.conversationParticipant.create({
+        data: {
+          userId,
+          conversationId: hub.id,
+          role: 'MEMBER'
+        }
+      });
+    }
+  } catch (err) {
+    console.error(`[HUB AUTO ERROR] Failed for ${departmentName}:`, err);
+  }
+};
+
 const getRedirectPath = (role) => {
   switch (role) {
     case 'ADMIN': return '/admin';
@@ -96,6 +147,8 @@ exports.register = async (req, res) => {
           name,
           studentId,
           department,
+          faculty: req.body.faculty || null,
+          level: req.body.level || null,
           avatar: avatarUrl,
           role: role ? role.toUpperCase() : 'STUDENT'
         }
@@ -112,6 +165,11 @@ exports.register = async (req, res) => {
     }
 
     console.log(`[REGISTER DEBUG] User created in DB with avatar: ${user.avatar ? 'YES' : 'NO'}`);
+
+    // --- KTU AUTO-JOIN ---
+    if (user.department) {
+      await checkAndJoinDepartmentHub(user.id, user.department);
+    }
 
     // Generate token
     const token = generateToken(user);
@@ -190,6 +248,8 @@ exports.getMe = async (req, res) => {
         role: true,
         studentId: true,
         department: true,
+        faculty: true,
+        level: true,
         isOnline: true,
         lastSeen: true,
         status: true,
@@ -216,11 +276,11 @@ exports.getMe = async (req, res) => {
 // Update user profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, department, avatar, status } = req.body;
+    const { name, department, faculty, level, avatar, status } = req.body;
     
     const user = await prisma.user.update({
       where: { id: req.user.id },
-      data: { name, department, avatar, status },
+      data: { name, department, faculty, level, avatar, status },
       select: {
         id: true,
         email: true,
@@ -229,6 +289,8 @@ exports.updateProfile = async (req, res) => {
         role: true,
         studentId: true,
         department: true,
+        faculty: true,
+        level: true,
         isOnline: true,
         lastSeen: true,
         status: true,
@@ -247,6 +309,11 @@ exports.updateProfile = async (req, res) => {
         isOnline: user.isOnline,
         lastSeen: user.lastSeen
       });
+    }
+
+    // --- KTU HUB SYNC ---
+    if (department) {
+      await checkAndJoinDepartmentHub(user.id, department);
     }
 
     res.json({

@@ -8,11 +8,14 @@ export default function NewChatModal({ isOpen, onClose }) {
   const [search, setSearch] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [faculty, setFaculty] = useState('');
+  const [level, setLevel] = useState('');
   const router = useRouter();
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      if (search.trim()) {
+      // Search if there is text AND/OR filters applied
+      if (search.trim() || faculty || level) {
         handleSearch();
       } else {
         setResults([]);
@@ -20,12 +23,12 @@ export default function NewChatModal({ isOpen, onClose }) {
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [search]);
+  }, [search, faculty, level]);
 
   const handleSearch = async () => {
     setLoading(true);
     try {
-      const response = await userAPI.searchUsers(search);
+      const response = await userAPI.searchUsers(search, faculty, level);
       setResults(response.data.users);
     } catch (error) {
       console.error('Search failed:', error);
@@ -80,6 +83,43 @@ export default function NewChatModal({ isOpen, onClose }) {
               autoFocus
               className="w-full bg-white border border-gray-200 rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm text-sm"
             />
+          </div>
+
+          {/* Academic Filters Chips */}
+          <div className="mt-4 flex flex-col space-y-3">
+            <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-1">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0 ml-1">Faculty</span>
+              {['ALL', 'EBIS', 'FAST', 'FOE', 'FBME', 'FAS', 'FVAST'].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFaculty(f === 'ALL' ? '' : f)}
+                  className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight transition-all border shrink-0 ${
+                    (faculty === f || (f === 'ALL' && !faculty))
+                      ? 'bg-primary-600 text-white border-primary-600 shadow-md shadow-primary-200'
+                      : 'bg-white text-slate-500 border-slate-200 hover:border-primary-200'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0 ml-1">Level</span>
+              {['ALL', '100', '200', '300', '400'].map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLevel(l === 'ALL' ? '' : l)}
+                  className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight transition-all border shrink-0 ${
+                    (level === l || (l === 'ALL' && !level))
+                      ? 'bg-primary-600 text-white border-primary-600 shadow-md shadow-primary-200'
+                      : 'bg-white text-slate-500 border-slate-200 hover:border-primary-200'
+                  }`}
+                >
+                  {l === 'ALL' ? 'ALL YEARS' : `LVL ${l}`}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
