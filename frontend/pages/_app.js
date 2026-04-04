@@ -58,7 +58,7 @@ async function subscribeToPush(registration) {
 }
 
 const publicPages = ['/login', '/register'];
-const hideNavbarPages = ['/login', '/register', '/chat/[id]', '/courses/[id]', '/events/create', '/anonymous/create'];
+const hideNavbarPages = ['/login', '/register', '/chat/[id]', '/courses/[id]', '/events/create', '/anonymous/create', '/nana'];
 
 export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -221,8 +221,7 @@ export default function MyApp({ Component, pageProps }) {
 
   // 3. UI Decision Helpers
   // Nana sees the navbar on the communicator (/), but hides it on her Terminal (/nana)
-  const isNanaTerminal = router.pathname.startsWith('/nana');
-  const shouldHideNavbar = hideNavbarPages.includes(router.pathname) || (user?.role === 'NANA' && isNanaTerminal);
+  const shouldHideNavbar = hideNavbarPages.includes(router.pathname);
 
   return (
     <ThemeProvider>
