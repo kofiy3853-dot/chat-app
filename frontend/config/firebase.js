@@ -40,16 +40,13 @@ export const requestFirebaseNotificationPermission = async () => {
   }
 };
 
-export const onMessageListener = () => {
-  return new Promise((resolve) => {
-    try {
-      if (messaging) {
-        onMessage(messaging, (payload) => {
-          resolve(payload);
-        });
-      }
-    } catch (e) {
-      console.error('onMessageListener error', e);
+export const onMessageListener = (callback) => {
+  try {
+    if (messaging) {
+      return onMessage(messaging, callback);
     }
-  });
+  } catch (e) {
+    console.error('onMessageListener error', e);
+  }
+  return () => {};
 };

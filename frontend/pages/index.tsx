@@ -484,7 +484,7 @@ const MessagesPage: React.FC = () => {
 
       <NewChatModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       {isStatusModalOpen && (
-        <UploadStatusModal isOpen={isStatusModalOpen} onClose={() => setIsStatusModalOpen(false)} />
+        <UploadStatusModal onClose={() => setIsStatusModalOpen(false)} onSuccess={() => setIsStatusModalOpen(false)} />
       )}
     </div>
   );

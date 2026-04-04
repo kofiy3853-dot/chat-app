@@ -29,11 +29,9 @@
     "idb": "^8.0.3",
     "markdown-to-jsx": "^9.7.13",
     "next": "^14.0.0",
-    "onesignal-cordova-plugin": "^5.3.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.0",
-    "react-onesignal": "^3.5.1",
     "react-window": "^2.2.7",
     "socket.io-client": "^4.7.0"
   },

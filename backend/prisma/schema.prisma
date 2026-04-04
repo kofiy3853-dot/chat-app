@@ -30,7 +30,6 @@ model User {
   reactions         Reaction[]
   readReceipts      ReadReceipt[]
   notifications     Notification[]
-  pushSubscriptions PushSubscription[]
   courseInstructor  Course[]      @relation("CourseInstructor")
   memberships       CourseMembership[] @relation("UserMemberships")
   conversations     ConversationParticipant[]
@@ -73,17 +72,6 @@ model StatusView {
   @@unique([statusId, viewerId])
 }
 
-model PushSubscription {
-  id        String   @id @default(uuid())
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-}
 
 model Conversation {
   id                String           @id @default(uuid())

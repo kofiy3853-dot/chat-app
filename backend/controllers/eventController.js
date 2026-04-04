@@ -82,7 +82,7 @@ exports.createEvent = async (req, res) => {
     // 5. Notify all users via high-performance batch creation
     const allUsers = await prisma.user.findMany({
       where: { id: { not: req.user.id } },
-      select: { id: true }
+      select: { id: true, fcmToken: true }
     });
 
     if (allUsers.length > 0) {
@@ -102,9 +102,28 @@ exports.createEvent = async (req, res) => {
         allUsers.forEach(u => {
           req.io.to(`user:${u.id}`).emit('new-notification', { 
             notification: { title: `New ${category} event`, content: title },
-            unreadCount: 'refresh' // Client will fetch count if needed or we can optimize later
+            unreadCount: 'refresh'
           });
         });
+      }
+
+      // 6. Send FCM Push Notifications
+      try {
+        const { sendPushNotification } = require('../utils/firebasePush');
+        const tokens = allUsers
+          .map(u => u.fcmToken)
+          .filter(token => !!token);
+
+        if (tokens.length > 0) {
+          await sendPushNotification(tokens, {
+            title: `🗓️ New Event: ${title}`,
+            message: `${req.user.name} posted a new ${category.toLowerCase()} event.`,
+            url: '/events',
+            extraData: { type: 'EVENT', eventId: event.id }
+          });
+        }
+      } catch (fcmErr) {
+        console.error('[FCM] Event creation push error:', fcmErr);
       }
     }
 

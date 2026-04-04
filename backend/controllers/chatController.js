@@ -2,7 +2,6 @@ const prisma = require('../prisma/client');
 const uploadToSupabase = require('../utils/uploadToSupabase');
 const fs = require('fs');
 const path = require('path');
-const { getWebPush } = require('../utils/webPushHelper');
 const { sendPushNotification } = require('../utils/firebasePush');
 
 const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
@@ -551,50 +550,24 @@ exports.sendMessage = async (req, res) => {
           unreadCount
         });
 
-        // WEBPUSH (legacy VAPID): keep for any device still subscribed
-        try {
-          const subscriptions = await prisma.pushSubscription.findMany({
-            where: { userId: recipient.userId }
-          });
-          if (subscriptions.length > 0) {
-            const wp = getWebPush();
-            if (wp) {
-              const payload = JSON.stringify({
-                title: notification.title,
-                body: notification.content,
-                url: `/chat/${conversationId}`,
-                unreadCount
-              });
-              for (const sub of subscriptions) {
-                const pushSubscription = { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } };
-                wp.sendNotification(pushSubscription, payload).catch(async (err) => {
-                  if (err.statusCode === 404 || err.statusCode === 410) {
-                    await prisma.pushSubscription.delete({ where: { id: sub.id } });
-                  } else {
-                    console.error('VAPID push error:', err);
-                  }
-                });
-              }
-            }
-          }
-        } catch (pushErr) {
-          console.error('Failed to process VAPID push:', pushErr);
-        }
-
         // FCM: Send push to the recipient's registered device
         try {
           const recipientUser = await prisma.user.findUnique({
             where: { id: recipient.userId },
-            select: { fcmToken: true, name: true }
+            select: { fcmToken: true }
           });
+          
           if (recipientUser?.fcmToken) {
             const msgPreview = content
               ? (content.length > 80 ? content.substring(0, 80) + '…' : content)
               : 'Sent an attachment';
+
             await sendPushNotification([recipientUser.fcmToken], {
               title: `💬 ${message.sender.name}`,
               message: msgPreview,
+              url: `/chat/${conversationId}`,
               extraData: {
+                type: 'MESSAGE',
                 chatId: conversationId.toString(),
                 senderName: message.sender.name
               }
@@ -816,40 +789,27 @@ exports.uploadAttachment = async (req, res) => {
         });
       }
 
-      // WEBPUSH: Send push notification to all user's registered devices
+      // 6. Send FCM Push Notification
       try {
-        const subscriptions = await prisma.pushSubscription.findMany({
-          where: { userId: recipient.userId }
+        const recipientUser = await prisma.user.findUnique({
+          where: { id: recipient.userId },
+          select: { fcmToken: true }
         });
         
-        if (subscriptions.length > 0) {
-          const wp = getWebPush();
-          if (!wp) return; // VAPID keys not configured, skip
-
-          const payload = JSON.stringify({
-            title: notification.title,
-            body: notification.content,
-            url: `/chat/${conversationId}`
+        if (recipientUser?.fcmToken) {
+          await sendPushNotification([recipientUser.fcmToken], {
+            title: `📎 New File: ${message.sender.name}`,
+            message: notification.content,
+            url: `/chat/${conversationId}`,
+            extraData: { 
+              type: 'MESSAGE',
+              chatId: conversationId.toString(),
+              senderName: message.sender.name
+            }
           });
-
-            for (const sub of subscriptions) {
-              const pushSubscription = {
-                endpoint: sub.endpoint,
-                keys: { p256dh: sub.p256dh, auth: sub.auth }
-              };
-              
-              wp.sendNotification(pushSubscription, payload).catch(async (err) => {
-              if (err.statusCode === 404 || err.statusCode === 410) {
-                // Subscription has expired or is no longer valid
-                await prisma.pushSubscription.delete({ where: { id: sub.id } });
-              } else {
-                console.error('Push error:', err);
-              }
-            });
-          }
         }
-      } catch (pushErr) {
-        console.error('Failed to process web push for attachment:', pushErr);
+      } catch (fcmErr) {
+        console.error('[FCM] Error in attachment push:', fcmErr.message);
       }
     }
 

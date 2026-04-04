@@ -181,8 +181,6 @@ export const anonymousAPI = {
 };
 
 export const pushAPI = {
-  subscribe: (data) => api.post('/notifications/subscribe', data),
-  getPublicKey: () => api.get('/notifications/vapid-public-key'),
   updateFcmToken: (fcmToken) => api.post('/notifications/fcm-token', { fcmToken })
 };
 

@@ -102,9 +102,9 @@ export default function Register() {
       initSocket();
       
       // Initialize FCM
-      const token = await requestFirebaseNotificationPermission();
-      if(token) {
-         await api.post('/notifications/fcm-token', { fcmToken: token }).catch(() => {});
+      const fcmToken = await requestFirebaseNotificationPermission();
+      if(fcmToken) {
+         await api.post('/notifications/fcm-token', { fcmToken }).catch(() => {});
       }
 
       // Redirect based on role

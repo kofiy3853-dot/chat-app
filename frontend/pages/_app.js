@@ -44,48 +44,7 @@ function ThemeColorSync() {
 
 const CallInterface = dynamic(() => import('../components/CallInterface'), { ssr: false });
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
-// Convert VAPID key from base64 string to Uint8Array for browser API
-function urlBase64ToUint8Array(base64String) {
-  if (!base64String) return null;
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
-async function subscribeToPush(registration) {
-  try {
-    const existingSubscription = await registration.pushManager.getSubscription();
-    if (existingSubscription) return; 
-
-    const key = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-    if (!key) return;
-
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: key
-    });
-
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
-    const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://campus-chat-backend.onrender.com';
-    const baseUrl = rawUrl.replace(/\/api$/, '');
-    await fetch(`${baseUrl}/api/notifications/subscribe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(subscription.toJSON())
-    });
-  } catch (err) {
-    console.warn('Push subscription failed:', err);
-  }
-}
 
 const publicPages = ['/login', '/register'];
 const hideNavbarPages = ['/login', '/register', '/events/create', '/anonymous/create', '/chat/[id]', '/courses/[id]', '/nana'];
@@ -249,12 +208,15 @@ export default function MyApp({ Component, pageProps }) {
     socket.on('new-notification', handleNewNotification);
 
     // FCM Foreground Message handling
-    onMessageListener().then((payload: any) => {
+    const unsubscribeFCM = onMessageListener((payload) => {
       if(payload?.notification) {
         toast.custom((t) => (
           <div
-            className="max-w-sm w-full bg-[#2e8bc0] rounded flex items-center p-3 text-white cursor-pointer"
-            onClick={() => toast.dismiss(t.id)}
+            className="max-w-sm w-full bg-[#2e8bc0] rounded flex items-center p-3 text-white cursor-pointer shadow-xl animate-in fade-in slide-in-from-top-full"
+            onClick={() => {
+              if (payload.data?.url) router.push(payload.data.url);
+              toast.dismiss(t.id);
+            }}
           >
             <div className="flex-1">
               <p className="text-sm font-semibold">{payload.notification.title}</p>
@@ -263,11 +225,12 @@ export default function MyApp({ Component, pageProps }) {
           </div>
         ), { duration: 4000 });
       }
-    }).catch(err => console.error('FCM listener error:', err));
+    });
 
     return () => {
       socket.off('new-message', handleNewMessage);
       socket.off('new-notification', handleNewNotification);
+      if (unsubscribeFCM) unsubscribeFCM();
     };
   }, [authorized, router.pathname, router.query.id, user?.id]);
 
