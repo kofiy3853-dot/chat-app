@@ -72,7 +72,7 @@ export default function Account() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center font-black uppercase tracking-widest text-[10px]" style={{ backgroundColor: 'var(--bg-page)', color: 'var(--text-muted)' }}>
         <div className="flex flex-col items-center space-y-4">
           <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Loading Account...</p>
@@ -204,7 +204,7 @@ export default function Account() {
             {sections.map((section, idx) => (
               <div key={idx} className="space-y-3">
                 <h3 className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{section.title}</h3>
-                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
+                <div className="rounded-3xl shadow-xl shadow-slate-200/40 border overflow-hidden" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
                   <div className="divide-y divide-slate-50">
                     {section.items.map((item, i) => (
                       <button 
@@ -243,7 +243,8 @@ export default function Account() {
           <div className="px-2 pt-4">
             <button
               onClick={handleLogout}
-              className="w-full group bg-white hover:bg-rose-600 p-1.5 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 transition-all active:scale-95 overflow-hidden"
+              className="w-full group hover:bg-rose-600 p-1.5 rounded-[2rem] border shadow-xl shadow-slate-200/50 transition-all active:scale-95 overflow-hidden"
+              style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4 p-3.5 h-full">
