@@ -58,7 +58,7 @@ async function subscribeToPush(registration) {
 }
 
 const publicPages = ['/login', '/register'];
-const hideNavbarPages = ['/login', '/register', '/events/create', '/anonymous/create'];
+const hideNavbarPages = ['/login', '/register', '/events/create', '/anonymous/create', '/chat/[id]', '/courses/[id]'];
 
 export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -260,7 +260,7 @@ export default function MyApp({ Component, pageProps }) {
             },
           }}
         />
-        <main className={shouldHideNavbar ? 'relative' : 'pb-24 relative'}>
+        <main className={shouldHideNavbar ? 'relative h-[100dvh] overflow-hidden flex flex-col' : 'pb-24 relative'}>
           {isOffline && (
             <div className="bg-rose-500 text-white text-center py-2 text-sm font-black uppercase tracking-widest sticky top-0 z-50 shadow-lg">
               Offline Mode

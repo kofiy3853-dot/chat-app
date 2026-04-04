@@ -225,7 +225,7 @@ export default function ChatPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </Head>
 
-      <div className="max-w-xl mx-auto h-[100dvh] overflow-hidden flex flex-col shadow-2xl relative bg-app">
+      <div className="max-w-xl mx-auto h-auto flex-1 overflow-hidden flex flex-col shadow-2xl relative bg-app w-full">
         {/* Header - Blue Gradient */}
         <header
           className="z-30 px-4 pt-[max(env(safe-area-inset-top,0px),16px)] pb-4 flex items-center justify-between bg-header-gradient shrink-0"
