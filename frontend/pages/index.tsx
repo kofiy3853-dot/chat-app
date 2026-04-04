@@ -220,7 +220,7 @@ const MessagesPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans pt-[max(env(safe-area-inset-top,0px),110px)]" style={{ backgroundColor: 'var(--bg-page)' }}>
+    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans pt-[max(env(safe-area-inset-top,0px),124px)]" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Head>
         <title>Messages | Campus Chat</title>
       </Head>

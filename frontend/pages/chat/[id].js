@@ -220,9 +220,10 @@ export default function ChatPage() {
 
   return (
     <>
-      <div className="flex flex-col h-screen bg-page relative transition-all duration-500 overflow-hidden pt-[max(env(safe-area-inset-top,0px),84px)]">
+      <div className="flex flex-col h-screen bg-page relative transition-all duration-500 overflow-hidden pt-[max(env(safe-area-inset-top,0px),100px)]">
         <Head>
           <title>{name} | Campus Chat</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         </Head>
 
         <header

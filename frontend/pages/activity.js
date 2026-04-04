@@ -177,7 +177,7 @@ export default function Activity() {
   }
 
   return (
-    <div className="min-h-screen pb-24 pt-20" style={{ backgroundColor: 'var(--bg-page)' }}>
+    <div className="min-h-screen pb-24 pt-28" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Head>
         <title>Activity | Campus Chat</title>
       </Head>

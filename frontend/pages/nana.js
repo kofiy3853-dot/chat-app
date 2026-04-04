@@ -174,7 +174,7 @@ export default function NanaPage() {
 
   // --- 🎓 STUDENT CHAT VIEW (Simple & Direct Fix) ---
   return (
-    <div className="flex flex-col h-screen bg-app relative transition-all duration-500 overflow-hidden pt-20">
+    <div className="flex flex-col h-screen bg-app relative transition-all duration-500 overflow-hidden pt-24">
       <Head>
         <title>Nana AI | Campus Chat</title>
       </Head>
