@@ -100,8 +100,8 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
       onMouseLeave={endPress}
       onTouchStart={startPress}
       onTouchEnd={endPress}
-      className={`flex items-center px-4 py-3.5 cursor-pointer transition-colors duration-150 relative select-none border-b border-gray-50 last:border-0 ${
-        isSelected ? 'bg-primary-50' : 'hover:bg-gray-50 active:bg-gray-100'
+      className={`flex items-center px-4 py-3.5 cursor-pointer transition-colors duration-150 relative select-none border-b border-app-light last:border-0 ${
+        isSelected ? 'bg-primary-50' : 'hover:bg-surface-2 active:bg-surface-2'
       }`}
     >
       {/* Selection Checkmark */}
@@ -151,7 +151,7 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
       {/* Text */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-0.5">
-          <h3 className={`text-[15px] truncate pr-2 ${unread > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-800'}`}>
+          <h3 className={`text-[15px] truncate pr-2 ${unread > 0 ? 'font-bold text-app-primary' : 'font-semibold text-app-primary'}`}>
             {name}
           </h3>
           <span className={`text-[11px] flex-shrink-0 ${unread > 0 ? 'text-primary-500 font-semibold' : 'text-gray-400 font-normal'}`}>

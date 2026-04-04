@@ -271,10 +271,10 @@ const MessagesPage: React.FC = () => {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.92, y: -4 }}
                   transition={{ duration: 0.12 }}
-                  className="absolute right-0 top-11 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 py-1"
+                  className="absolute right-0 top-11 w-52 bg-surface rounded-2xl shadow-2xl border border-app-light overflow-hidden z-50 py-1"
                 >
                   <button
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-app-secondary hover:bg-surface-2 transition-colors"
                     onClick={() => {
                       if (selectedConversations.size === filteredConversations.length) {
                         setSelectedConversations(new Set());
@@ -366,7 +366,7 @@ const MessagesPage: React.FC = () => {
                  <SparklesIcon className="w-20 h-20 text-white" />
               </div>
               <div className="flex items-center space-x-3.5 relative z-10">
-                <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white font-black text-xl border border-white/30 shadow-inner">N</div>
+                <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white font-black text-xl border border-white/30 shadow-sm">N</div>
                 <div>
                   <h3 className="text-white font-black text-sm tracking-tight mb-0.5">Nana AI Hub</h3>
                   <p className="text-white/80 text-[11px] font-bold uppercase tracking-widest flex items-center">
@@ -390,8 +390,8 @@ const MessagesPage: React.FC = () => {
               onClick={() => setChatFilter(f)}
               className={`px-4 py-1.5 rounded-[10px] text-xs font-semibold capitalize transition-all ${
                 chatFilter === f
-                  ? 'bg-white text-gray-900 shadow-sm font-bold'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-surface text-app-primary shadow-sm font-bold'
+                  : 'text-app-muted hover:text-app-secondary'
               }`}
             >
               {f === 'groups' ? 'Hubs' : f}
@@ -450,7 +450,7 @@ const MessagesPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.9 }}
                 transition={{ duration: 0.15 }}
-                className="absolute bottom-16 right-0 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden py-1"
+                className="absolute bottom-16 right-0 w-48 bg-surface rounded-2xl shadow-2xl border border-app-light overflow-hidden py-1"
               >
                 <button
                   onClick={() => { startNanaChat(); setShowFAB(false); }}
@@ -466,7 +466,7 @@ const MessagesPage: React.FC = () => {
                   onClick={() => { setIsModalOpen(true); setShowFAB(false); }}
                   className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                  <div className="w-8 h-8 rounded-xl bg-surface-2 flex items-center justify-center text-app-muted">
                     <ChatBubbleOvalLeftEllipsisIcon className="w-4 h-4" />
                   </div>
                   <span>New Chat</span>

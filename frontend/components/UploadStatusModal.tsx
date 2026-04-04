@@ -71,12 +71,12 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
       <motion.div 
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
-        className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+        className="bg-surface w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
       >
-        <div className="p-6 border-b border-slate-50 flex items-center justify-between">
-          <h3 className="text-xl font-black text-slate-800 tracking-tight">Post Status</h3>
-          <button onClick={onClose} title="Close modal" aria-label="Close modal" className="p-2 hover:bg-slate-50 rounded-full transition-colors">
-            <XMarkIcon className="w-6 h-6 text-slate-400" />
+        <div className="p-6 border-b border-app-light flex items-center justify-between">
+          <h3 className="text-xl font-black text-app-primary tracking-tight">Post Status</h3>
+          <button onClick={onClose} title="Close modal" aria-label="Close modal" className="p-2 hover:bg-surface-2 rounded-full transition-colors">
+            <XMarkIcon className="w-6 h-6 text-app-muted" />
           </button>
         </div>
 

@@ -83,8 +83,8 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
           title="Add status"
           className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1"
         >
-          <div className="relative p-[2px] rounded-full border-2 border-dashed border-gray-300">
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+          <div className="relative p-[2px] rounded-full border-2 border-dashed border-app-light">
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-2 flex items-center justify-center">
               {currentUser?.avatar ? (
                 <img src={getFullFileUrl(currentUser.avatar)} className="w-full h-full object-cover" alt="My Status" />
               ) : (
@@ -108,8 +108,8 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
             title={`View status from ${group.user.name}`}
             className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 group outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1"
           >
-            <div className={`relative p-[2px] rounded-full transition-all duration-300 border-2 ${group.hasUnseen ? 'border-primary-500' : 'border-gray-200'}`}>
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+            <div className={`relative p-[2px] rounded-full transition-all duration-300 border-2 ${group.hasUnseen ? 'border-primary-500' : 'border-app-light'}`}>
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-2 flex items-center justify-center">
                 {group.user.avatar ? (
                   <img src={getFullFileUrl(group.user.avatar)} className="w-full h-full object-cover" alt={group.user.name} />
                 ) : (

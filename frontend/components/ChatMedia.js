@@ -18,24 +18,43 @@ export const AttachmentBubble = React.memo(({ message }) => {
   const isImage = message.type === 'IMAGE' || (message.fileName && /\.(jpg|jpeg|png|gif|webp)$/i.test(message.fileName));
   const isVideo = message.fileName && /\.(mp4|webm|mov|ogg)$/i.test(message.fileName);
   
+  const [hasError, setHasError] = useState(false);
   const fullUrl = getFullFileUrl(message.fileUrl);
 
   if (isImage) {
+    if (hasError) {
+      return (
+        <div className="mt-1 flex items-center space-x-3 bg-red-50/50 p-4 rounded-2xl border border-red-100 min-w-[200px]">
+          <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-500">
+            <XMarkIcon className="w-6 h-6" />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-[10px] font-black text-red-600 uppercase tracking-widest leading-none">Media Unreachable</p>
+            <p className="text-[9px] text-red-400 font-bold mt-1 uppercase tracking-tight">The file could not be retrieved from storage.</p>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="mt-1 group relative">
         <img 
           src={fullUrl} 
-          alt={message.fileName} 
+          alt={message.fileName || "Image attachment"} 
           loading="lazy"
+          onError={() => setHasError(true)}
           className="max-w-full rounded-2xl border border-slate-100 shadow-sm transition-opacity hover:brightness-95 cursor-pointer max-h-[300px] min-w-[150px] object-cover"
         />
-        <a 
-          href={fullUrl} 
-          download={message.fileName}
-          className="absolute bottom-2 right-2 p-2 bg-black/40 backdrop-blur-md text-white rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <ArrowDownTrayIcon className="w-4 h-4" />
-        </a>
+        {!hasError && (
+          <a 
+            href={fullUrl} 
+            download={message.fileName}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-2 right-2 p-2 bg-black/40 backdrop-blur-md text-white rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <ArrowDownTrayIcon className="w-4 h-4" />
+          </a>
+        )}
       </div>
     );
   }

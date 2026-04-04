@@ -220,9 +220,10 @@ export default function MyApp({ Component, pageProps }) {
   if (!isReady) return null;
 
   // 3. UI Decision Helpers
-  // Nana sees the navbar on the communicator (/), but hides it on her Terminal (/nana)
-  const shouldHideNavbar = hideNavbarPages.includes(router.pathname) || 
-                           hideNavbarPages.some(path => path.includes('[id]') && router.pathname.includes(path.split('[id]')[0]));
+  const normalizedPath = router.pathname;
+  const isDynamicChat = normalizedPath === '/chat/[id]';
+  const isDynamicCourse = normalizedPath === '/courses/[id]';
+  const shouldHideNavbar = hideNavbarPages.includes(normalizedPath) || isDynamicChat || isDynamicCourse;
 
   return (
     <ThemeProvider>

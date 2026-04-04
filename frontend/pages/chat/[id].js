@@ -225,10 +225,10 @@ export default function ChatPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </Head>
 
-      <div className="max-w-xl mx-auto h-auto flex-1 overflow-hidden flex flex-col shadow-2xl relative bg-app w-full">
+      <div className="max-w-xl mx-auto h-full flex-1 overflow-hidden flex flex-col shadow-2xl relative bg-app w-full border-x border-slate-100">
         {/* Header - Blue Gradient */}
         <header
-          className="z-[60] px-4 pt-[max(env(safe-area-inset-top,0px),16px)] pb-4 flex items-center justify-between bg-indigo-600 shadow-lg shrink-0"
+          className="sticky top-0 z-[100] px-4 pt-[max(env(safe-area-inset-top,0px),16px)] pb-4 flex items-center justify-between bg-indigo-600 shadow-xl shrink-0"
           style={{ background: 'linear-gradient(135deg, #6B73FF 0%, #8E96FF 100%)' }}
         >
           {/* Left: back + avatar + name */}
