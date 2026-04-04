@@ -8,30 +8,55 @@
    ═══════════════════════════════════════════════════════ */
 :root {
   /* ── Brand (Anchor - consistent across themes) ── */
-  --primary: #2e8bc0;           /* Official KTU Sea Blue */
-  --primary-hover: #2579a9;
-  --primary-light: rgba(46, 139, 192, 0.1);
-  --primary-shadow: rgba(46, 139, 192, 0.2);
+  --primary:         #2e8bc0;           /* Official KTU Sea Blue */
+  --primary-hover:   #2579a9;
+  --primary-light:   rgba(46, 139, 192, 0.1);
+  --primary-shadow:  rgba(46, 139, 192, 0.2);
+
+  /* ── Newly Requested Tokens ── */
+  --sea-blue:        #2E8BC0;
+  --purple:          #a855f7;
+  --indigo:          #6366f1;
+  --deep-indigo:     #4338ca;
+  --soft-indigo:     #e0e7ff;
+  
+  --grad-indigo-pulse: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+  --grad-cyan-glow:    linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
+
+  --bg-cloud-white:   #f8fafc;
+  --bg-pure-white:    #ffffff;
+  --bg-soft-mist:     #f1f5f9;
+
+  --text-jet-black:   #0f172a;
+  --text-slate-gray:  #475569;
+  --text-cool-gray:   #94a3b8;
+
+  --status-green:     #22c55e;
+  --status-amber:     #f59e0b;
+  --status-red:       #ef4444;
+
+  --accent-cyan:      #22d3ee;
+  --accent-purple:    #a855f7;
 
   /* ── Default (Light) ── */
-  --bg-page:         #ffffff;   
-  --bg-surface:      #ffffff;
-  --bg-surface-2:    #f9fafb;
-  --bg-input:        #f5f5f5;
-  --bg-navbar:       #2E8BC0;
+  --bg-page:         var(--bg-pure-white);   
+  --bg-surface:      var(--bg-pure-white);
+  --bg-surface-2:    var(--bg-cloud-white);
+  --bg-input:        var(--bg-soft-mist);
+  --bg-navbar:       var(--sea-blue);
 
-  --text-primary:    #000000;   
-  --text-secondary:  #4b5563;
-  --text-muted:      #9ca3af;
+  --text-primary:    var(--text-jet-black);   
+  --text-secondary:  var(--text-slate-gray);
+  --text-muted:      var(--text-cool-gray);
   --text-navbar:     #ffffff;   
 
   --border:          #e5e7eb;
   --border-light:    #f3f4f6;
 
-  --bubble-me-bg:    #2E8BC0;
+  --bubble-me-bg:    var(--sea-blue);
   --bubble-me-text:  #ffffff;
-  --bubble-other-bg: #F5F5F5;
-  --bubble-other-text:#000000;
+  --bubble-other-bg: var(--bg-soft-mist);
+  --bubble-other-text:var(--text-jet-black);
   --bubble-radius:   18px;
 }
 

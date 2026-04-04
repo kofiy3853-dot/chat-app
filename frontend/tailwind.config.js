@@ -23,6 +23,26 @@ module.exports = {
           900: 'var(--primary-900, #0d3d54)',
           950: 'var(--primary-950, #072433)',
         },
+        'sea-blue':    'var(--sea-blue)',
+        'purple':      'var(--purple)',
+        'indigo':      'var(--indigo)',
+        'deep-indigo': 'var(--deep-indigo)',
+        'soft-indigo': 'var(--soft-indigo)',
+        'jet-black':   'var(--text-jet-black)',
+        'slate-gray':  'var(--text-slate-gray)',
+        'cool-gray':   'var(--text-cool-gray)',
+        'status': {
+          green: 'var(--status-green)',
+          amber: 'var(--status-amber)',
+          red:   'var(--status-red)',
+        },
+        'accent': {
+          cyan:   'var(--accent-cyan)',
+          purple: 'var(--accent-purple)',
+        },
+        'cloud-white': 'var(--bg-cloud-white)',
+        'pure-white':  'var(--bg-pure-white)',
+        'soft-mist':   'var(--bg-soft-mist)',
         ktu: {
           orange: '#E77917',
           blue:   '#2E8BC0',
@@ -42,6 +62,8 @@ module.exports = {
       backgroundImage: {
         'soft-gradient': 'linear-gradient(135deg, #004C84 0%, #005fa6 100%)',
         'header-gradient': 'linear-gradient(160deg, #004C84 0%, #005fa6 60%, #E77917 100%)',
+        'indigo-pulse': 'var(--grad-indigo-pulse)',
+        'cyan-glow': 'var(--grad-cyan-glow)',
       },
       boxShadow: {
         'soft': '0 4px 12px rgba(0,0,0,0.05)',
