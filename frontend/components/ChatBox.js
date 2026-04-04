@@ -79,10 +79,8 @@ const MessageBubble = React.memo(({
   };
 
   const bubbleClasses = isNana 
-    ? `group relative p-4 rounded-2xl shadow-md border select-none touch-pan-y w-full bg-slate-50 border-slate-200 text-slate-800 leading-relaxed`
-    : `group relative p-3 rounded-2xl shadow-sm border select-none touch-pan-y break-word ${
-        isMine ? 'bg-primary-600 border-primary-500 text-white rounded-tr-none hover:bg-primary-700' : 'bg-white border-slate-100 text-slate-800 rounded-tl-none hover:bg-slate-50'
-      }`;
+    ? `group relative p-4 rounded-2xl shadow-sm border select-none animate-fade-in w-full bg-slate-50 border-slate-200 text-slate-800 leading-relaxed break-word`
+    : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} animate-fade-in select-none touch-pan-y`;
 
   const nanaStyles = isNana ? {
     display: "block",
@@ -241,7 +239,7 @@ const MessageBubble = React.memo(({
               </div>
             )}
 
-            <div className={`flex items-center mt-1.5 space-x-1 justify-end ${isMine ? 'text-white/60' : 'text-slate-400'}`}>
+            <div className={`flex items-center mt-1.5 space-x-1 justify-end text-black/40`}>
               <span className="text-[9px] font-bold italic">{timestamp}</span>
               {isMine && (
                 isTemp ? (
@@ -334,7 +332,7 @@ export default function ChatBox({ conversationId }) {
 
   // --- 2. Refs ---
   const messagesEndRef = useRef(null);
-  const [bgColor, setBgColor] = useState('bg-slate-50/50');
+  const [bgColor, setBgColor] = useState('bg-white');
   const scrollContainerRef = useRef(null);
   const fileInputRef = useRef(null);
   const convDataRef = useRef(null);
@@ -753,7 +751,7 @@ export default function ChatBox({ conversationId }) {
   const canSend = !isLocked || userRoleRef.current === 'LECTURER' || userRoleRef.current === 'COURSE_REP' || currentUser?.role === 'LECTURER' || currentUser?.role === 'ADMIN';
 
   return (
-    <div className={`flex-1 flex flex-col min-h-0 relative transition-colors duration-500 ${bgColor} overflow-hidden`}>
+    <div className={`flex-1 flex flex-col min-h-0 relative transition-colors duration-500 bg-white overflow-hidden`}>
       {/* Scrollable Message Area */}
 
       <div 
@@ -851,7 +849,16 @@ export default function ChatBox({ conversationId }) {
       </div>
 
       {/* Footer Input Area */}
-      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-white border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] shrink-0">
+      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-white border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] shrink-0 relative">
+        {showEmojiPicker && (
+          <div className="absolute bottom-full right-4 mb-4 z-50 shadow-2xl animate-in slide-in-from-bottom-5">
+            <EmojiPicker 
+              onEmojiClick={(emojiData) => { setNewMessage(p => p + emojiData.emoji); setShowEmojiPicker(false); }}
+              lazyLoadEmojis={true}
+              autoFocusSearch={false}
+            />
+          </div>
+        )}
         <form onSubmit={handleSendMessage} className="flex flex-col space-y-2">
           {replyTo && (
             <div className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border-l-4 border-primary-500 mx-1 mb-1 animate-in slide-in-from-bottom-2">
@@ -888,13 +895,27 @@ export default function ChatBox({ conversationId }) {
                   <input type="file" ref={fileInputRef} className="hidden" onChange={e => setMediaFile(e.target.files[0])} />
                 </button>
                 
-                <div className={`flex-1 rounded-[22px] border transition-all p-1 ${!canSend ? 'bg-slate-50 border-slate-100' : 'bg-slate-100 border-transparent focus-within:bg-white focus-within:border-slate-200'}`}>
+                <div className={`flex-1 flex items-center rounded-[22px] border transition-all p-1 ${!canSend ? 'bg-slate-50 border-slate-100' : 'bg-slate-100 border-transparent focus-within:bg-white focus-within:border-slate-200'}`}>
+                  <button 
+                    type="button"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="p-2 text-slate-400 hover:text-primary-600 transition-colors"
+                  >
+                    <FaceSmileOutline className="w-5 h-5 stroke-[2.2px]" />
+                  </button>
                   <textarea
                     value={newMessage}
                     onChange={handleInputChange}
                     disabled={!canSend}
+                    onPaste={(e) => {
+                      const item = e.clipboardData.items[0];
+                      if (item?.type.startsWith('image/')) {
+                        setMediaFile(item.getAsFile());
+                        e.preventDefault();
+                      }
+                    }}
                     placeholder={canSend ? "Message..." : "Only lecturers can post here..."}
-                    className="w-full bg-transparent border-none text-sm py-2 px-3 max-h-32 resize-none focus:ring-0 font-medium disabled:text-slate-400"
+                    className="flex-1 bg-transparent border-none text-sm py-2 px-1 max-h-32 resize-none focus:ring-0 font-medium disabled:text-slate-400"
                     rows={1}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                   />

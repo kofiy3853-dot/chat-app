@@ -11,30 +11,30 @@ module.exports = {
       },
       colors: {
         primary: {
-          50: '#eef4ff',
-          100: '#dae7ff',
-          200: '#bdd5ff',
-          300: '#90bcff',
-          400: '#5da0ff',
-          500: '#005fa6',
-          600: '#004C84', // Official KTU Blue
-          700: '#003a64',
-          800: '#063252',
-          900: '#0a2c47',
+          50:  '#e8f4fb',
+          100: '#c5e2f3',
+          200: '#9fd0ea',
+          300: '#6fbde1',
+          400: '#50aed9',
+          500: '#2E8BC0',   // KTU Sea Blue (primary brand)
+          600: '#2E8BC0',   // primary-600 → navy nav, buttons, highlights
+          700: '#2478a8',
+          800: '#1b648f',
+          900: '#104a6a',
         },
         ktu: {
-          orange: '#E77917', // Official KTU Orange
-          blue: '#004C84',
+          orange: '#E77917',
+          blue:   '#2E8BC0',
         },
         soft: {
-          bg: '#f8faff',
-          card: '#ffffff',
-          primary: '#004C84',
+          bg:      '#ffffff',
+          card:    '#ffffff',
+          primary: '#2E8BC0',
           secondary: '#E77917',
-          accent: '#005fa6',
+          accent:  '#1b648f',
           text: {
-            primary: '#0a2c47',
-            secondary: '#64748b',
+            primary:   '#111827',
+            secondary: '#6b7280',
           }
         }
       },

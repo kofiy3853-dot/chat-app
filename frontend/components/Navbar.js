@@ -114,24 +114,24 @@ export default function Navbar() {
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-40 px-5 pb-5 pt-2 pointer-events-none">
-      <div 
-        className="flex justify-between items-center rounded-2xl h-16 px-3 pointer-events-auto border"
-        style={{ 
-          backgroundColor: 'var(--bg-navbar)',
-          borderColor: 'var(--border)',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.08)'
+      <div
+        className="flex justify-between items-center rounded-2xl h-16 px-3 pointer-events-auto"
+        style={{
+          backgroundColor: 'var(--primary)',          /* sea blue */
+          boxShadow: '0 -4px 24px rgba(46,139,192,0.30)'
         }}
       >
-        
-        <Link 
+        {/* Chats */}
+        <Link
           href="/"
-          className={`flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-colors`}
-          style={{ color: isActive('/') ? '#6B73FF' : 'var(--text-muted)' }}
+          className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-all"
+          style={{ color: isActive('/') ? '#ffffff' : 'rgba(255,255,255,0.60)' }}
         >
           <div className="relative">
             <ChatBubbleLeftIcon className={`w-6 h-6 ${isActive('/') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
             {chatUnreadCount > 0 && (
-              <span className="absolute -top-1 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-bold text-white shadow-sm ring-2" style={{ '--tw-ring-color': 'var(--bg-navbar)' }}>
+              <span className="absolute -top-1 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-white text-[10px] font-bold shadow-sm px-1"
+                style={{ color: 'var(--primary)' }}>
                 {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
               </span>
             )}
@@ -139,53 +139,57 @@ export default function Navbar() {
           <span className="text-[10px] font-semibold tracking-wide">Chats</span>
         </Link>
 
-        <Link 
+        {/* Courses */}
+        <Link
           href="/courses"
-          className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-colors"
-          style={{ color: isActive('/courses') ? '#6B73FF' : 'var(--text-muted)' }}
+          className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-all"
+          style={{ color: isActive('/courses') ? '#ffffff' : 'rgba(255,255,255,0.60)' }}
         >
           <AcademicCapIcon className={`w-6 h-6 ${isActive('/courses') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
           <span className="text-[10px] font-semibold tracking-wide">Courses</span>
         </Link>
 
-        <Link 
+        {/* Alerts */}
+        <Link
           href="/activity"
-          className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-colors"
-          style={{ color: isActive('/activity') ? '#6B73FF' : 'var(--text-muted)' }}
+          className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-all"
+          style={{ color: isActive('/activity') ? '#ffffff' : 'rgba(255,255,255,0.60)' }}
         >
           <div className="relative">
             <BellIcon className={`w-6 h-6 ${isActive('/activity') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse">
+              <span className="absolute -top-1 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white animate-pulse">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
           </div>
           <span className="text-[10px] font-semibold tracking-wide">Alerts</span>
         </Link>
-        
-        <Link 
+
+        {/* Campus */}
+        <Link
           href="/campus"
-          className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-colors"
-          style={{ color: isActive('/campus') ? '#6B73FF' : 'var(--text-muted)' }}
+          className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-all"
+          style={{ color: isActive('/campus') ? '#ffffff' : 'rgba(255,255,255,0.60)' }}
         >
           <BuildingLibraryIcon className={`w-6 h-6 ${isActive('/campus') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
           <span className="text-[10px] font-semibold tracking-wide">Campus</span>
         </Link>
 
-        <Link 
+        {/* Profile */}
+        <Link
           href="/account"
-          className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-colors"
-          style={{ color: isActive('/account') ? '#6B73FF' : 'var(--text-muted)' }}
+          className="flex-1 flex flex-col items-center justify-center py-1 gap-0.5 rounded-xl transition-all"
+          style={{ color: isActive('/account') ? '#ffffff' : 'rgba(255,255,255,0.60)' }}
         >
           <UserCircleIcon className={`w-6 h-6 ${isActive('/account') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
           <span className="text-[10px] font-semibold tracking-wide">Profile</span>
         </Link>
       </div>
-      
-      <NewChatModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+
+      <NewChatModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
       />
     </nav>
   );
