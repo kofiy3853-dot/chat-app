@@ -221,7 +221,8 @@ export default function MyApp({ Component, pageProps }) {
 
   // 3. UI Decision Helpers
   // Nana sees the navbar on the communicator (/), but hides it on her Terminal (/nana)
-  const shouldHideNavbar = hideNavbarPages.includes(router.pathname);
+  const shouldHideNavbar = hideNavbarPages.includes(router.pathname) || 
+                           hideNavbarPages.some(path => path.includes('[id]') && router.pathname.includes(path.split('[id]')[0]));
 
   return (
     <ThemeProvider>
