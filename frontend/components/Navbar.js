@@ -117,7 +117,7 @@ export default function Navbar() {
       <div
         className="flex justify-between items-center rounded-2xl h-16 px-3 pointer-events-auto"
         style={{
-          backgroundColor: 'var(--primary)',          /* sea blue */
+          background: 'var(--bg-navbar)',
           boxShadow: '0 -4px 24px var(--primary-shadow)'
         }}
       >

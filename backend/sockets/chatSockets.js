@@ -317,18 +317,19 @@ const setupChatSockets = (io) => {
         const nameMatch = content && (content.toLowerCase().includes('nana') || content.includes('@Nana'));
 
         if (isNanaSession || nameMatch) {
-          const nanaProfile = await prisma.user.findFirst({ where: { role: 'NANA' }, select: { id: true } });
+          const nanaProfile = await prisma.user.findFirst({ where: { role: 'NANA' }, select: { id: true, name: true } });
           const realNanaId = nanaProfile ? nanaProfile.id : NANA_USER_ID;
+          const realNanaName = nanaProfile ? nanaProfile.name : 'Nana';
 
           if (socket.user.id !== realNanaId) {
             console.log(`[Nana AI Trigger] Triggered for conv:${conversationId}. Session:${isNanaSession}, Mention:${!!nameMatch}`);
           
           (async () => {
              try {
-                // 1. Typing indicator
+                // 1. Typing indicator - Use dynamic ID
                 io.to(`conversation:${conversationId}`).emit('user-typing', {
-                  userId: NANA_USER_ID,
-                  userName: 'Nana',
+                  userId: realNanaId,
+                  userName: realNanaName,
                   conversationId,
                   isTyping: true
                 });
@@ -343,12 +344,12 @@ const setupChatSockets = (io) => {
 
                 // 3. Call Nana AI brain
                 console.log(`[Nana AI Trigger] Fetching brain response...`);
-                const aiResponse = await getNanaAiResponse(content, history.reverse());
+                const aiResponse = await getNanaAiResponse(content, history.reverse(), socket.user);
                 
                 // 4. Save & Emit
                 const nanaMessage = await prisma.$transaction(async (tx) => {
                   const m = await tx.message.create({
-                    data: { conversationId, senderId: NANA_USER_ID, content: aiResponse, type: 'TEXT' },
+                    data: { conversationId, senderId: realNanaId, content: aiResponse, type: 'TEXT' },
                     include: {
                       sender: { select: { id: true, name: true, avatar: true } }
                     }
@@ -363,7 +364,7 @@ const setupChatSockets = (io) => {
                 // 5. Stop typing + broadcast
                 io.to(`conversation:${conversationId}`).emit('user-typing', {
                   userId: realNanaId,
-                  userName: 'Nana',
+                  userName: realNanaName,
                   conversationId,
                   isTyping: false
                 });

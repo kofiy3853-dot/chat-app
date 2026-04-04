@@ -80,7 +80,7 @@ const MessageBubble = React.memo(({
   };
 
   const bubbleClasses = isNana 
-    ? `group relative p-5 rounded-[24px] shadow-sm border select-none animate-fade-in w-full bg-white border-slate-100 text-slate-800 leading-relaxed break-words`
+    ? `group relative p-5 rounded-[24px] shadow-sm border select-none animate-fade-in w-full bg-surface border-slate-200/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
     : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} animate-fade-in select-none touch-pan-y`;
 
   const nanaStyles = isNana ? {
@@ -163,7 +163,7 @@ const MessageBubble = React.memo(({
             style={nanaStyles}
           >
             {message.replyTo && !message.isDeleted && (
-              <div className={`mb-2 p-2 rounded-lg border-l-4 text-[10px] bg-black/5 ${isMine ? 'border-white/40' : 'border-primary-500 bg-primary-50'}`}>
+              <div className={`mb-2 p-2 rounded-lg border-l-4 text-[10px] ${isMine ? 'bg-black/10 border-white/40' : 'bg-surface-2 border-primary-500'}`}>
                 <p className="font-black uppercase tracking-tight opacity-60">
                    Replying to {message.replyTo.sender?.name || 'User'}
                 </p>
@@ -286,10 +286,10 @@ const MessageBubble = React.memo(({
                   onTouchStart={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
                 />
                 <div 
-                  className={`absolute z-[2000] bottom-full mb-2 bg-white rounded-xl shadow-2xl border border-slate-100 min-w-[140px] overflow-hidden ${isMine ? 'right-0' : 'left-0'}`}
+                  className={`absolute z-[2000] bottom-full mb-2 bg-surface rounded-xl shadow-2xl border border-slate-200/50 min-w-[140px] overflow-hidden ${isMine ? 'right-0' : 'left-0'} backdrop-blur-md`}
                   onClick={e => e.stopPropagation()}
                 >
-                  <div className="flex justify-around p-2 bg-slate-50 border-b border-slate-100">
+                  <div className="flex justify-around p-2 bg-surface-2 border-b border-slate-200/50">
                     {['❤️', '👍', '🔥', '😂'].map(e => (
                       <button key={e} onClick={() => { addReaction(message.id, e); setActiveMenuId(null); }} className="hover:scale-125 transition-transform">
                         {e}
@@ -297,12 +297,12 @@ const MessageBubble = React.memo(({
                     ))}
                   </div>
                   <div className="p-1 flex flex-col">
-                    <button onClick={() => { navigator.clipboard.writeText(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
+                    <button onClick={() => { navigator.clipboard.writeText(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-app-secondary hover:bg-surface-2 rounded-lg">
                       <DocumentDuplicateIcon className="w-3.5 h-3.5" /> <span>Copy text</span>
                     </button>
                     {isMine && !message.isDeleted && (
                       <>
-                        <button onClick={() => { setEditingMessageId(message.id); setEditingContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 rounded-lg">
+                        <button onClick={() => { setEditingMessageId(message.id); setEditingContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-app-secondary hover:bg-surface-2 rounded-lg">
                           <PencilIcon className="w-3.5 h-3.5" /> <span>Edit</span>
                         </button>
                         <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-lg">
@@ -378,7 +378,7 @@ export default function ChatBox({ conversationId }) {
 
   // --- 2. Refs ---
   const messagesEndRef = useRef(null);
-  const [bgColor, setBgColor] = useState('bg-white');
+  const [bgColor, setBgColor] = useState('bg-app');
   const scrollContainerRef = useRef(null);
   const fileInputRef = useRef(null);
   const convDataRef = useRef(null);
@@ -810,7 +810,7 @@ export default function ChatBox({ conversationId }) {
         {showScrollBottom && (
           <button
             onClick={() => scrollToBottom()}
-            className="absolute bottom-24 right-4 p-2.5 bg-white shadow-xl border border-slate-100 text-primary-600 rounded-full hover:bg-slate-50 transition-all z-30"
+            className="absolute bottom-24 right-4 p-2.5 bg-surface shadow-xl border border-slate-200/50 text-app-primary rounded-full hover:brightness-95 transition-all z-30"
           >
             <ChevronDownIcon className="w-5 h-5 stroke-[3px]" />
           </button>
@@ -823,22 +823,22 @@ export default function ChatBox({ conversationId }) {
               </div>
           </div>
         ) : !conversationId ? (
-            <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50/30">
-              <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center mb-6">
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-surface-2/30">
+              <div className="w-20 h-20 rounded-3xl bg-surface shadow-xl flex items-center justify-center mb-6 border border-slate-200/50">
                 <ChatBubbleLeftIcon className="w-10 h-10 text-primary-400" />
               </div>
-              <h3 className="text-lg font-black text-slate-800 tracking-tight">Select a conversation</h3>
-              <p className="text-xs text-slate-400 font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-wider">Choose a contact from your inbox to start a secure encrypted chat session.</p>
+              <h3 className="text-lg font-black text-app-primary tracking-tight">Select a conversation</h3>
+              <p className="text-xs text-app-secondary font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-wider">Choose a contact from your inbox to start a secure encrypted chat session.</p>
             </div>
         ) : messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-700">
-            <div className="w-20 h-20 rounded-[28px] bg-primary-50 flex items-center justify-center mb-6 shadow-sm border border-primary-100">
+            <div className="w-20 h-20 rounded-[28px] bg-surface-2 flex items-center justify-center mb-6 shadow-sm border border-slate-200/50">
               <SparklesIcon className="w-10 h-10 text-primary-600" />
             </div>
-            <h3 className="text-xl font-black text-slate-800 tracking-tight">
+            <h3 className="text-xl font-black text-app-primary tracking-tight">
               {isNanaSession ? "Nana is here to help!" : "No messages yet"}
             </h3>
-            <p className="text-xs text-slate-400 font-bold mt-2 max-w-[240px] leading-relaxed uppercase tracking-widest">
+            <p className="text-xs text-app-secondary font-bold mt-2 max-w-[240px] leading-relaxed uppercase tracking-widest">
               {isNanaSession 
                 ? "Ask about courses, food, or campus events. I'm your KTU specialist!" 
                 : "Your conversation history will appear here. Start by sending a message below."}
@@ -850,7 +850,7 @@ export default function ChatBox({ conversationId }) {
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(null, action.query)}
-                    className="p-3 bg-white border border-slate-100 rounded-2xl text-[11px] font-black text-slate-600 hover:border-primary-300 hover:text-primary-600 transition-all text-left shadow-sm flex items-center gap-2 group"
+                    className="p-3 bg-surface border border-slate-200/50 rounded-2xl text-[11px] font-black text-app-primary hover:border-primary-300 hover:text-primary-600 transition-all text-left shadow-sm flex items-center gap-2 group"
                   >
                     <span className="group-hover:scale-110 transition-transform">{action.label.split(' ')[0]}</span>
                     <span>{action.label.split(' ').slice(1).join(' ')}</span>
@@ -863,7 +863,7 @@ export default function ChatBox({ conversationId }) {
           Object.entries(groupedMessages).map(([date, dateMsgs]) => (
             <div key={date} className="px-2">
               <div className="flex justify-center my-6 sticky top-2 z-10">
-                <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full border border-slate-100 text-[9px] font-black text-slate-400 uppercase tracking-widest shadow-sm">
+                <span className="bg-surface/90 backdrop-blur px-3 py-1 rounded-full border border-slate-200/50 text-[9px] font-black text-app-secondary uppercase tracking-widest shadow-sm">
                   {formatMessageTime(date)}
                 </span>
               </div>
@@ -894,7 +894,7 @@ export default function ChatBox({ conversationId }) {
         )}
         
         {typingUsers.length > 0 && (
-          <div className="px-6 py-3 flex items-center space-x-3 bg-gradient-to-r from-white/80 to-transparent backdrop-blur-sm animate-in fade-in slide-in-from-left-4 duration-500">
+          <div className="px-6 py-3 flex items-center space-x-3 bg-gradient-to-r from-surface/80 to-transparent backdrop-blur-sm animate-in fade-in slide-in-from-left-4 duration-500">
             <div className="flex space-x-1.5 items-center h-4">
               <span className="w-1.5 h-1.5 bg-primary-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
               <span className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
@@ -909,14 +909,14 @@ export default function ChatBox({ conversationId }) {
       </div>
 
       {/* Footer Input Area */}
-      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-white border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] shrink-0 relative">
+      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-surface border-t border-slate-200/50 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] shrink-0 relative">
         {isNanaSession && messages.length > 0 && (
           <div className="flex items-center space-x-2 px-1 mb-3 overflow-x-auto no-scrollbar pb-1">
             {QUICK_ACTIONS.map((action, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSendMessage(null, action.query)}
-                className="whitespace-nowrap px-4 py-2 bg-slate-50 border border-slate-100 rounded-full text-[10px] font-extrabold text-slate-500 hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 transition-all flex items-center gap-1.5 shadow-sm"
+                className="whitespace-nowrap px-4 py-2 bg-surface-2 border border-slate-200/50 rounded-full text-[10px] font-extrabold text-app-secondary hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 transition-all flex items-center gap-1.5 shadow-sm"
               >
                 <span>{action.label.split(' ')[0]}</span>
                 <span>{action.label.split(' ').slice(1).join(' ')}</span>
@@ -935,12 +935,12 @@ export default function ChatBox({ conversationId }) {
         )}
         <form onSubmit={handleSendMessage} className="flex flex-col space-y-2">
           {replyTo && (
-            <div className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border-l-4 border-primary-500 mx-1 mb-1 animate-in slide-in-from-bottom-2">
+            <div className="flex items-center justify-between bg-surface-2 p-2 rounded-xl border-l-4 border-primary-500 mx-1 mb-1 animate-in slide-in-from-bottom-2">
               <div className="flex-1 min-w-0 px-2">
                 <p className="text-[9px] font-black text-primary-600 uppercase tracking-widest">Replying to {replyTo.sender?.name}</p>
-                <p className="text-xs text-slate-500 truncate">{replyTo.content || 'Attachment'}</p>
+                <p className="text-xs text-app-secondary truncate">{replyTo.content || 'Attachment'}</p>
               </div>
-              <button type="button" onClick={() => setReplyTo(null)} className="p-1 text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setReplyTo(null)} className="p-1 text-app-secondary hover:text-app-primary">
                 <XMarkIcon className="w-4 h-4" />
               </button>
             </div>
@@ -963,17 +963,17 @@ export default function ChatBox({ conversationId }) {
                   type="button" 
                   disabled={!canSend}
                   onClick={() => fileInputRef.current?.click()} 
-                  className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-2xl transition-all disabled:opacity-30 disabled:grayscale"
+                  className="p-2.5 text-app-secondary hover:bg-surface-2 rounded-2xl transition-all disabled:opacity-30 disabled:grayscale"
                 >
                   <PaperClipIcon className="w-5 h-5 stroke-[2.5px]" />
                   <input type="file" ref={fileInputRef} className="hidden" onChange={e => setMediaFile(e.target.files[0])} />
                 </button>
                 
-                <div className={`flex-1 flex items-center rounded-[22px] border transition-all p-1 ${!canSend ? 'bg-slate-50 border-slate-100' : 'bg-slate-100 border-transparent focus-within:bg-white focus-within:border-slate-200'}`}>
+                <div className={`flex-1 flex items-center rounded-[22px] border transition-all p-1 ${!canSend ? 'bg-surface-2 border-slate-200/50' : 'bg-surface-2 border-transparent focus-within:bg-white focus-within:border-slate-200'}`}>
                   <button 
                     type="button"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="p-2 text-slate-400 hover:text-primary-600 transition-colors"
+                    className="p-2 text-app-secondary hover:text-primary-600 transition-colors"
                   >
                     <FaceSmileIcon className="w-5 h-5 stroke-[2.2px]" />
                   </button>
@@ -989,7 +989,7 @@ export default function ChatBox({ conversationId }) {
                       }
                     }}
                     placeholder={canSend ? "Message..." : "Only lecturers can post here..."}
-                    className="flex-1 bg-transparent border-none text-sm py-2 px-1 max-h-32 resize-none focus:ring-0 font-medium disabled:text-slate-400"
+                    className="flex-1 bg-transparent border-none text-sm py-2 px-1 max-h-32 resize-none focus:ring-0 font-medium disabled:text-app-secondary"
                     rows={1}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                   />

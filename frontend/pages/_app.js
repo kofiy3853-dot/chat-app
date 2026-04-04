@@ -24,11 +24,10 @@ function ThemeColorSync() {
     // and CSS variables are recalculated by the browser
     const timer = setTimeout(() => {
       const computedStyle = getComputedStyle(document.documentElement);
-      const navbarColor = computedStyle.getPropertyValue('--bg-navbar').trim();
+      const statusBarColor = computedStyle.getPropertyValue('--status-bar').trim();
       
-      if (navbarColor) {
-        // Handle hex, rgb, or named colors
-        setMetaColor(navbarColor);
+      if (statusBarColor) {
+        setMetaColor(statusBarColor);
       }
     }, 100);
     

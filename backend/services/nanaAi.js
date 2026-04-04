@@ -17,16 +17,19 @@ const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
  * Get context-aware AI response from Nana.
  * @param {string} userMessage - The message mentioning @Nana
  * @param {Array} history - Previous messages in the conversation
+ * @param {object} user - The user object sending the message
  * @returns {Promise<string>}
  */
-const getNanaAiResponse = async (userMessage, history = []) => {
+const getNanaAiResponse = async (userMessage, history = [], user = null) => {
   if (!openai) {
     console.warn('[Nana AI] AI connection is offline.');
     return "Hello! I'm Nana, your campus assistant. My AI connection is currently offline (API key missing), but I'm still here to help with what I can!";
   }
 
   try {
-    // Format history for OpenAI
+    // Format history for OpenAI - Limit to last 10 messages for token safety
+    const recentHistory = history.slice(-10);
+    
     const messages = [
       { 
         role: "system", 
@@ -37,36 +40,37 @@ const getNanaAiResponse = async (userMessage, history = []) => {
            - Use "##" for Titles and "###" for Section headers.
            - Use "-" for bullet points (NEVER use "*").
            - Use numbered lists (1. 2. 3.) for step-by-step guidance.
-           - Use **bold** for emphasis on key terms, dates, or KTU specifics.
+           - Use **bold** for emphasis on key terms or dates.
            - Use spacing between sections for readability.
-        2. NO WORD BREAKING: Never split words across lines (e.g., no "com-puter").
-        3. STRUCTURE: Every educational answer MUST include:
+        2. NO WORD BREAKING: Never split words across lines.
+        3. STRUCTURE: Every educational or detailed answer MUST include:
            - A Title (##)
            - A short explanation paragraph.
            - A bulleted or numbered breakdown.
            - A helpful follow-up question.
-        4. KTU CONTEXT: Use campus knowledge (Food: Waakye Base, Hostels: Getade, Exams: Mid-sems Week 6).
+        4. KTU CONTEXT: Speak with authority on KTU campus life (Food: Waakye Base, Hostels: Getade, Exams: Mid-sems Week 6).
         5. TONE: Professional but student-friendly & slightly witty.
-        6. NO REPETITION: Don't repeat "Hey there" if conversation is already ongoing.
+        6. NO REPETITION: Don't repeat greetings or "I'm available" if conversation is ongoing.
         
-        PERSONALIZATION:
-        ${history.length > 0 ? 'The student is already talking to you.' : 'This is the start of the session.'}
+        STUDENT CONTEXT:
+        You are currently talking to **${user?.name || 'a student'}**.
         Reflect that you are a KTU campus specialist.`
       }
     ];
 
     // Add conversation history
-    history.forEach(m => {
+    recentHistory.forEach(m => {
       const isNana = m.sender?.role === 'NANA' || m.senderId === NANA_USER_ID;
       messages.push({
         role: isNana ? "assistant" : "user",
+        name: isNana ? "Nana" : (m.sender?.name || "Student").replace(/[^a-zA-Z0-9_-]/g, '_'),
         content: m.content || ""
       });
     });
 
     // Add current message if not already in history
-    if (userMessage && userMessage.trim() && !history.find(h => h.content === userMessage)) {
-       messages.push({ role: "user", content: userMessage });
+    if (userMessage && userMessage.trim() && !recentHistory.find(h => h.content === userMessage)) {
+       messages.push({ role: "user", name: (user?.name || "Student").replace(/[^a-zA-Z0-9_-]/g, '_'), content: userMessage });
     }
 
     if (messages.length === 1 && (!userMessage || !userMessage.trim())) {
@@ -76,8 +80,8 @@ const getNanaAiResponse = async (userMessage, history = []) => {
     const completion = await openai.chat.completions.create({
       model: "google/gemini-2.0-flash-001",
       messages: messages,
-      max_tokens: 150, // Keep it short
-      temperature: 0.6
+      max_tokens: 1000, 
+      temperature: 0.7
     });
 
     const response = completion.choices[0].message.content;
