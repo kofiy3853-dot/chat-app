@@ -239,7 +239,7 @@ const MessageBubble = React.memo(({
               </div>
             )}
 
-            <div className={`flex items-center mt-1.5 space-x-1 justify-end text-black/40`}>
+            <div className={`flex items-center mt-1.5 space-x-1 justify-end ${isMine ? 'text-white/60' : 'text-black/40'}`}>
               <span className="text-[9px] font-bold italic">{timestamp}</span>
               {isMine && (
                 isTemp ? (

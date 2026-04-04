@@ -30,9 +30,11 @@
   --border:          #e5e7eb;
   --border-light:    #f3f4f6;
 
-  /* ── Chat Bubbles (Both use light gray and black text per request) ── */
-  --bubble-bg:       #F5F5F5;
-  --bubble-text:     #000000;
+  /* ── Chat Bubbles ── */
+  --bubble-me-bg:    #2E8BC0;
+  --bubble-me-text:  #ffffff;
+  --bubble-other-bg: #F5F5F5;
+  --bubble-other-text:#000000;
   --bubble-radius:   18px;
 
   color-scheme: light only;
@@ -107,14 +109,15 @@ header.sticky {
 
 .chat-bubble-me {
   border-bottom-right-radius: 4px;
-  background-color: var(--bubble-bg);
-  color: var(--bubble-text);
+  background-color: var(--bubble-me-bg);
+  color: var(--bubble-me-text);
+  box-shadow: 0 4px 12px var(--primary-shadow);
 }
 
 .chat-bubble-other {
   border-bottom-left-radius: 4px;
-  background-color: var(--bubble-bg);
-  color: var(--bubble-text);
+  background-color: var(--bubble-other-bg);
+  color: var(--bubble-other-text);
 }
 
 /* ═══════════════════════ Typography ════════════════════════ */
