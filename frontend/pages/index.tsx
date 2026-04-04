@@ -220,14 +220,14 @@ const MessagesPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans pt-[max(env(safe-area-inset-top,0px),124px)]" style={{ backgroundColor: 'var(--bg-page)' }}>
+    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans pt-[max(env(safe-area-inset-top,0px),64px)]" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Head>
         <title>Messages | Campus Chat</title>
       </Head>
 
       {/* ─── Header ─── */}
       <header 
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-4 pt-[max(env(safe-area-inset-top,0px),40px)] pb-3 border-b transition-all"
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),12px)] pb-2 border-b h-14"
         style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
       >
         <div className="flex items-center justify-between mb-3">
@@ -235,7 +235,7 @@ const MessagesPage: React.FC = () => {
           <button
             onClick={() => router.push('/account')}
             aria-label="Profile"
-            className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active:scale-95 transition-all bg-white"
+            className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active:scale-95 transition-all bg-white"
           >
             {avatarUrl && !imgError ? (
               <img 

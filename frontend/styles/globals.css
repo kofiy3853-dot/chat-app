@@ -275,7 +275,7 @@ header.sticky {
   color: var(--bubble-text);
   padding: 10px 14px;
   border-radius: var(--bubble-radius);
-  max-width: 85%;
+  max-width: 100%;
   width: fit-content;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   

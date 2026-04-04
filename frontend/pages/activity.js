@@ -177,17 +177,17 @@ export default function Activity() {
   }
 
   return (
-    <div className="min-h-screen pb-24 pt-28" style={{ backgroundColor: 'var(--bg-page)' }}>
+    <div className="min-h-screen pb-24 pt-16" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Head>
         <title>Activity | Campus Chat</title>
       </Head>
 
       {/* Header - Fixed Unified Theme */}
       <header 
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-4 pt-[max(env(safe-area-inset-top,0px),16px)] pb-3 border-b transition-all"
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-1.5 flex flex-col border-b h-16"
         style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
       >
-        <div className="flex items-center justify-between mb-3 px-2">
+        <div className="flex items-center justify-between mb-1 px-2 flex-1">
           <div>
             <h1 className="text-xl font-black tracking-tight leading-tight" style={{ color: 'var(--text-navbar)' }}>Activity</h1>
             <div className="flex items-center space-x-1.5 mt-0.5">

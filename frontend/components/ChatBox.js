@@ -101,7 +101,7 @@ const MessageBubble = React.memo(({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div className={`flex ${isNana ? 'w-full' : 'max-w-[90%]'} items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+      <div className={`flex w-full items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
         {!isNana && (
           <div className="relative group shrink-0">
             <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role?.toUpperCase() === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
@@ -831,28 +831,28 @@ export default function ChatBox({ conversationId }) {
               <p className="text-xs text-app-secondary font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-wider">Choose a contact from your inbox to start a secure encrypted chat session.</p>
             </div>
         ) : messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-700">
-            <div className="w-20 h-20 rounded-[28px] bg-surface-2 flex items-center justify-center mb-6 border border-slate-200/50">
-              <SparklesIcon className="w-10 h-10 text-primary-600" />
+          <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-surface-2 flex items-center justify-center mb-3 border border-slate-200/50">
+              <SparklesIcon className="w-6 h-6 text-primary-600" />
             </div>
-            <h3 className="text-xl font-black text-app-primary tracking-tight">
+            <h3 className="text-sm font-black text-app-primary tracking-tight">
               {isNanaSession ? "Nana is here to help!" : "No messages yet"}
             </h3>
-            <p className="text-xs text-app-secondary font-bold mt-2 max-w-[240px] leading-relaxed uppercase tracking-widest">
+            <p className="text-[10px] text-app-secondary font-bold mt-1 max-w-[240px] leading-relaxed uppercase tracking-widest">
               {isNanaSession 
-                ? "Ask about courses, food, or campus events. I'm your KTU specialist!" 
-                : "Your conversation history will appear here. Start by sending a message below."}
+                ? "Ask about courses, food, or campus events." 
+                : "Your conversation history will appear here."}
             </p>
             
             {isNanaSession && (
-              <div className="mt-8 grid grid-cols-1 gap-2 w-full max-w-xs">
+              <div className="mt-4 grid grid-cols-1 gap-1.5 w-full max-w-xs">
                 {QUICK_ACTIONS.slice(0, 3).map((action, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(null, action.query)}
-                    className="p-3 bg-surface border border-slate-200/50 rounded-2xl text-[11px] font-black text-app-primary hover:border-primary-300 hover:text-primary-600 transition-all text-left flex items-center gap-2 group"
+                    className="p-2 bg-surface border border-slate-200/50 rounded-xl text-[10px] font-black text-app-primary text-left flex items-center gap-2 group"
                   >
-                    <span className="group-hover:scale-110 transition-transform">{action.label.split(' ')[0]}</span>
+                    <span>{action.label.split(' ')[0]}</span>
                     <span>{action.label.split(' ').slice(1).join(' ')}</span>
                   </button>
                 ))}
@@ -969,7 +969,7 @@ export default function ChatBox({ conversationId }) {
                   <input type="file" ref={fileInputRef} className="hidden" onChange={e => setMediaFile(e.target.files[0])} />
                 </button>
                 
-                <div className={`flex-1 flex items-center rounded-[22px] border transition-all p-1 ${!canSend ? 'bg-surface-2 border-slate-200/50' : 'bg-surface-2 border-transparent focus-within:bg-white focus-within:border-slate-200'}`}>
+                <div className="flex-1 flex items-center rounded-2xl bg-surface-2 p-1">
                   <button 
                     type="button"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -989,7 +989,7 @@ export default function ChatBox({ conversationId }) {
                       }
                     }}
                     placeholder={canSend ? "Message..." : "Only lecturers can post here..."}
-                    className="flex-1 bg-transparent border-none text-sm py-2 px-1 max-h-32 resize-none focus:ring-0 font-medium disabled:text-app-secondary"
+                    className="flex-1 bg-transparent border-none text-sm py-2 px-1 max-h-32 resize-none focus:ring-0 focus:outline-none outline-none font-medium disabled:text-app-secondary"
                     rows={1}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                   />

@@ -119,7 +119,7 @@ export default function Account() {
       
       <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--bg-page)' }}>
         {/* Header - Royal Blue */}
-        <header className="sticky top-0 z-30 bg-primary-600 px-4 pt-[max(env(safe-area-inset-top,0px),40px)] pb-5 shadow-md transition-all">
+        <header className="sticky top-0 z-30 bg-primary-600 px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-2 h-14 shadow-md transition-all">
           <div className="max-w-xl mx-auto px-2">
             <h1 className="text-xl font-black text-white tracking-tight leading-tight">Account</h1>
             <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest mt-0.5">Academic Profile & Settings</p>

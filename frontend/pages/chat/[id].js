@@ -220,14 +220,14 @@ export default function ChatPage() {
 
   return (
     <>
-      <div className="flex flex-col h-screen bg-page relative transition-all duration-500 overflow-hidden pt-[max(env(safe-area-inset-top,0px),100px)]">
+      <div className="flex flex-col h-screen bg-page relative transition-all duration-500 overflow-hidden pt-[max(env(safe-area-inset-top,0px),56px)]">
         <Head>
           <title>{name} | Campus Chat</title>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         </Head>
 
         <header
-          className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-4 pt-[max(env(safe-area-inset-top,0px),16px)] pb-4 flex items-center justify-between border-b transition-all shadow-none"
+          className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-1.5 flex items-center justify-between border-b h-14"
           style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
         >
           {/* Left: back + avatar + name */}
@@ -242,16 +242,10 @@ export default function ChatPage() {
 
               <div
                 className="flex items-center space-x-3 cursor-pointer min-w-0"
-                onClick={() => {
-                  if (otherParticipant?.user?.role === 'NANA') {
-                    router.push('/nana');
-                  } else {
-                    setShowProfile(true);
-                  }
-                }}
+                onClick={() => setShowProfile(true)}
               >
               <div className="relative">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold overflow-hidden ring-2 ring-white/30"
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold overflow-hidden ring-2 ring-white/30"
                   style={{ 
                     background: otherParticipant?.user?.role === 'NANA' ? 'linear-gradient(to top right, var(--primary), var(--indigo))' : 'rgba(255,255,255,0.2)',
                     color: '#ffffff'
@@ -411,8 +405,9 @@ export default function ChatPage() {
               <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
                 {/* Giant Avatar */}
                 <div className="relative mb-6 group">
-                  <div className={`w-32 h-32 rounded-3xl flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden bg-slate-100`}>
+                  <div className={`w-32 h-32 rounded-3xl flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden bg-slate-100 ${otherParticipant?.user?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600' : ''}`}>
                     {(() => {
+                      if (otherParticipant?.user?.role === 'NANA') return <div className="text-white">N</div>;
                       const avatar = otherParticipant?.user?.avatar;
                       const fullUrl = getFullFileUrl(avatar);
                       return (
@@ -454,20 +449,22 @@ export default function ChatPage() {
                 </p>
 
                 {/* Quick Actions Card */}
-                <div className="w-full bg-slate-50 rounded-2xl p-4 mt-8 flex justify-around border border-slate-100">
-                  <button onClick={() => { setShowProfile(false); handleStartCall('VOICE'); }} className="flex flex-col items-center space-y-2 group">
-                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-primary-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-all border border-slate-100">
-                      <PhoneIcon className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary-500">Audio</span>
-                  </button>
-                  <button onClick={() => { setShowProfile(false); handleStartCall('VIDEO'); }} className="flex flex-col items-center space-y-2 group">
-                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-emerald-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all border border-slate-100">
-                      <VideoCameraIcon className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-emerald-500">Video</span>
-                  </button>
-                </div>
+                {otherParticipant?.user?.role !== 'NANA' && (
+                  <div className="w-full bg-slate-50 rounded-2xl p-4 mt-8 flex justify-around border border-slate-100">
+                    <button onClick={() => { setShowProfile(false); handleStartCall('VOICE'); }} className="flex flex-col items-center space-y-2 group">
+                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-primary-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-all border border-slate-100">
+                        <PhoneIcon className="w-5 h-5" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary-500">Audio</span>
+                    </button>
+                    <button onClick={() => { setShowProfile(false); handleStartCall('VIDEO'); }} className="flex flex-col items-center space-y-2 group">
+                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-emerald-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all border border-slate-100">
+                        <VideoCameraIcon className="w-5 h-5" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-emerald-500">Video</span>
+                    </button>
+                  </div>
+                )}
               </div>
           </div>
         </>

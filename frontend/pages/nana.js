@@ -7,7 +7,8 @@ import {
   ArrowLeftIcon,
   CpuChipIcon,
   ShieldCheckIcon,
-  CommandLineIcon
+  CommandLineIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { chatAPI } from '../services/api';
 import ChatBox from '../components/ChatBox';
@@ -18,6 +19,7 @@ export default function NanaPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [conversationId, setConversationId] = useState(null);
   const [showTerminalOverlay, setShowTerminalOverlay] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -174,14 +176,14 @@ export default function NanaPage() {
 
   // --- 🎓 STUDENT CHAT VIEW (Simple & Direct Fix) ---
   return (
-    <div className="flex flex-col h-screen bg-app relative transition-all duration-500 overflow-hidden pt-24">
+    <div className="flex flex-col h-screen bg-app relative transition-all duration-500 overflow-hidden pt-14">
       <Head>
         <title>Nana AI | Campus Chat</title>
       </Head>
 
       {/* Header - Theme Aware */}
       <header 
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] p-4 flex items-center justify-between border-b transition-all"
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-1.5 flex items-center justify-between border-b h-14"
         style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
       >
         <div className="flex items-center space-x-4">
@@ -193,10 +195,10 @@ export default function NanaPage() {
             <ArrowLeftIcon className="w-5 h-5" />
           </button>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setShowProfile(true)}>
             <div className="relative">
-              <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-primary-600 font-black text-xl p-0.5 border border-slate-100">
-                <div className="w-full h-full rounded-xl bg-primary-600 flex items-center justify-center text-white">N</div>
+              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-primary-600 font-black text-[12px] p-0.5 border border-slate-100">
+                <div className="w-full h-full rounded-xl bg-gradient-to-tr from-primary-500 to-indigo-600 flex items-center justify-center text-white">N</div>
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm flex items-center justify-center">
                 <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
@@ -280,6 +282,45 @@ export default function NanaPage() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Nana Profile Modal */}
+      {showProfile && (
+        <>
+          <div
+            onClick={() => setShowProfile(false)}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998]"
+          />
+          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-[99999] flex flex-col border-l border-slate-100">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+              <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">AI Hub Info</h2>
+              <button onClick={() => setShowProfile(false)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-600 shadow-sm border border-slate-100 transition-all hover:scale-105">
+                <XMarkIcon className="w-5 h-5 stroke-[3px]" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
+              <div className="relative mb-6 group">
+                <div className="w-32 h-32 rounded-3xl flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden bg-gradient-to-tr from-primary-500 to-indigo-600">
+                  N
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full shadow-lg flex items-center justify-center">
+                  <span className="w-2.5 h-2.5 bg-white rounded-full animate-pulse px-0"></span>
+                </div>
+              </div>
+
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight text-center">Nana AI</h1>
+              <div className="mt-1 px-3 py-1 bg-slate-50 border border-slate-100 rounded-lg">
+                <p className="text-[11px] font-black text-slate-500 italic uppercase">
+                  "Campus Specialist"
+                </p>
+              </div>
+              <p className="text-sm font-bold uppercase tracking-widest mt-3 text-green-500">
+                Online & Secure
+              </p>
+            </div>
+          </div>
+        </>
+      )}
 
       <style jsx global>{`
         /* Custom scrollbar for terminal */
