@@ -40,6 +40,7 @@
   --bg-surface:      #121212;
   --bg-surface-2:    #1a1a1a;
   --bg-input:        #1e1e1e;
+  --bg-navbar:       #121212;
   --text-primary:    #ffffff;
   --text-secondary:  #a0a0a0;
   --text-muted:      #606060;
@@ -54,6 +55,7 @@
   --bg-surface:      #0f172a;
   --bg-surface-2:    #1e293b;
   --bg-input:        #1e293b;
+  --bg-navbar:       #0f172a;
   --text-primary:    #f1f5f9;
   --text-secondary:  #94a3b8;
   --border:          #1e293b;
@@ -175,8 +177,8 @@
 
 /* ═══════════════════════ Safe Area Support ══════════════════ */
 :root {
-  --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .safe-top {

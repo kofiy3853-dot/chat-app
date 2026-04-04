@@ -10,7 +10,37 @@ import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'react-hot-toast';
 import useAuthRedirect from '../hooks/useAuthRedirect';
 import { BellIcon } from '@heroicons/react/24/outline';
+import Head from 'next/head';
+import { useTheme } from '../context/ThemeContext';
 import '../styles/globals.css';
+
+// Dynamic theme-color sync for mobile status bar
+function ThemeColorSync() {
+  const { theme } = useTheme();
+  const [metaColor, setMetaColor] = useState('#2e8bc0');
+
+  useEffect(() => {
+    // 0.1s delay to ensure the data-theme attribute is applied to the DOM 
+    // and CSS variables are recalculated by the browser
+    const timer = setTimeout(() => {
+      const computedStyle = getComputedStyle(document.documentElement);
+      const navbarColor = computedStyle.getPropertyValue('--bg-navbar').trim();
+      
+      if (navbarColor) {
+        // Handle hex, rgb, or named colors
+        setMetaColor(navbarColor);
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [theme]);
+
+  return (
+    <Head>
+      <meta name="theme-color" content={metaColor} />
+    </Head>
+  );
+}
 
 const CallInterface = dynamic(() => import('../components/CallInterface'), { ssr: false });
 
@@ -245,6 +275,7 @@ export default function MyApp({ Component, pageProps }) {
   return (
     <ThemeProvider>
     <CallProvider>
+      <ThemeColorSync />
       <div className="min-h-screen font-['Outfit',sans-serif]" style={{ backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
         <Toaster 
           position="top-center"

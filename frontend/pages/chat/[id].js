@@ -222,7 +222,7 @@ export default function ChatPage() {
     <>
       <Head>
         <title>{name} | Campus Chat</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
       </Head>
 
       <div className="max-w-xl mx-auto h-full flex-1 overflow-hidden flex flex-col shadow-2xl relative bg-app w-full border-x border-slate-100">
