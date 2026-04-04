@@ -4,12 +4,13 @@ export const AVAILABLE_THEMES = [
   { id: 'light', name: 'Light Mode', color: '#ffffff', textColor: '#2e8bc0' },
   { id: 'dark', name: 'Dark Mode', color: '#1a1a1a', textColor: '#ffffff' },
   { id: 'midnight', name: 'Midnight', color: '#0f172a', textColor: '#38bdf8' },
-  { id: 'cream', name: 'Cream', color: '#fcfaf6', textColor: '#7b7167' },
+  { id: 'red', name: 'Crimson', color: '#7f1d1d', textColor: '#fca5a5' },
+  { id: 'blue', name: 'Cobalt', color: '#1e3a8a', textColor: '#93c5fd' },
+  { id: 'yellow', name: 'Amber', color: '#78350f', textColor: '#fcd34d' },
+  { id: 'orange', name: 'Coral', color: '#7c2d12', textColor: '#fdba74' },
+  { id: 'pink', name: 'Sakura', color: '#831843', textColor: '#f9a8d4' },
+  { id: 'violet', name: 'Amethyst', color: '#4c1d95', textColor: '#c4b5fd' },
   { id: 'forest', name: 'Forest', color: '#0a0f0d', textColor: '#10b981' },
-  { id: 'ocean', name: 'Deep Ocean', color: '#112534', textColor: '#0ea5e9' },
-  { id: 'sunset', name: 'Sunset', color: '#1a130f', textColor: '#f59e0b' },
-  { id: 'royal', name: 'Royal', color: '#2e8bc0', textColor: '#ffffff' },
-  { id: 'ghost', name: 'Ghost', color: '#f1f5f9', textColor: '#64748b' },
   { id: 'matrix', name: 'Matrix', color: '#050505', textColor: '#00ff41' }
 ];
 
