@@ -8,10 +8,10 @@
    ═══════════════════════════════════════════════════════ */
 :root {
   /* ── Brand ── */
-  --primary:         #3ABEF9;   /* KTU Light Blue — navbar, buttons, highlights */
-  --primary-dark:    #00a3ff;
-  --primary-light:   #e0f5ff;
-  --primary-shadow:  rgba(58, 190, 249, 0.2);
+  --primary: #2563eb;           /* Classic Royal Blue */
+  --primary-hover: #1d4ed8;
+  --primary-light: #eff6ff;
+  --primary-shadow: rgba(37, 99, 235, 0.2);
 
   /* ── Surfaces ── */
   --bg-page:         #ffffff;   /* Pure white background as requested */

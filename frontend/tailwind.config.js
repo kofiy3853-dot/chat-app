@@ -11,27 +11,27 @@ module.exports = {
       },
       colors: {
         primary: {
-          50:  '#f0faff',
-          100: '#e0f5ff',
-          200: '#baeaff',
-          300: '#7ccbff',
-          400: '#3abef9',   // Light Sky Blue (New Primary)
-          500: '#3abef9',   // Primary brand
-          600: '#00a3ff',   // Vibrant deep sky blue
-          700: '#0085d6',
-          800: '#0067a9',
-          900: '#004a7c',
+          50:  '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',   // Standard Royal Blue (New Primary)
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
         },
         ktu: {
           orange: '#E77917',
-          blue:   '#3ABEF9',
+          blue:   '#2563eb',
         },
         soft: {
           bg:      '#ffffff',
           card:    '#ffffff',
-          primary: '#3ABEF9',
+          primary: '#2563eb',
           secondary: '#E77917',
-          accent:  '#00a3ff',
+          accent:  '#1d4ed8',
           text: {
             primary:   '#111827',
             secondary: '#6b7280',
