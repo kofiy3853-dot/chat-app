@@ -63,90 +63,101 @@
 }
 
 [data-theme="red"] {
-  --primary-600:     #dc2626; /* Crimson Red */
-  --primary-500:     #dc2626;
-  --primary-700:     #991b1b;
+  --primary:         #dc2626; /* Crimson Red */
+  --primary-hover:   #b91c1c;
+  --bg-navbar:       #dc2626;
+  --primary-shadow:  rgba(220, 38, 38, 0.2);
   --bg-page:         #fcfcfc;
   --bg-surface:      #ffffff;
-  --bg-surface-2:    #f8fafc;
+  --bg-surface-2:    #fff5f5;
   --text-primary:    #0f172a;
   --text-secondary:  #64748b;
-  --border:          #f1f5f9;
-  --bubble-other-bg: #f1f5f9;
-  --bubble-other-text:#1e293b;
+  /* Also update Tailwind variables for utility classes */
+  --primary-500:     #dc2626;
+  --primary-600:     #dc2626;
+  --primary-700:     #991b1b;
 }
 
 [data-theme="blue"] {
-  --primary-600:     #2563eb; /* Cobalt Blue */
-  --primary-500:     #2563eb;
-  --primary-700:     #1d4ed8;
+  --primary:         #2563eb; /* Cobalt Blue */
+  --primary-hover:   #1d4ed8;
+  --bg-navbar:       #2563eb;
+  --primary-shadow:  rgba(37, 99, 235, 0.2);
   --bg-page:         #fcfcfc;
   --bg-surface:      #ffffff;
   --bg-surface-2:    #f8faff;
   --text-primary:    #0f172a;
   --text-secondary:  #64748b;
-  --border:          #eff6ff;
-  --bubble-other-bg: #f1f5f9;
-  --bubble-other-text:#1e293b;
+  --primary-500:     #2563eb;
+  --primary-600:     #2563eb;
+  --primary-700:     #1d4ed8;
 }
 
 [data-theme="yellow"] {
-  --primary-600:     #d97706; /* Amber Gold */
-  --primary-500:     #d97706;
-  --primary-700:     #b45309;
+  --primary:         #d97706; /* Amber Gold */
+  --primary-hover:   #b45309;
+  --bg-navbar:       #d97706;
+  --primary-shadow:  rgba(217, 119, 6, 0.2);
   --bg-page:         #ffffff;
   --bg-surface:      #ffffff;
   --bg-surface-2:    #fffbeb;
   --text-primary:    #0f172a;
   --text-secondary:  #64748b;
-  --border:          #fef3c7;
-  --bubble-other-bg: #f3f4f6;
-  --bubble-other-text:#1e293b;
+  --primary-500:     #d97706;
+  --primary-600:     #d97706;
+  --primary-700:     #b45309;
 }
 
 [data-theme="orange"] {
-  --primary-600:     #ea580c; /* Coral Orange */
-  --primary-500:     #ea580c;
-  --primary-700:     #c2410c;
+  --primary:         #ea580c; /* Coral Orange */
+  --primary-hover:   #c2410c;
+  --bg-navbar:       #ea580c;
+  --primary-shadow:  rgba(234, 88, 12, 0.2);
   --bg-page:         #ffffff;
   --bg-surface:      #ffffff;
   --bg-surface-2:    #fff7ed;
   --text-primary:    #0f172a;
   --text-secondary:  #64748b;
-  --border:          #ffedd5;
-  --bubble-other-bg: #f3f4f6;
-  --bubble-other-text:#1e293b;
+  --primary-500:     #ea580c;
+  --primary-600:     #ea580c;
+  --primary-700:     #c2410c;
 }
 
 [data-theme="pink"] {
-  --primary-600:     #db2777; /* Sakura Pink */
-  --primary-500:     #db2777;
-  --primary-700:     #be185d;
+  --primary:         #db2777; /* Sakura Pink */
+  --primary-hover:   #be185d;
+  --bg-navbar:       #db2777;
+  --primary-shadow:  rgba(219, 39, 119, 0.2);
   --bg-page:         #ffffff;
   --bg-surface:      #ffffff;
   --bg-surface-2:    #fff1f2;
   --text-primary:    #0f172a;
   --text-secondary:  #64748b;
-  --border:          #ffe4e6;
-  --bubble-other-bg: #f3f4f6;
-  --bubble-other-text:#1e293b;
+  --primary-500:     #db2777;
+  --primary-600:     #db2777;
+  --primary-700:     #be185d;
 }
 
 [data-theme="violet"] {
-  --primary-600:     #7c3aed; /* Amethyst Violet */
-  --primary-500:     #7c3aed;
-  --primary-700:     #6d28d9;
+  --primary:         #7c3aed; /* Amethyst Violet */
+  --primary-hover:   #6d28d9;
+  --bg-navbar:       #7c3aed;
+  --primary-shadow:  rgba(124, 58, 237, 0.2);
   --bg-page:         #ffffff;
   --bg-surface:      #ffffff;
   --bg-surface-2:    #f5f3ff;
   --text-primary:    #0f172a;
   --text-secondary:  #64748b;
-  --border:          #ede9fe;
-  --bubble-other-bg: #f3f4f6;
-  --bubble-other-text:#1e293b;
+  --primary-500:     #7c3aed;
+  --primary-600:     #7c3aed;
+  --primary-700:     #6d28d9;
 }
 
 [data-theme="matrix"] {
+  --primary:         #00ff41;
+  --primary-hover:   #00cc33;
+  --bg-navbar:       #000000;
+  --primary-shadow:  rgba(0, 255, 65, 0.1);
   --bg-page:         #000000;
   --bg-surface:      #050505;
   --bg-surface-2:    #0a0a0a;
@@ -156,6 +167,9 @@
   --border:          #003b00;
   --bubble-other-bg: #0f0f0f;
   --bubble-other-text:#00ff41;
+  --primary-500:     #00ff41;
+  --primary-600:     #00ff41;
+  --primary-700:     #008f11;
   color-scheme: dark;
 }
 
