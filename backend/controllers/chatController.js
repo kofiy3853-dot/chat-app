@@ -31,6 +31,7 @@ exports.getConversations = async (req, res) => {
                 id: true,
                 name: true,
                 avatar: true,
+                role: true,
                 isOnline: true,
                 lastSeen: true
               }
@@ -43,7 +44,8 @@ exports.getConversations = async (req, res) => {
               select: {
                 id: true,
                 name: true,
-                avatar: true
+                avatar: true,
+                role: true
               }
             },
             readReceipts: true
@@ -217,6 +219,7 @@ exports.getOrCreateDirectConversation = async (req, res) => {
               id: true,
               name: true,
               avatar: true,
+              role: true,
               isOnline: true,
               lastSeen: true
             }
@@ -310,6 +313,7 @@ exports.createGroupConversation = async (req, res) => {
                 id: true,
                 name: true,
                 avatar: true,
+                role: true,
                 isOnline: true,
                 lastSeen: true
               }
@@ -339,6 +343,7 @@ exports.getConversationById = async (req, res) => {
                 id: true,
                 name: true,
                 avatar: true,
+                role: true,
                 isOnline: true,
                 lastSeen: true
               }
@@ -393,7 +398,8 @@ exports.getMessages = async (req, res) => {
           select: {
             id: true,
             name: true,
-            avatar: true
+            avatar: true,
+            role: true
           }
         },
         replyTo: {

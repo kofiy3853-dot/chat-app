@@ -32,7 +32,7 @@ model User {
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
   courseInstructor  Course[]      @relation("CourseInstructor")
-  courses           Course[]      @relation("CourseStudents")
+  memberships       CourseMembership[] @relation("UserMemberships")
   conversations     ConversationParticipant[]
   uploadedMaterials Material[]    @relation("MaterialUploader")
   submissions       Submission[]
@@ -197,11 +197,30 @@ model Course {
 
   instructorId String
   instructor   User         @relation("CourseInstructor", fields: [instructorId], references: [id])
-  students     User[]       @relation("CourseStudents")
+  memberships  CourseMembership[]
   conversation Conversation?
   messages     Message[]    @relation("CourseMessages")
   materials    Material[]
   assignments  Assignment[]
+}
+
+model CourseMembership {
+  id        String   @id @default(uuid())
+  role      CourseRole @default(STUDENT)
+  joinedAt  DateTime @default(now())
+
+  userId    String
+  user      User     @relation("UserMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("course_memberships")
+}
+
+enum CourseRole {
+  STUDENT
+  COURSE_REP
 }
 
 model Material {

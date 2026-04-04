@@ -509,7 +509,23 @@ const MessageBubble = React.memo(({
           </div>
 
         <div className={`flex flex-col min-w-0 ${isMine ? 'items-end' : 'items-start'}`}>
-          {showSender && !isMine && <span className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">{message.sender?.name}</span>}
+          {showSender && !isMine && (
+            <div className="flex items-center space-x-1.5 mb-1 ml-1 uppercase">
+              <span className="text-[10px] font-bold text-slate-400">{message.sender?.name}</span>
+              {message.sender?.role === 'LECTURER' && (
+                <span className="text-[8px] font-black px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-md border border-rose-100 flex items-center">
+                  <CheckBadgeIcon className="w-2.5 h-2.5 mr-0.5" />
+                  LECTURER
+                </span>
+              )}
+              {message.sender?.role === 'COURSE_REP' && (
+                <span className="text-[8px] font-black px-1.5 py-0.5 bg-primary-50 text-primary-600 rounded-md border border-primary-100 flex items-center">
+                   <div className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-pulse mr-1" />
+                   COURSE REP
+                </span>
+              )}
+            </div>
+          )}
           
           <div 
             onMouseDown={(e) => {

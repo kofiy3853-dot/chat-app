@@ -9,21 +9,25 @@ exports.getCourses = async (req, res) => {
     const userRole = req.user.role;
 
     let courses;
-    if (userRole === 'INSTRUCTOR' || userRole === 'ADMIN') {
+    if (userRole === 'LECTURER' || userRole === 'ADMIN') {
       courses = await prisma.course.findMany({
         where: { instructorId: userId },
         include: {
           instructor: { select: { id: true, name: true, avatar: true } },
-          students: { select: { id: true, name: true, avatar: true } }
+          memberships: { 
+            include: { user: { select: { id: true, name: true, avatar: true } } }
+          }
         },
         orderBy: { createdAt: 'desc' }
       });
     } else {
       courses = await prisma.course.findMany({
-        where: { students: { some: { id: userId } } },
+        where: { memberships: { some: { userId } } },
         include: {
           instructor: { select: { id: true, name: true, avatar: true } },
-          students: { select: { id: true, name: true, avatar: true } }
+          memberships: { 
+            include: { user: { select: { id: true, name: true, avatar: true, role: true } } }
+          }
         },
         orderBy: { createdAt: 'desc' }
       });
@@ -56,9 +60,11 @@ exports.getCourseById = async (req, res) => {
     // Check if user has access
     const userId = req.user.id;
     const isInstructor = course.instructorId === userId;
-    const isStudent = course.students.some(s => s.id === userId);
+    const membership = await prisma.courseMembership.findUnique({
+      where: { userId_courseId: { userId, courseId: req.params.id } }
+    });
 
-    if (!isInstructor && !isStudent && req.user.role !== 'ADMIN') {
+    if (!isInstructor && !membership && req.user.role !== 'ADMIN') {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -153,9 +159,12 @@ exports.joinCourse = async (req, res) => {
 
     // Add student to course and conversation
     await prisma.$transaction([
-      prisma.course.update({
-        where: { id: course.id },
-        data: { students: { connect: { id: userId } } }
+      prisma.courseMembership.create({
+        data: {
+          userId: userId,
+          courseId: course.id,
+          role: 'STUDENT'
+        }
       }),
       prisma.conversationParticipant.create({
         data: {
@@ -605,5 +614,51 @@ exports.postAnnouncement = async (req, res) => {
     res.status(201).json({ message: announcement });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Assign Course Representative (LECURER only)
+exports.assignCourseRep = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { studentId, remove = false } = req.body;
+
+    const course = await prisma.course.findUnique({ where: { id } });
+    if (course.instructorId !== req.user.id && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Only instructors can assign reps' });
+    }
+
+    const updatedMembership = await prisma.courseMembership.update({
+      where: { userId_courseId: { userId: studentId, courseId: id } },
+      data: { role: remove ? 'STUDENT' : 'COURSE_REP' }
+    });
+
+    res.json({ message: remove ? 'Representative role removed' : 'Course Representative assigned', membership: updatedMembership });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update role', error: error.message });
+  }
+};
+
+// Toggle Chat Lock (LECTURER only)
+exports.lockChat = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { locked } = req.body;
+
+    const course = await prisma.course.findUnique({ where: { id } });
+    if (course.instructorId !== req.user.id && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Only instructors can lock chat' });
+    }
+
+    const updatedCourse = await prisma.course.update({
+      where: { id },
+      data: { announcementsOnly: locked }
+    });
+
+    if (req.io) req.io.to(`course:${id}`).emit('chat-lock-updated', { locked, courseId: id });
+
+    res.json({ message: locked ? 'Chat locked (Announcements Only)' : 'Chat unlocked', course: updatedCourse });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to lock chat', error: error.message });
   }
 };

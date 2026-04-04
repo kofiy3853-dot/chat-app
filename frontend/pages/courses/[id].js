@@ -41,6 +41,7 @@ export default function CoursePage() {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isInstructor, setIsInstructor] = useState(false);
+  const [isCourseRep, setIsCourseRep] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   
   // Data States
@@ -96,7 +97,9 @@ export default function CoursePage() {
 
   useEffect(() => {
     if (course && currentUser) {
-      setIsInstructor(course.instructorId === currentUser.id);
+      setIsInstructor(course.instructorId === currentUser.id || currentUser.role === 'ADMIN');
+      const membership = course.memberships?.find(m => m.userId === currentUser.id);
+      setIsCourseRep(membership?.role === 'COURSE_REP');
     }
   }, [course, currentUser]);
 
@@ -169,6 +172,24 @@ export default function CoursePage() {
       setAnnouncements(prev => [res.data.message, ...prev]);
     } catch (err) {
       alert('Failed to post announcement');
+    }
+  };
+
+  const handleLockChat = async (locked) => {
+    try {
+      await courseAPI.lockChat(id, locked);
+      setCourse(prev => ({ ...prev, announcementsOnly: locked }));
+    } catch (err) {
+      alert('Failed to update chat status');
+    }
+  };
+
+  const handleAssignRep = async (studentId, remove = false) => {
+    try {
+       await courseAPI.assignRep(id, studentId, remove);
+       fetchCourseData(); // Refresh students list and roles
+    } catch (err) {
+       alert('Failed to update representative role');
     }
   };
 
@@ -326,6 +347,31 @@ export default function CoursePage() {
                       </div>
                    </div>
                 </div>
+
+                {isInstructor && (
+                    <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm transition-all hover:shadow-xl mt-10">
+                       <h3 className="text-xl font-black text-slate-900 mb-6 tracking-tight flex items-center">
+                          <LockClosedIcon className="w-5 h-5 mr-3 text-primary-600" />
+                          Lecturer Controls
+                       </h3>
+                       <div className="flex items-center justify-between p-6 bg-slate-50 rounded-[2rem] border border-slate-100 group">
+                          <div>
+                             <p className="text-sm font-black text-slate-800">Lock Class Discussion</p>
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Restrict chat to announcements only</p>
+                          </div>
+                          <button 
+                            onClick={() => handleLockChat(!course.announcementsOnly)}
+                            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                              course.announcementsOnly 
+                                ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20 active:scale-95' 
+                                : 'bg-white border-2 border-slate-100 text-slate-400 hover:border-primary-500 hover:text-primary-600 active:scale-95 shadow-sm'
+                            }`}
+                          >
+                            {course.announcementsOnly ? 'Locked' : 'Unlocked'}
+                          </button>
+                       </div>
+                    </div>
+                 )}
               </div>
             )}
 
@@ -344,7 +390,7 @@ export default function CoursePage() {
                     <h2 className="text-3xl font-black text-slate-900 tracking-tight">Broadcasts</h2>
                     <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest mt-2">Latest updates from your instructor</p>
                    </div>
-                   {isInstructor && (
+                   {(isInstructor || isCourseRep) && (
                      <button 
                       onClick={() => setIsAnnouncementModalOpen(true)}
                       className="flex items-center space-x-3 px-6 py-4 bg-primary-600 text-white rounded-[1.5rem] text-xs font-black shadow-2xl shadow-primary-600/30 hover:bg-primary-700 active:scale-95 transition-all"
@@ -553,9 +599,19 @@ export default function CoursePage() {
                            <button className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-primary-600 hover:bg-primary-50 transition-all">
                              <ChatBubbleLeftRightIcon className="w-4 h-4" />
                            </button>
-                           <button className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-primary-600 hover:bg-primary-50 transition-all">
-                             <AcademicCapIcon className="w-4 h-4" />
-                           </button>
+                           {isInstructor && (
+                             <button 
+                                onClick={() => handleAssignRep(student.id, student.role === 'COURSE_REP')}
+                                className={`p-2 rounded-lg transition-all ${
+                                  student.role === 'COURSE_REP' 
+                                    ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' 
+                                    : 'bg-slate-50 text-slate-400 hover:text-primary-600 hover:bg-primary-50'
+                                }`}
+                                title={student.role === 'COURSE_REP' ? 'Remove CR Role' : 'Assign as Course Rep'}
+                             >
+                                <CheckBadgeIcon className="w-4 h-4" />
+                             </button>
+                           )}
                          </div>
                       </div>
                     ))}
