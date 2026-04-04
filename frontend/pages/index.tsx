@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const SoftChatList = dynamic(() => import('../components/SoftChatList'), { ssr: false, loading: () => <div className="p-4 text-center text-sm text-gray-400">Loading chats...</div> });
 const SoftStories = dynamic(() => import('../components/SoftStories'), { ssr: false });
 const NewChatModal = dynamic(() => import('../components/NewChatModal'), { ssr: false });
+const UploadStatusModal = dynamic(() => import('../components/UploadStatusModal'), { ssr: false });
 import { toast } from 'react-hot-toast';
 
 const MessagesPage: React.FC = () => {
@@ -38,6 +39,7 @@ const MessagesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'messages' | 'calls' | 'contacts'>('messages');
   const [typingInConvs, setTypingInConvs] = useState<{ [key: string]: { [userId: string]: string } }>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
   const [chatFilter, setChatFilter] = useState<'all' | 'unread' | 'groups' | 'courses'>('all');
   const [showOverflow, setShowOverflow] = useState(false);
@@ -458,7 +460,7 @@ const MessagesPage: React.FC = () => {
                   <span>New Group</span>
                 </button>
                 <button
-                  onClick={() => { router.push('/status'); setShowFAB(false); }}
+                  onClick={() => { setIsStatusModalOpen(true); setShowFAB(false); }}
                   className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
@@ -481,6 +483,9 @@ const MessagesPage: React.FC = () => {
       </div>
 
       <NewChatModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {isStatusModalOpen && (
+        <UploadStatusModal isOpen={isStatusModalOpen} onClose={() => setIsStatusModalOpen(false)} />
+      )}
     </div>
   );
 };

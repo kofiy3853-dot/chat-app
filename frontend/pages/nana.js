@@ -8,7 +8,8 @@ import {
   CpuChipIcon,
   ShieldCheckIcon,
   CommandLineIcon,
-  XMarkIcon
+  XMarkIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 import { chatAPI } from '../services/api';
 import ChatBox from '../components/ChatBox';
@@ -52,6 +53,21 @@ export default function NanaPage() {
       }
     } catch (e) {
       console.error('Failed to initialize Nana session:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (!confirm('Are you sure you want to clear your conversation with Nana? This cannot be undone.')) return;
+    try {
+      setLoading(true);
+      await chatAPI.deleteConversation(conversationId);
+      setConversationId(null);
+      await initNanaChat();
+    } catch (e) {
+      console.error('Failed to clear chat:', e);
+      alert('Failed to clear chat. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -211,13 +227,24 @@ export default function NanaPage() {
           </div>
         </div>
 
-        <button 
-           onClick={() => setShowTerminalOverlay(!showTerminalOverlay)}
-           className="w-9 h-9 rounded-xl flex items-center justify-center transition-all border border-white/5"
-           style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text-navbar)' }}
-        >
-           <CommandLineIcon className="w-4.5 h-4.5" />
-        </button>
+        <div className="flex items-center space-x-2">
+          {conversationId && (
+            <button 
+               onClick={handleClearChat}
+               className="w-9 h-9 rounded-xl flex items-center justify-center transition-all border border-red-500/20 hover:bg-red-500/10 text-red-500"
+               title="Clear Chat"
+            >
+               <TrashIcon className="w-4.5 h-4.5" />
+            </button>
+          )}
+          <button 
+             onClick={() => setShowTerminalOverlay(!showTerminalOverlay)}
+             className="w-9 h-9 rounded-xl flex items-center justify-center transition-all border border-white/5"
+             style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text-navbar)' }}
+          >
+             <CommandLineIcon className="w-4.5 h-4.5" />
+          </button>
+        </div>
       </header>
 
       {/* Main Chat Area */}
