@@ -12,6 +12,14 @@ const { Server } = require('socket.io');
 const { createAdapter } = require('@socket.io/redis-adapter');
 const { redisClient, connectRedis } = require('./utils/redis');
 const cors = require('cors');
+
+// GLOBAL ERROR RECOVERY: Prevent silent crashes on Render
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[FATAL] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught Exception:', err);
+});
 const prisma = require('./prisma/client');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');

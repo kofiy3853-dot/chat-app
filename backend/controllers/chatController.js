@@ -371,10 +371,10 @@ exports.getConversationById = async (req, res) => {
 // Get messages in a conversation
 exports.getMessages = async (req, res) => {
   const { conversationId } = req.params;
+  const { page = 1, limit = 50 } = req.query;
+  
   try {
-    const { page = 1, limit = 50 } = req.query;
-
-    // Verify user is participant - Use findFirst for better flexibility in production
+    // 1. Initial Access Check
     const participant = await prisma.conversationParticipant.findFirst({
       where: {
         userId: req.user.id,
@@ -383,10 +383,11 @@ exports.getMessages = async (req, res) => {
     });
 
     if (!participant) {
-      console.warn(`[GET_MESSAGES ACCESS] User ${req.user.id} denied access to conv:${conversationId}`);
+      console.warn(`[DIAGNOSTIC] Access Denied: User ${req.user.id} -> Conv ${conversationId}`);
       return res.status(403).json({ message: 'Access denied' });
     }
 
+    // 2. Bare-Bones Message Fetch (Simplifying to identify 500 cause)
     const messages = await prisma.message.findMany({
       where: {
         conversationId: conversationId,
@@ -394,47 +395,26 @@ exports.getMessages = async (req, res) => {
       },
       include: {
         sender: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-            role: true
-          }
+          select: { id: true, name: true, avatar: true, role: true }
         },
         replyTo: {
           include: {
-            sender: {
-              select: {
-                id: true,
-                name: true
-              }
-            }
+            sender: { select: { id: true, name: true } }
           }
         },
         reactions: {
           include: {
-            user: {
-              select: {
-                id: true,
-                name: true
-              }
-            }
-          }
-        },
-        readReceipts: {
-          select: {
-            userId: true,
-            readAt: true
+            user: { select: { id: true, name: true } }
           }
         }
+        // DEFERRED: readReceipts (Potential heavy join)
       },
-      orderBy: {
-        createdAt: 'desc'
-      },
+      orderBy: { createdAt: 'desc' },
       skip: (parseInt(page) - 1) * parseInt(limit),
       take: parseInt(limit)
     });
 
+    // 3. Simplified Conversation Metadata fetch
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
       include: {
@@ -442,28 +422,28 @@ exports.getMessages = async (req, res) => {
           include: {
             user: { select: { id: true, name: true, avatar: true, role: true } }
           }
-        },
-        course: {
-          include: {
-            memberships: {
-              where: { userId: req.user.id }
-            }
-          }
         }
+        // DEFERRED: course (Potential heavy join with nested membership check)
       }
     });
 
     res.json({ 
       messages: messages.reverse(),
       hasMore: messages.length === parseInt(limit),
-      conversation
+      conversation,
+      diagnostic: "Running in simplified mode"
     });
   } catch (error) {
-    console.error(`[GET_MESSAGES 500 ERROR] convId=${conversationId} user=${req.user?.id}:`, error);
+    console.error(`[CRITICAL 500] chatController.getMessages:`, {
+      message: error.message,
+      stack: error.stack,
+      params: req.params,
+      user: req.user?.id
+    });
     res.status(500).json({ 
-      message: 'Server error while fetching messages', 
+      message: 'Server failed to process message fetch', 
       error: error.message,
-      path: req.originalUrl 
+      detail: "Attempting simplified query"
     });
   }
 };
