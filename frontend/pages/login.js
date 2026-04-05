@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { authAPI, pushAPI } from '../services/api';
+import { authAPI, pushAPI, warmupServer } from '../services/api';
 import { initSocket } from '../services/socket';
 import { requestFirebaseNotificationPermission } from '../config/firebase';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
@@ -10,20 +10,43 @@ import toast from 'react-hot-toast';
 
 export default function Login() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [serverStatus, setServerStatus] = useState(''); // 'waking' | ''
+
+  // Silently warm up the backend as soon as login page loads.
+  // If Render is asleep, this gives it a head-start before the user hits Submit.
+  useEffect(() => {
+    warmupServer();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setServerStatus('');
+
+    const attemptLogin = async () => {
+      return authAPI.login(formData);
+    };
 
     try {
-      const response = await authAPI.login(formData);
+      let response;
+      try {
+        response = await attemptLogin();
+      } catch (firstErr) {
+        // If it's a timeout, the warmup should have woken the server by now — retry once
+        const isTimeout = firstErr.code === 'ECONNABORTED' || firstErr.message?.includes('timeout');
+        if (isTimeout) {
+          setServerStatus('waking');
+          setError('');
+          response = await attemptLogin(); // Retry — server should be up now
+          setServerStatus('');
+        } else {
+          throw firstErr; // Not a timeout, re-throw normally
+        }
+      }
       const { token, user } = response.data;
 
       // Store auth data
@@ -52,9 +75,15 @@ export default function Login() {
         .catch(() => {}); // Silently ignore any FCM errors
     } catch (err) {
       console.error("LOGIN FRONTEND ERROR:", err.message);
-      setError(err.response?.data?.message || err.response?.data?.error || 'Login failed. Please try again.');
+      const isTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
+      if (isTimeout) {
+        setError('The server took too long to respond. Please wait a moment and try again.');
+      } else {
+        setError(err.response?.data?.message || err.response?.data?.error || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
+      setServerStatus('');
     }
   };
 
@@ -80,6 +109,16 @@ export default function Login() {
             {error && (
               <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
                 {error}
+              </div>
+            )}
+
+            {serverStatus === 'waking' && (
+              <div className="mb-4 p-3 bg-amber-50 text-amber-700 rounded-lg text-sm flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                Server is waking up... Retrying automatically.
               </div>
             )}
 

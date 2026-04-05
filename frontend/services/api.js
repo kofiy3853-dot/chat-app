@@ -10,8 +10,16 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ||
 // Create axios instance
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 35000 // Handle backend cold starts (Render free tier)
+  timeout: 60000 // 60s to handle Render.com cold starts (can take up to 50s)
 });
+
+// Warmup the backend server silently (fire-and-forget)
+// Called by the login page to avoid cold-start timeout on the actual login request
+export const warmupServer = () => {
+  const backendBase = API_URL.replace('/api', '');
+  return fetch(`${backendBase}/health`, { method: 'GET', signal: AbortSignal.timeout(55000) })
+    .catch(() => {}); // Ignore errors — just warming up
+};
 
 // Request interceptor to add auth token
 api.interceptors.request.use(
@@ -64,6 +72,14 @@ api.interceptors.response.use(
             fontSize: '14px',
             fontWeight: 'bold'
           }
+        });
+      }
+    } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      // Timeout — likely a Render cold start
+      if (typeof window !== 'undefined') {
+        toast.error('Server is slow to respond. Please try again in a few seconds.', { 
+          id: 'timeout-error',
+          duration: 5000
         });
       }
     } else if (error.request) {
