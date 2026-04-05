@@ -32,20 +32,10 @@ export default function Login() {
 
       // Initialize socket
       initSocket();
-      
-      // Initialize FCM (non-blocking, errors are caught)
-      try {
-        const fcmToken = await requestFirebaseNotificationPermission();
-        if(fcmToken) {
-           await pushAPI.updateFcmToken(fcmToken).catch(() => {});
-        }
-      } catch (fcmError) {
-        console.warn('FCM initialization failed, continuing without it:', fcmError);
-      }
 
       toast.success('Signed in successfully!');
-      
-      // Redirect based on role
+
+      // Redirect immediately — don't wait for FCM
       if (user.role === "NANA") {
         router.replace("/nana");
       } else if (user.role === "ADMIN") {
@@ -53,6 +43,13 @@ export default function Login() {
       } else {
         router.replace("/");
       }
+
+      // Initialize FCM in background AFTER navigation (non-blocking)
+      requestFirebaseNotificationPermission()
+        .then(fcmToken => {
+          if (fcmToken) pushAPI.updateFcmToken(fcmToken).catch(() => {});
+        })
+        .catch(() => {}); // Silently ignore any FCM errors
     } catch (err) {
       console.error("LOGIN FRONTEND ERROR:", err.message);
       setError(err.response?.data?.message || err.response?.data?.error || 'Login failed. Please try again.');
