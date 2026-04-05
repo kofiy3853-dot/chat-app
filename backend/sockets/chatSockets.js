@@ -6,6 +6,12 @@ const setupChatSockets = (io) => {
   io.use(socketAuthMiddleware);
 
   io.on('connection', (socket) => {
+    // REQUIREMENT 4: Reject connection if userId is missing
+    if (!socket.user || !socket.user.id) {
+      console.warn('[SOCKET ERROR] Unauthorized connection attempt rejected: Missing userId', socket.id);
+      return socket.disconnect(true);
+    }
+
     console.log(`User connected: ${socket.user.name} (${socket.user.id})`);
 
     // Update user online status
@@ -23,7 +29,14 @@ const setupChatSockets = (io) => {
         isOnline: true,
         lastSeen: user.lastSeen
       });
-    }).catch(err => console.error('Error updating status:', err));
+    }).catch(err => {
+      // REQUIREMENT 5: Log database schema mismatch/P2022 issues clearly
+      if (err.code === 'P2022') {
+        console.error(`[DATABASE SCHEMA ERROR] Missing column during status update: ${err.message}`);
+      } else {
+        console.error(`[SOCKET STATUS ERROR] User ${socket.user.id}:`, err.message);
+      }
+    });
 
     // Join personal room for notifications
     socket.join(`user:${socket.user.id}`);
