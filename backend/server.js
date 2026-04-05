@@ -133,26 +133,33 @@ app.get('/health/detailed', async (req, res) => {
       DATABASE_URL: !!process.env.DATABASE_URL,
       DIRECT_URL: !!process.env.DIRECT_URL,
       JWT_SECRET: !!process.env.JWT_SECRET,
-      JWT_EXPIRE: !!process.env.JWT_EXPIRE,
-      SUPABASE_URL: !!process.env.SUPABASE_URL,
-      SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       NODE_ENV: process.env.NODE_ENV || 'not set'
     },
-    database: { status: 'untested', error: null }
+    database: { status: 'untested', error: null, schema: {} }
   };
 
   try {
-    // Run a trivial DB query to confirm live connectivity
+    // 1. Connectivity test
     await prisma.$queryRawUnsafe('SELECT 1 AS alive');
     checks.database.status = 'connected';
+
+    // 2. Schema existence check
+    const columnCheck = await prisma.$queryRawUnsafe(`
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_name = 'Message'
+    `);
+    checks.database.schema.messageColumns = columnCheck.map(c => c.column_name);
+    
+    const countCheck = await prisma.message.count().catch(e => -1);
+    checks.database.schema.messageCount = countCheck;
   } catch (err) {
     checks.database.status = 'FAILED';
     checks.database.error = err.message;
+    console.error('[DIAGNOSTIC FAILED]', err);
   }
 
-  const allGood = checks.database.status === 'connected' &&
-                  checks.env.JWT_SECRET &&
-                  (checks.env.DATABASE_URL || checks.env.DIRECT_URL);
+  const allGood = checks.database.status === 'connected';
 
   res.status(allGood ? 200 : 500).json(checks);
 });

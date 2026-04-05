@@ -388,10 +388,11 @@ exports.getMessages = async (req, res) => {
     }
 
     // 2. Bare-Bones Message Fetch (Simplifying to identify 500 cause)
+    // REMOVED isDeleted filter temporarily to rule out missing column
     const messages = await prisma.message.findMany({
       where: {
-        conversationId: conversationId,
-        isDeleted: false
+        conversationId: conversationId
+        // isDeleted: false (Removing filter to check if column exists)
       },
       include: {
         sender: {
