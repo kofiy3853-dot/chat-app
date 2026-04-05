@@ -101,10 +101,14 @@ export default function Register() {
       localStorage.setItem('user', JSON.stringify(user));
       initSocket();
       
-      // Initialize FCM
-      const fcmToken = await requestFirebaseNotificationPermission();
-      if(fcmToken) {
-         await api.post('/notifications/fcm-token', { fcmToken }).catch(() => {});
+      // Initialize FCM (non-blocking, errors are caught)
+      try {
+        const fcmToken = await requestFirebaseNotificationPermission();
+        if(fcmToken) {
+           await authAPI.updateFcmToken(fcmToken).catch(() => {});
+        }
+      } catch (fcmError) {
+        console.warn('FCM initialization failed, continuing without it:', fcmError);
       }
 
       // Redirect based on role

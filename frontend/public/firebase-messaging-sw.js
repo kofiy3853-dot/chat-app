@@ -28,8 +28,8 @@ try {
     const notificationTitle = payload.notification?.title || payload.data?.title || 'Notification';
     const notificationOptions = {
       body: payload.notification?.body || payload.data?.message || '',
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/icon-192x192.png',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
       data: payload.data,
     };
 

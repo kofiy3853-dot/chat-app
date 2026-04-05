@@ -24,7 +24,7 @@ export default function Login() {
 
     try {
       const response = await authAPI.login(formData);
-      const { token, user, redirectTo } = response.data;
+      const { token, user } = response.data;
 
       // Store auth data
       localStorage.setItem('token', token);
@@ -33,19 +33,25 @@ export default function Login() {
       // Initialize socket
       initSocket();
       
-      // Initialize FCM
-      const fcmToken = await requestFirebaseNotificationPermission();
-      if(fcmToken) {
-         await pushAPI.updateFcmToken(fcmToken).catch(() => {});
+      // Initialize FCM (non-blocking, errors are caught)
+      try {
+        const fcmToken = await requestFirebaseNotificationPermission();
+        if(fcmToken) {
+           await pushAPI.updateFcmToken(fcmToken).catch(() => {});
+        }
+      } catch (fcmError) {
+        console.warn('FCM initialization failed, continuing without it:', fcmError);
       }
 
       toast.success('Signed in successfully!');
       
-      // SINGLE redirect (important)
+      // Redirect based on role
       if (user.role === "NANA") {
         router.replace("/nana");
+      } else if (user.role === "ADMIN") {
+        router.replace("/admin");
       } else {
-        router.replace(redirectTo || "/");
+        router.replace("/");
       }
     } catch (err) {
       console.error("LOGIN FRONTEND ERROR:", err.message);

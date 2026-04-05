@@ -18,5 +18,12 @@ frontend/.env.local
 backend/.env
 .vscode/
 .qoder/
+.kiro/
+.vs/
+.idea/
 frontend/out/
 frontend/android/app/openJdk-25/
+*.md   # Optional: user might want to keep MD, but usually these guides are for me/them locally.
+       # Hmm, I'll keep the .md for now unless they are clutter. 
+       # Wait, status showed many .md in root. I'll ignore the ones I created today if they are temporary.
+       # But they look like completion reports. I'll keep them.

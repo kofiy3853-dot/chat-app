@@ -46,6 +46,8 @@ const CallInterface = dynamic(() => import('../components/CallInterface'), { ssr
 
 
 
+import { playNotificationSound } from '../utils/sound';
+
 const publicPages = ['/login', '/register'];
 const hideNavbarPages = ['/login', '/register', '/events/create', '/anonymous/create', '/chat/[id]', '/courses/[id]', '/nana'];
 
@@ -55,39 +57,40 @@ export default function MyApp({ Component, pageProps }) {
   const [isReady, setIsReady] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [user, setUser] = useState(null);
 
-  // --- Hydrate User Context ---
-  const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-  const user = userStr ? JSON.parse(userStr) : null;
-  const currentUser = user; // Alias for useAuthRedirect
-
-  // 1. Core Lifecycle & Global Side-effects
+  // 1. Initial Lifecycle & Auth Hydration
   useEffect(() => {
-    // 1.1 Service Worker (Update Skip/Claim)
+    // 1.1 Auth Hydration (Safe from hydration mismatches)
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      try {
+        const parsedUser = JSON.parse(userStr);
+        setUser(parsedUser);
+        setAuthorized(true);
+        initSocket();
+      } catch (e) {
+        console.error('Invalid user data in storage');
+      }
+    }
+    setIsReady(true);
+
+    // 1.2 Service Worker & Firebase Push Setup
     if (typeof window !== 'undefined' && "serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("/sw.js").then(reg => {
-          reg.onupdatefound = () => {
-            const installing = reg.installing;
-            installing.onstatechange = () => {
-              if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-                window.location.reload(); // Refresh immediately on PWA update
-              }
-            };
-          };
-          if (reg.active) {
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-               requestFirebaseNotificationPermission().then(token => {
-                 if(token) pushAPI.updateFcmToken(token).catch(console.error);
-               });
-            }
+          if (reg.active && localStorage.getItem('token')) {
+            requestFirebaseNotificationPermission().then(token => {
+              if(token) pushAPI.updateFcmToken(token).catch(console.error);
+            }).catch(console.warn);
           }
         }).catch(err => console.error('SW error', err));
       });
     }
 
-    // 1.2 Health Ping & Global Listeners
+    // 1.3 Online/Offline Listeners
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     window.addEventListener('online', handleOnline);
@@ -96,21 +99,6 @@ export default function MyApp({ Component, pageProps }) {
 
     const handleBeforeInstallPrompt = (e) => { e.preventDefault(); setDeferredPrompt(e); };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    const ping = () => {
-      const url = process.env.NEXT_PUBLIC_API_URL || '';
-      fetch(url.replace(/\/api$/, '') + '/health').catch(() => {});
-    };
-    ping();
-
-    // 1.4 Initial Auth Hydration
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-    if (token && user) {
-       setAuthorized(true);
-       initSocket();
-    }
-    setIsReady(true);
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -124,15 +112,6 @@ export default function MyApp({ Component, pageProps }) {
     if (!authorized) return;
     const socket = getSocket();
     if (!socket) return;
-
-    const playNotificationSound = () => {
-      try {
-        const audio = new Audio('/sounds/ding.mp3');
-        audio.play().catch(e => console.log('[Sound] Autoplay blocked or failed:', e));
-      } catch (err) {
-        console.warn('[Sound] Audio error:', err);
-      }
-    };
 
     const handleNewMessage = (data) => {
       // Don't show toast if we are already in the conversation
@@ -235,7 +214,7 @@ export default function MyApp({ Component, pageProps }) {
   }, [authorized, router.pathname, router.query.id, user?.id]);
 
   // 3. Centralized Auth & Role Routing Hook
-  useAuthRedirect(currentUser, isReady);
+  useAuthRedirect(user, isReady);
 
   // 3. Splash Screen / Loader Management
   useEffect(() => {

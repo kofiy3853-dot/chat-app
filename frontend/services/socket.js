@@ -56,9 +56,18 @@ export const getSocket = () => {
 
 export const disconnectSocket = () => {
   if (socket) {
+    console.log('Manually disconnecting socket...');
     socket.disconnect();
     socket = null;
   }
+};
+
+/**
+ * Re-initialize the socket if the token has changed (e.g., after login/logout)
+ */
+export const reconnectWithNewToken = () => {
+  disconnectSocket();
+  return initSocket();
 };
 
 export const joinConversation = (conversationId) => {

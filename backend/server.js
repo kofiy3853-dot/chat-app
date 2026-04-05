@@ -214,13 +214,33 @@ async function startServer() {
   try {
     // Test Prisma connection
     await prisma.$connect();
-    console.log('Connected to Supabase PostgreSQL database');
+    console.log('✓ Connected to Supabase PostgreSQL database');
+    
+    // Verify critical tables exist
+    try {
+      const tables = await prisma.$queryRaw`
+        SELECT table_name FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name IN ('User', 'Conversation', 'Message')
+        ORDER BY table_name;
+      `;
+      
+      if (tables.length >= 3) {
+        console.log('✓ All critical database tables exist');
+      } else {
+        console.warn('⚠ Some database tables may be missing. Run: npm run db:init');
+      }
+    } catch (tableErr) {
+      console.warn('⚠ Could not verify tables:', tableErr.message);
+    }
     
     server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`✓ Server running on port ${PORT}`);
+      console.log(`✓ Health check: http://localhost:${PORT}/health`);
+      console.log(`✓ Detailed health: http://localhost:${PORT}/health/detailed`);
     });
   } catch (err) {
-    console.error('Failed to connect to database:', err);
+    console.error('✗ Failed to connect to database:', err.message);
+    console.error('✗ Please check your DATABASE_URL and DIRECT_URL environment variables');
     process.exit(1);
   }
 }

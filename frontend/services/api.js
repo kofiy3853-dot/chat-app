@@ -29,12 +29,20 @@ api.interceptors.request.use(
   }
 );
 
+/** Login/register failures use 401/400 — must not run "session expired" logic. */
+function isAuthCredentialRequest(config) {
+  const url = config?.url || '';
+  return url.includes('/auth/login') || url.includes('/auth/register');
+}
+
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
+    const cfg = error.config;
+
+    if (error.response?.status === 401 && !isAuthCredentialRequest(cfg)) {
+      // Token expired or invalid on a protected call — not a failed login attempt
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -42,8 +50,8 @@ api.interceptors.response.use(
           Router.push('/login');
         }
       }
-    } else if (error.response) {
-      // Show error notification for other server errors
+    } else if (error.response && !isAuthCredentialRequest(cfg)) {
+      // Show error notification for server errors (pages handle login/register inline)
       const message = error.response.data?.message || 'Something went wrong. Please try again.';
       if (typeof window !== 'undefined') {
         toast.error(message, { 

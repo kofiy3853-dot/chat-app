@@ -157,19 +157,30 @@ exports.viewStatus = async (req, res) => {
       // Find how many people viewed this status total
       const viewCount = await prisma.statusView.count({ where: { statusId } });
       
-      const notification = await prisma.notification.create({
-        data: {
-          type: 'SYSTEM',
-          title: 'Status Update',
-          content: `${viewCount} people viewed your status`,
-          recipientId: status.userId,
-          actionUrl: '/status'
-        }
-      });
+      // OPTIMIZATION: Only create a PERSISTENT database notification for the FIRST view
+      // to avoid table bloat. Subsequent views only get a real-time socket emit.
+      if (viewCount === 1) {
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'SYSTEM',
+            title: 'Status Update',
+            content: `Your status has its first viewer!`,
+            recipientId: status.userId,
+            actionUrl: '/status'
+          }
+        });
 
-      if (req.io) {
-        const unreadCount = await prisma.notification.count({ where: { recipientId: status.userId, isRead: false } });
-        req.io.to(`user:${status.userId}`).emit('new-notification', { notification, unreadCount });
+        if (req.io) {
+          const unreadCount = await prisma.notification.count({ where: { recipientId: status.userId, isRead: false } });
+          req.io.to(`user:${status.userId}`).emit('new-notification', { notification, unreadCount });
+        }
+      } else if (req.io) {
+        // Real-time update for subsequent views without DB bloat
+        req.io.to(`user:${status.userId}`).emit('status-viewed-update', { 
+          statusId, 
+          viewCount,
+          viewerName: req.user.name 
+        });
       }
     }
 

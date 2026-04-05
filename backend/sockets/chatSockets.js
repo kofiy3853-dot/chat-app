@@ -129,10 +129,10 @@ const setupChatSockets = (io) => {
       try {
         const course = await prisma.course.findUnique({
           where: { id: courseId },
-          include: { students: { select: { id: true } } }
+          include: { memberships: { select: { userId: true } } }
         });
 
-        if (course && (course.instructorId === socket.user.id || course.students.some(s => s.id === socket.user.id))) {
+        if (course && (course.instructorId === socket.user.id || course.memberships.some((m) => m.userId === socket.user.id))) {
           socket.join(`course:${courseId}`);
           socket.emit('joined-course', { courseId });
           console.log(`[COURSE DEBUG] User ${socket.user.id} joined course room: course:${courseId}`);
@@ -528,13 +528,7 @@ const setupChatSockets = (io) => {
           where: {
             recipientId: socket.user.id,
             isRead: false,
-            // Find notifications for messages in this conversation
-            messageId: {
-              in: (await prisma.message.findMany({
-                where: { conversationId },
-                select: { id: true }
-              })).map(m => m.id)
-            }
+            message: { conversationId: conversationId }
           },
           data: { isRead: true, readAt: new Date() }
         });

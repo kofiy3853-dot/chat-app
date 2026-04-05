@@ -32,6 +32,7 @@ export default function ChatPage() {
   const [showProfile, setShowProfile] = useState(false);
   const [showMediaGallery, setShowMediaGallery] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [messages, setMessages] = useState([]);
   
   const { callUser } = useCall();
 
@@ -94,7 +95,7 @@ export default function ChatPage() {
           const parsed = JSON.parse(savedConv);
           if (parsed && typeof parsed === 'object') {
             setConversation(parsed);
-            setLoading(false); // Disable spinner immediately
+            setLoading(false);
           } else {
             setLoading(true);
           }
@@ -109,36 +110,40 @@ export default function ChatPage() {
       joinConversation(id);
 
       const socket = initSocket();
-      if (socket) {
-        socket.on('user-status-changed', (data) => {
-          setConversation(prev => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              participants: prev.participants.map(p => 
-                p.userId === data.userId 
-                  ? { ...p, user: { ...p.user, isOnline: data.isOnline, lastSeen: data.lastSeen, status: data.status ?? p.user.status } }
-                  : p
-              )
-            };
-          });
-        });
 
-        socket.on('chat-lock-updated', ({ locked, courseId }) => {
-          setConversation(prev => {
-            if (prev?.id === courseId || prev?.course?.id === courseId) {
-              return { ...prev, course: { ...prev.course, announcementsOnly: locked } };
-            }
-            return prev;
-          });
+      const handleUserStatusChange = (data) => {
+        setConversation(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            participants: prev.participants.map(p => 
+              p.userId === data.userId 
+                ? { ...p, user: { ...p.user, isOnline: data.isOnline, lastSeen: data.lastSeen, status: data.status ?? p.user.status } }
+                : p
+            )
+          };
         });
+      };
+
+      const handleLockUpdated = ({ locked, courseId }) => {
+        setConversation(prev => {
+          if (prev?.id === courseId || prev?.course?.id === courseId) {
+            return { ...prev, course: { ...prev.course, announcementsOnly: locked } };
+          }
+          return prev;
+        });
+      };
+
+      if (socket) {
+        socket.on('user-status-changed', handleUserStatusChange);
+        socket.on('chat-lock-updated', handleLockUpdated);
       }
 
       return () => {
         leaveConversation(id);
         if (socket) {
-          socket.off('user-status-changed');
-          socket.off('chat-lock-updated');
+          socket.off('user-status-changed', handleUserStatusChange);
+          socket.off('chat-lock-updated', handleLockUpdated);
         }
       };
     }
@@ -380,7 +385,7 @@ export default function ChatPage() {
         </header>
 
         {/* Chat Component */}
-        <ChatBox conversationId={id} />
+        <ChatBox conversationId={id} onMessagesUpdate={setMessages} />
       </div>
 
       {/* Participant Profile Modal */}

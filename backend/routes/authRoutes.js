@@ -20,7 +20,7 @@ const upload = require('../middleware/uploadMiddleware');
 
 // Routes
 router.post('/register', upload.single('avatar'), registerValidation, authController.register);
-router.post('/login', authController.login);
+router.post('/login', loginValidation, authController.login);
 router.get('/me', authMiddleware, authController.getMe);
 router.put('/profile', authMiddleware, authController.updateProfile);
 router.put('/change-password', authMiddleware, authController.changePassword);

@@ -321,7 +321,7 @@ const MessageBubble = React.memo(({
   );
 });
 
-export default function ChatBox({ conversationId }) {
+export default function ChatBox({ conversationId, onMessagesUpdate }) {
   // --- 1. State Management ---
   const typingTimeoutRef = useRef(null);
   const isCurrentlyTyping = useRef(false);
@@ -412,7 +412,6 @@ export default function ChatBox({ conversationId }) {
     if (conversationId) {
       console.log(`[DEBUG] Loading conversation: ${conversationId}`);
       
-      // --- CACHE-FIRST LOGIC (IndexedDB) ---
       const loadCachedData = async () => {
         try {
           const cached = await getCachedMessages(conversationId);
@@ -443,169 +442,93 @@ export default function ChatBox({ conversationId }) {
       }
 
       fetchMessages();
-      setupSocketListeners();
-      syncOutbox();
-    }
 
-    return () => {
-      const socket = getSocket();
+      // --- Named Listener Functions for Clean Cleanup ---
+      const handleNewMessage = (msg) => {
+        if (msg.conversationId === conversationId) {
+          setMessages(prev => {
+            const newMsg = msg.message;
+            const exists = prev.findIndex(m => m.id === newMsg.id || (m.tempId && m.tempId === newMsg.tempId));
+            if (exists !== -1) {
+              const newMessages = [...prev];
+              newMessages[exists] = newMsg;
+              return newMessages;
+            }
+            return [...prev, newMsg];
+          });
+          markAsRead(conversationId);
+        }
+      };
+
+      const handleUserTyping = ({ userId, userName, isTyping }) => {
+        if (userId === currentUser?.id) return;
+        setTypingUsers(prev => isTyping 
+          ? [...prev.filter(u => u.id !== userId), { id: userId, name: userName }]
+          : prev.filter(u => u.id !== userId)
+        );
+      };
+
+      const handleMessagesRead = ({ userId, conversationId: cid }) => {
+        if (cid === conversationId) {
+          setMessages(prev => prev.map(m => {
+            if (m.senderId !== userId && (!m.readReceipts || !m.readReceipts.some(r => r.userId === userId))) {
+              return {
+                ...m,
+                readReceipts: [...(m.readReceipts || []), { userId, readAt: new Date() }]
+              };
+            }
+            return m;
+          }));
+        }
+      };
+
+      const handleMessageDeleted = ({ messageId }) => {
+        setMessages(prev => prev.map(m => 
+          m.id === messageId ? { ...m, isDeleted: true, content: 'This message was deleted' } : m
+        ));
+      };
+
+      const handleChatCleared = ({ conversationId: cid }) => {
+        if (cid === conversationId) setMessages([]);
+      };
+
+      const handleMessageSent = (sent) => {
+        const sentMsg = sent.message || sent;
+        setMessages(prev => prev.map(m => (m.tempId && m.tempId === sentMsg.tempId) ? sentMsg : m));
+      };
+
+      const handleLockUpdated = ({ locked, courseId }) => {
+        if (convDataRef.current?.courseId === courseId || convDataRef.current?.course?.id === courseId) {
+          setIsLocked(locked);
+        }
+      };
+
       if (socket) {
-        socket.emit('leave-conversation', conversationId);
-        socket.off('new-message');
-        socket.off('user-typing');
-        socket.off('message-sent');
-        socket.off('chat-cleared');
-        socket.off('messages-read');
-        socket.off('message-deleted');
-        socket.off('chat-lock-updated');
-        socket.off('course-role-updated');
-        socket.off('role-upgraded');
+        socket.on('new-message', handleNewMessage);
+        socket.on('user-typing', handleUserTyping);
+        socket.on('messages-read', handleMessagesRead);
+        socket.on('message-deleted', handleMessageDeleted);
+        socket.on('chat-cleared', handleChatCleared);
+        socket.on('message-sent', handleMessageSent);
+        socket.on('chat-lock-updated', handleLockUpdated);
       }
-    };
+
+      syncOutbox();
+
+      return () => {
+        if (socket) {
+          socket.emit('leave-conversation', conversationId);
+          socket.off('new-message', handleNewMessage);
+          socket.off('user-typing', handleUserTyping);
+          socket.off('messages-read', handleMessagesRead);
+          socket.off('message-deleted', handleMessageDeleted);
+          socket.off('chat-cleared', handleChatCleared);
+          socket.off('message-sent', handleMessageSent);
+          socket.off('chat-lock-updated', handleLockUpdated);
+        }
+      };
+    }
   }, [conversationId]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, typingUsers]);
-
-  // --- 4. Logic & Handlers ---
-  const fetchMessages = async () => {
-    try {
-      const response = await chatAPI.getMessages(conversationId);
-      const newMessages = response.data.messages || [];
-      const conversation = response.data.conversation;
-
-      if (conversation) {
-        setConvData(conversation);
-        if (conversation.type === 'COURSE' && conversation.course) {
-          setIsLocked(!!conversation.course.announcementsOnly);
-          const membership = conversation.course.memberships?.[0];
-          setUserRole(membership?.role || 'STUDENT');
-        }
-      }
-
-      setMessages(prev => {
-         // Merge with outbox
-         const outbox = prev.filter(m => m.id?.toString().startsWith('temp'));
-         return [...newMessages, ...outbox];
-      });
-      
-      // Update persistent IndexedDB cache
-      await cacheMessages(conversationId, newMessages);
-      
-      console.log(`[DEBUG] Rendered ${newMessages.length} messages`);
-    } catch (err) {
-      console.error('[DEBUG] Fetch error:', err);
-      setError('Failed to load chat');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const syncOutbox = async () => {
-    if (!navigator.onLine) return;
-    try {
-      const outbox = await getOutboxMessages();
-      if (outbox.length === 0) return;
-
-      console.log('[OFFLINE] Syncing outbox...', outbox.length);
-      for (const msg of outbox) {
-        if (!msg.fileUrl) { // Only sync text for now for simplicity, attachments are harder offline
-           sendMessage({ 
-             conversationId: msg.conversationId, 
-             content: msg.content, 
-             tempId: msg.tempId, 
-             replyToId: msg.replyToId 
-           });
-           await removeFromOutbox(msg.tempId);
-        }
-      }
-    } catch (err) {
-      console.error('Outbox sync failed:', err);
-    }
-  };
-
-  const setupSocketListeners = () => {
-    const socket = getSocket();
-    if (!socket) return;
-
-    socket.on('new-message', (msg) => {
-      if (msg.conversationId === conversationId) {
-        setMessages(prev => {
-          const newMsg = msg.message;
-          // Check if message already exists by ID or tempId
-          const exists = prev.findIndex(m => m.id === newMsg.id || (m.tempId && m.tempId === newMsg.tempId));
-          
-          if (exists !== -1) {
-            const newMessages = [...prev];
-            newMessages[exists] = newMsg;
-            return newMessages;
-          }
-          return [...prev, newMsg];
-        });
-        markAsRead(conversationId);
-      }
-    });
-
-    socket.on('user-typing', ({ userId, userName, isTyping }) => {
-      if (userId === currentUser?.id) return;
-      setTypingUsers(prev => isTyping 
-        ? [...prev.filter(u => u.id !== userId), { id: userId, name: userName }]
-        : prev.filter(u => u.id !== userId)
-      );
-    });
-
-    socket.on('messages-read', ({ userId, conversationId: cid }) => {
-      if (cid === conversationId) {
-        setMessages(prev => prev.map(m => {
-          if (m.senderId !== userId && (!m.readReceipts || !m.readReceipts.some(r => r.userId === userId))) {
-            return {
-              ...m,
-              readReceipts: [...(m.readReceipts || []), { userId, readAt: new Date() }]
-            };
-          }
-          return m;
-        }));
-      }
-    });
-
-    socket.on('message-deleted', ({ messageId }) => {
-      setMessages(prev => prev.map(m => 
-        m.id === messageId ? { ...m, isDeleted: true, content: 'This message was deleted' } : m
-      ));
-    });
-
-    socket.on('chat-cleared', ({ conversationId: cid }) => {
-      if (cid === conversationId) {
-        setMessages([]);
-      }
-    });
-
-    socket.on('message-sent', (sent) => {
-      const sentMsg = sent.message || sent;
-      setMessages(prev => prev.map(m => (m.tempId && m.tempId === sentMsg.tempId) ? sentMsg : m));
-    });
-
-    // --- UNIVERSITY REAL-TIME FEATURES ---
-    socket.on('chat-lock-updated', ({ locked, courseId }) => {
-      // Use Ref to avoid stale closure
-      if (convDataRef.current?.courseId === courseId || convDataRef.current?.course?.id === courseId) {
-        setIsLocked(locked);
-      }
-    });
-
-    socket.on('course-role-updated', ({ userId, role, courseId }) => {
-      if (userId === currentUser?.id && (convDataRef.current?.courseId === courseId || convDataRef.current?.course?.id === courseId)) {
-        setUserRole(role);
-      }
-    });
-
-    socket.on('role-upgraded', ({ courseId, newRole }) => {
-       if (convDataRef.current?.courseId === courseId || convDataRef.current?.course?.id === courseId) {
-         setUserRole(newRole);
-       }
-    });
-  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -2,6 +2,19 @@ const prisma = require('../prisma/client');
 const uploadToSupabase = require('../utils/uploadToSupabase');
 const fs = require('fs');
 
+/** Prisma uses CourseMembership; frontend expects a `students` user array. */
+function withStudentsFromMemberships(course) {
+  if (!course) return course;
+  const students = (course.memberships || [])
+    .map((m) => m.user)
+    .filter(Boolean);
+  return { ...course, students };
+}
+
+function mapCoursesList(courses) {
+  return courses.map((c) => withStudentsFromMemberships(c));
+}
+
 // Get all courses for user
 exports.getCourses = async (req, res) => {
   try {
@@ -33,7 +46,7 @@ exports.getCourses = async (req, res) => {
       });
     }
 
-    res.json({ courses });
+    res.json({ courses: mapCoursesList(courses) });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -46,7 +59,11 @@ exports.getCourseById = async (req, res) => {
       where: { id: req.params.id },
       include: {
         instructor: { select: { id: true, name: true, avatar: true, email: true } },
-        students: { select: { id: true, name: true, avatar: true, email: true, studentId: true } },
+        memberships: {
+          include: {
+            user: { select: { id: true, name: true, avatar: true, email: true, studentId: true } }
+          }
+        },
         conversation: {
           select: { id: true, name: true, type: true }
         }
@@ -68,7 +85,7 @@ exports.getCourseById = async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    res.json({ course });
+    res.json({ course: withStudentsFromMemberships(course) });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -143,7 +160,6 @@ exports.joinCourse = async (req, res) => {
     const course = await prisma.course.findUnique({
       where: { code: courseCode },
       include: { 
-        students: { select: { id: true } },
         conversation: true
       }
     });
@@ -152,8 +168,10 @@ exports.joinCourse = async (req, res) => {
       return res.status(404).json({ message: 'Course not found' });
     }
 
-    // Check if already enrolled
-    if (course.students.some(s => s.id === userId)) {
+    const alreadyMember = await prisma.courseMembership.findUnique({
+      where: { userId_courseId: { userId, courseId: course.id } }
+    });
+    if (alreadyMember) {
       return res.status(400).json({ message: 'Already enrolled in this course' });
     }
 
@@ -179,13 +197,15 @@ exports.joinCourse = async (req, res) => {
       where: { id: course.id },
       include: {
         instructor: { select: { id: true, name: true, avatar: true } },
-        students: { select: { id: true, name: true, avatar: true } }
+        memberships: {
+          include: { user: { select: { id: true, name: true, avatar: true } } }
+        }
       }
     });
 
     res.json({ 
       message: 'Successfully joined course',
-      course: populatedCourse 
+      course: withStudentsFromMemberships(populatedCourse)
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -207,11 +227,9 @@ exports.leaveCourse = async (req, res) => {
       return res.status(404).json({ message: 'Course not found' });
     }
 
-    // Remove student from course and conversation
     await prisma.$transaction([
-      prisma.course.update({
-        where: { id },
-        data: { students: { disconnect: { id: userId } } }
+      prisma.courseMembership.delete({
+        where: { userId_courseId: { userId, courseId: id } }
       }),
       prisma.conversationParticipant.delete({
         where: {
@@ -289,11 +307,9 @@ exports.removeStudent = async (req, res) => {
       return res.status(403).json({ message: 'Only instructor can remove students' });
     }
 
-    // Remove student from course and conversation
     await prisma.$transaction([
-      prisma.course.update({
-        where: { id },
-        data: { students: { disconnect: { id: studentId } } }
+      prisma.courseMembership.delete({
+        where: { userId_courseId: { userId: studentId, courseId: id } }
       }),
       prisma.conversationParticipant.delete({
         where: {
@@ -340,7 +356,7 @@ exports.addMaterial = async (req, res) => {
 
     const course = await prisma.course.findUnique({
       where: { id },
-      include: { students: true }
+      include: { memberships: { select: { userId: true } } }
     });
 
     if (course.instructorId !== userId && req.user.role !== 'ADMIN') {
@@ -373,7 +389,7 @@ exports.addMaterial = async (req, res) => {
     if (req.io) {
       req.io.to(`course:${id}`).emit('new-material', { material, courseId: id });
 
-      const studentIds = course.students.map(s => s.id);
+      const studentIds = course.memberships.map((m) => m.userId);
       await Promise.all(studentIds.map(async (sId) => {
         const notification = await prisma.notification.create({
           data: {
@@ -458,10 +474,10 @@ exports.createAssignment = async (req, res) => {
 
       const courseWithStudents = await prisma.course.findUnique({
         where: { id },
-        include: { students: { select: { id: true } } }
+        include: { memberships: { select: { userId: true } } }
       });
 
-      const studentIds = courseWithStudents.students.map(s => s.id);
+      const studentIds = courseWithStudents.memberships.map((m) => m.userId);
       await Promise.all(studentIds.map(async (sId) => {
         const notification = await prisma.notification.create({
           data: {
@@ -592,10 +608,10 @@ exports.postAnnouncement = async (req, res) => {
 
       const courseWithStudents = await prisma.course.findUnique({
         where: { id },
-        include: { students: { select: { id: true } } }
+        include: { memberships: { select: { userId: true } } }
       });
 
-      const studentIds = courseWithStudents.students.map(s => s.id);
+      const studentIds = courseWithStudents.memberships.map((m) => m.userId);
       await Promise.all(studentIds.map(async (sId) => {
         const notification = await prisma.notification.create({
           data: {

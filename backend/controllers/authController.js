@@ -25,14 +25,14 @@ const generateToken = (user) => {
 };
 
 // --- KTU Department Hub Automation ---
-const checkAndJoinDepartmentHub = async (userId, departmentName) => {
+const checkAndJoinDepartmentHub = async (userId, departmentName, tx = prisma) => {
   if (!departmentName || departmentName.trim() === "") return;
   
   try {
     const hubName = `${departmentName.trim()} Hub`;
     
     // Find or Create this specific KTU Hub
-    let hub = await prisma.conversation.findFirst({
+    let hub = await tx.conversation.findFirst({
       where: { 
         name: hubName,
         type: 'GROUP'
@@ -41,7 +41,7 @@ const checkAndJoinDepartmentHub = async (userId, departmentName) => {
 
     if (!hub) {
       console.log(`[HUB AUTO] Creating new hub: ${hubName}`);
-      hub = await prisma.conversation.create({
+      hub = await tx.conversation.create({
         data: {
           name: hubName,
           type: 'GROUP',
@@ -51,7 +51,7 @@ const checkAndJoinDepartmentHub = async (userId, departmentName) => {
     }
 
     // Ensure student is enrolled
-    const existing = await prisma.conversationParticipant.findUnique({
+    const existing = await tx.conversationParticipant.findUnique({
       where: {
         userId_conversationId: {
           userId,
@@ -62,7 +62,7 @@ const checkAndJoinDepartmentHub = async (userId, departmentName) => {
 
     if (!existing) {
       console.log(`[HUB AUTO] Enrolling user ${userId} to ${hubName}`);
-      await prisma.conversationParticipant.create({
+      await tx.conversationParticipant.create({
         data: {
           userId,
           conversationId: hub.id,
@@ -137,8 +137,6 @@ exports.register = async (req, res) => {
       return res.status(500).json({ message: 'Failed to upload profile picture' });
     }
 
-    // Create new user (Fail-safe: omit fcmToken if it causes a crash)
-    let user;
     const userData = {
       email: email.toLowerCase(),
       password: hashedPassword,
@@ -151,42 +149,25 @@ exports.register = async (req, res) => {
       role: role ? role.toUpperCase() : 'STUDENT'
     };
 
-    // Only add fcmToken if provided
     if (req.body.fcmToken) {
       userData.fcmToken = req.body.fcmToken;
     }
 
-    try {
-      user = await prisma.user.create({
+    // Create user and join hub in an atomic transaction
+    const { user, token } = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
         data: userData
       });
-    } catch (dbError) {
-      console.error(`[REGISTER ERROR] DB Creation Failed:`, dbError.message);
-      
-      // FALLBACK: If fcmToken is the cause (column missing), retry WITHOUT it
-      if (dbError.message.includes('fcmToken') || dbError.code === 'P2021') {
-        console.warn('[REGISTER] Retrying WITHOUT fcmToken due to missing column...');
-        delete userData.fcmToken;
-        user = await prisma.user.create({ data: userData });
-      } else if (dbError.code === 'P2002') {
-        const field = dbError.meta?.target?.[0] || 'account';
-        return res.status(400).json({ 
-          message: `This ${field === 'studentId' ? 'Student ID' : field} is already registered.` 
-        });
-      } else {
-        throw dbError;
+
+      if (newUser.department) {
+        await checkAndJoinDepartmentHub(newUser.id, newUser.department, tx);
       }
-    }
 
-    console.log(`[REGISTER DEBUG] User created in DB with avatar: ${user.avatar ? 'YES' : 'NO'}`);
+      const generatedToken = generateToken(newUser);
+      return { user: newUser, token: generatedToken };
+    });
 
-    // --- KTU AUTO-JOIN ---
-    if (user.department) {
-      await checkAndJoinDepartmentHub(user.id, user.department);
-    }
-
-    // Generate token
-    const token = generateToken(user);
+    console.log(`[REGISTER DEBUG] User ${user.id} and department hub synced successfully.`);
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
@@ -198,7 +179,15 @@ exports.register = async (req, res) => {
       redirectTo: getRedirectPath(user.role)
     });
   } catch (error) {
-    console.error(`[REGISTER FATAL] Server Error:`, error);
+    console.error(`[REGISTER FATAL] Registration failed:`, error);
+    
+    if (error.code === 'P2021' || error.code === 'P2022' || error.message.includes('fcmToken')) {
+      return res.status(500).json({ 
+        message: 'Database schema mismatch detected. This server requires a database sync (npx prisma db push).',
+        error: 'SCHEMA_OUT_OF_SYNC'
+      });
+    }
+
     res.status(500).json({ message: 'Server error during registration', error: error.message });
   }
 };
@@ -206,6 +195,12 @@ exports.register = async (req, res) => {
 // Login user
 exports.login = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const errorMsg = errors.array()[0]?.msg || 'Validation failed';
+      return res.status(400).json({ message: errorMsg, errors: errors.array() });
+    }
+
     const { email, password, fcmToken } = req.body;
 
     // REQUIREMENT 2: Validate inputs
@@ -229,16 +224,15 @@ exports.login = async (req, res) => {
 
     if (!user) {
       console.log(`[LOGIN] User not found: ${normalizedEmail}`);
-      // REQUIREMENT 7: Return generic message
-      return res.status(401).json({ message: 'Invalid credentials' });
+      // 400 = bad credentials (not a missing Bearer token — avoids client "session expired" handling)
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     // REQUIREMENT 4: Password check
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       console.log(`[LOGIN] Invalid password for: ${normalizedEmail}`);
-      // REQUIREMENT 7: Return generic message
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     // FEATURE: Fail-safe FCM token update (From Requirement 2 of previous task)
@@ -261,8 +255,7 @@ exports.login = async (req, res) => {
     res.json({
       message: 'Login successful',
       token,
-      user: userWithoutPassword,
-      redirectTo: getRedirectPath(user.role)
+      user: userWithoutPassword
     });
 
   } catch (err) {
@@ -317,25 +310,22 @@ exports.updateProfile = async (req, res) => {
   try {
     const { name, department, faculty, level, avatar, status } = req.body;
     
-    const user = await prisma.user.update({
-      where: { id: req.user.id },
-      data: { name, department, faculty, level, avatar, status },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        avatar: true,
-        role: true,
-        studentId: true,
-        department: true,
-        faculty: true,
-        level: true,
-        isOnline: true,
-        lastSeen: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true
+    const { user } = await prisma.$transaction(async (tx) => {
+      const updatedUser = await tx.user.update({
+        where: { id: req.user.id },
+        data: { name, department, faculty, level, avatar, status },
+        select: {
+          id: true, email: true, name: true, avatar: true, role: true,
+          studentId: true, department: true, faculty: true, level: true,
+          isOnline: true, lastSeen: true, status: true, createdAt: true, updatedAt: true
+        }
+      });
+
+      if (department) {
+        await checkAndJoinDepartmentHub(updatedUser.id, department, tx);
       }
+
+      return { user: updatedUser };
     });
 
     // Broadcast the update to all connected users
@@ -348,11 +338,6 @@ exports.updateProfile = async (req, res) => {
         isOnline: user.isOnline,
         lastSeen: user.lastSeen
       });
-    }
-
-    // --- KTU HUB SYNC ---
-    if (department) {
-      await checkAndJoinDepartmentHub(user.id, department);
     }
 
     res.json({

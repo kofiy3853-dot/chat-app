@@ -11,7 +11,7 @@ const setupCourseSockets = (io) => {
         const course = await prisma.course.findUnique({
           where: { id: courseId },
           include: { 
-            students: { select: { id: true } },
+            memberships: { select: { userId: true } },
             conversation: { select: { id: true } }
           }
         });
@@ -21,7 +21,7 @@ const setupCourseSockets = (io) => {
         // Access check
         const userId = socket.user.id;
         const hasAccess = course.instructorId === userId || 
-                          course.students.some(s => s.id === userId) ||
+                          course.memberships.some((m) => m.userId === userId) ||
                           socket.user.role === 'ADMIN';
 
         if (!hasAccess) return socket.emit('error', { message: 'Access denied' });
@@ -47,7 +47,7 @@ const setupCourseSockets = (io) => {
           where: { id: courseId },
           include: { 
             conversation: true,
-            students: { select: { id: true } }
+            memberships: { select: { userId: true } }
           }
         });
 
@@ -100,7 +100,7 @@ const setupCourseSockets = (io) => {
         io.to(`course:${courseId}`).emit('receiveMessage', message);
 
         // 4. Background Notifications for Badging (to all members not currently in the room)
-        const members = [...course.students.map(s => s.id), course.instructorId];
+        const members = [...course.memberships.map((m) => m.userId), course.instructorId];
         
         members.forEach(memberId => {
           if (memberId === userId) return;

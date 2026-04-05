@@ -9,7 +9,9 @@ export default function Document() {
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
         <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <style>{`
           #initial-loader {
             position: fixed;

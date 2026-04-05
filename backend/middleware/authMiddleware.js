@@ -55,7 +55,7 @@ const socketAuthMiddleware = async (socket, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, role: true }
+      select: { id: true, role: true, name: true }
     });
     
     if (!user) {
