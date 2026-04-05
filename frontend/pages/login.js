@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { authAPI, pushAPI, warmupServer } from '../services/api';
-import { initSocket } from '../services/socket';
 import { useAuth } from '../context/AuthContext';
 import { requestFirebaseNotificationPermission } from '../config/firebase';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
 export default function Login() {
-  const router = useRouter();
   const { login } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -49,21 +46,20 @@ export default function Login() {
       }
       const { token, user } = response.data;
 
-      // Sync AuthContext (writes localStorage + inits socket internally)
+      // login() sets user state in AuthContext + writes localStorage + inits socket.
+      // DO NOT call router.replace() here — React state is async.
+      // useAuthRedirect in _app.js watches user state and will navigate
+      // automatically once React commits the new user value.
       login(user, token);
       toast.success('Signed in successfully!');
 
-      // Guard in useAuthRedirect will detect isAuthenticated = true and navigate automatically.
-      // But we also push here for instant response.
-      const homeByRole = { NANA: '/nana', ADMIN: '/admin' };
-      router.replace(homeByRole[user.role] ?? '/');
-
-      // Initialize FCM in background AFTER navigation (non-blocking)
+      // Initialize FCM in background — completely non-blocking
       requestFirebaseNotificationPermission()
         .then(fcmToken => {
           if (fcmToken) pushAPI.updateFcmToken(fcmToken).catch(() => {});
         })
-        .catch(() => {}); // Silently ignore any FCM errors
+        .catch(() => {});
+
     } catch (err) {
       console.error("LOGIN FRONTEND ERROR:", err.message);
       const isTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
