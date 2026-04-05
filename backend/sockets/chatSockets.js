@@ -258,6 +258,21 @@ const setupChatSockets = (io) => {
 
           const count = await prisma.notification.count({ where: { recipientId: mentionedUserId, isRead: false } });
           io.to(`user:${mentionedUserId}`).emit('new-notification', { notification, unreadCount: count });
+
+          // REQUIREMENT 3: Trigger FCM for MENTION
+          const mentionedUser = await prisma.user.findUnique({
+            where: { id: mentionedUserId },
+            select: { fcmToken: true }
+          });
+          if (mentionedUser?.fcmToken) {
+            const { sendPushNotification } = require('../utils/firebasePush');
+            sendPushNotification(mentionedUser.fcmToken, {
+              title: notification.title,
+              message: notification.content,
+              url: notification.actionUrl,
+              extraData: { mention: 'true', conversationId }
+            });
+          }
         }));
 
         await Promise.all(recipients.map(async (recipient) => {
@@ -283,7 +298,7 @@ const setupChatSockets = (io) => {
 
             const notification = await prisma.notification.create({
               data: {
-                type: isReply ? 'MESSAGE' : 'MESSAGE', // Keep as MESSAGE but maybe add REPLY type later if needed
+                type: isReply ? 'MESSAGE' : 'MESSAGE',
                 title: isReply ? `${socket.user.name} replied to your message` : `New message from ${socket.user.name}`,
                 content: notificationContent.length > 50 ? notificationContent.substring(0, 50) + '...' : notificationContent,
                 recipientId: recipient.userId,
@@ -291,6 +306,22 @@ const setupChatSockets = (io) => {
                 messageId: message.id
               }
             });
+
+            // REQUIREMENT 3: Trigger FCM notification for offline recipient
+            const recipientUser = await prisma.user.findUnique({
+              where: { id: recipient.userId },
+              select: { fcmToken: true }
+            });
+
+            if (recipientUser?.fcmToken) {
+              const { sendPushNotification } = require('../utils/firebasePush');
+              sendPushNotification(recipientUser.fcmToken, {
+                title: notification.title,
+                message: notification.content,
+                url: `/chat/${conversationId}`,
+                extraData: { conversationId, messageId: message.id }
+              });
+            }
 
             const totalUnreadCount = await prisma.notification.count({ 
               where: { recipientId: recipient.userId, isRead: false } 

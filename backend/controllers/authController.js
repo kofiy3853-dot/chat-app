@@ -150,7 +150,8 @@ exports.register = async (req, res) => {
           faculty: req.body.faculty || null,
           level: req.body.level || null,
           avatar: avatarUrl,
-          role: role ? role.toUpperCase() : 'STUDENT'
+          role: role ? role.toUpperCase() : 'STUDENT',
+          fcmToken: req.body.fcmToken || null
         }
       });
     } catch (dbError) {
@@ -215,8 +216,14 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Use our global generateToken instead of redeclaring 
-    // to preserve token uniformity (7d etc)
+    // REQUIREMENT 2: Store fcmToken if provided during login
+    if (req.body.fcmToken) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { fcmToken: req.body.fcmToken }
+      });
+    }
+
     const token = generateToken(user);
     const { password: _, ...userWithoutPassword } = user;
 

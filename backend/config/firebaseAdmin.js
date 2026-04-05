@@ -1,30 +1,30 @@
 const admin = require('firebase-admin');
 
 try {
-  // If FIREBASE_SERVICE_ACCOUNT_KEY is a full json string in env
   if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
-    console.log('[FIREBASE] Admin SDK initialized via JSON string.');
+    console.log('[FIREBASE] Firebase initialized successfully via JSON string.');
   } 
-  // Fallback to separate env variables
-  else if (process.env.FIREBASE_PROJECT_ID) {
+  else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_PRIVATE_KEY) {
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
       })
     });
-    console.log('[FIREBASE] Admin SDK initialized via separate ENV vars.');
+    console.log('[FIREBASE] Firebase initialized successfully via separate ENV vars.');
   } else {
-    // Attempt fallback to local service account file if it exists, otherwise throw
-    console.warn('[FIREBASE] No Service Account provided in env. Push notifications may fail.');
+    // REQUIREMENT 1: Throw error if credentials missing
+    throw new Error('MISSING FIREBASE CREDENTIALS: Set FIREBASE_SERVICE_ACCOUNT_KEY or separate PROJECT_ID/PRIVATE_KEY environment variables.');
   }
 } catch (error) {
-  console.error('[FIREBASE INITIALIZATION ERROR]', error);
+  console.error('[FIREBASE INITIALIZATION ERROR]', error.message);
+  // In production, we throw to prevent inconsistent state, but we log strictly here
+  if (process.env.NODE_ENV === 'production') throw error;
 }
 
 module.exports = admin;

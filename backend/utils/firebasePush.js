@@ -1,68 +1,71 @@
 const admin = require('../config/firebaseAdmin');
+const prisma = require('../prisma/client'); // REQUIREMENT 5: Enable token cleanup
 
 /**
- * Firebase Cloud Messaging Push Notification Utility
- */
-
-/**
- * Send a push notification to one or more FCM tokens.
- * @param {string|string[]} fcmTokens - Single token or array of FCM tokens
+ * Send a push notification to one or more FCM tokens and handle DB cleanup.
+ * @param {string|string[]} fcmTokens - Single token or array of strings
  * @param {object} payload - Title, message, and extra data
  */
 async function sendPushNotification(fcmTokens, payload) {
   try {
     if (!admin) {
-      console.warn('[FCM] Firebase Admin not initialized. Skipping push.');
+      console.warn('[FCM] Firebase not initialized. Notification skipped.');
       return;
     }
 
     const tokens = Array.isArray(fcmTokens) ? fcmTokens : [fcmTokens];
-    const validTokens = tokens.filter(t => !!t);
+    const validTokens = [...new Set(tokens.filter(t => !!t))]; // Dedup
 
     if (validTokens.length === 0) return;
 
-    const message = {
+    const messagePayload = {
       notification: {
-        title: payload.title || 'New Notification',
-        body: payload.message || '',
+        title: payload.title || 'Campus Chat',
+        body: payload.message || 'New notification',
       },
       data: {
         url: payload.url || '/',
         ...(payload.extraData || {})
       },
       tokens: validTokens,
-      android: {
-        priority: 'high',
-        notification: {
-          sound: 'default',
-          channelId: 'default'
-        }
-      },
-      apns: {
-        payload: {
-          aps: {
-            sound: 'default'
-          }
-        }
-      }
     };
 
-    const response = await admin.messaging().sendEachForMulticast(message);
+    // REQUIREMENT 4: Log every notification attempt
+    console.log(`[FCM] Sending push to ${validTokens.length} token(s)...`);
+
+    const response = await admin.messaging().sendEachForMulticast(messagePayload);
     
+    // Log overall success
+    console.log(`[FCM] Successfully delivered to ${response.successCount} device(s).`);
+
+    // REQUIREMENT 5: Handle token cleanup for invalid tokens
     if (response.failureCount > 0) {
-      const failedTokens = [];
+      const invalidTokens = [];
       response.responses.forEach((resp, idx) => {
         if (!resp.success) {
-          failedTokens.push(validTokens[idx]);
-          console.warn('[FCM] Error sending to token:', validTokens[idx], resp.error);
+          const error = resp.error;
+          const token = validTokens[idx];
+          
+          console.warn(`[FCM] Failure for token: ${token.substring(0, 10)}... Error: ${error.code}`);
+
+          // Tokens that are invalid or no longer registered should be removed from DB
+          if (error.code === 'messaging/invalid-registration-token' || 
+              error.code === 'messaging/registration-token-not-registered') {
+            invalidTokens.push(token);
+          }
         }
       });
-      // Optionally handle db cleanup for failedTokens if error is 'messaging/invalid-registration-token'
-    }
 
-    console.log(`[FCM] Successfully sent message to ${response.successCount} devices.`);
+      if (invalidTokens.length > 0) {
+        console.log(`[FCM] Cleaning up ${invalidTokens.length} invalid tokens from database.`);
+        await prisma.user.updateMany({
+          where: { fcmToken: { in: invalidTokens } },
+          data: { fcmToken: null }
+        });
+      }
+    }
   } catch (error) {
-    console.error('[FCM] Catch block error:', error);
+    console.error('[FCM CRITICAL ERROR] Notification broadcast failed:', error.message);
   }
 }
 

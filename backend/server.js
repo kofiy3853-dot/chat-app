@@ -21,6 +21,20 @@ process.on('uncaughtException', (err) => {
   console.error('[FATAL] Uncaught Exception:', err);
 });
 const prisma = require('./prisma/client');
+
+// REQUIREMENT 6: Test notification on startup
+const { sendPushNotification } = require('./utils/firebasePush');
+setTimeout(() => {
+  console.log('[FIREBASE] Running startup push test readiness check...');
+  // Note: We don't have a specific device token here, so we just log the readiness.
+  // In a real test, you'd provide a verified test token in ENV.
+  if (process.env.TEST_FCM_TOKEN) {
+    sendPushNotification(process.env.TEST_FCM_TOKEN, {
+      title: 'Server Test',
+      message: 'FCM Backend is now online and verified.'
+    });
+  }
+}, 5000);
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
