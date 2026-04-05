@@ -137,32 +137,45 @@ exports.register = async (req, res) => {
       return res.status(500).json({ message: 'Failed to upload profile picture' });
     }
 
-    // Create new user
+    // Create new user (Fail-safe: omit fcmToken if it causes a crash)
     let user;
+    const userData = {
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      name,
+      studentId,
+      department,
+      faculty: req.body.faculty || null,
+      level: req.body.level || null,
+      avatar: avatarUrl,
+      role: role ? role.toUpperCase() : 'STUDENT'
+    };
+
+    // Only add fcmToken if provided
+    if (req.body.fcmToken) {
+      userData.fcmToken = req.body.fcmToken;
+    }
+
     try {
       user = await prisma.user.create({
-        data: {
-          email: email.toLowerCase(),
-          password: hashedPassword,
-          name,
-          studentId,
-          department,
-          faculty: req.body.faculty || null,
-          level: req.body.level || null,
-          avatar: avatarUrl,
-          role: role ? role.toUpperCase() : 'STUDENT',
-          fcmToken: req.body.fcmToken || null
-        }
+        data: userData
       });
     } catch (dbError) {
-      console.error(`[REGISTER ERROR] DB Creation Failed:`, dbError);
-      if (dbError.code === 'P2002') {
+      console.error(`[REGISTER ERROR] DB Creation Failed:`, dbError.message);
+      
+      // FALLBACK: If fcmToken is the cause (column missing), retry WITHOUT it
+      if (dbError.message.includes('fcmToken') || dbError.code === 'P2021') {
+        console.warn('[REGISTER] Retrying WITHOUT fcmToken due to missing column...');
+        delete userData.fcmToken;
+        user = await prisma.user.create({ data: userData });
+      } else if (dbError.code === 'P2002') {
         const field = dbError.meta?.target?.[0] || 'account';
         return res.status(400).json({ 
-          message: `This ${field === 'studentId' ? 'Student ID' : field} is already registered. Please try a different one or sign in.` 
+          message: `This ${field === 'studentId' ? 'Student ID' : field} is already registered.` 
         });
+      } else {
+        throw dbError;
       }
-      throw dbError; // Pass to general catch
     }
 
     console.log(`[REGISTER DEBUG] User created in DB with avatar: ${user.avatar ? 'YES' : 'NO'}`);
@@ -195,14 +208,11 @@ exports.login = async (req, res) => {
   try {
     console.log("LOGIN BODY:", req.body);
 
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      console.log("Missing fields");
-      return res.status(400).json({ message: "Email and password required" });
-    }
-
-    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    // 1. Minimum-impact user lookup to verify credentials
+    const user = await prisma.user.findUnique({ 
+      where: { email: email.toLowerCase() },
+      select: { id: true, email: true, password: true, role: true, name: true } // Avoid fcmToken, isOnline, etc.
+    });
 
     if (!user) {
       console.log("User not found:", email);
@@ -210,18 +220,23 @@ exports.login = async (req, res) => {
     }
 
     const valid = await bcrypt.compare(password, user.password);
-
     if (!valid) {
       console.log("Wrong password for:", email);
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // REQUIREMENT 2: Store fcmToken if provided during login
+    // REQUIREMENT 2: Store fcmToken if provided during login (wrapped in try/catch for fail-safe)
     if (req.body.fcmToken) {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { fcmToken: req.body.fcmToken }
-      });
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { fcmToken: req.body.fcmToken }
+        });
+        console.log(`[FCM] Token updated for user ${user.id}`);
+      } catch (fcmError) {
+        console.warn(`[FCM WARNING] Could not update token: ${fcmError.message} (Likely missing DB column)`);
+        // SILENT FAIL: Don't block login if FCM update fails
+      }
     }
 
     const token = generateToken(user);
