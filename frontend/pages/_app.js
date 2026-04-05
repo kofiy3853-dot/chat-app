@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Navbar from '../components/Navbar';
-import { initSocket, getSocket } from '../services/socket';
+import { getSocket } from '../services/socket';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { CallProvider } from '../context/CallContext';
 import { ThemeProvider } from '../context/ThemeContext';
+import { AuthProvider, useAuth } from '../context/AuthContext';
 import { requestFirebaseNotificationPermission, onMessageListener } from '../config/firebase';
 import { pushAPI } from '../services/api';
 import dynamic from 'next/dynamic';
@@ -13,25 +14,20 @@ import useAuthRedirect from '../hooks/useAuthRedirect';
 import { BellIcon } from '@heroicons/react/24/outline';
 import Head from 'next/head';
 import { useTheme } from '../context/ThemeContext';
+import { playNotificationSound } from '../utils/sound';
 import '../styles/globals.css';
 
-// Dynamic theme-color sync for mobile status bar
+// ─── Theme Color Sync (mobile status bar) ─────────────────────────────────────
 function ThemeColorSync() {
   const { theme } = useTheme();
   const [metaColor, setMetaColor] = useState('#2e8bc0');
 
   useEffect(() => {
-    // 0.1s delay to ensure the data-theme attribute is applied to the DOM 
-    // and CSS variables are recalculated by the browser
     const timer = setTimeout(() => {
       const computedStyle = getComputedStyle(document.documentElement);
       const statusBarColor = computedStyle.getPropertyValue('--status-bar').trim();
-      
-      if (statusBarColor) {
-        setMetaColor(statusBarColor);
-      }
+      if (statusBarColor) setMetaColor(statusBarColor);
     }, 100);
-    
     return () => clearTimeout(timer);
   }, [theme]);
 
@@ -42,63 +38,90 @@ function ThemeColorSync() {
   );
 }
 
+// ─── Auth-aware Loader ────────────────────────────────────────────────────────
+// Renders a spinner while the auth state is being hydrated from localStorage.
+// This prevents ANY content from flashing before we know who the user is.
+function AuthLoader() {
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'white',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', zIndex: 99999
+      }}
+    >
+      <div style={{
+        width: 56, height: 56,
+        background: 'linear-gradient(to top right, #2E8BC0, #1a6a92)',
+        borderRadius: '1.25rem',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 20px 40px -10px rgba(46,139,192,0.4)',
+        marginBottom: '1.5rem'
+      }}>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      </div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        {[0, 0.15, 0.3].map((delay, i) => (
+          <div key={i} style={{
+            width: 8, height: 8, borderRadius: '50%', background: '#2E8BC0',
+            animation: 'bounce 0.6s infinite alternate',
+            animationDelay: `${delay}s`
+          }} />
+        ))}
+      </div>
+      <style>{`@keyframes bounce { to { transform: translateY(-6px); opacity: 0.4; } }`}</style>
+    </div>
+  );
+}
+
 const CallInterface = dynamic(() => import('../components/CallInterface'), { ssr: false });
 
-
-
-import { playNotificationSound } from '../utils/sound';
-
-const publicPages = ['/login', '/register'];
 const hideNavbarPages = ['/login', '/register', '/events/create', '/anonymous/create', '/chat/[id]', '/courses/[id]', '/nana'];
 
-export default function MyApp({ Component, pageProps }) {
+// ─── Inner App (has access to AuthContext) ────────────────────────────────────
+function AppContent({ Component, pageProps }) {
   const router = useRouter();
-  const [authorized, setAuthorized] = useState(false);
-  const [isReady, setIsReady] = useState(false);
-  const [isOffline, setIsOffline] = useState(false);
+  const { user, loading, isAuthenticated } = useAuth();
+  const [isOffline, setIsOffline]         = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [user, setUser] = useState(null);
 
-  // 1. Initial Lifecycle & Auth Hydration
+  // Run the auth guard (no-ops while loading === true)
+  useAuthRedirect();
+
+  // ── PWA / Offline / SW Setup ───────────────────────────────────────────────
   useEffect(() => {
-    // 1.1 Auth Hydration (Safe from hydration mismatches)
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
-    
-    if (token && userStr) {
-      try {
-        const parsedUser = JSON.parse(userStr);
-        setUser(parsedUser);
-        setAuthorized(true);
-        initSocket();
-      } catch (e) {
-        console.error('Invalid user data in storage');
-      }
-    }
-    setIsReady(true);
-
-    // 1.2 Service Worker & Firebase Push Setup
-    if (typeof window !== 'undefined' && "serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/sw.js").then(reg => {
+    // 1. Service Worker & Firebase Push (only when authenticated)
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
           if (reg.active && localStorage.getItem('token')) {
             requestFirebaseNotificationPermission().then(token => {
-              if(token) pushAPI.updateFcmToken(token).catch(console.error);
+              if (token) pushAPI.updateFcmToken(token).catch(console.error);
             }).catch(console.warn);
           }
         }).catch(err => console.error('SW error', err));
       });
     }
 
-    // 1.3 Online/Offline Listeners
-    const handleOnline = () => setIsOffline(false);
+    // 2. Online/Offline
+    const handleOnline  = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     if (typeof navigator !== 'undefined') setIsOffline(!navigator.onLine);
 
+    // 3. PWA Install Prompt
     const handleBeforeInstallPrompt = (e) => { e.preventDefault(); setDeferredPrompt(e); };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // 4. Hide splash screen
+    const loader = document.getElementById('initial-loader');
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => { loader.style.display = 'none'; loader.remove?.(); }, 500);
+    }
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -107,30 +130,22 @@ export default function MyApp({ Component, pageProps }) {
     };
   }, []);
 
-  // 2. Global Notification & Socket Events
+  // ── Global Socket Notifications (only when authenticated) ─────────────────
   useEffect(() => {
-    if (!authorized) return;
+    if (!isAuthenticated) return;
     const socket = getSocket();
     if (!socket) return;
 
     const handleNewMessage = (data) => {
-      // Don't show toast if we are already in the conversation
       if (router.pathname === '/chat/[id]' && router.query.id === data.conversationId) return;
-      
       const msg = data.message;
-      if (msg.senderId === user?.id) return; // Don't notify self
+      if (msg.senderId === user?.id) return;
 
       playNotificationSound();
-
       toast.custom((t) => (
         <div
-          className={`${
-            t.visible ? 'animate-in fade-in slide-in-from-top-full duration-300' : 'animate-out fade-out slide-out-to-top-full duration-300'
-          } max-w-sm w-full bg-white/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active:scale-95 transition-all mb-4`}
-          onClick={() => {
-            router.push(`/chat/${data.conversationId}`);
-            toast.dismiss(t.id);
-          }}
+          className={`${t.visible ? 'animate-in fade-in slide-in-from-top-full duration-300' : 'animate-out fade-out slide-out-to-top-full duration-300'} max-w-sm w-full bg-white/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active:scale-95 transition-all mb-4`}
+          onClick={() => { router.push(`/chat/${data.conversationId}`); toast.dismiss(t.id); }}
         >
           <div className="flex-1 w-0">
             <div className="flex items-center">
@@ -140,12 +155,8 @@ export default function MyApp({ Component, pageProps }) {
                 </div>
               </div>
               <div className="ml-3 flex-1">
-                <p className="text-sm font-black text-slate-900 tracking-tight">
-                  {msg.sender?.name || 'New Message'}
-                </p>
-                <p className="text-xs font-medium text-slate-500 truncate mt-0.5">
-                  {msg.content || 'Sent an attachment'}
-                </p>
+                <p className="text-sm font-black text-slate-900 tracking-tight">{msg.sender?.name || 'New Message'}</p>
+                <p className="text-xs font-medium text-slate-500 truncate mt-0.5">{msg.content || 'Sent an attachment'}</p>
               </div>
             </div>
           </div>
@@ -155,22 +166,12 @@ export default function MyApp({ Component, pageProps }) {
 
     const handleNewNotification = (data) => {
       if (router.pathname === '/activity') return;
-      
-      // Fix: Don't show generic notification toast for messages/mentions 
-      // because handleNewMessage already shows a much prettier toast for them.
       if (data.notification?.type === 'MESSAGE' || data.notification?.type === 'MENTION') return;
-
       playNotificationSound();
-
       toast.custom((t) => (
         <div
-          className={`${
-            t.visible ? 'animate-in fade-in zoom-in-95' : 'animate-out fade-out zoom-out-95'
-          } max-w-xs w-full bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-center space-x-3 text-white border border-slate-800`}
-          onClick={() => {
-            router.push('/activity');
-            toast.dismiss(t.id);
-          }}
+          className={`${t.visible ? 'animate-in fade-in zoom-in-95' : 'animate-out fade-out zoom-out-95'} max-w-xs w-full bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-center space-x-3 text-white border border-slate-800`}
+          onClick={() => { router.push('/activity'); toast.dismiss(t.id); }}
         >
           <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center">
             <BellIcon className="w-4 h-4" />
@@ -183,19 +184,12 @@ export default function MyApp({ Component, pageProps }) {
       ), { duration: 5000 });
     };
 
-    socket.on('new-message', handleNewMessage);
-    socket.on('new-notification', handleNewNotification);
-
-    // FCM Foreground Message handling
     const unsubscribeFCM = onMessageListener((payload) => {
-      if(payload?.notification) {
+      if (payload?.notification) {
         toast.custom((t) => (
           <div
             className="max-w-sm w-full bg-[#2e8bc0] rounded flex items-center p-3 text-white cursor-pointer shadow-xl animate-in fade-in slide-in-from-top-full"
-            onClick={() => {
-              if (payload.data?.url) router.push(payload.data.url);
-              toast.dismiss(t.id);
-            }}
+            onClick={() => { if (payload.data?.url) router.push(payload.data.url); toast.dismiss(t.id); }}
           >
             <div className="flex-1">
               <p className="text-sm font-semibold">{payload.notification.title}</p>
@@ -206,99 +200,72 @@ export default function MyApp({ Component, pageProps }) {
       }
     });
 
+    socket.on('new-message', handleNewMessage);
+    socket.on('new-notification', handleNewNotification);
+
     return () => {
       socket.off('new-message', handleNewMessage);
       socket.off('new-notification', handleNewNotification);
       if (unsubscribeFCM) unsubscribeFCM();
     };
-  }, [authorized, router.pathname, router.query.id, user?.id]);
+  }, [isAuthenticated, router.pathname, router.query.id, user?.id]);
 
-  // 3. Centralized Auth & Role Routing Hook
-  useAuthRedirect(user, isReady);
+  // ── While auth is loading: show spinner, render nothing else ──────────────
+  if (loading) return <AuthLoader />;
 
-  // 3. Splash Screen / Loader Management
-  useEffect(() => {
-    if (isReady) {
-      const loader = document.getElementById('initial-loader');
-      if (loader) {
-        loader.style.opacity = '0';
-        setTimeout(() => { loader.style.display = 'none'; loader.remove(); }, 500);
-      }
-    }
-  }, [isReady]);
-
-  if (!isReady) return null;
-
-  // 3. UI Decision Helpers
-  const normalizedPath = router.pathname;
-  const isDynamicChat = normalizedPath === '/chat/[id]';
+  const normalizedPath  = router.pathname;
+  const isDynamicChat   = normalizedPath === '/chat/[id]';
   const isDynamicCourse = normalizedPath === '/courses/[id]';
   const shouldHideNavbar = hideNavbarPages.includes(normalizedPath) || isDynamicChat || isDynamicCourse;
 
   return (
+    <div className="min-h-screen font-['Outfit',sans-serif]" style={{ backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        gutter={8}
+        toastOptions={{
+          duration: 5000,
+          style: { background: '#fff', color: '#1e293b', borderRadius: '20px', padding: '12px 20px', fontSize: '14px', fontWeight: '700', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.15)' },
+          success: { iconTheme: { primary: '#4f46e5', secondary: '#fff' } },
+          error: { style: { background: '#1e293b', color: '#fff' }, iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+        }}
+      />
+      <main className={shouldHideNavbar ? 'relative h-[100dvh] overflow-hidden flex flex-col' : 'pb-[calc(env(safe-area-inset-bottom)+90px)] relative'}>
+        {isOffline && (
+          <div className="bg-rose-500 text-white text-center py-2 text-sm font-black uppercase tracking-widest sticky top-0 z-50 shadow-lg">
+            Offline Mode
+          </div>
+        )}
+        {deferredPrompt && (
+          <div className="bg-primary-600 text-white text-center py-3 px-4 text-sm font-black sticky top-0 z-50 flex justify-center items-center gap-4 shadow-xl animate-fade-in-down">
+            <span className="uppercase tracking-tight">Experience Campus Chat as an App</span>
+            <button
+              onClick={() => { deferredPrompt.prompt(); deferredPrompt.userChoice.then(res => res.outcome === 'accepted' && setDeferredPrompt(null)); }}
+              className="bg-white text-primary-600 px-6 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-md hover:bg-slate-50 transition-all"
+            >
+              Install Now
+            </button>
+          </div>
+        )}
+        <Component {...pageProps} />
+      </main>
+      {isAuthenticated && !shouldHideNavbar && <Navbar />}
+      <CallInterface />
+    </div>
+  );
+}
+
+// ─── Root App (wraps everything in providers) ─────────────────────────────────
+export default function MyApp({ Component, pageProps }) {
+  return (
     <ThemeProvider>
-    <CallProvider>
-      <ThemeColorSync />
-      <div className="min-h-screen font-['Outfit',sans-serif]" style={{ backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
-        <Toaster 
-          position="top-center"
-          reverseOrder={false}
-          gutter={8}
-          toastOptions={{
-            duration: 5000,
-            style: {
-              background: '#fff',
-              color: '#1e293b',
-              borderRadius: '20px',
-              padding: '12px 20px',
-              fontSize: '14px',
-              fontWeight: '700',
-              boxShadow: '0 10px 40px -10px rgba(0,0,0,0.15)',
-            },
-            success: {
-              iconTheme: {
-                primary: '#4f46e5',
-                secondary: '#fff',
-              },
-            },
-            error: {
-              style: {
-                background: '#1e293b',
-                color: '#fff',
-              },
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
-              },
-            },
-          }}
-        />
-        <main className={shouldHideNavbar ? 'relative h-[100dvh] overflow-hidden flex flex-col' : 'pb-[calc(env(safe-area-inset-bottom)+90px)] relative'}>
-          {isOffline && (
-            <div className="bg-rose-500 text-white text-center py-2 text-sm font-black uppercase tracking-widest sticky top-0 z-50 shadow-lg">
-              Offline Mode
-            </div>
-          )}
-          {deferredPrompt && (
-            <div className="bg-primary-600 text-white text-center py-3 px-4 text-sm font-black sticky top-0 z-50 flex justify-center items-center gap-4 shadow-xl animate-fade-in-down">
-              <span className="uppercase tracking-tight">Experience Campus Chat as an App</span>
-              <button 
-                onClick={() => {
-                  deferredPrompt.prompt();
-                  deferredPrompt.userChoice.then(res => res.outcome === 'accepted' && setDeferredPrompt(null));
-                }}
-                className="bg-white text-primary-600 px-6 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-md hover:bg-slate-50 transition-all"
-              >
-                Install Now
-              </button>
-            </div>
-          )}
-          <Component {...pageProps} />
-        </main>
-        {authorized && !shouldHideNavbar && <Navbar />}
-        <CallInterface />
-      </div>
-    </CallProvider>
+      <AuthProvider>
+        <CallProvider>
+          <ThemeColorSync />
+          <AppContent Component={Component} pageProps={pageProps} />
+        </CallProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

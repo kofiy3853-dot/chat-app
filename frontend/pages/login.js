@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { authAPI, pushAPI, warmupServer } from '../services/api';
 import { initSocket } from '../services/socket';
+import { useAuth } from '../context/AuthContext';
 import { requestFirebaseNotificationPermission } from '../config/firebase';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
 export default function Login() {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -27,9 +29,7 @@ export default function Login() {
     setError('');
     setServerStatus('');
 
-    const attemptLogin = async () => {
-      return authAPI.login(formData);
-    };
+    const attemptLogin = async () => authAPI.login(formData);
 
     try {
       let response;
@@ -49,23 +49,14 @@ export default function Login() {
       }
       const { token, user } = response.data;
 
-      // Store auth data
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      // Initialize socket
-      initSocket();
-
+      // Sync AuthContext (writes localStorage + inits socket internally)
+      login(user, token);
       toast.success('Signed in successfully!');
 
-      // Redirect immediately — don't wait for FCM
-      if (user.role === "NANA") {
-        router.replace("/nana");
-      } else if (user.role === "ADMIN") {
-        router.replace("/admin");
-      } else {
-        router.replace("/");
-      }
+      // Guard in useAuthRedirect will detect isAuthenticated = true and navigate automatically.
+      // But we also push here for instant response.
+      const homeByRole = { NANA: '/nana', ADMIN: '/admin' };
+      router.replace(homeByRole[user.role] ?? '/');
 
       // Initialize FCM in background AFTER navigation (non-blocking)
       requestFirebaseNotificationPermission()
