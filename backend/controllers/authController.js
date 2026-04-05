@@ -206,44 +206,58 @@ exports.register = async (req, res) => {
 // Login user
 exports.login = async (req, res) => {
   try {
-    console.log("LOGIN BODY:", req.body);
+    const { email, password, fcmToken } = req.body;
 
-    // 1. Minimum-impact user lookup to verify credentials
+    // REQUIREMENT 2: Validate inputs
+    if (!email || !password) {
+      console.warn('[LOGIN] Missing email or password in request body.');
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    // REQUIREMENT 5: Ensure JWT_SECRET is defined
+    if (!process.env.JWT_SECRET) {
+      console.error('[AUTH FATAL] JWT_SECRET is not defined in environment variables.');
+      throw new Error('Server environment error: JWT configuration missing');
+    }
+
+    // REQUIREMENT 3: User lookup (Using safe select for schema stability)
+    const normalizedEmail = email.trim().toLowerCase();
     const user = await prisma.user.findUnique({ 
-      where: { email: email.toLowerCase() },
-      select: { id: true, email: true, password: true, role: true, name: true } // Avoid fcmToken, isOnline, etc.
+      where: { email: normalizedEmail },
+      select: { id: true, email: true, password: true, role: true, name: true }
     });
 
     if (!user) {
-      console.log("User not found:", email);
-      return res.status(401).json({ message: "Invalid credentials" });
+      console.log(`[LOGIN] User not found: ${normalizedEmail}`);
+      // REQUIREMENT 7: Return generic message
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) {
-      console.log("Wrong password for:", email);
-      return res.status(401).json({ message: "Invalid credentials" });
+    // REQUIREMENT 4: Password check
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.log(`[LOGIN] Invalid password for: ${normalizedEmail}`);
+      // REQUIREMENT 7: Return generic message
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // REQUIREMENT 2: Store fcmToken if provided during login (wrapped in try/catch for fail-safe)
-    if (req.body.fcmToken) {
+    // FEATURE: Fail-safe FCM token update (From Requirement 2 of previous task)
+    if (fcmToken) {
       try {
         await prisma.user.update({
           where: { id: user.id },
-          data: { fcmToken: req.body.fcmToken }
+          data: { fcmToken: fcmToken }
         });
-        console.log(`[FCM] Token updated for user ${user.id}`);
+        console.log(`[FCM] Token updated during login for user ${user.id}`);
       } catch (fcmError) {
-        console.warn(`[FCM WARNING] Could not update token: ${fcmError.message} (Likely missing DB column)`);
-        // SILENT FAIL: Don't block login if FCM update fails
+        console.warn(`[FCM] Could not update token: ${fcmError.message} (Likely missing DB column)`);
       }
     }
 
     const token = generateToken(user);
     const { password: _, ...userWithoutPassword } = user;
 
-    console.log("Login success:", email);
-
+    console.log(`[LOGIN] Success: ${normalizedEmail}`);
     res.json({
       message: 'Login successful',
       token,
@@ -252,8 +266,11 @@ exports.login = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    // REQUIREMENT 6: Log exact error in backend console
+    console.error('LOGIN ERROR:', err);
+
+    // REQUIREMENT 7: Mask internal error from the client
+    res.status(500).json({ message: 'Server error: An unexpected error occurred during login.' });
   }
 };
 
