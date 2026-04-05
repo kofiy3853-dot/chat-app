@@ -392,7 +392,64 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
     userRoleRef.current = userRole;
   }, [userRole]);
 
+  // --- 3a. Core Data Functions (defined BEFORE effects that call them) ---
+
+  const fetchMessages = async () => {
+    try {
+      const response = await chatAPI.getMessages(conversationId);
+      const newMessages = response.data.messages || [];
+      const conversation = response.data.conversation;
+
+      if (conversation) {
+        setConvData(conversation);
+        if (conversation.type === 'COURSE' && conversation.course) {
+          setIsLocked(!!conversation.course.announcementsOnly);
+          const membership = conversation.course.memberships?.[0];
+          setUserRole(membership?.role || 'STUDENT');
+        }
+      }
+
+      setMessages(prev => {
+        const outbox = prev.filter(m => m.id?.toString().startsWith('temp'));
+        return [...newMessages, ...outbox];
+      });
+
+      await cacheMessages(conversationId, newMessages);
+      console.log(`[DEBUG] Rendered ${newMessages.length} messages`);
+    } catch (err) {
+      console.error('[DEBUG] Fetch error:', err);
+      setError('Failed to load chat');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const syncOutbox = async () => {
+    if (!navigator.onLine) return;
+    try {
+      const outbox = await getOutboxMessages();
+      const relevant = outbox.filter(m => m.conversationId === conversationId);
+      if (relevant.length === 0) return;
+
+      console.log('[OFFLINE] Syncing outbox...', relevant.length);
+      for (const msg of relevant) {
+        if (!msg.fileUrl) {
+          sendMessage({
+            conversationId: msg.conversationId,
+            content: msg.content,
+            tempId: msg.tempId,
+            replyToId: msg.replyToId
+          });
+          await removeFromOutbox(msg.tempId);
+        }
+      }
+    } catch (err) {
+      console.error('Outbox sync failed:', err);
+    }
+  };
+
   // --- 3. Effects & Initialization ---
+
   useEffect(() => {
     const user = getCurrentUser();
     setCurrentUser(user);
