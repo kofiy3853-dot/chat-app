@@ -22,14 +22,7 @@ const authMiddleware = async (req, res, next) => {
         id: true,
         email: true,
         name: true,
-        avatar: true,
-        role: true,
-        studentId: true,
-        department: true,
-        isOnline: true,
-        lastSeen: true,
-        createdAt: true,
-        updatedAt: true
+        role: true // Keep role for RBAC
       }
     });
     
@@ -61,7 +54,8 @@ const socketAuthMiddleware = async (socket, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId }
+      where: { id: decoded.userId },
+      select: { id: true, role: true }
     });
     
     if (!user) {
