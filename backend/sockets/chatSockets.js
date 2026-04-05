@@ -83,12 +83,10 @@ const setupChatSockets = (io) => {
     // Also joins the 'viewing' room so the server knows this user is actively looking
     socket.on('join-conversation', async (conversationId) => {
       try {
-        const participant = await prisma.conversationParticipant.findUnique({
+        const participant = await prisma.conversationParticipant.findFirst({
           where: {
-            userId_conversationId: {
-              userId: socket.user.id,
-              conversationId: conversationId
-            }
+            userId: socket.user.id,
+            conversationId: conversationId
           }
         });
 
@@ -145,8 +143,8 @@ const setupChatSockets = (io) => {
         console.log(`[NOTIF DEBUG] send-message from user:${socket.user.id} (${socket.user.name}) to conv:${conversationId} | type:${type}`);
 
         // Verify user is participant AND check course lock status
-        const participantObj = await prisma.conversationParticipant.findUnique({
-          where: { userId_conversationId: { userId: socket.user.id, conversationId: conversationId } },
+        const participantObj = await prisma.conversationParticipant.findFirst({
+          where: { userId: socket.user.id, conversationId: conversationId },
           include: { 
             conversation: { 
               include: { 

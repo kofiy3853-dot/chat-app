@@ -79,7 +79,7 @@ const corsOptions = {
 const server = http.createServer(app);
 const io = new Server(server, { 
   cors: corsOptions,
-  transports: ['polling', 'websocket'],
+  transports: ['websocket', 'polling'], // 🔥 Priority: websocket first for Render sticky session stability
   pingTimeout: 120000, 
   pingInterval: 30000,
   connectTimeout: 45000

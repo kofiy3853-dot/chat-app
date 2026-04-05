@@ -370,21 +370,20 @@ exports.getConversationById = async (req, res) => {
 
 // Get messages in a conversation
 exports.getMessages = async (req, res) => {
+  const { conversationId } = req.params;
   try {
-    const { conversationId } = req.params;
     const { page = 1, limit = 50 } = req.query;
 
-    // Verify user is participant
-    const participant = await prisma.conversationParticipant.findUnique({
+    // Verify user is participant - Use findFirst for better flexibility in production
+    const participant = await prisma.conversationParticipant.findFirst({
       where: {
-        userId_conversationId: {
-          userId: req.user.id,
-          conversationId: conversationId
-        }
+        userId: req.user.id,
+        conversationId: conversationId
       }
     });
 
     if (!participant) {
+      console.warn(`[GET_MESSAGES ACCESS] User ${req.user.id} denied access to conv:${conversationId}`);
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -460,7 +459,12 @@ exports.getMessages = async (req, res) => {
       conversation
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error(`[GET_MESSAGES 500 ERROR] convId=${conversationId} user=${req.user?.id}:`, error);
+    res.status(500).json({ 
+      message: 'Server error while fetching messages', 
+      error: error.message,
+      path: req.originalUrl 
+    });
   }
 };
 
@@ -470,12 +474,10 @@ exports.sendMessage = async (req, res) => {
     const { conversationId, content, type = 'TEXT', replyToId } = req.body;
 
     // Verify user is participant
-    const participant = await prisma.conversationParticipant.findUnique({
+    const participant = await prisma.conversationParticipant.findFirst({
       where: {
-        userId_conversationId: {
-          userId: req.user.id,
-          conversationId: conversationId
-        }
+        userId: req.user.id,
+        conversationId: conversationId
       }
     });
 
@@ -721,12 +723,10 @@ exports.uploadAttachment = async (req, res) => {
     }
 
     // Verify participant
-    const participant = await prisma.conversationParticipant.findUnique({
+    const participant = await prisma.conversationParticipant.findFirst({
       where: {
-        userId_conversationId: {
-          userId,
-          conversationId
-        }
+        userId,
+        conversationId
       }
     });
 
@@ -858,7 +858,7 @@ exports.deleteConversation = async (req, res) => {
     const userId = req.user.id;
 
     const participant = await prisma.conversationParticipant.findUnique({
-      where: { userId_conversationId: { userId, conversationId: id } },
+      where: { userId, conversationId: id },
       include: { conversation: true }
     });
 
@@ -1013,7 +1013,7 @@ exports.clearChat = async (req, res) => {
     try {
       // 1. Verify access
       const participant = await prisma.conversationParticipant.findUnique({
-        where: { userId_conversationId: { userId, conversationId: id } }
+        where: { userId, conversationId: id }
       });
 
       if (!participant) {
