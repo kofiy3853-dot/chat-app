@@ -218,6 +218,11 @@ const setupChatSockets = (io) => {
             }
           });
 
+          await tx.conversationParticipant.updateMany({
+              where: { conversationId },
+              data: { isDeleted: false }
+          });
+
           return m;
         });
 
@@ -227,7 +232,8 @@ const setupChatSockets = (io) => {
           message: { ...message, tempId: data.tempId },
           conversationId
         });
-        // Handle notifications for participants not in the room in parallel
+
+        // Handle notifications for participants not in the room in parallel (non-blocking)
         const [chatParticipants, convInfo] = await Promise.all([
           prisma.conversationParticipant.findMany({
             where: { conversationId },
@@ -240,9 +246,8 @@ const setupChatSockets = (io) => {
         ]);
 
         const recipients = chatParticipants.filter(p => p.userId !== socket.user.id);
-        console.log(`[NOTIF DEBUG] Found ${recipients.length} recipient(s) to potentially notify.`);
-
-        // Reliability Fix: Also emit direct to recipients' personal rooms 
+        
+        // personal personal PERSONAL: Also emit direct to recipients' personal rooms 
         // to ensure they get the 'new-message' toast (even without joining room yet).
         recipients.forEach(r => {
           io.to(`user:${r.userId}`).emit('new-message', {
@@ -250,6 +255,39 @@ const setupChatSockets = (io) => {
             conversationId
           });
         });
+
+        // Background Push - do not block
+        Promise.all(recipients.map(async (recipient) => {
+          try {
+            // Check if recipient is actively viewing this room
+            const roomSockets = await io.in(`viewing:${conversationId}`).fetchSockets();
+            const isViewing = roomSockets.some(s => s.user?.id === recipient.userId);
+
+            if (!isViewing) {
+              const userObj = await prisma.user.findUnique({ where: { id: recipient.userId } });
+              if (userObj?.fcmToken) {
+                const unreadCount = await prisma.notification.count({ where: { recipientId: recipient.userId, isRead: false } });
+                const { sendPushNotification } = require('../utils/firebasePush');
+                
+                sendPushNotification(userObj.fcmToken, {
+                  title: `${socket.user.name} in ${convInfo?.name || 'Chat'}`,
+                  message: type === 'IMAGE' ? 'Sent an image' : (type === 'VOICE' ? 'Sent a voice memo' : content),
+                  url: `/chat/${conversationId}`,
+                  badgeCount: unreadCount,
+                  messageId: message.id, // For deduplication
+                  extraData: { 
+                    type: 'MESSAGE',
+                    chatId: String(conversationId),
+                    senderId: socket.user.id,
+                    senderName: socket.user.name
+                  }
+                });
+              }
+            }
+          } catch (err) {
+            console.error('[PUSH BG ERROR]:', err);
+          }
+        })).catch(e => console.error('[PUSH CRITICAL ERROR]:', e));
 
         const mentionRegex = /@\[([^\]]+)\]\(([^)]+)\)/g;
         const mentions = [...content.matchAll(mentionRegex)];
@@ -487,6 +525,7 @@ const setupChatSockets = (io) => {
     // Typing indicator
     socket.on('typing', (data) => {
       const { conversationId, isTyping } = data;
+      console.log(`[TYPING DEBUG] User:${socket.user.name} isTyping:${isTyping} in conv:${conversationId}`);
       socket.to(`conversation:${conversationId}`).emit('user-typing', {
         userId: socket.user.id,
         userName: socket.user.name,
@@ -742,8 +781,31 @@ const setupChatSockets = (io) => {
       // so emit to the disconnected user's room \u2014 this covers multi-device scenarios
       // The peer's call-ended is handled via the 'end-call' flow; if the socket dies,
       // we send call-ended broadly to the user's room to unblock any pending UI
-      console.log(`[CALL] ${socket.user.name} disconnected \u2014 broadcasting call-ended to their room`);
+      console.log(`[CALL] ${socket.user.name} disconnected — broadcasting call-ended to their room`);
       socket.to(`user:${socket.user.id}`).emit('call-ended');
+
+      // Clear any 'typing' state for this user by broadcasting isTyping: false
+      // Since we don't track active typing rooms per-socket, we rely on the 
+      // client's 'typingUsers' state filtering by userId.
+      // Broadcast broadly to ALL rooms is expensive, so we just emit to the user's personal room
+      // or we can just leave it to the frontend's cleanup/timeout. 
+      // ACTUALLY: The best way is to let the socket leave rooms on disconnect, 
+      // which it does automatically. 
+      // However, we should explicitly emit a "stop typing" to the conversations they were in.
+      // For now, let's just log and rely on the 2s frontend timeout + explicit emits.
+      // But wait! If we want to be proactive:
+      const userConvs = await prisma.conversationParticipant.findMany({
+        where: { userId: socket.user.id, isDeleted: false },
+        select: { conversationId: true }
+      });
+      userConvs.forEach(c => {
+         socket.to(`conversation:${c.conversationId}`).emit('user-typing', {
+           userId: socket.user.id,
+           userName: socket.user.name,
+           conversationId: c.conversationId,
+           isTyping: false
+         });
+      });
 
       // Multi-device: Only mark as offline if no sockets remain in the user's personal room
       const userRoom = `user:${socket.user.id}`;

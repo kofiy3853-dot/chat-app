@@ -107,14 +107,21 @@ const MessagesPage: React.FC = () => {
       setConversations((prev) => {
         const idx = prev.findIndex((c) => c.id === data.conversationId);
         if (idx === -1) { fetchData(); return prev; }
-        const updated = [...prev];
-        const conv = { ...updated[idx] };
-        conv.lastMessage = data.message;
-        conv.lastMessageAt = data.message.createdAt;
-        if (data.message.senderId !== user.id) {
-          conv.unreadCount = (conv.unreadCount || 0) + 1;
+        
+        const conv = prev[idx];
+        // Deduplicate: If we already processed this message, skip
+        if (conv.lastMessage?.id === data.message.id || (data.message.tempId && conv.lastMessage?.tempId === data.message.tempId)) {
+          return prev;
         }
-        updated[idx] = conv;
+
+        const updated = [...prev];
+        const newConv = { ...conv };
+        newConv.lastMessage = data.message;
+        newConv.lastMessageAt = data.message.createdAt;
+        if (data.message.senderId !== user.id) {
+          newConv.unreadCount = (newConv.unreadCount || 0) + 1;
+        }
+        updated[idx] = newConv;
         return updated.sort((a, b) => new Date(b.lastMessageAt || 0).getTime() - new Date(a.lastMessageAt || 0).getTime());
       });
     };

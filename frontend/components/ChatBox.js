@@ -588,11 +588,31 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
         }
       };
     }
-  }, [conversationId]);
+  }, [conversationId, currentUser]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (behavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
   };
+
+  // --- 4. Scroll Management ---
+  useEffect(() => {
+    if (messages.length > 0) {
+      if (!messagesEndRef.current?.dataset?.loaded) {
+          // Initial Load or Switch – always jump instantly
+          scrollToBottom('auto');
+          messagesEndRef.current.dataset.loaded = 'true';
+      } else {
+          // New Message – only scroll if user is already near bottom (<= 300px)
+          const isNearBottom = !showScrollBottom;
+          if (isNearBottom) scrollToBottom('smooth');
+      }
+    }
+  }, [messages.length, conversationId, showScrollBottom]);
+
+  // Reset loaded flag when conversation changes
+  useEffect(() => {
+    if (messagesEndRef.current) delete messagesEndRef.current.dataset.loaded;
+  }, [conversationId]);
 
   const handleSendMessage = async (e, overrideContent = null) => {
     if (e) e.preventDefault();

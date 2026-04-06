@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Navbar from '../components/Navbar';
 import { getSocket } from '../services/socket';
@@ -87,8 +87,11 @@ function AppContent({ Component, pageProps }) {
   const [isOffline, setIsOffline]         = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
-  // Run the auth guard (no-ops while loading === true)
+  // ── Auth-aware Redirects ───────────────────────────────────────────────────
   useAuthRedirect();
+
+  // Deduplication cache for notifications
+  const notifiedIdsRef = useRef([]);
 
   // ── PWA / Offline / SW Setup ───────────────────────────────────────────────
   useEffect(() => {
@@ -151,6 +154,11 @@ function AppContent({ Component, pageProps }) {
       const msg = data.message;
       if (msg.senderId === user?.id) return;
 
+      // Deduplication
+      const msgId = msg.id || msg.tempId;
+      if (msgId && notifiedIdsRef.current.includes(msgId)) return;
+      if (msgId) notifiedIdsRef.current = [msgId, ...notifiedIdsRef.current].slice(0, 50);
+
       playNotificationSound();
       toast.custom((t) => (
         <div
@@ -177,6 +185,11 @@ function AppContent({ Component, pageProps }) {
     const handleNewNotification = (data) => {
       if (router.pathname === '/activity') return;
       if (data.notification?.type === 'MESSAGE' || data.notification?.type === 'MENTION') return;
+      
+      const notifId = data.notification?.id;
+      if (notifId && notifiedIdsRef.current.includes(notifId)) return;
+      if (notifId) notifiedIdsRef.current = [notifId, ...notifiedIdsRef.current].slice(0, 50);
+
       playNotificationSound();
       toast.custom((t) => (
         <div
@@ -195,18 +208,31 @@ function AppContent({ Component, pageProps }) {
     };
 
     const unsubscribeFCM = onMessageListener((payload) => {
+      // 1. DEDUPLICATION: Use the database message ID if available in data, or the FCM internal ID
+      const msgId = payload.data?.messageId || payload.messageId || payload.fcmMessageId;
+      if (msgId && notifiedIdsRef.current.includes(msgId)) return;
+      if (msgId) notifiedIdsRef.current = [msgId, ...notifiedIdsRef.current].slice(0, 50);
+
+      // 2. SUPPRESSION: Don't show toast if user is already looking at this chat
+      const chatId = payload.data?.chatId || payload.data?.conversationId;
+      if (chatId && router.pathname === '/chat/[id]' && router.query.id === chatId) return;
+
       if (payload?.notification) {
         toast.custom((t) => (
           <div
-            className="max-w-sm w-full bg-[#2e8bc0] rounded flex items-center p-3 text-white cursor-pointer shadow-xl animate-in fade-in slide-in-from-top-full"
-            onClick={() => { if (payload.data?.url) router.push(payload.data.url); toast.dismiss(t.id); }}
+            className="max-w-sm w-full bg-[#2e8bc0] rounded-2xl flex items-center p-4 text-white cursor-pointer shadow-2xl animate-in fade-in slide-in-from-top-full border border-white/20 backdrop-blur-md"
+            onClick={() => { 
+              const url = payload.data?.url || (chatId ? `/chat/${chatId}` : null);
+              if (url) router.push(url); 
+              toast.dismiss(t.id); 
+            }}
           >
             <div className="flex-1">
-              <p className="text-sm font-semibold">{payload.notification.title}</p>
-              <p className="text-xs mt-1">{payload.notification.body}</p>
+              <p className="text-sm font-bold tracking-tight">{payload.notification.title}</p>
+              <p className="text-xs mt-1 opacity-90 line-clamp-1">{payload.notification.body}</p>
             </div>
           </div>
-        ), { duration: 4000 });
+        ), { duration: 4000, position: 'top-center' });
       }
     });
 

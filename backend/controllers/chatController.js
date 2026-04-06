@@ -358,9 +358,11 @@ exports.getConversationById = async (req, res) => {
 
     if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
 
-    // Verify user is participant
-    const isParticipant = conversation.participants.some(p => p.userId === req.user.id);
-    if (!isParticipant) return res.status(403).json({ message: 'Access denied' });
+    // Verify user is participant AND has not deleted it
+    const participant = conversation.participants.find(p => p.userId === req.user.id);
+    if (!participant || participant.isDeleted) {
+      return res.status(403).json({ message: 'Access denied: Conversation deleted or hidden.' });
+    }
 
     res.json({ conversation });
   } catch (error) {
@@ -374,17 +376,18 @@ exports.getMessages = async (req, res) => {
   const { page = 1, limit = 50 } = req.query;
   
   try {
-    // 1. Initial Access Check
+    // 1. Initial Access Check — ensure participant NOT deleted
     const participant = await prisma.conversationParticipant.findFirst({
       where: {
         userId: req.user.id,
-        conversationId: conversationId
+        conversationId: conversationId,
+        isDeleted: false
       }
     });
 
     if (!participant) {
-      console.warn(`[DIAGNOSTIC] Access Denied: User ${req.user.id} -> Conv ${conversationId}`);
-      return res.status(403).json({ message: 'Access denied' });
+      console.warn(`[DIAGNOSTIC] Access Denied (Deleted?): User ${req.user.id} -> Conv ${conversationId}`);
+      return res.status(403).json({ message: 'Access denied: Conversation deleted or hidden.' });
     }
 
     // 2. Bare-Bones Message Fetch (Simplifying to identify 500 cause)
@@ -485,14 +488,20 @@ exports.sendMessage = async (req, res) => {
       }
     });
 
-    // Update conversation last message
-    await prisma.conversation.update({
-      where: { id: conversationId },
-      data: {
-        lastMessageId: message.id,
-        lastMessageAt: new Date()
-      }
-    });
+    // Update conversation and RESET isDeleted = false for all participants
+    await Promise.all([
+      prisma.conversation.update({
+        where: { id: conversationId },
+        data: {
+          lastMessageId: message.id,
+          lastMessageAt: new Date()
+        }
+      }),
+      prisma.conversationParticipant.updateMany({
+        where: { conversationId },
+        data: { isDeleted: false }
+      })
+    ]);
 
     // Notify other participants via socket if available
     if (req.io) {
@@ -550,9 +559,10 @@ exports.sendMessage = async (req, res) => {
               message: msgPreview,
               url: `/chat/${conversationId}`,
               badgeCount: unreadCount, // Pass latest unread count to set app icon badge
+              messageId: message.id, // For deduplication
               extraData: {
                 type: 'MESSAGE',
-                chatId: conversationId.toString(),
+                chatId: String(conversationId),
                 senderName: message.sender.name
               }
             });
