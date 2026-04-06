@@ -96,9 +96,10 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: errorMsg, errors: errors.array() });
     }
 
-    const { email, password, name, studentId, department, role } = req.body;
+    const { email, password, name, studentId, staffId, department, role, faculty, level, phone, coursesTeaching } = req.body;
+    const upperRole = role ? role.toUpperCase() : 'STUDENT';
     
-    console.log(`[REGISTER ATTEMPT] Name: ${name}, Email: ${email}, Role: ${role}, StudentID: ${studentId}`);
+    console.log(`[REGISTER ATTEMPT] Name: ${name}, Email: ${email}, Role: ${upperRole}, StudentID: ${studentId}, StaffID: ${staffId}`);
 
     // Email domain restriction: ktu.edu.gh only (case insensitive)
     const normalizedEmail = email?.trim().toLowerCase();
@@ -108,9 +109,17 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Strict validation: No single line leave blank
-    if (!name?.trim() || !normalizedEmail || !password?.trim() || !studentId?.trim() || !department?.trim()) {
-      return res.status(400).json({ message: 'All fields are mandatory. Please fill in all information.' });
+    // Role-specific validation
+    if (!name?.trim() || !normalizedEmail || !password?.trim() || !department?.trim()) {
+      return res.status(400).json({ message: 'Core profile details are mandatory.' });
+    }
+
+    if (upperRole === 'LECTURER') {
+      if (!staffId?.trim()) return res.status(400).json({ message: 'Staff ID is required for lecturers.' });
+      if (!faculty) return res.status(400).json({ message: 'Faculty is required.' });
+    } else {
+      if (!studentId?.trim()) return res.status(400).json({ message: 'Student ID is required.' });
+      if (!faculty || !level) return res.status(400).json({ message: 'Faculty and Level are mandatory.' });
     }
 
     // Profile picture check
@@ -118,25 +127,28 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'Profile picture is mandatory. Please upload an image.' });
     }
 
-    // Check if user already exists by email OR studentID
+    // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
-          { email },
-          { studentId }
+          { email: normalizedEmail },
+          { studentId: studentId?.trim() || undefined },
+          { staffId: staffId?.trim() || undefined }
         ]
       }
     });
+
     if (existingUser) {
-      if (existingUser.email === email) {
-        return res.status(400).json({ message: 'User already exists with this email. Please log in.' });
-      } else {
+      if (existingUser.email === normalizedEmail) {
+        return res.status(400).json({ message: 'User already exists with this email.' });
+      } else if (existingUser.studentId && existingUser.studentId === studentId?.trim()) {
         return res.status(400).json({ message: 'A student is already registered with this Student ID.' });
+      } else if (existingUser.staffId && existingUser.staffId === staffId?.trim()) {
+        return res.status(400).json({ message: 'A lecturer is already registered with this Staff ID.' });
       }
     }
 
-    // Parallelize tasks for speed: Upload Avatar + Hash Password
-    console.log(`[REGISTER DEBUG] Starting parallel tasks...`);
+    // Parallelize tasks
     const [avatarUrl, hashedPassword] = await Promise.all([
       uploadToSupabase(req.file, 'upload'),
       bcrypt.hash(password, 10)
@@ -146,16 +158,25 @@ exports.register = async (req, res) => {
       return res.status(500).json({ message: 'Failed to upload profile picture' });
     }
 
+    // Handle coursesTeaching (array of strings)
+    let processedCourses = [];
+    if (coursesTeaching) {
+      processedCourses = Array.isArray(coursesTeaching) ? coursesTeaching : coursesTeaching.split(',').map(c => c.trim());
+    }
+
     const userData = {
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       password: hashedPassword,
       name,
-      studentId,
+      studentId: upperRole !== 'LECTURER' ? studentId?.trim() : null,
+      staffId: upperRole === 'LECTURER' ? staffId?.trim() : null,
       department,
-      faculty: req.body.faculty || null,
-      level: req.body.level || null,
+      faculty,
+      level: upperRole !== 'LECTURER' ? level : null,
+      phone: phone || null,
+      coursesTeaching: processedCourses,
       avatar: avatarUrl,
-      role: role ? role.toUpperCase() : 'STUDENT'
+      role: upperRole
     };
 
     if (req.body.fcmToken) {

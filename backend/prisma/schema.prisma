@@ -14,10 +14,13 @@ model User {
   name                 String
   avatar               String?
   studentId            String?   @unique
+  staffId              String?   @unique
   role                 Role      @default(STUDENT)
   faculty              String?   // KTU Faculty (e.g. EBIS, FOE)
   department           String?   // KTU Department
   level                String?   // e.g. 100, 200, 300, 400
+  phone                String?
+  coursesTeaching      String[]  @default([])
   isOnline             Boolean   @default(false)
   lastSeen             DateTime  @default(now())
   status               String?   @default("Available")

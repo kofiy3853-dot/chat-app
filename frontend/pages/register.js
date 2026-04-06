@@ -5,33 +5,42 @@ import { useRouter } from 'next/router';
 import { authAPI } from '../services/api';
 import { initSocket } from '../services/socket';
 import { requestFirebaseNotificationPermission } from '../config/firebase';
-import { 
-  AcademicCapIcon, 
-  CameraIcon, 
-  UserIcon,
-  CheckIcon
-} from '@heroicons/react/24/outline';
+import { AcademicCapIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { compressImage } from '../utils/helpers';
 
+// New specialized components
+import RoleSelection from '../components/registration/RoleSelection';
+import StudentForm from '../components/registration/StudentForm';
+import CourseRepForm from '../components/registration/CourseRepForm';
+import LecturerForm from '../components/registration/LecturerForm';
+
 export default function Register() {
   const router = useRouter();
-  const fileInputRef = useRef(null);
+  const [step, setStep] = useState('role'); // 'role' or 'form'
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
     studentId: '',
+    staffId: '',
     department: '',
     faculty: '',
     level: '',
+    phone: '',
+    coursesTeaching: [],
     role: 'STUDENT'
   });
   const [avatar, setAvatar] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleRoleSelection = (selectedRole) => {
+    setFormData(prev => ({ ...prev, role: selectedRole }));
+    setStep('form');
+  };
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -59,30 +68,59 @@ export default function Register() {
     setLoading(true);
     setError('');
 
-    // Strict validation
-    const { name, email, studentId, department, faculty, level, password } = formData;
-    if (!name.trim() || !email.trim() || !studentId.trim() || !department.trim() || !faculty || !level) {
-      setError('All fields are mandatory.');
-      toast.error('Please fill in all campus details.');
+    const { name, email, password, confirmPassword, role } = formData;
+
+    // Basic common validation
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setError('Essential profile details are mandatory.');
+      toast.error('Please fill in your profile info.');
       setLoading(false);
       return;
     }
 
-    if (!formData.email.toLowerCase().endsWith('@ktu.edu.gh')) {
-      setError('Only @ktu.edu.gh emails are allowed.');
+    // Role-specific field validation
+    if (role === 'LECTURER') {
+      if (!formData.staffId?.trim()) {
+        setError('Staff ID is required for lecturers.');
+        setLoading(false);
+        return;
+      }
+    } else {
+      if (!formData.studentId?.trim() || !formData.level) {
+        setError('Student ID and Level are required.');
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Domain validation
+    const normalizedEmail = email.toLowerCase().trim();
+    const isKtuEmail = normalizedEmail.endsWith('@stu.ktu.edu.gh') || 
+                       normalizedEmail.endsWith('@staff.ktu.edu.gh') || 
+                       normalizedEmail.endsWith('@ktu.edu.gh');
+    
+    if (!isKtuEmail) {
+      setError('Registration is restricted to KTU university emails.');
       toast.error('Access Denied. Use your university email.');
       setLoading(false);
       return;
     }
 
+    if (role === 'LECTURER' && !normalizedEmail.endsWith('@staff.ktu.edu.gh') && !normalizedEmail.endsWith('@ktu.edu.gh')) {
+        setError('Lecturers must use a staff or institution email (@staff.ktu.edu.gh).');
+        toast.error('Staff email required for lecturers.');
+        setLoading(false);
+        return;
+    }
+
     if (!avatar) {
       setError('Please upload a profile picture.');
-      toast.error('Profile picture is required.');
+      toast.error('Profile photo is mandatory.');
       setLoading(false);
       return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (password !== confirmPassword) {
       setError('Passwords do not match');
       setLoading(false);
       return;
@@ -91,14 +129,24 @@ export default function Register() {
     try {
       const data = new FormData();
       data.append('name', formData.name);
-      data.append('email', formData.email);
+      data.append('email', normalizedEmail);
       data.append('password', formData.password);
-      data.append('studentId', formData.studentId);
       data.append('department', formData.department);
       data.append('faculty', formData.faculty);
-      data.append('level', formData.level);
       data.append('role', formData.role);
       data.append('avatar', avatar);
+
+      // Role specific fields
+      if (role === 'LECTURER') {
+        data.append('staffId', formData.staffId);
+        data.append('phone', formData.phone);
+        if (formData.coursesTeaching.length > 0) {
+            data.append('coursesTeaching', formData.coursesTeaching.join(','));
+        }
+      } else {
+        data.append('studentId', formData.studentId);
+        data.append('level', formData.level);
+      }
 
       const response = await authAPI.register(data);
       const { token, user, redirectTo } = response.data;
@@ -107,26 +155,19 @@ export default function Register() {
       localStorage.setItem('user', JSON.stringify(user));
       initSocket();
       
-      // Initialize FCM (non-blocking, errors are caught)
       try {
         const fcmToken = await requestFirebaseNotificationPermission();
         if(fcmToken) {
            await authAPI.updateFcmToken(fcmToken).catch(() => {});
         }
       } catch (fcmError) {
-        console.warn('FCM initialization failed, continuing without it:', fcmError);
+        console.warn('FCM fail-safe:', fcmError);
       }
 
-      // Redirect based on role
-      toast.success('Account created successfully!');
-      if (user.role === "NANA") {
-        router.replace("/nana");
-      } else {
-        router.replace(redirectTo || "/");
-      }
+      toast.success('Registration successful! Welcome to the hub.');
+      router.replace(user.role === "NANA" ? "/nana" : (redirectTo || "/"));
     } catch (err) {
-      console.error("REGISTER FRONTEND ERROR:", err.message);
-      const msg = err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.';
+      const msg = err.response?.data?.message || 'Registration failed. Please check your details.';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -134,245 +175,72 @@ export default function Register() {
     }
   };
 
+  const renderForm = () => {
+    const commonProps = {
+      formData,
+      setFormData,
+      avatarPreview,
+      onFileChange: handleFileChange,
+      loading,
+      onSubmit: handleSubmit,
+      onBack: () => setStep('role')
+    };
+
+    switch (formData.role) {
+      case 'LECTURER': return <LecturerForm {...commonProps} />;
+      case 'COURSE_REP': return <CourseRepForm {...commonProps} />;
+      case 'STUDENT': 
+      default: return <StudentForm {...commonProps} />;
+    }
+  };
+
   return (
     <>
       <Head>
-        <title>Create Account | Campus Chat</title>
+        <title>Join Campus Hub | Registration</title>
       </Head>
 
-      <div className="h-full w-full overflow-y-auto bg-gray-50 px-4 py-8 flex flex-col">
-        <div className="max-w-xl w-full mx-auto my-auto shrink-0">
-          {/* Logo & Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4 shadow-lg shadow-primary-200">
-              <AcademicCapIcon className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Create Account</h1>
-            <p className="text-gray-500 mt-2">Join your global campus network</p>
+      <div className="min-h-screen w-full bg-[#FAFAFA] px-4 py-12 flex flex-col items-center">
+        <div className="max-w-xl w-full">
+          {/* Global Header */}
+          <div className="text-center mb-10 transition-all duration-700">
+            <Link href="/" className="inline-flex items-center justify-center w-20 h-20 bg-primary-600 rounded-[2rem] shadow-xl shadow-primary-200 hover:scale-105 active:scale-95 transition-transform mb-6">
+              <AcademicCapIcon className="w-12 h-12 text-white" />
+            </Link>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tightest">CAMPUS HUB</h1>
+            <p className="text-sm font-medium text-gray-400 mt-2 uppercase tracking-widest italic">Koforidua Technical University</p>
           </div>
 
-          {/* Registration Card */}
-          <div className="bg-white rounded-[2rem] shadow-xl border border-gray-100 p-8 sm:p-12">
+          {/* Card Container */}
+          <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-white p-8 sm:p-12 relative overflow-hidden">
+            {/* Elegant Background Accent */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
+            
             {error && (
-              <div className="mb-8 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">
+              <div className="mb-8 p-4 bg-red-50 text-red-600 border border-red-100 rounded-2xl text-xs font-bold uppercase tracking-tight flex items-center">
+                <div className="w-2 h-2 bg-red-500 rounded-full mr-3 animate-pulse"></div>
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Avatar Selection */}
-              <div className="flex flex-col items-center justify-center mb-4">
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="relative group cursor-pointer"
-                >
-                  <div className={`w-24 h-24 rounded-full border-2 overflow-hidden bg-gray-50 flex items-center justify-center transition-colors ${
-                    avatarPreview ? 'border-primary-600' : 'border-dashed border-gray-300 hover:border-primary-400'
-                  }`}>
-                    {avatarPreview ? (
-                      <img src={avatarPreview} className="w-full h-full object-cover" alt="Avatar" />
-                    ) : (
-                      <UserIcon className="w-10 h-10 text-gray-300" />
-                    )}
-                    
-                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-full">
-                      <CameraIcon className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                  {avatarPreview && (
-                    <div className="absolute -bottom-1 -right-1 bg-primary-600 text-white p-1 rounded-full border-2 border-white">
-                      <CheckIcon className="w-3 h-3" />
-                    </div>
-                  )}
-                </div>
-                <input 
-                  type="file" 
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="hidden"
-                />
-                <span className="text-xs font-medium text-gray-400 mt-3">Upload Profile Photo*</span>
-              </div>
+            {step === 'role' ? (
+              <RoleSelection onSelect={handleRoleSelection} />
+            ) : (
+              renderForm()
+            )}
 
-              {/* Form Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="sm:col-span-2">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
-                    placeholder="John Doe"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
-                    placeholder="your-name@ktu.edu.gh"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Account Type</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, role: 'STUDENT' })}
-                      className={`px-3 py-3 rounded-xl border-2 text-[10px] font-black uppercase transition-all ${
-                        formData.role === 'STUDENT' 
-                          ? 'border-primary-600 bg-primary-50 text-primary-600' 
-                          : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100'
-                      }`}
-                    >
-                      Student
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, role: 'COURSE_REP' })}
-                      className={`px-3 py-3 rounded-xl border-2 text-[10px] font-black uppercase transition-all ${
-                        formData.role === 'COURSE_REP' 
-                          ? 'border-primary-600 bg-primary-50 text-primary-600' 
-                          : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100'
-                      }`}
-                    >
-                      CR
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, role: 'LECTURER' })}
-                      className={`px-3 py-3 rounded-xl border-2 text-[10px] font-black uppercase transition-all ${
-                        formData.role === 'LECTURER' 
-                          ? 'border-primary-600 bg-primary-50 text-primary-600' 
-                          : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100'
-                      }`}
-                    >
-                      Lecturer
-                    </button>
-                  </div>
-                </div>
-
-                <div className="sm:col-span-2 grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Faculty</label>
-                    <select
-                      value={formData.faculty}
-                      onChange={(e) => setFormData({ ...formData, faculty: e.target.value })}
-                      required
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm font-bold uppercase"
-                    >
-                      <option value="" disabled>Select</option>
-                      {['EBIS', 'FAST', 'FOE', 'FBME', 'FAS', 'FVAST'].map(f => (
-                        <option key={f} value={f}>{f}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Current Level</label>
-                    <select
-                      value={formData.level}
-                      onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                      required
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm font-bold"
-                    >
-                      <option value="" disabled>Select</option>
-                      {['100', '200', '300', '400'].map(l => (
-                        <option key={l} value={l}>Level {l}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-2">
-                    {formData.role === 'LECTURER' ? 'Staff ID' : 'Student ID'}
-                  </label>
-                  <input
-                    id="studentId"
-                    name="studentId"
-                    type="text"
-                    required
-                    value={formData.studentId}
-                    onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
-                    placeholder="XX-XXXX"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-2">Department</label>
-                  <input
-                    id="department"
-                    name="department"
-                    type="text"
-                    required
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
-                    placeholder="e.g. Computer Science"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    minLength={6}
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
-                    placeholder="••••••••"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    required
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all text-sm"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-primary-600 text-white py-4 rounded-2xl font-bold hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary-100 mt-4 active:scale-95"
-              >
-                {loading ? 'Processing...' : 'Create Account'}
-              </button>
-            </form>
-
-            <div className="mt-8 text-center">
-              <p className="text-sm text-gray-500">
-                Already have an account?{' '}
-                <Link href="/login" className="text-primary-600 hover:underline font-semibold">
-                  Sign in
+            <div className="mt-10 text-center border-t border-gray-50 pt-8">
+              <p className="text-sm text-gray-400 font-medium">
+                Already part of the network?{' '}
+                <Link href="/login" className="text-primary-600 hover:text-primary-700 font-bold ml-1 transition-colors">
+                  Sign In
                 </Link>
               </p>
             </div>
+          </div>
+
+          <div className="mt-8 text-center opacity-30">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">© 2026 KU Connect • Secure Academic Portal</p>
           </div>
         </div>
       </div>
