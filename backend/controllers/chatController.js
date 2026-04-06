@@ -834,9 +834,11 @@ exports.archiveConversation = async (req, res) => {
 
 // Delete conversation (soft delete for user, hard delete for NANA session)
 exports.deleteConversation = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
   try {
-    const { id } = req.params;
-    const userId = req.user.id;
+    console.log(`[DELETE CONV] Started for user:${userId}, CID:${id}`);
 
     const participant = await prisma.conversationParticipant.findUnique({
       where: {
@@ -848,25 +850,55 @@ exports.deleteConversation = async (req, res) => {
       include: { conversation: true }
     });
 
-    if (!participant) return res.status(404).json({ message: 'Participant not found' });
+    if (!participant) {
+      console.warn(`[DELETE CONV] Participant record not found for user:${userId}, CID:${id}`);
+      return res.status(404).json({ message: 'Conversation not found or access denied' });
+    }
 
     if (participant.conversation.name === NANA_SESSION_MARKER) {
-      // Hard delete NANA sessions to reset them
-      // We use deleteMany to avoid some unique constraint/relation issues during hard deletes
-      await prisma.conversation.deleteMany({
-        where: { id: id }
+      console.log(`[DELETE CONV] Hard-deleting NANA session: ${id}`);
+      // NANA sessions are hard-deleted. We use a transaction to safely handle the back-pointer (lastMessageId)
+      await prisma.$transaction(async (tx) => {
+        // 1. Null the lastMessage pointer to break the circle
+        await tx.conversation.update({
+          where: { id },
+          data: { lastMessageId: null }
+        });
+
+        // 2. Clear related notifications to this conversation's messages
+        await tx.notification.deleteMany({
+          where: { message: { conversationId: id } }
+        });
+
+        // 3. Clear messages (cascade should handle receipts/reactions, but let's be safe)
+        await tx.message.deleteMany({
+          where: { conversationId: id }
+        });
+
+        // 4. Finally delete the conversation
+        await tx.conversation.delete({
+          where: { id }
+        });
       });
+      console.log(`[DELETE CONV] NANA session ${id} hard-deleted successfully`);
     } else {
+      console.log(`[DELETE CONV] Soft-deleting normal session: ${id}`);
       // Soft delete for normal peer conversations
       await prisma.conversationParticipant.update({
         where: { id: participant.id },
         data: { isDeleted: true }
       });
+      console.log(`[DELETE CONV] Soft-delete success for ${id}`);
     }
 
     res.json({ message: 'Conversation deleted' });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error(`[CRITICAL DELETE ERROR] CID:${id}, User:${userId}:`, error.message);
+    res.status(500).json({ 
+      message: 'Server failed to delete the conversation', 
+      error: error.message,
+      detail: "Database relation constraint violation suspected"
+    });
   }
 };
 
