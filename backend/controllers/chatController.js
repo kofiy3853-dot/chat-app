@@ -870,7 +870,23 @@ exports.deleteConversation = async (req, res) => {
           where: { message: { conversationId: id } }
         });
 
-        // 3. Clear messages (cascade should handle receipts/reactions, but let's be safe)
+        // 3. Clear message relations (manual cascade for stability)
+        const messageIds = (await tx.message.findMany({
+          where: { conversationId: id },
+          select: { id: true }
+        })).map(m => m.id);
+
+        if (messageIds.length > 0) {
+          await tx.readReceipt.deleteMany({ where: { messageId: { in: messageIds } } });
+          await tx.reaction.deleteMany({ where: { messageId: { in: messageIds } } });
+          // Break self-referential reply chains
+          await tx.message.updateMany({
+            where: { id: { in: messageIds } },
+            data: { replyToId: null }
+          });
+        }
+
+        // 4. Clear messages
         await tx.message.deleteMany({
           where: { conversationId: id }
         });
@@ -1093,7 +1109,19 @@ exports.clearChat = async (req, res) => {
         });
         console.log(`[CLEAR CHAT] Notifications cleared`);
 
-        // C. Break self-referential reply chains
+        // C. Clear related records that might block message deletion
+        const messageIds = (await tx.message.findMany({
+          where: { conversationId: id },
+          select: { id: true }
+        })).map(m => m.id);
+
+        if (messageIds.length > 0) {
+          await tx.readReceipt.deleteMany({ where: { messageId: { in: messageIds } } });
+          await tx.reaction.deleteMany({ where: { messageId: { in: messageIds } } });
+        }
+        console.log(`[CLEAR CHAT] Related receipts and reactions cleared`);
+
+        // D. Break self-referential reply chains
         await tx.message.updateMany({
           where: { conversationId: id },
           data: { replyToId: null }
