@@ -1,15 +1,30 @@
 import { useRef } from 'react';
 import { BriefcaseIcon, CameraIcon, CheckIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useRef as useCourseRef } from 'react';
 
 const FACULTIES = ['EBIS', 'FAST', 'FOE', 'FBME', 'FAS', 'FVAST'];
+
+const DEPT_BY_FACULTY = {
+  FAST: ['Computer Science', 'Information Technology', 'Computer Engineering', 'Statistics'],
+  EBIS: ['Business Administration', 'Accounting', 'Marketing', 'Finance', 'Human Resource Management', 'Secretaryship & Management Studies'],
+  FOE: ['Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering', 'Chemical Engineering'],
+  FBME: ['Biomedical Engineering', 'Medical Laboratory Science'],
+  FAS: ['Applied Sciences', 'Mathematics', 'Physics', 'Chemistry'],
+  FVAST: ['Agriculture', 'Food Science', 'Veterinary Science'],
+};
 
 export default function LecturerForm({ formData, setFormData, avatarPreview, onFileChange, loading, onSubmit, onBack }) {
   const fileInputRef = useRef(null);
   const courseInputRef = useRef(null);
+  const departments = DEPT_BY_FACULTY[formData.faculty] || [];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'faculty') {
+      setFormData(prev => ({ ...prev, faculty: value, department: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const addCourse = () => {
@@ -116,7 +131,6 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
             id="lecturer-phone"
             name="phone"
             type="tel"
-            required
             autoComplete="tel"
             value={formData.phone}
             onChange={handleChange}
@@ -143,22 +157,24 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
 
         <div>
           <label htmlFor="lecturer-department" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Department</label>
-          <input
+          <select
             id="lecturer-department"
             name="department"
-            type="text"
             required
-            autoComplete="organization-title"
+            autoComplete="off"
             value={formData.department}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
-            placeholder="Head of Dept."
-          />
+            disabled={!formData.faculty}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium disabled:opacity-50"
+          >
+            <option value="">{formData.faculty ? 'Select Department' : 'Select Faculty First'}</option>
+            {departments.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
         </div>
 
         {/* Courses Multi-select */}
         <div className="sm:col-span-2">
-          <label htmlFor="lecturer-courses" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Courses Teaching</label>
+          <label htmlFor="lecturer-courses" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Courses Teaching <span className="text-gray-400 font-normal normal-case">(Optional)</span></label>
           <div className="flex space-x-2 mb-3">
             <input
               id="lecturer-courses"
@@ -166,8 +182,8 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
               type="text"
               autoComplete="off"
               className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
-              placeholder="e.g. CSC 301"
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCourse())}
+              placeholder="e.g. CSC 301 — press Enter or click +"
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCourse())}
             />
             <button
               type="button"
@@ -177,7 +193,10 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
               <PlusIcon className="w-5 h-5" />
             </button>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 min-h-[2rem]">
+            {formData.coursesTeaching.length === 0 && (
+              <span className="text-xs text-gray-300 italic">No courses added yet</span>
+            )}
             {formData.coursesTeaching.map(course => (
               <span key={course} className="inline-flex items-center px-3 py-1 bg-white border border-primary-100 text-primary-700 text-xs font-bold rounded-lg group hover:border-primary-300 transition-all">
                 {course}

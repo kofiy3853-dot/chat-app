@@ -4,12 +4,26 @@ import { AcademicCapIcon, CameraIcon, CheckIcon } from '@heroicons/react/24/outl
 const FACULTIES = ['EBIS', 'FAST', 'FOE', 'FBME', 'FAS', 'FVAST'];
 const LEVELS = ['100', '200', '300', '400'];
 
+const DEPT_BY_FACULTY = {
+  FAST: ['Computer Science', 'Information Technology', 'Computer Engineering', 'Statistics'],
+  EBIS: ['Business Administration', 'Accounting', 'Marketing', 'Finance', 'Human Resource Management', 'Secretaryship & Management Studies'],
+  FOE: ['Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering', 'Chemical Engineering'],
+  FBME: ['Biomedical Engineering', 'Medical Laboratory Science'],
+  FAS: ['Applied Sciences', 'Mathematics', 'Physics', 'Chemistry'],
+  FVAST: ['Agriculture', 'Food Science', 'Veterinary Science'],
+};
+
 export default function CourseRepForm({ formData, setFormData, avatarPreview, onFileChange, loading, onSubmit, onBack }) {
   const fileInputRef = useRef(null);
+  const departments = DEPT_BY_FACULTY[formData.faculty] || [];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'faculty') {
+      setFormData(prev => ({ ...prev, faculty: value, department: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   return (
@@ -58,7 +72,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             value={formData.name}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
-            placeholder="CR Name"
+            placeholder="Your Full Name"
           />
         </div>
 
@@ -88,7 +102,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             value={formData.studentId}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
-            placeholder="XX-XXXX"
+            placeholder="e.g. 04201234"
           />
         </div>
 
@@ -126,50 +140,50 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
 
         <div>
           <label htmlFor="cr-department" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Department</label>
-          <input
+          <select
             id="cr-department"
             name="department"
-            type="text"
             required
-            autoComplete="organization-title"
+            autoComplete="off"
             value={formData.department}
             onChange={handleChange}
+            disabled={!formData.faculty}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium disabled:opacity-50"
+          >
+            <option value="">{formData.faculty ? 'Select Department' : 'Select Faculty First'}</option>
+            {departments.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="cr-password" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Password</label>
+          <input
+            id="cr-password"
+            name="password"
+            type="password"
+            required
+            minLength={6}
+            autoComplete="new-password"
+            value={formData.password}
+            onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
-            placeholder="e.g. Accounting"
+            placeholder="••••••••"
           />
         </div>
 
-        <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-            <label htmlFor="cr-password" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Password</label>
-            <input
-                id="cr-password"
-                name="password"
-                type="password"
-                required
-                minLength={6}
-                autoComplete="new-password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
-                placeholder="••••••••"
-            />
-            </div>
-
-            <div>
-            <label htmlFor="cr-confirmPassword" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Confirm Password</label>
-            <input
-                id="cr-confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                autoComplete="new-password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
-                placeholder="••••••••"
-            />
-            </div>
+        <div>
+          <label htmlFor="cr-confirmPassword" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Confirm Password</label>
+          <input
+            id="cr-confirmPassword"
+            name="confirmPassword"
+            type="password"
+            required
+            autoComplete="new-password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
+            placeholder="••••••••"
+          />
         </div>
       </div>
 

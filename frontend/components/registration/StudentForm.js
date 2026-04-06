@@ -4,12 +4,27 @@ import { UserIcon, CameraIcon, CheckIcon } from '@heroicons/react/24/outline';
 const FACULTIES = ['EBIS', 'FAST', 'FOE', 'FBME', 'FAS', 'FVAST'];
 const LEVELS = ['100', '200', '300', '400'];
 
+const DEPT_BY_FACULTY = {
+  FAST: ['Computer Science', 'Information Technology', 'Computer Engineering', 'Statistics'],
+  EBIS: ['Business Administration', 'Accounting', 'Marketing', 'Finance', 'Human Resource Management', 'Secretaryship & Management Studies'],
+  FOE: ['Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering', 'Chemical Engineering'],
+  FBME: ['Biomedical Engineering', 'Medical Laboratory Science'],
+  FAS: ['Applied Sciences', 'Mathematics', 'Physics', 'Chemistry'],
+  FVAST: ['Agriculture', 'Food Science', 'Veterinary Science'],
+};
+
 export default function StudentForm({ formData, setFormData, avatarPreview, onFileChange, loading, onSubmit, onBack }) {
   const fileInputRef = useRef(null);
+  const departments = DEPT_BY_FACULTY[formData.faculty] || [];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    // Reset department when faculty changes
+    if (name === 'faculty') {
+      setFormData(prev => ({ ...prev, faculty: value, department: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   return (
@@ -88,7 +103,7 @@ export default function StudentForm({ formData, setFormData, avatarPreview, onFi
             value={formData.studentId}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
-            placeholder="0420"
+            placeholder="e.g. 04201234"
           />
         </div>
 
@@ -126,17 +141,19 @@ export default function StudentForm({ formData, setFormData, avatarPreview, onFi
 
         <div>
           <label htmlFor="student-department" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Department</label>
-          <input
+          <select
             id="student-department"
             name="department"
-            type="text"
             required
-            autoComplete="organization-title"
+            autoComplete="off"
             value={formData.department}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
-            placeholder="Computer Science"
-          />
+            disabled={!formData.faculty}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium disabled:opacity-50"
+          >
+            <option value="">{formData.faculty ? 'Select Department' : 'Select Faculty First'}</option>
+            {departments.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
         </div>
 
         <div>
