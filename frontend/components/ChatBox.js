@@ -41,7 +41,8 @@ const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 const MessageBubble = React.memo(({ 
   message, 
   isMine, 
-  showSender, 
+  isFirstInGroup,
+  isLastInGroup,
   currentUser, 
   activeMenuId, 
   setActiveMenuId, 
@@ -79,9 +80,16 @@ const MessageBubble = React.memo(({
     setTouchStart(null);
   };
 
+  const radiusClass = isMine 
+    ? `rounded-2xl ${isFirstInGroup ? 'rounded-tr-sm' : ''} ${!isFirstInGroup && !isLastInGroup ? 'rounded-r-sm' : ''} ${isLastInGroup && !isFirstInGroup ? 'rounded-br-sm' : ''}`
+    : `rounded-2xl ${isFirstInGroup ? 'rounded-tl-sm' : ''} ${!isFirstInGroup && !isLastInGroup ? 'rounded-l-sm' : ''} ${isLastInGroup && !isFirstInGroup ? 'rounded-bl-sm' : ''}`;
+
   const bubbleClasses = isNana 
-    ? `group relative p-5 rounded-[24px] shadow-sm border select-none animate-fade-in w-full bg-surface border-slate-200/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
-    : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} animate-fade-in select-none touch-pan-y`;
+    ? `group relative p-4 sm:p-5 rounded-[24px] shadow-sm border select-none animate-fade-in w-full bg-surface border-slate-200/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
+    : `relative flex flex-col pt-1.5 pb-1 px-2.5 sm:px-3 shadow-sm text-[15px] break-words animate-fade-in select-none touch-pan-y ${isMine 
+        ? `bg-[#d9fdd3] dark:bg-[#005c4b] text-slate-800 dark:text-gray-100` 
+        : `bg-white dark:bg-[#202c33] text-slate-800 dark:text-gray-100 border border-slate-100 dark:border-white/5`
+      } ${radiusClass}`;
 
   const nanaStyles = isNana ? {
     display: "block",
@@ -95,17 +103,17 @@ const MessageBubble = React.memo(({
 
   return (
     <div 
-      className={`flex w-full mb-5 px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200`}
+      className={`flex w-full px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200 ${isLastInGroup ? 'mb-3 sm:mb-4' : 'mb-[2px]'}`}
       style={{ transform: `translateX(${swipeOffset}px)` }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div className={`flex w-full items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
-        {!isNana && (
-          <div className="relative group shrink-0">
-            <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role?.toUpperCase() === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
-              {(() => {
+      <div className={`flex items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'} w-full max-w-[85%] sm:max-w-[75%]`}>
+        {!isNana && !isMine && (
+          <div className="relative group shrink-0 self-end mb-1">
+            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${isLastInGroup ? 'opacity-100 bg-slate-200 text-slate-600' : 'opacity-0 bg-transparent text-transparent'} ${message.sender?.role?.toUpperCase() === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : ''}`}>
+              {isLastInGroup && (() => {
                 const avatar = message.sender?.avatar;
                 const fullUrl = getFullFileUrl(avatar);
                 return fullUrl ? (
@@ -118,9 +126,9 @@ const MessageBubble = React.memo(({
           </div>
         )}
 
-        <div className={`flex flex-col min-w-0 ${isNana ? 'w-full' : isMine ? 'items-end' : 'items-start'}`}>
-          {showSender && !isMine && (
-            <div className={`flex items-center space-x-1.5 mb-1 ${isNana ? 'ml-0' : 'ml-1'} uppercase`}>
+        <div className={`flex flex-col min-w-0 flex-1 ${isNana ? 'w-full' : isMine ? 'items-end' : 'items-start'}`}>
+          {isFirstInGroup && !isMine && (
+            <div className={`flex items-center space-x-1.5 mb-0.5 ${isNana ? 'ml-0' : 'ml-1'} uppercase`}>
               <span className="text-[10px] font-black text-primary-600 flex items-center gap-1">
                 {isNana && <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-pulse" />}
                 {message.sender?.name}
@@ -233,7 +241,7 @@ const MessageBubble = React.memo(({
                         <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-black border border-white/10 transition-colors">Add to Calendar</button>
                       </div>
                     ) : isNana ? (
-                      <div className="markdown-body w-full">
+                      <div className="markdown-body w-full mt-1">
                         <Markdown
                           options={{
                             overrides: {
@@ -251,15 +259,15 @@ const MessageBubble = React.memo(({
                         </Markdown>
                       </div>
                     ) : (
-                      <p className={`font-medium leading-relaxed whitespace-pre-wrap break-words text-sm`}>{message.content}</p>
+                      <p className="font-normal leading-snug whitespace-pre-wrap mt-0.5" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{message.content}</p>
                     )}
                   </>
                 )}
               </div>
             )}
 
-            <div className={`flex items-center mt-1.5 space-x-1 justify-end ${isMine ? 'text-white/60' : 'text-black/40'}`}>
-              <span className="text-[9px] font-bold italic">{timestamp}</span>
+            <div className={`flex items-center mt-0.5 space-x-1 justify-end shrink-0 pl-4 ${isMine ? 'text-emerald-700/60 dark:text-emerald-200/60' : 'text-slate-400 dark:text-white/40'}`}>
+              <span className="text-[9px] sm:text-[10px] font-medium leading-none">{timestamp}</span>
               {isMine && (
                 isTemp ? (
                   <ArrowPathIcon className="w-2.5 h-2.5 animate-spin" />
@@ -267,11 +275,11 @@ const MessageBubble = React.memo(({
                   <div className="flex -space-x-1">
                     {(message.readReceipts?.length > 0) ? (
                       <>
-                        <CheckIcon className="w-3 h-3 stroke-[4px] text-emerald-400 drop-shadow-sm" />
-                        <CheckIcon className="w-3 h-3 stroke-[4px] text-emerald-400 drop-shadow-sm" />
+                        <CheckIcon className="w-3.5 h-3.5 stroke-[3px] text-blue-500 shadow-sm" />
+                        <CheckIcon className="w-3.5 h-3.5 stroke-[3px] text-blue-500 shadow-sm" />
                       </>
                     ) : (
-                      <CheckIcon className="w-3 h-3 stroke-[4px] text-white/50" />
+                      <CheckIcon className="w-3.5 h-3.5 stroke-[3px] opacity-60" />
                     )}
                   </div>
                 )
@@ -847,27 +855,32 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
                   {formatMessageTime(date)}
                 </span>
               </div>
-              <div className="space-y-1">
-                {dateMsgs.map((m, i) => (
-                  <MessageBubble 
-                    key={m.id || m.tempId} 
-                    message={m} 
-                    isMine={m.senderId === currentUser?.id || m.sender?.id === currentUser?.id} 
-                    showSender={i === 0 || dateMsgs[i-1].senderId !== m.senderId}
-                    currentUser={currentUser}
-                    activeMenuId={activeMenuId}
-                    setActiveMenuId={setActiveMenuId}
-                    editingMessageId={editingMessageId}
-                    editingContent={editingContent}
-                    setEditingMessageId={setEditingMessageId}
-                    setEditingContent={setEditingContent}
-                    handleEdit={handleEdit}
-                    addReaction={addReaction}
-                    deleteMessage={handleDeleteMessage}
-                    handleJoinCall={handleJoinCall}
-                    onReply={handleReplyTo}
-                  />
-                ))}
+              <div className="space-y-0 text-sm">
+                {dateMsgs.map((m, i) => {
+                  const isFirstInGroup = i === 0 || dateMsgs[i-1].senderId !== m.senderId;
+                  const isLastInGroup = i === dateMsgs.length - 1 || dateMsgs[i+1].senderId !== m.senderId;
+                  return (
+                    <MessageBubble 
+                      key={m.id || m.tempId} 
+                      message={m} 
+                      isMine={m.senderId === currentUser?.id || m.sender?.id === currentUser?.id} 
+                      isFirstInGroup={isFirstInGroup}
+                      isLastInGroup={isLastInGroup}
+                      currentUser={currentUser}
+                      activeMenuId={activeMenuId}
+                      setActiveMenuId={setActiveMenuId}
+                      editingMessageId={editingMessageId}
+                      editingContent={editingContent}
+                      setEditingMessageId={setEditingMessageId}
+                      setEditingContent={setEditingContent}
+                      handleEdit={handleEdit}
+                      addReaction={addReaction}
+                      deleteMessage={handleDeleteMessage}
+                      handleJoinCall={handleJoinCall}
+                      onReply={handleReplyTo}
+                    />
+                  );
+                })}
               </div>
             </div>
           ))
@@ -885,11 +898,11 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
             </span>
           </div>
         )}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-6 sm:h-8 shrink-0" />
       </div>
 
       {/* Footer Input Area */}
-      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-surface border-t border-slate-200/50 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] shrink-0 relative">
+      <div className="z-20 p-2 sm:p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-surface border-t border-slate-200/60 shadow-[0_-15px_40px_rgba(0,0,0,0.03)] shrink-0 relative">
         {isNanaSession && messages.length > 0 && (
           <div className="flex items-center space-x-2 px-1 mb-3 overflow-x-auto no-scrollbar pb-1">
             {QUICK_ACTIONS.map((action, idx) => (
@@ -913,7 +926,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
             />
           </div>
         )}
-        <form onSubmit={handleSendMessage} className="flex flex-col space-y-2">
+        <form onSubmit={handleSendMessage} className="flex flex-col space-y-2 max-w-5xl mx-auto w-full">
           {replyTo && (
             <div className="flex items-center justify-between bg-surface-2 p-2 rounded-xl border-l-4 border-primary-500 mx-1 mb-1 animate-in slide-in-from-bottom-2">
               <div className="flex-1 min-w-0 px-2">
@@ -936,26 +949,26 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
             </div>
           )}
 
-          <div className="flex items-end space-x-2">
+          <div className="flex items-end space-x-1 sm:space-x-2">
             {!isRecording ? (
               <>
                 <button 
                   type="button" 
                   disabled={!canSend}
                   onClick={() => fileInputRef.current?.click()} 
-                  className="p-2.5 text-app-secondary hover:bg-surface-2 rounded-2xl transition-all disabled:opacity-30 disabled:grayscale"
+                  className="p-2.5 sm:p-3 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-full transition-all disabled:opacity-30 disabled:grayscale shrink-0"
                 >
-                  <PaperClipIcon className="w-5 h-5 stroke-[2.5px]" />
+                  <PaperClipIcon className="w-6 h-6 stroke-[1.5px]" />
                   <input type="file" ref={fileInputRef} className="hidden" onChange={e => setMediaFile(e.target.files[0])} />
                 </button>
                 
-                <div className="flex-1 flex items-center rounded-2xl bg-surface-2 p-1">
+                <div className="flex-1 flex items-end rounded-[24px] bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/50 p-1 sm:p-1.5 focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:border-primary-300 dark:focus-within:border-primary-500/50 transition-colors shadow-sm">
                   <button 
                     type="button"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="p-2 text-app-secondary hover:text-primary-600 transition-colors"
+                    className="p-2 sm:p-2.5 text-slate-400 hover:text-primary-500 transition-colors self-end shrink-0"
                   >
-                    <FaceSmileIcon className="w-5 h-5 stroke-[2.2px]" />
+                    <FaceSmileIcon className="w-6 h-6 stroke-[1.5px]" />
                   </button>
                   <textarea
                     value={newMessage}
@@ -968,8 +981,8 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
                         e.preventDefault();
                       }
                     }}
-                    placeholder={canSend ? "Message..." : "Only lecturers can post here..."}
-                    className="flex-1 bg-transparent border-none text-sm py-2 px-1 max-h-32 resize-none focus:ring-0 focus:outline-none outline-none font-medium disabled:text-app-secondary"
+                    placeholder={canSend ? "Message" : "Only lecturers can post here..."}
+                    className="flex-1 bg-transparent border-none text-[15px] py-2 sm:py-2.5 px-2 max-h-32 resize-none focus:ring-0 focus:outline-none outline-none font-normal disabled:text-slate-400 placeholder:text-slate-400 self-center"
                     rows={1}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                   />
@@ -979,18 +992,18 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
                   <button 
                     type="submit" 
                     disabled={isSending || !canSend}
-                    className="p-3 bg-primary-600 text-white rounded-[18px] shadow-lg shadow-primary-600/30 active:scale-95 disabled:opacity-30 disabled:grayscale"
+                    className="p-3.5 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-[0_4px_12px_rgba(2,132,199,0.3)] active:scale-95 transition-transform disabled:opacity-30 disabled:grayscale shrink-0 flex items-center justify-center self-end mb-0.5"
                   >
-                    {isSending ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <PaperAirplaneIcon className="w-5 h-5 -rotate-45" />}
+                    {isSending ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <PaperAirplaneIcon className="w-5 h-5 -rotate-45 relative right-0.5" />}
                   </button>
                 ) : (
                   <button 
                     type="button"
                     disabled={!canSend}
                     onClick={startRecording}
-                    className="p-3 text-primary-600 hover:bg-primary-50 rounded-[18px] disabled:opacity-30 disabled:grayscale"
+                    className="p-3.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-full transition-colors disabled:opacity-30 disabled:grayscale shrink-0 flex items-center justify-center self-end mb-0.5"
                   >
-                    <MicrophoneIcon className="w-6 h-6" />
+                    <MicrophoneIcon className="w-6 h-6 stroke-[1.5px]" />
                   </button>
                 )}
               </>
