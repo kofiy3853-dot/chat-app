@@ -13,26 +13,37 @@ export default function NewChatModal({ isOpen, onClose }) {
   const router = useRouter();
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const delayDebounceFn = setTimeout(() => {
-      // Search if there is text AND/OR filters applied
-      if (search.trim() || faculty || level) {
-        handleSearch();
+      // Search if there is at least 2 characters AND/OR filters applied
+      const trimmedSearch = search.trim();
+      if ((trimmedSearch.length >= 2) || faculty || level) {
+        handleSearch(controller.signal);
       } else {
         setResults([]);
+        setLoading(false);
       }
-    }, 500);
+    }, 350); // Snappy debounce
 
-    return () => clearTimeout(delayDebounceFn);
+    return () => {
+      clearTimeout(delayDebounceFn);
+      controller.abort(); // Cancel any pending request if user types again
+    };
   }, [search, faculty, level]);
 
-  const handleSearch = async () => {
+  const handleSearch = async (signal) => {
     setLoading(true);
     try {
-      const response = await userAPI.searchUsers(search, faculty, level);
+      const response = await userAPI.searchUsers(search, faculty, level, { signal });
       setResults(response.data.users);
+      setLoading(false);
     } catch (error) {
+      if (error.name === 'CanceledError') {
+        // Request was cancelled by the AbortController, do nothing!
+        return;
+      }
       console.error('Search failed:', error);
-    } finally {
       setLoading(false);
     }
   };

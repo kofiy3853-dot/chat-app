@@ -103,11 +103,11 @@ export const authAPI = {
 
 // User API
 export const userAPI = {
-  searchUsers: (query, faculty = '', level = '') => {
+  searchUsers: (query, faculty = '', level = '', config = {}) => {
     let url = `/users/search?query=${query}`;
     if (faculty) url += `&faculty=${faculty}`;
     if (level) url += `&level=${level}`;
-    return api.get(url);
+    return api.get(url, config);
   },
   getUserById: (id) => api.get(`/users/${id}`),
   getOnlineUsers: () => api.get('/users/online'),
