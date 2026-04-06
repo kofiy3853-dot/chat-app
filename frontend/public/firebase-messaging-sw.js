@@ -16,45 +16,7 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background messages (app is closed or in background tab)
-messaging.onBackgroundMessage((payload) => {
-  console.log('[FCM SW] Background message received:', payload);
+// Let FCM SDK handle background notifications automatically. 
+// Do NOT add messaging.onBackgroundMessage() calling showNotification, 
+// as it will result in duplicate notifications.
 
-  const { title, body, icon } = payload.notification || {};
-  const notificationTitle = title || 'Campus Chat';
-  const notificationOptions = {
-    body: body || 'You have a new message.',
-    icon: icon || '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
-    data: payload.data || {},
-    actions: [{ action: 'open', title: 'Open Chat' }],
-    requireInteraction: false,
-    vibrate: [200, 100, 200]
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions);
-});
-
-// Handle notification click — open the app and navigate to the right chat
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-
-  const url = event.notification.data?.url || '/';
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // If app is already open, focus it and navigate
-      for (const client of clientList) {
-        if (client.url && 'focus' in client) {
-          client.focus();
-          client.navigate(url);
-          return;
-        }
-      }
-      // Otherwise open a new window
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
-    })
-  );
-});

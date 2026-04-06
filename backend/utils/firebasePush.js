@@ -27,6 +27,15 @@ async function sendPushNotification(fcmTokens, payload) {
         url: payload.url || '/',
         ...(payload.extraData || {})
       },
+      webpush: {
+        notification: {
+          icon: '/icons/icon-192.png',
+          badge: '/icons/icon-192.png'
+        },
+        fcm_options: {
+          link: payload.url || '/'
+        }
+      },
       tokens: validTokens,
     };
 
