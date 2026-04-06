@@ -839,15 +839,21 @@ exports.deleteConversation = async (req, res) => {
     const userId = req.user.id;
 
     const participant = await prisma.conversationParticipant.findUnique({
-      where: { userId, conversationId: id },
+      where: {
+        userId_conversationId: {
+          userId,
+          conversationId: id
+        }
+      },
       include: { conversation: true }
     });
 
     if (!participant) return res.status(404).json({ message: 'Participant not found' });
 
     if (participant.conversation.name === NANA_SESSION_MARKER) {
-      // Hard delete to easily reset ephemeral NANA sessions
-      await prisma.conversation.delete({
+      // Hard delete NANA sessions to reset them
+      // We use deleteMany to avoid some unique constraint/relation issues during hard deletes
+      await prisma.conversation.deleteMany({
         where: { id: id }
       });
     } else {
