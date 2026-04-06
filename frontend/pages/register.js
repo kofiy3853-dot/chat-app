@@ -12,6 +12,7 @@ import {
   CheckIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
+import { compressImage } from '../utils/helpers';
 
 export default function Register() {
   const router = useRouter();
@@ -32,19 +33,24 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Image must be less than 5MB');
-        return;
+      setLoading(true);
+      try {
+        const compressed = await compressImage(file, 400, 400, 0.7);
+        setAvatar(compressed);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setAvatarPreview(reader.result);
+        };
+        reader.readAsDataURL(compressed);
+      } catch (err) {
+        console.error('Compression failed:', err);
+        toast.error('Failed to process image');
+      } finally {
+        setLoading(false);
       }
-      setAvatar(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
     }
   };
 

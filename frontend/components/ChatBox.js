@@ -23,7 +23,7 @@ import {
   ChevronDownIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline';
-import { getCurrentUser, groupMessagesByDate, getInitials, getAvatarColor, formatMessageTime, getFullFileUrl } from '../utils/helpers';
+import { getCurrentUser, groupMessagesByDate, getInitials, getAvatarColor, formatMessageTime, getFullFileUrl, compressImage } from '../utils/helpers';
 import dynamic from 'next/dynamic';
 import { AttachmentBubble, VoiceBubble } from './ChatMedia';
 import { 
@@ -113,7 +113,7 @@ const MessageBubble = React.memo(({
                 const avatar = message.sender?.avatar;
                 const fullUrl = getFullFileUrl(avatar);
                 return fullUrl ? (
-                  <img src={fullUrl} className="w-full h-full object-cover" alt="" />
+                  <img src={fullUrl} loading="lazy" decoding="async" className="w-full h-full object-cover" alt="" />
                 ) : (
                   getInitials(message.sender?.name)
                 );
@@ -981,7 +981,16 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
                   className="p-2.5 text-app-secondary hover:bg-surface-2 rounded-2xl transition-all disabled:opacity-30 disabled:grayscale"
                 >
                   <PaperClipIcon className="w-5 h-5 stroke-[2.5px]" />
-                  <input type="file" ref={fileInputRef} className="hidden" onChange={e => setMediaFile(e.target.files[0])} />
+                  <input type="file" ref={fileInputRef} className="hidden" onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (file.type.startsWith('image/')) {
+                      const compressed = await compressImage(file, 800, 800, 0.7);
+                      setMediaFile(compressed);
+                    } else {
+                      setMediaFile(file);
+                    }
+                  }} />
                 </button>
                 
                 <div className="flex-1 flex items-center rounded-2xl bg-surface-2 p-1">
@@ -999,7 +1008,12 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
                     onPaste={(e) => {
                       const item = e.clipboardData.items[0];
                       if (item?.type.startsWith('image/')) {
-                        setMediaFile(item.getAsFile());
+                        const file = item.getAsFile();
+                        if (file) {
+                          compressImage(file, 800, 800, 0.7).then(compressed => {
+                            setMediaFile(compressed);
+                          });
+                        }
                         e.preventDefault();
                       }
                     }}

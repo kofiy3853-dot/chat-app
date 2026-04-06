@@ -78,7 +78,7 @@ self.addEventListener("fetch", (event) => {
 
   // Bypass SERVICE WORKER for high-load media assets and partial stream content (audio/video)
   // This prevents ERR_CACHE_OPERATION_NOT_SUPPORTED and 408 Timeouts
-  const isExcludedMedia = url.pathname.includes('/uploads/') || 
+  const isExcludedMedia = (url.pathname.includes('/uploads/') && !url.pathname.match(/\.(png|jpg|jpeg|webp)$/i)) || 
                           url.pathname.includes('/sounds/') ||
                           url.pathname.endsWith('.mp3');
 

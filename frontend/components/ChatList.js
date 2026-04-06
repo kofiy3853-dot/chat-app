@@ -436,7 +436,7 @@ const ChatListItem = React.memo(({
               const avatar = other?.avatar;
               const fullUrl = getFullFileUrl(avatar);
               return fullUrl ? (
-                <img src={fullUrl} className="w-full h-full object-cover" alt="" />
+                <img src={fullUrl} loading="lazy" decoding="async" className="w-full h-full object-cover" alt="" />
               ) : (
                 getConversationName(conversation).charAt(0).toUpperCase()
               );

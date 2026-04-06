@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, PhotoIcon, PencilIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import api, { statusAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
+import { compressImage } from '../utils/helpers';
 
 interface UploadStatusModalProps {
   onClose: () => void;
@@ -23,12 +24,21 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      setType('IMAGE');
+      setLoading(true);
+      try {
+        const compressed = await compressImage(file, 1080, 1080, 0.75); // Higher quality for Status
+        setSelectedFile(compressed);
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(URL.createObjectURL(compressed));
+        setType('IMAGE');
+      } catch (err) {
+        toast.error('Error processing image');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 

@@ -129,6 +129,8 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
           {avatarUrl && otherParticipant?.role !== 'NANA' ? (
             <img
               src={avatarUrl}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover"
               alt={name}
               onError={(e) => { e.currentTarget.style.display = 'none'; }}

@@ -12,7 +12,7 @@ import {
   CameraIcon,
   ChatBubbleBottomCenterTextIcon
 } from '@heroicons/react/24/outline';
-import { getFullFileUrl } from '../utils/helpers';
+import { getFullFileUrl, compressImage } from '../utils/helpers';
 
 export default function ProfileCard({ user, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -48,8 +48,11 @@ export default function ProfileCard({ user, onUpdate }) {
     
     setUploadingAvatar(true);
     try {
+      // Compress to 400x400 before upload
+      const compressed = await compressImage(file, 400, 400, 0.7);
+      
       const data = new FormData();
-      data.append('file', file);
+      data.append('file', compressed);
       const response = await chatAPI.uploadMessageAttachment(data);
       if (response.data?.url || response.data?.fileUrl) {
         const uploadedUrl = response.data.url || response.data.fileUrl;
@@ -100,7 +103,7 @@ export default function ProfileCard({ user, onUpdate }) {
             <div className="w-28 h-28 rounded-[2rem] bg-white p-1.5 shadow-xl relative flex-shrink-0">
               <div className="w-full h-full rounded-[1.6rem] bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-black shadow-inner overflow-hidden">
                 {formData.avatar || user?.avatar ? (
-                  <img src={getFullFileUrl(formData.avatar || user?.avatar)} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={getFullFileUrl(formData.avatar || user?.avatar)} decoding="async" alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   user?.name?.charAt(0).toUpperCase()
                 )}
