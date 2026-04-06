@@ -224,6 +224,7 @@ exports.register = async (req, res) => {
     }
 
     if (error.code === 'P2021' || error.code === 'P2022' || error.message?.includes('fcmToken')) {
+      console.error("[REGISTER SCHEMA ERROR]:", error.message);
       return res.status(500).json({ 
         message: 'Database schema mismatch detected. This server requires a database sync (npx prisma db push).',
         error: 'SCHEMA_OUT_OF_SYNC'
