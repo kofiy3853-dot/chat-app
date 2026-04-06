@@ -16,7 +16,19 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Let FCM SDK handle background notifications automatically. 
-// Do NOT add messaging.onBackgroundMessage() calling showNotification, 
-// as it will result in duplicate notifications.
+// Add manual background handler to enforce badge rendering as requested
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
 
+  const notificationTitle = payload.notification?.title || payload.data?.title || 'New Message';
+  
+  // Extract notification options, ensuring badge explicitly exists
+  const notificationOptions = {
+    body: payload.notification?.body || payload.data?.body,
+    icon: payload.notification?.icon || '/icons/icon-192.png',
+    badge: payload.notification?.badge || '/icons/icon-192.png',
+    data: { url: payload.data?.url || '/' },
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
