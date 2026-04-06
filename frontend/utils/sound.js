@@ -6,6 +6,13 @@ let persistentAudioContext = null;
  */
 export const playNotificationSound = () => {
   try {
+    // Prevent "AudioContext was not allowed to start" console warnings in Chrome/Edge.
+    // If the user hasn't clicked/scrolled/interacted anywhere on the document yet,
+    // the browser strictly blocks programmatic audio playback.
+    if (typeof navigator !== 'undefined' && navigator.userActivation && !navigator.userActivation.hasBeenActive) {
+      return; 
+    }
+
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
 
