@@ -604,9 +604,18 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
           scrollToBottom('auto');
           isFirstLoad.current = false;
         } else {
-          // Only scroll if already at bottom (within 300px)
-          const isNearBottom = !showScrollBottom;
-          if (isNearBottom) scrollToBottom('smooth');
+          const lastMessage = messages[messages.length - 1];
+          const isMyMessage = lastMessage?.senderId === currentUser?.id || lastMessage?.sender?.id === currentUser?.id;
+          
+          // Use the ref directly instead of showScrollBottom state to avoid any race conditions with React state updates
+          const scrollContainer = scrollContainerRef.current;
+          const isNearBottom = scrollContainer 
+            ? (scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 200)
+            : true;
+          
+          if (isNearBottom || isMyMessage) {
+            scrollToBottom('smooth');
+          }
         }
       };
 
@@ -614,7 +623,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
       const timer = setTimeout(scroll, 100);
       return () => clearTimeout(timer);
     }
-  }, [messages.length, conversationId, showScrollBottom]);
+  }, [messages.length, conversationId, currentUser?.id]); // Removed showScrollBottom to prevent trigger loops
 
   // Reset first load flag when switching conversations
   useEffect(() => {
@@ -816,7 +825,8 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
         onScroll={() => {
           if (scrollContainerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-            const atBottom = scrollHeight - scrollTop - clientHeight < 300;
+            // Use a more precise threshold (100px instead of 300px)
+            const atBottom = scrollHeight - scrollTop - clientHeight < 150;
             if (showScrollBottom === atBottom) setShowScrollBottom(!atBottom);
           }
         }}
