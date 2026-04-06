@@ -120,7 +120,13 @@ exports.register = async (req, res) => {
 
     // Role-specific validation
     if (!name?.trim() || !normalizedEmail || !password?.trim() || !department?.trim()) {
-      return res.status(400).json({ message: 'Core profile details are mandatory.' });
+      console.log('[REGISTER DEBUG] Core failure:', { 
+        name: !!name, 
+        email: !!normalizedEmail, 
+        password: !!password, 
+        department: !!department 
+      });
+      return res.status(400).json({ message: 'Core profile details are mandatory. Please fill in all information.' });
     }
 
     if (upperRole === 'LECTURER') {
