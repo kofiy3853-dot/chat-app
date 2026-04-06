@@ -66,11 +66,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="sm:col-span-2">
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Full Name (with Titles)</label>
+          <label htmlFor="lecturer-name" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Full Name (with Titles)</label>
           <input
+            id="lecturer-name"
             name="name"
             type="text"
             required
+            autoComplete="name"
             value={formData.name}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
@@ -79,11 +81,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
         </div>
 
         <div className="sm:col-span-2">
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">University Email (@staff.ktu.edu.gh)</label>
+          <label htmlFor="lecturer-email" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">University Email (@staff.ktu.edu.gh)</label>
           <input
+            id="lecturer-email"
             name="email"
             type="email"
             required
+            autoComplete="email"
             value={formData.email}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
@@ -92,11 +96,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Staff ID</label>
+          <label htmlFor="lecturer-staffId" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Staff ID</label>
           <input
+            id="lecturer-staffId"
             name="staffId"
             type="text"
             required
+            autoComplete="off"
             value={formData.staffId}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
@@ -105,11 +111,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Phone Number</label>
+          <label htmlFor="lecturer-phone" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Phone Number</label>
           <input
+            id="lecturer-phone"
             name="phone"
             type="tel"
             required
+            autoComplete="tel"
             value={formData.phone}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
@@ -118,10 +126,12 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Faculty</label>
+          <label htmlFor="lecturer-faculty" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Faculty</label>
           <select
+            id="lecturer-faculty"
             name="faculty"
             required
+            autoComplete="off"
             value={formData.faculty}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-bold"
@@ -132,11 +142,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Department</label>
+          <label htmlFor="lecturer-department" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Department</label>
           <input
+            id="lecturer-department"
             name="department"
             type="text"
             required
+            autoComplete="organization-title"
             value={formData.department}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
@@ -146,11 +158,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
 
         {/* Courses Multi-select */}
         <div className="sm:col-span-2">
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Courses Teaching</label>
+          <label htmlFor="lecturer-courses" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Courses Teaching</label>
           <div className="flex space-x-2 mb-3">
             <input
+              id="lecturer-courses"
               ref={courseInputRef}
               type="text"
+              autoComplete="off"
               className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
               placeholder="e.g. CSC 301"
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCourse())}
@@ -176,12 +190,14 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Password</label>
+          <label htmlFor="lecturer-password" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Password</label>
           <input
+            id="lecturer-password"
             name="password"
             type="password"
             required
             minLength={6}
+            autoComplete="new-password"
             value={formData.password}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
@@ -190,11 +206,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Confirm Password</label>
+          <label htmlFor="lecturer-confirmPassword" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Confirm Password</label>
           <input
+            id="lecturer-confirmPassword"
             name="confirmPassword"
             type="password"
             required
+            autoComplete="new-password"
             value={formData.confirmPassword}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"

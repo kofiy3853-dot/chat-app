@@ -48,11 +48,13 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="sm:col-span-2">
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Full Name</label>
+          <label htmlFor="cr-name" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Full Name</label>
           <input
+            id="cr-name"
             name="name"
             type="text"
             required
+            autoComplete="name"
             value={formData.name}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
@@ -61,11 +63,13 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
         </div>
 
         <div className="sm:col-span-2">
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">University Email</label>
+          <label htmlFor="cr-email" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">University Email</label>
           <input
+            id="cr-email"
             name="email"
             type="email"
             required
+            autoComplete="email"
             value={formData.email}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
@@ -74,11 +78,13 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Student ID</label>
+          <label htmlFor="cr-studentId" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Student ID</label>
           <input
+            id="cr-studentId"
             name="studentId"
             type="text"
             required
+            autoComplete="off"
             value={formData.studentId}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
@@ -87,10 +93,12 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Level</label>
+          <label htmlFor="cr-level" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Level</label>
           <select
+            id="cr-level"
             name="level"
             required
+            autoComplete="off"
             value={formData.level}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-bold"
@@ -101,10 +109,12 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Faculty</label>
+          <label htmlFor="cr-faculty" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Faculty</label>
           <select
+            id="cr-faculty"
             name="faculty"
             required
+            autoComplete="off"
             value={formData.faculty}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-bold uppercase"
@@ -115,11 +125,13 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Department</label>
+          <label htmlFor="cr-department" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Department</label>
           <input
+            id="cr-department"
             name="department"
             type="text"
             required
+            autoComplete="organization-title"
             value={formData.department}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
@@ -129,12 +141,14 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
 
         <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-            <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Password</label>
+            <label htmlFor="cr-password" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Password</label>
             <input
+                id="cr-password"
                 name="password"
                 type="password"
                 required
                 minLength={6}
+                autoComplete="new-password"
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
@@ -143,11 +157,13 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             </div>
 
             <div>
-            <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Confirm Password</label>
+            <label htmlFor="cr-confirmPassword" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Confirm Password</label>
             <input
+                id="cr-confirmPassword"
                 name="confirmPassword"
                 type="password"
                 required
+                autoComplete="new-password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
