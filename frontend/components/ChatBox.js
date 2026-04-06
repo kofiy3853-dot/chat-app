@@ -43,13 +43,12 @@ const MessageBubble = React.memo(({
   isMine, 
   showSender, 
   currentUser, 
-  activeMenuId, 
+  isActiveMenu, 
   setActiveMenuId, 
-  editingMessageId, 
-  editingContent, 
-  setEditingMessageId, 
-  setEditingContent, 
-  handleEdit, 
+  isEditing, 
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
   addReaction, 
   deleteMessage,
   handleJoinCall,
@@ -58,6 +57,11 @@ const MessageBubble = React.memo(({
   const timestamp = formatMessageTime(message.createdAt);
   const isTemp = message.id?.toString().startsWith('temp');
   const isNana = message.sender?.role?.toUpperCase() === 'NANA';
+
+  const [localEditContent, setLocalEditContent] = useState(message.content);
+  useEffect(() => {
+    setLocalEditContent(message.content);
+  }, [message.content]);
 
   const [touchStart, setTouchStart] = useState(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -143,7 +147,7 @@ const MessageBubble = React.memo(({
           <div 
             onMouseDown={(e) => {
               const timer = setTimeout(() => {
-                if (!message.isDeleted && !editingMessageId) setActiveMenuId(message.id);
+                if (!message.isDeleted && !isEditing) setActiveMenuId(message.id);
                 if (navigator.vibrate) navigator.vibrate(50);
               }, 500);
               e.currentTarget.dataset.timer = timer;
@@ -152,7 +156,7 @@ const MessageBubble = React.memo(({
             onMouseLeave={(e) => clearTimeout(e.currentTarget.dataset.timer)}
             onTouchStart={(e) => {
               const timer = setTimeout(() => {
-                if (!message.isDeleted && !editingMessageId) setActiveMenuId(message.id);
+                if (!message.isDeleted && !isEditing) setActiveMenuId(message.id);
                 if (navigator.vibrate) navigator.vibrate(50);
               }, 500);
               e.currentTarget.dataset.timer = timer;
@@ -171,17 +175,17 @@ const MessageBubble = React.memo(({
               </div>
             )}
 
-            {editingMessageId === message.id ? (
+            {isEditing ? (
               <div className="min-w-[180px]">
                 <textarea 
                   autoFocus 
-                  value={editingContent} 
-                  onChange={e => setEditingContent(e.target.value)}
+                  value={localEditContent} 
+                  onChange={e => setLocalEditContent(e.target.value)}
                   className="w-full bg-transparent border-none p-0 text-sm focus:ring-0 resize-none"
                 />
                 <div className="flex justify-end space-x-2 mt-2">
-                  <button onClick={() => setEditingMessageId(null)} className="text-[10px] font-bold opacity-60">Cancel</button>
-                  <button onClick={handleEdit} className="text-[10px] font-bold text-emerald-400">Save</button>
+                  <button onClick={onCancelEdit} className="text-[10px] font-bold opacity-60">Cancel</button>
+                  <button onClick={() => onSaveEdit(message.id, localEditContent)} className="text-[10px] font-bold text-emerald-400">Save</button>
                 </div>
               </div>
             ) : message.isDeleted ? (
@@ -278,7 +282,7 @@ const MessageBubble = React.memo(({
               )}
             </div>
 
-            {activeMenuId === message.id && (
+            {isActiveMenu && (
               <>
                 <div 
                   className="fixed inset-0 z-[1999]" 
@@ -302,7 +306,7 @@ const MessageBubble = React.memo(({
                     </button>
                     {isMine && !message.isDeleted && (
                       <>
-                        <button onClick={() => { setEditingMessageId(message.id); setEditingContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-app-secondary hover:bg-surface-2 rounded-lg">
+                        <button onClick={() => { onStartEdit(message.id); setLocalEditContent(message.content); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-app-secondary hover:bg-surface-2 rounded-lg">
                           <PencilIcon className="w-3.5 h-3.5" /> <span>Edit</span>
                         </button>
                         <button onClick={() => { deleteMessage(message.id); setActiveMenuId(null); }} className="flex items-center space-x-2 px-3 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-lg">
@@ -340,7 +344,6 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
-  const [editingContent, setEditingContent] = useState('');
   const [isSending, setIsSending] = useState(false);
   const audioChunksRef = useRef([]);
 
@@ -724,13 +727,19 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
     }
   };
 
-  const handleEdit = async (e) => {
-    e.preventDefault();
-    if (!editingContent.trim()) return;
-    editMessage(editingMessageId, editingContent.trim());
+  const handleStartEdit = useCallback((msgId) => {
+    setEditingMessageId(msgId);
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
     setEditingMessageId(null);
-    setEditingContent('');
-  };
+  }, []);
+
+  const handleSaveEdit = useCallback((msgId, content) => {
+    if (!content.trim()) return;
+    editMessage(msgId, content.trim());
+    setEditingMessageId(null);
+  }, []);
 
   const handleJoinCall = useCallback((content) => {
     const cid = content.split('call/')[1]?.split(' ')[0];
@@ -855,13 +864,12 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
                     isMine={m.senderId === currentUser?.id || m.sender?.id === currentUser?.id} 
                     showSender={i === 0 || dateMsgs[i-1].senderId !== m.senderId}
                     currentUser={currentUser}
-                    activeMenuId={activeMenuId}
+                    isActiveMenu={activeMenuId === (m.id || m.tempId)}
                     setActiveMenuId={setActiveMenuId}
-                    editingMessageId={editingMessageId}
-                    editingContent={editingContent}
-                    setEditingMessageId={setEditingMessageId}
-                    setEditingContent={setEditingContent}
-                    handleEdit={handleEdit}
+                    isEditing={editingMessageId === (m.id || m.tempId)}
+                    onStartEdit={handleStartEdit}
+                    onCancelEdit={handleCancelEdit}
+                    onSaveEdit={handleSaveEdit}
                     addReaction={addReaction}
                     deleteMessage={handleDeleteMessage}
                     handleJoinCall={handleJoinCall}
