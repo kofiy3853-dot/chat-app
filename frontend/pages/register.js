@@ -2,7 +2,8 @@ import { useState, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { authAPI } from '../services/api';
+import { authAPI, pushAPI } from '../services/api';
+
 import { initSocket } from '../services/socket';
 import { requestFirebaseNotificationPermission } from '../config/firebase';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
@@ -160,7 +161,8 @@ export default function Register() {
       try {
         const fcmToken = await requestFirebaseNotificationPermission();
         if(fcmToken) {
-           await authAPI.updateFcmToken(fcmToken).catch(() => {});
+         await pushAPI.updateFcmToken(fcmToken).catch(() => {});
+
         }
       } catch (fcmError) {
         console.warn('FCM fail-safe:', fcmError);
