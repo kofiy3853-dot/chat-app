@@ -99,7 +99,13 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: errorMsg, errors: errors.array() });
     }
 
-    const { email, password, name, studentId, staffId, department, role, faculty, level, phone, coursesTeaching } = req.body;
+    let { email, password, name, studentId, staffId, department, role, faculty, level, phone, coursesTeaching } = req.body;
+    
+    // Convert comma-separated string to array if needed (sent from frontend FormData)
+    if (typeof coursesTeaching === 'string') {
+      coursesTeaching = coursesTeaching.split(',').map(c => c.trim()).filter(c => c !== "");
+    }
+
     const upperRole = role ? role.toUpperCase() : 'STUDENT';
     
     console.log(`[REGISTER ATTEMPT] Name: ${name}, Email: ${email}, Role: ${upperRole}, StudentID: ${studentId}, StaffID: ${staffId}`);
