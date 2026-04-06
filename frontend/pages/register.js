@@ -134,19 +134,21 @@ export default function Register() {
       data.append('department', formData.department);
       data.append('faculty', formData.faculty);
       data.append('role', formData.role);
-      data.append('avatar', avatar);
 
-      // Role specific fields
+      // Role specific fields must be appended BEFORE the file for Multer
       if (role === 'LECTURER') {
         data.append('staffId', formData.staffId);
         data.append('phone', formData.phone);
-        if (formData.coursesTeaching.length > 0) {
+        if (formData.coursesTeaching && formData.coursesTeaching.length > 0) {
             data.append('coursesTeaching', formData.coursesTeaching.join(','));
         }
       } else {
         data.append('studentId', formData.studentId);
         data.append('level', formData.level);
       }
+
+      // Append file last
+      data.append('avatar', avatar);
 
       const response = await authAPI.register(data);
       const { token, user, redirectTo } = response.data;
@@ -167,6 +169,7 @@ export default function Register() {
       toast.success('Registration successful! Welcome to the hub.');
       router.replace(user.role === "NANA" ? "/nana" : (redirectTo || "/"));
     } catch (err) {
+      console.error('REGISTRATION ERROR:', err.response?.data || err);
       const msg = err.response?.data?.message || 'Registration failed. Please check your details.';
       setError(msg);
       toast.error(msg);

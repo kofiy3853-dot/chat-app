@@ -89,6 +89,9 @@ const uploadToSupabase = require('../utils/uploadToSupabase');
 // Register new user
 exports.register = async (req, res) => {
   try {
+    console.log('[DEBUG] Incoming registration body:', JSON.stringify(req.body, null, 2));
+    console.log('[DEBUG] Incoming file:', req.file ? { name: req.file.originalname, size: req.file.size } : 'NONE');
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       const errorMsg = errors.array()[0].msg || 'Validation failed';
@@ -128,13 +131,17 @@ exports.register = async (req, res) => {
     }
 
     // Check if user already exists
+    const orFilters = [{ email: normalizedEmail }];
+    if (upperRole !== 'LECTURER' && studentId?.trim()) {
+      orFilters.push({ studentId: studentId.trim() });
+    }
+    if (upperRole === 'LECTURER' && staffId?.trim()) {
+      orFilters.push({ staffId: staffId.trim() });
+    }
+
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [
-          { email: normalizedEmail },
-          { studentId: studentId?.trim() || undefined },
-          { staffId: staffId?.trim() || undefined }
-        ]
+        OR: orFilters
       }
     });
 
