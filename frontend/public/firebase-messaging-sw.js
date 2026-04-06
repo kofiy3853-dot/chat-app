@@ -32,8 +32,11 @@ messaging.onBackgroundMessage((payload) => {
 
   // Sync the app icon badge (e.g. for PWA on Android/Desktop)
   if ('setAppBadge' in navigator) {
-    const count = parseInt(payload.data?.unreadCount || 1);
-    navigator.setAppBadge(count).catch(e => console.log('Badge error', e));
+    const rawCount = payload.data?.unreadCount || payload.notification?.badgeCount;
+    if (rawCount !== undefined) {
+      const count = parseInt(rawCount);
+      navigator.setAppBadge(count).catch(e => console.error('[SW] Badge error:', e));
+    }
   }
 
   return self.registration.showNotification(notificationTitle, notificationOptions);

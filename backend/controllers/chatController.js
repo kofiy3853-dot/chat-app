@@ -599,16 +599,42 @@ exports.markAsRead = async (req, res) => {
         skipDuplicates: true
       });
       
+      // 2. ALSO mark related notifications as read so the unread badge count decrements correctly
+      await prisma.notification.updateMany({
+        where: {
+          recipientId: userId,
+          type: 'MESSAGE',
+          isRead: false,
+          message: {
+            conversationId: conversationId
+          }
+        },
+        data: {
+          isRead: true,
+          readAt: new Date()
+        }
+      });
+      
       // Update the user's unread count via socket
       if (req.io) {
-        const newCount = await prisma.message.count({
+        // Refetch total unread notifications for the badge
+        const totalUnreadCount = await prisma.notification.count({
+          where: { recipientId: userId, isRead: false }
+        });
+
+        // Refetch unread messages specifically (if needed for some UI)
+        const unreadMessagesCount = await prisma.message.count({
           where: {
             senderId: { not: userId },
             readReceipts: { none: { userId: userId } },
             conversation: { participants: { some: { userId: userId, isDeleted: false } }, isActive: true }
           }
         });
-        req.io.to(`user:${userId}`).emit('total-unread-chat-count', { count: newCount });
+
+        req.io.to(`user:${userId}`).emit('total-unread-chat-count', { 
+          count: unreadMessagesCount,
+          totalNotifications: totalUnreadCount
+        });
       }
     }
 

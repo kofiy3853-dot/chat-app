@@ -55,7 +55,7 @@ const setupChatSockets = (io) => {
       try {
         const conversations = await prisma.conversation.findMany({
           where: {
-            participants: { some: { userId: socket.user.id } },
+            participants: { some: { userId: socket.user.id, isDeleted: false } },
             isActive: true
           },
           select: { id: true }
@@ -70,7 +70,7 @@ const setupChatSockets = (io) => {
         socket.emit('joined-conversations', { 
           count: conversations.length 
         });
-        console.log(`[NOTIF DEBUG] User ${socket.user.id} joined ${conversations.length} conversation broadcast rooms.`);
+        console.log(`[NOTIF DEBUG] User ${socket.user.id} joined ${conversations.length} active conversation broadcast rooms.`);
       } catch (error) {
         socket.emit('error', { message: error.message });
       }
@@ -81,7 +81,7 @@ const setupChatSockets = (io) => {
       try {
         const conversations = await prisma.conversation.findMany({
           where: {
-            participants: { some: { userId: socket.user.id } },
+            participants: { some: { userId: socket.user.id, isDeleted: false } },
             isActive: true
           },
           select: { id: true }
@@ -99,7 +99,8 @@ const setupChatSockets = (io) => {
         const participant = await prisma.conversationParticipant.findFirst({
           where: {
             userId: socket.user.id,
-            conversationId: conversationId
+            conversationId: conversationId,
+            isDeleted: false // REQUIREMENT: Prevent access to soft-deleted chats
           }
         });
 
@@ -109,7 +110,7 @@ const setupChatSockets = (io) => {
           socket.emit('joined-conversation', { conversationId });
           console.log(`[NOTIF DEBUG] User ${socket.user.id} is now ACTIVELY VIEWING conv:${conversationId}`);
         } else {
-          socket.emit('error', { message: 'Access denied' });
+          socket.emit('error', { message: 'Access denied: Conversation deleted or hidden.' });
         }
       } catch (error) {
         socket.emit('error', { message: error.message });

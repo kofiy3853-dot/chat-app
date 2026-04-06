@@ -130,14 +130,23 @@ const MessagesPage: React.FC = () => {
       }));
     };
 
+    const handleTotalUnread = (data: any) => {
+      // If we receive a definitive count from the server, we should ideally refresh or trust it
+      // For now, let's just trigger a re-fetch if the count changes significantly, 
+      // or we can update the local conversations count if the payload includes details.
+      fetchData(); 
+    };
+
     socket.on('user-typing', handleUserTyping);
     socket.on('new-message', handleNewMessage);
     socket.on('user-status-changed', handleUserStatus);
+    socket.on('total-unread-chat-count', handleTotalUnread);
 
     return () => {
       socket.off('user-typing', handleUserTyping);
       socket.off('new-message', handleNewMessage);
       socket.off('user-status-changed', handleUserStatus);
+      socket.off('total-unread-chat-count', handleTotalUnread);
     };
   }, [user]);
 
@@ -207,12 +216,18 @@ const MessagesPage: React.FC = () => {
     if (!window.confirm('Delete this conversation?')) return;
     
     // Optimistic Update: remove from UI immediately
-    const originalConversations = [...conversations];
-    setConversations(prev => prev.filter(c => c.id !== id));
+    const updatedConversations = conversations.filter(c => c.id !== id);
+    setConversations(updatedConversations);
+    
+    // Update cache immediately to prevent flash-reappearance on re-renders
+    localStorage.setItem('cached_conversations', JSON.stringify(updatedConversations));
     
     try {
       await chatAPI.deleteConversation(id);
     } catch (err) {
+      // Revert on failure
+      setConversations(conversations);
+      localStorage.setItem('cached_conversations', JSON.stringify(conversations));
       toast.error('Could not delete chat. Please try again.');
     }
   };

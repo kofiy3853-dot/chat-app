@@ -266,8 +266,8 @@ header.sticky {
 
 /* ═══════════════════════ Chat Bubbles ══════════════════════ */
 /* 
- * Requirement: Light gray (#F5F5F5) backgrounds and black text.
- * Naturally wrap, no mid-word breaks.
+ * Increased width for modern, comfortable reading experience.
+ * Prevents excessive wrapping while maintaining layout balance.
  */
 .chat-bubble {
   position: relative;
@@ -275,7 +275,7 @@ header.sticky {
   color: var(--bubble-text);
   padding: 10px 14px;
   border-radius: var(--bubble-radius);
-  max-width: 100%;
+  max-width: 78%; /* Increased from earlier defaults to prevent excessive vertical stretching */
   width: fit-content;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   
@@ -336,8 +336,9 @@ header.sticky {
 /* ═══════════════════════ Responsive ════════════════════════ */
 @media (max-width: 640px) {
   .chat-bubble {
-    max-width: 90%;
-    font-size: 15px; /* Slightly larger for mobile readability */
+    max-width: 88%; /* Allow messages to take up more horizontal space on mobile */
+    font-size: 14px;
+    padding: 10px 15px; /* Slightly more padding for the wider span */
   }
 }
 

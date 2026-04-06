@@ -335,7 +335,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [typingUsers, setTypingUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [error, setError] = useState(null);
   const [activeMenuId, setActiveMenuId] = useState(null);
@@ -889,7 +889,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
               <span className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce" />
             </div>
             <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest bg-white/50 px-3 py-1 rounded-full border border-slate-100">
-              {typingUsers[0].name} is active
+              {typingUsers[0].name} is typing...
             </span>
           </div>
         )}
