@@ -1070,19 +1070,17 @@ exports.clearChat = async (req, res) => {
     console.log(`[CLEAR CHAT] Starting for CID:${id} by User:${userId}`);
 
     try {
-      // 1. Verify access
-      const participant = await prisma.conversationParticipant.findUnique({
+      // 1. Verify access - Using findFirst for better environment compatibility
+      const participant = await prisma.conversationParticipant.findFirst({
         where: {
-          userId_conversationId: {
-            userId,
-            conversationId: id
-          }
+          userId: userId,
+          conversationId: id
         }
       });
 
       if (!participant) {
         console.warn(`[CLEAR CHAT] Access denied for user:${userId} on CID:${id}`);
-        return res.status(403).json({ message: 'Access denied' });
+        return res.status(403).json({ message: 'Access denied: You are not a participant in this conversation.' });
       }
 
       // Execute as a transaction to ensure database consistency
@@ -1097,57 +1095,52 @@ exports.clearChat = async (req, res) => {
             lastMessageAt: new Date()
           }
         });
-        console.log(`[CLEAR CHAT] Conversation pointers reset`);
 
-        // B. Clear notifications
-        await tx.notification.deleteMany({
-          where: {
-            message: {
-              conversationId: id
-            }
-          }
-        });
-        console.log(`[CLEAR CHAT] Notifications cleared`);
-
-        // C. Clear related records that might block message deletion
-        const messageIds = (await tx.message.findMany({
+        // B. Get all message IDs for manual relation cleanup
+        const messages = await tx.message.findMany({
           where: { conversationId: id },
           select: { id: true }
-        })).map(m => m.id);
+        });
+        const messageIds = messages.map(m => m.id);
 
         if (messageIds.length > 0) {
+          // C. Delete notifications linked to these messages
+          await tx.notification.deleteMany({
+            where: { messageId: { in: messageIds } }
+          });
+
+          // D. Delete receipts & reactions
           await tx.readReceipt.deleteMany({ where: { messageId: { in: messageIds } } });
           await tx.reaction.deleteMany({ where: { messageId: { in: messageIds } } });
+
+          // E. Break self-referential reply chains
+          await tx.message.updateMany({
+            where: { id: { in: messageIds } },
+            data: { replyToId: null }
+          });
+
+          // F. Final message deletion
+          await tx.message.deleteMany({
+            where: { id: { in: messageIds } }
+          });
         }
-        console.log(`[CLEAR CHAT] Related receipts and reactions cleared`);
-
-        // D. Break self-referential reply chains
-        await tx.message.updateMany({
-          where: { conversationId: id },
-          data: { replyToId: null }
-        });
-        console.log(`[CLEAR CHAT] Reply chains broken`);
-
-        // D. Final deletion
-        const deletedResult = await tx.message.deleteMany({
-          where: { conversationId: id }
-        });
         
-        console.log(`[CLEAR CHAT] Deleted ${deletedResult.count} messages`);
+        console.log(`[CLEAR CHAT] Successfully cleared ${messageIds.length} messages and relations`);
       });
 
       // 5. Notify all participants via Socket
       if (req.io) {
         req.io.to(`conversation:${id}`).emit('chat-cleared', { conversationId: id });
-        console.log(`[CLEAR CHAT] Socket event emitted`);
       }
 
-      return res.json({ message: 'Chat cleared successfully' });
+      return res.json({ message: 'Chat history cleared successfully' });
+
     } catch (dbError) {
-      console.error('[CLEAR CHAT] DB Error during transaction:', dbError);
+      console.error('[CLEAR CHAT] DB Error:', dbError);
       return res.status(500).json({ 
-        message: 'Could not clear chat history due to a database constraint.',
-        error: dbError.message 
+        message: `Database Error: ${dbError.message || 'Unknown DB error'}`,
+        code: dbError.code,
+        meta: dbError.meta
       });
     }
   } catch (outerError) {
