@@ -130,14 +130,17 @@ exports.register = async (req, res) => {
     }
 
     if (upperRole === 'LECTURER') {
+      console.log('[REGISTER DEBUG] Lecturer check - staffId:', staffId, 'faculty:', faculty);
       if (!staffId?.trim()) return res.status(400).json({ message: 'Staff ID is required for lecturers.' });
       if (!faculty) return res.status(400).json({ message: 'Faculty is required.' });
     } else {
+      console.log('[REGISTER DEBUG] Student check - studentId:', studentId, 'faculty:', faculty, 'level:', level);
       if (!studentId?.trim()) return res.status(400).json({ message: 'Student ID is required.' });
       if (!faculty || !level) return res.status(400).json({ message: 'Faculty and Level are mandatory.' });
     }
 
     // Profile picture check
+    console.log('[REGISTER DEBUG] File check:', req.file ? 'FILE PRESENT' : 'NO FILE');
     if (!req.file) {
       return res.status(400).json({ message: 'Profile picture is mandatory. Please upload an image.' });
     }
@@ -168,10 +171,12 @@ exports.register = async (req, res) => {
     }
 
     // Parallelize tasks
+    console.log('[REGISTER DEBUG] Starting upload and hash...');
     const [avatarUrl, hashedPassword] = await Promise.all([
       uploadToSupabase(req.file, 'upload'),
       bcrypt.hash(password, 10)
     ]);
+    console.log('[REGISTER DEBUG] Upload complete. avatarUrl:', avatarUrl ? 'OK' : 'FAILED');
     
     if (!avatarUrl) {
       return res.status(500).json({ message: 'Failed to upload profile picture' });
