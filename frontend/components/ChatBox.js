@@ -595,23 +595,30 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
   };
 
   // --- 4. Scroll Management ---
+  const isFirstLoad = useRef(true);
+
   useEffect(() => {
     if (messages.length > 0) {
-      if (!messagesEndRef.current?.dataset?.loaded) {
-          // Initial Load or Switch – always jump instantly
+      const scroll = () => {
+        if (isFirstLoad.current) {
           scrollToBottom('auto');
-          messagesEndRef.current.dataset.loaded = 'true';
-      } else {
-          // New Message – only scroll if user is already near bottom (<= 300px)
+          isFirstLoad.current = false;
+        } else {
+          // Only scroll if already at bottom (within 300px)
           const isNearBottom = !showScrollBottom;
           if (isNearBottom) scrollToBottom('smooth');
-      }
+        }
+      };
+
+      // Use a brief timeout to ensure the DOM has finished rendering and height is accurate
+      const timer = setTimeout(scroll, 100);
+      return () => clearTimeout(timer);
     }
   }, [messages.length, conversationId, showScrollBottom]);
 
-  // Reset loaded flag when conversation changes
+  // Reset first load flag when switching conversations
   useEffect(() => {
-    if (messagesEndRef.current) delete messagesEndRef.current.dataset.loaded;
+    isFirstLoad.current = true;
   }, [conversationId]);
 
   const handleSendMessage = async (e, overrideContent = null) => {
