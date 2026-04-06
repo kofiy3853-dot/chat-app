@@ -85,6 +85,21 @@ export default function Document() {
         `}</style>
       </Head>
       <body className="antialiased">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('theme_v2') || 'white';
+                  document.documentElement.setAttribute('data-theme', saved);
+                  if (saved === 'dark' || saved === 'deep-indigo' || saved === 'black') {
+                    document.getElementById('initial-loader').style.backgroundColor = '#0f172a';
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         <div id="initial-loader">
           <div className="loader-content">
             <div style={{ position: 'relative', marginBottom: '2.5rem' }}>
@@ -97,7 +112,7 @@ export default function Document() {
               </div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.5rem 0', letterSpacing: '-0.025em' }}>Campus Chat</h2>
+              <h2 id="loader-title" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.5rem 0', letterSpacing: '-0.025em' }}>Campus Chat</h2>
               <p style={{ fontSize: '10px', fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.4em' }}>Connecting Communities</p>
               <div className="loading-dots">
                 <div className="dot"></div>
@@ -109,7 +124,6 @@ export default function Document() {
         </div>
         <Main />
         <NextScript />
-
       </body>
     </Html>
   )

@@ -30,5 +30,11 @@ messaging.onBackgroundMessage((payload) => {
     data: { url: payload.data?.url || '/' },
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  // Sync the app icon badge (e.g. for PWA on Android/Desktop)
+  if ('setAppBadge' in navigator) {
+    const count = parseInt(payload.data?.unreadCount || 1);
+    navigator.setAppBadge(count).catch(e => console.log('Badge error', e));
+  }
+
+  return self.registration.showNotification(notificationTitle, notificationOptions);
 });

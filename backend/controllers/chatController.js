@@ -549,6 +549,7 @@ exports.sendMessage = async (req, res) => {
               title: `💬 ${message.sender.name}`,
               message: msgPreview,
               url: `/chat/${conversationId}`,
+              badgeCount: unreadCount, // Pass latest unread count to set app icon badge
               extraData: {
                 type: 'MESSAGE',
                 chatId: conversationId.toString(),
@@ -778,10 +779,12 @@ exports.uploadAttachment = async (req, res) => {
         });
         
         if (recipientUser?.fcmToken) {
+          const unreadCount = await prisma.notification.count({ where: { recipientId: recipient.userId, isRead: false } });
           await sendPushNotification([recipientUser.fcmToken], {
             title: `📎 New File: ${message.sender.name}`,
             message: notification.content,
             url: `/chat/${conversationId}`,
+            badgeCount: unreadCount, // Pass latest unread count for app icon badge
             extraData: { 
               type: 'MESSAGE',
               chatId: conversationId.toString(),

@@ -25,6 +25,7 @@ async function sendPushNotification(fcmTokens, payload) {
       },
       data: {
         url: payload.url || '/',
+        unreadCount: String(payload.badgeCount || 1), // REQUIREMENT: Send count for icon badge
         ...(payload.extraData || {})
       },
       webpush: {

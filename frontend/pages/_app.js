@@ -123,10 +123,20 @@ function AppContent({ Component, pageProps }) {
       setTimeout(() => { loader.style.display = 'none'; loader.remove?.(); }, 500);
     }
 
+    // 5. Clear App Badge on Load/Interaction
+    const clearBadge = () => {
+      if ('clearAppBadge' in navigator) {
+        navigator.clearAppBadge().catch(() => {});
+      }
+    };
+    clearBadge();
+    window.addEventListener('focus', clearBadge);
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('focus', clearBadge);
     };
   }, []);
 
@@ -210,8 +220,11 @@ function AppContent({ Component, pageProps }) {
     };
   }, [isAuthenticated, router.pathname, router.query.id, user?.id]);
 
-  // ── While auth is loading: show spinner, render nothing else ──────────────
-  if (loading) return <AuthLoader />;
+  // ── While auth is loading: show spinner (only for protected pages) ───────
+  const publicPages = ['/login', '/register', '/'];
+  const isPublicPage = publicPages.includes(router.pathname);
+  
+  if (loading && !isPublicPage) return <AuthLoader />;
 
   const normalizedPath  = router.pathname;
   const isDynamicChat   = normalizedPath === '/chat/[id]';
