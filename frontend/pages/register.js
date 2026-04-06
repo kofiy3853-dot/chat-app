@@ -200,7 +200,7 @@ export default function Register() {
         <title>Join Campus Hub | Registration</title>
       </Head>
 
-      <div className="min-h-screen w-full bg-[#FAFAFA] px-4 py-12 flex flex-col items-center">
+      <div className="h-full w-full bg-[#FAFAFA] px-4 py-12 flex flex-col items-center overflow-y-auto">
         <div className="max-w-xl w-full">
           {/* Global Header */}
           <div className="text-center mb-10 transition-all duration-700">
