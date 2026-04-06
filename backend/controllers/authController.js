@@ -118,12 +118,21 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'Profile picture is mandatory. Please upload an image.' });
     }
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
+    // Check if user already exists by email OR studentID
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          { studentId }
+        ]
+      }
     });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists with this email' });
+      if (existingUser.email === email) {
+        return res.status(400).json({ message: 'User already exists with this email. Please log in.' });
+      } else {
+        return res.status(400).json({ message: 'A student is already registered with this Student ID.' });
+      }
     }
 
     // Parallelize tasks for speed: Upload Avatar + Hash Password
@@ -181,7 +190,12 @@ exports.register = async (req, res) => {
   } catch (error) {
     console.error(`[REGISTER FATAL] Registration failed:`, error);
     
-    if (error.code === 'P2021' || error.code === 'P2022' || error.message.includes('fcmToken')) {
+    if (error.code === 'P2002') {
+      const field = error.meta?.target?.[0] || 'field';
+      return res.status(400).json({ message: `A user already exists with this ${field}.` });
+    }
+
+    if (error.code === 'P2021' || error.code === 'P2022' || error.message?.includes('fcmToken')) {
       return res.status(500).json({ 
         message: 'Database schema mismatch detected. This server requires a database sync (npx prisma db push).',
         error: 'SCHEMA_OUT_OF_SYNC'
