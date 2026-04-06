@@ -1,9 +1,6 @@
 require('dotenv').config();
 
 
-// Bypass strict SSL certificate chain checks (Required for Supabase pooler on some Render environments)
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
