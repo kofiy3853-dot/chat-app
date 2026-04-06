@@ -919,10 +919,34 @@ exports.deleteMultipleConversations = async (req, res) => {
     const nanaConvIds = nanaConvs.map(c => c.id);
     const normalConvIds = conversationIds.filter(id => !nanaConvIds.includes(id));
 
-    // Hard delete NANA sessions
+    // Hard delete NANA sessions with manual relation cleanup
     if (nanaConvIds.length > 0) {
-      await prisma.conversation.deleteMany({
-        where: { id: { in: nanaConvIds } }
+      await prisma.$transaction(async (tx) => {
+        // 1. Clear conversation pointers
+        await tx.conversation.updateMany({
+          where: { id: { in: nanaConvIds } },
+          data: { lastMessageId: null }
+        });
+
+        // 2. Clear notifications
+        await tx.notification.deleteMany({
+          where: { message: { conversationId: { in: nanaConvIds } } }
+        });
+
+        // 3. Clear messages
+        await tx.message.deleteMany({
+          where: { conversationId: { in: nanaConvIds } }
+        });
+
+        // 4. Clear participants (since they don't always cascade)
+        await tx.conversationParticipant.deleteMany({
+          where: { conversationId: { in: nanaConvIds } }
+        });
+
+        // 5. Finally delete the conversations
+        await tx.conversation.deleteMany({
+          where: { id: { in: nanaConvIds } }
+        });
       });
     }
 
@@ -1032,7 +1056,12 @@ exports.clearChat = async (req, res) => {
     try {
       // 1. Verify access
       const participant = await prisma.conversationParticipant.findUnique({
-        where: { userId, conversationId: id }
+        where: {
+          userId_conversationId: {
+            userId,
+            conversationId: id
+          }
+        }
       });
 
       if (!participant) {
