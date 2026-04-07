@@ -2,14 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  animation: none !important;
-  transition: none !important;
-  box-shadow: none !important;
-  text-shadow: none !important;
-}
-
-
 /* ═══════════════════════════════════════════════════════
    SINGLE SOURCE OF TRUTH — KTU Campus Chat Design Tokens
    Primary brand colour: #3ABEF9  (Light Blue)

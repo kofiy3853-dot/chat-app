@@ -40,14 +40,14 @@ const CampusPage = () => {
   if (!user) return null;
 
   return (
-    <div className="h-[100dvh] bg-slate-50 flex flex-col font-sans max-w-xl mx-auto shadow-2xl relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans max-w-xl mx-auto shadow-2xl relative">
       <Head>
         <title>Campus Center | Campus Chat</title>
       </Head>
 
       {/* Top Navigation - Campus Header */}
-      <div className="bg-primary-600 z-30 shadow-md shrink-0">
-        <header className="px-6 pt-[max(env(safe-area-inset-top,0px),24px)] pb-5 flex items-center justify-between">
+      <div className="bg-primary-600 z-30 shadow-md shrink-0 sticky top-0">
+        <header className="px-6 pt-[max(env(safe-area-inset-top,0px),12px)] pb-5 flex items-center justify-between">
            <div className="flex items-center space-x-4">
               <button onClick={() => router.push('/')} aria-label="Go to inbox" className="p-2 -ml-2 text-white/70 hover:text-white transition-colors">
                  <ChevronLeftIcon className="w-5 h-5 stroke-[2.5px]" />
@@ -73,8 +73,8 @@ const CampusPage = () => {
         onTabChange={setActiveTab} 
       />
 
-      {/* Main Content Area - Lazy Loading + Caching */}
-      <main className="flex-1 bg-slate-50/50 relative overflow-y-auto no-scrollbar pb-[max(env(safe-area-inset-bottom,0px),100px)]">
+      {/* Main Content Area */}
+      <main className="flex-1 bg-slate-50/50 relative pb-[calc(env(safe-area-inset-bottom,0px)+90px)]">
         <div className={activeTab === 'events' ? 'block' : 'hidden'}>
            {visitedTabs.has('events') && <EventTab />}
         </div>
