@@ -39,5 +39,7 @@ messaging.onBackgroundMessage((payload) => {
     }
   }
 
-  return self.registration.showNotification(notificationTitle, notificationOptions);
+  // REMOVED manual showNotification call to prevent duplicate notifications.
+  // The Firebase SDK shows the notification automatically.
+  return Promise.resolve();
 });

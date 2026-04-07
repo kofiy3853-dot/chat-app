@@ -217,6 +217,17 @@ function AppContent({ Component, pageProps }) {
       const chatId = payload.data?.chatId || payload.data?.conversationId;
       if (chatId && router.pathname === '/chat/[id]' && router.query.id === chatId) return;
 
+      // DEDUPLICATION: We only show a foreground toast if the payload is DATA-ONLY.
+      // If payload or notification exists, the browser/SW usually handles it,
+      // and showing a toast on TOP of that creates a "double" visual effect.
+      // Additionally, we check document.visibilityState to avoid double alerts.
+      if (payload?.notification && document.visibilityState === 'visible') {
+        // Silently update UI or just ignore if the browser already popped a notification
+        // Most browsers show a notification even if you are in foreground.
+        // We'll let the default notification show and SKIP the custom toast here.
+        return;
+      }
+
       if (payload?.notification) {
         toast.custom((t) => (
           <div
@@ -234,6 +245,7 @@ function AppContent({ Component, pageProps }) {
           </div>
         ), { duration: 4000, position: 'top-center' });
       }
+
     });
 
     socket.on('new-message', handleNewMessage);
