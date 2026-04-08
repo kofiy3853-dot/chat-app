@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { authAPI, pushAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 import { initSocket } from '../services/socket';
 import { requestFirebaseNotificationPermission } from '../config/firebase';
@@ -18,6 +19,7 @@ import LecturerForm from '../components/registration/LecturerForm';
 
 export default function Register() {
   const router = useRouter();
+  const { login } = useAuth();
   const [step, setStep] = useState('role'); // 'role' or 'form'
   const [formData, setFormData] = useState({
     name: '',
@@ -154,9 +156,8 @@ export default function Register() {
       const response = await authAPI.register(data);
       const { token, user, redirectTo } = response.data;
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      initSocket();
+      // Sync with global AuthContext
+      login(user, token);
       
       try {
         const fcmToken = await requestFirebaseNotificationPermission();

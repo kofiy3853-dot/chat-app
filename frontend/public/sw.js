@@ -1,3 +1,17 @@
+importScripts('https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyAOtUMkW1zGB1OJKpfUqU2QzHrcqJWxGZg",
+  authDomain: "acoustic-arch-373523.firebaseapp.com",
+  projectId: "acoustic-arch-373523",
+  storageBucket: "acoustic-arch-373523.firebasestorage.app",
+  messagingSenderId: "165706271744",
+  appId: "1:165706271744:web:4d1f86939d13ddb2479ce5"
+});
+
+const messaging = firebase.messaging();
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open("app-cache").then(cache => {
@@ -116,54 +130,48 @@ self.addEventListener("fetch", (event) => {
 });
 
 // ─── BACKGROUND PUSH NOTIFICATIONS ──────────────────────────────────────────
-// This fires when the server sends a push, even if the app/browser is closed.
-self.addEventListener("push", (event) => {
-  let title = 'Campus Chat';
-  let body = 'You have a new message!';
-  let url = '/';
-  let unreadCount = 1;
+// Handled by Firebase Messaging for data-only messages. 
+// Firebase automatically handles 'notification' fields.
+messaging.onBackgroundMessage((payload) => {
+  console.log('[SW] Received background message:', payload);
 
-  try {
-    if (event.data) {
-      const data = event.data.json();
-      // Support various FCM payload structures (data-only vs notification-wrapped)
-      const payload = data.data || data.notification || data;
-      
-      title = payload.title || title;
-      body = payload.body || payload.message || body;
-      url = payload.url || url;
-      unreadCount = parseInt(payload.unreadCount || 1);
-    }
-  } catch (err) {
-    console.error("[SW] Push data parse error:", err);
-  }
+  const title = payload.notification?.title || payload.data?.title || 'Campus Chat';
+  const body = payload.notification?.body || payload.data?.body || 'New message received!';
+  const url = payload.data?.url || '/';
+  const unreadCount = parseInt(payload.data?.unreadCount || 1);
 
   const options = {
-    body: body,
+    body,
     icon: "/icons/icon-192.png",
     badge: "/icons/icon-192.png",
     vibrate: [200, 100, 200],
     tag: url,
     renotify: true,
-    data: { url: url },
+    data: { url },
     actions: [
       { action: 'open', title: '💬 Open' },
       { action: 'dismiss', title: 'Dismiss' }
     ]
   };
 
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-      const isVisible = clients.some(client => client.visibilityState === 'visible' && client.focused);
-      
-      const tasks = [
-        isVisible ? Promise.resolve() : self.registration.showNotification(title, options),
-        ('setAppBadge' in navigator) ? navigator.setAppBadge(unreadCount).catch(() => {}) : Promise.resolve()
-      ];
-      
-      return Promise.all(tasks);
-    })
-  );
+  // Skip showing notification if a client is already focused
+  return clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+    const isVisible = clients.some(client => client.visibilityState === 'visible' && client.focused);
+    
+    // We only show manual notification for 'data' payloads that don't have 'notification'
+    // because Firebase SDK handles the 'notification' payload automatically.
+    const tasks = [];
+    
+    if (!isVisible && !payload.notification) {
+      tasks.push(self.registration.showNotification(title, options));
+    }
+
+    if ('setAppBadge' in navigator) {
+      tasks.push(navigator.setAppBadge(unreadCount).catch(() => {}));
+    }
+    
+    return Promise.all(tasks);
+  });
 });
 
 // ─── NOTIFICATION CLICK ───────────────────────────────────────────────────────

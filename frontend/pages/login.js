@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { authAPI, pushAPI, warmupServer } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { requestFirebaseNotificationPermission } from '../config/firebase';
@@ -8,6 +9,7 @@ import { AcademicCapIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
 export default function Login() {
+  const router = useRouter();
   const { login } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -52,6 +54,11 @@ export default function Login() {
       // automatically once React commits the new user value.
       login(user, token);
       toast.success('Signed in successfully!');
+
+      // Immediate redirect based on role
+      const homeByRole = { NANA: '/nana', ADMIN: '/admin' };
+      const destination = homeByRole[user.role?.toUpperCase()] || '/';
+      router.replace(destination);
 
       // Initialize FCM in background — completely non-blocking
       requestFirebaseNotificationPermission()
