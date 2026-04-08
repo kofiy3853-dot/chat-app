@@ -55,11 +55,6 @@ export default function Login() {
       login(user, token);
       toast.success('Signed in successfully!');
 
-      // Immediate redirect based on role
-      const homeByRole = { NANA: '/nana', ADMIN: '/admin' };
-      const destination = homeByRole[user.role?.toUpperCase()] || '/';
-      router.replace(destination);
-
       // Initialize FCM in background — completely non-blocking
       requestFirebaseNotificationPermission()
         .then(fcmToken => {

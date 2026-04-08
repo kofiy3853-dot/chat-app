@@ -33,17 +33,25 @@ export default function useAuthRedirect() {
     // ── GUARD 2: Authenticated + auth pages (login/register) ────────────────
     if (isAuthenticated && (path === '/login' || path === '/register')) {
       const homeByRole = { NANA: '/nana', ADMIN: '/admin' };
-      router.replace(homeByRole[user.role] ?? '/');
+      const roleKey = user?.role?.toUpperCase();
+      const target = homeByRole[roleKey] || '/';
+      if (path !== target) {
+        router.replace(target);
+      }
       return;
     }
 
     // ── GUARD 3: Role-based access control (RBAC) ───────────────────────────
     if (isAuthenticated && user?.role) {
-      const denied = ROLE_ACCESS[user.role]?.denied ?? [];
+      const roleKey = user.role.toUpperCase();
+      const denied = ROLE_ACCESS[roleKey]?.denied || ROLE_ACCESS[user.role]?.denied || [];
       const isDenied = denied.some(d => path === d || path.startsWith(d + '/'));
       if (isDenied) {
         const homeByRole = { NANA: '/nana', ADMIN: '/admin' };
-        router.replace(homeByRole[user.role] ?? '/');
+        const target = homeByRole[roleKey] || '/';
+        if (path !== target) {
+          router.replace(target);
+        }
         return;
       }
     }

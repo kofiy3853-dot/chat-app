@@ -170,7 +170,6 @@ export default function Register() {
       }
 
       toast.success('Registration successful! Welcome to the hub.');
-      router.replace(user.role === "NANA" ? "/nana" : (redirectTo || "/"));
     } catch (err) {
       console.error('REGISTRATION ERROR:', err.response?.data || err);
       const msg = err.response?.data?.message || 'Registration failed. Please check your details.';
