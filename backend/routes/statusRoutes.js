@@ -12,5 +12,6 @@ router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }]), statusCon
 router.get('/', statusController.getStatuses);
 router.post('/:statusId/view', statusController.viewStatus);
 router.get('/:statusId/viewers', statusController.getStatusViewers);
+router.delete('/:statusId', statusController.deleteStatus);
 
 module.exports = router;

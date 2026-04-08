@@ -267,16 +267,14 @@ header.sticky {
   color: var(--bubble-text);
   padding: 10px 14px;
   border-radius: var(--bubble-radius);
-  max-width: 78%; /* Increased from earlier defaults to prevent excessive vertical stretching */
+  max-width: 85%; 
   width: fit-content;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   
-  /* Robust Word Wrapping */
+  /* Flexible Word Wrapping */
   word-break: normal;
   overflow-wrap: break-word;
-  word-wrap: break-word;
   white-space: pre-wrap;
-  hyphens: none;
   
   font-size: 14px;
   line-height: 1.5;
@@ -328,7 +326,7 @@ header.sticky {
 /* ═══════════════════════ Responsive ════════════════════════ */
 @media (max-width: 640px) {
   .chat-bubble {
-    max-width: 88%; /* Allow messages to take up more horizontal space on mobile */
+    max-width: 92%; /* Allow messages to take up more horizontal space on mobile */
     font-size: 14px;
     padding: 10px 15px; /* Slightly more padding for the wider span */
   }

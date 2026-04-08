@@ -118,34 +118,51 @@ self.addEventListener("fetch", (event) => {
 // ─── BACKGROUND PUSH NOTIFICATIONS ──────────────────────────────────────────
 // This fires when the server sends a push, even if the app/browser is closed.
 self.addEventListener("push", (event) => {
-  if (!event.data) return;
+  let title = 'Campus Chat';
+  let body = 'You have a new message!';
+  let url = '/';
+  let unreadCount = 1;
 
-  const data = event.data.json();
-  const title = data.title || 'Campus Chat';
+  try {
+    if (event.data) {
+      const data = event.data.json();
+      // Support various FCM payload structures (data-only vs notification-wrapped)
+      const payload = data.data || data.notification || data;
+      
+      title = payload.title || title;
+      body = payload.body || payload.message || body;
+      url = payload.url || url;
+      unreadCount = parseInt(payload.unreadCount || 1);
+    }
+  } catch (err) {
+    console.error("[SW] Push data parse error:", err);
+  }
+
   const options = {
-    body: data.body || 'You have a new message!',
+    body: body,
     icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",   // Small monochrome icon shown on Android status bar
+    badge: "/icons/icon-192.png",
     vibrate: [200, 100, 200],
-    tag: data.url || 'campus-chat', // Collapse duplicate notifications from same chat
-    renotify: true,                 // Still vibrate/ring even if tag already exists
-    requireInteraction: false,      // Auto-dismiss after OS timeout
-    data: { url: data.url || '/' },
+    tag: url,
+    renotify: true,
+    data: { url: url },
     actions: [
-      { action: 'reply', title: '💬 Open Chat' },
+      { action: 'open', title: '💬 Open' },
       { action: 'dismiss', title: 'Dismiss' }
     ]
   };
 
   event.waitUntil(
-    // Update the app badge counter with unread count if supported
-    Promise.all([
-      self.registration.showNotification(title, options),
-      // Badge API: Shows the unread count dot on the app icon (Android/Chrome)
-      (navigator.setAppBadge || (() => Promise.resolve()))
-        .call(navigator, data.unreadCount || 1)
-        .catch(() => {})
-    ])
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      const isVisible = clients.some(client => client.visibilityState === 'visible' && client.focused);
+      
+      const tasks = [
+        isVisible ? Promise.resolve() : self.registration.showNotification(title, options),
+        ('setAppBadge' in navigator) ? navigator.setAppBadge(unreadCount).catch(() => {}) : Promise.resolve()
+      ];
+      
+      return Promise.all(tasks);
+    })
   );
 });
 

@@ -19,24 +19,13 @@ async function sendPushNotification(fcmTokens, payload) {
     if (validTokens.length === 0) return;
 
     const messagePayload = {
-      notification: {
+      data: {
         title: payload.title || 'Campus Chat',
         body: payload.message || 'New notification',
-      },
-      data: {
         url: payload.url || '/',
-        unreadCount: String(payload.badgeCount || 1), // REQUIREMENT: Send count for icon badge
-        messageId: payload.messageId ? String(payload.messageId) : undefined, // For client-side deduplication
+        unreadCount: String(payload.badgeCount || 0),
+        messageId: payload.messageId ? String(payload.messageId) : undefined,
         ...(payload.extraData || {})
-      },
-      webpush: {
-        notification: {
-          icon: '/icons/icon-192.png',
-          badge: '/icons/icon-192.png'
-        },
-        fcm_options: {
-          link: payload.url || '/'
-        }
       },
       tokens: validTokens,
     };

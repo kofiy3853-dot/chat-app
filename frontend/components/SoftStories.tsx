@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlusIcon } from '@heroicons/react/24/solid';
+import { toast } from 'react-hot-toast';
 import { getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
 import { statusAPI as api } from '../services/api';
 import StatusViewer from './StatusViewer';
@@ -63,6 +64,29 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
       // Update local state if needed (optional since we'll refetch/refresh next time)
     } catch (err) {
       console.error('Failed to record status view:', err);
+    }
+  };
+
+  const handleDeleteStatus = async (statusId: string) => {
+    try {
+      await api.deleteStatus(statusId);
+      toast.success('Status deleted');
+      
+      // Update local state to remove the status immediately
+      const updatedGroups = groups.map(group => ({
+        ...group,
+        statuses: group.statuses.filter(s => s.id !== statusId)
+      })).filter(group => group.statuses.length > 0);
+      
+      setGroups(updatedGroups);
+      
+      // If no more statuses in the currently viewing group, close the viewer
+      if (updatedGroups.length === 0 || !updatedGroups[selectedGroupIndex]) {
+        setViewerOpen(false);
+      }
+    } catch (err) {
+      console.error('Failed to delete status:', err);
+      toast.error('Failed to delete status');
     }
   };
 
@@ -133,6 +157,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
             initialGroupIndex={selectedGroupIndex} 
             onClose={() => { setViewerOpen(false); fetchStatuses(); }} 
             onViewStatus={handleViewStatus}
+            onDeleteStatus={handleDeleteStatus}
           />
         )}
         {uploadOpen && (

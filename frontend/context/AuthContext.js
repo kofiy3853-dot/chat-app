@@ -12,7 +12,7 @@ export const ROUTE_CONFIG = {
 // Role → allowed route prefixes. Routes not listed default to allowed.
 export const ROLE_ACCESS = {
   STUDENT:    { denied: ['/admin'] },
-  INSTRUCTOR: { denied: ['/admin'] },
+  LECTURER: { denied: ['/admin'] },
   ADMIN:      { denied: ['/nana'] },
   NANA:       { denied: ['/admin', '/courses', '/events', '/account'] },
 };

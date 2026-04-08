@@ -32,11 +32,11 @@ async function getFirebaseMessagingServiceWorkerRegistration() {
     const regs = await navigator.serviceWorker.getRegistrations();
     const existing = regs.find((r) => {
       const url = (r.active || r.waiting || r.installing)?.scriptURL || '';
-      return url.includes('firebase-messaging-sw');
+      return url.includes('sw.js');
     });
     if (existing) return existing;
 
-    return await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    return await navigator.serviceWorker.register('/sw.js');
   } catch {
     return undefined;
   }

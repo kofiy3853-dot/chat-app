@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { motion, AnimatePresence } from 'framer-motion';
 import ProfileCard from '../components/ProfileCard';
 import { authAPI } from '../services/api';
 import { disconnectSocket } from '../services/socket';
@@ -14,9 +15,12 @@ import {
   LockClosedIcon,
   SwatchIcon,
   CheckCircleIcon,
-  MoonIcon,
-  SunIcon
+  CheckIcon,
+  XMarkIcon,
+  ChatBubbleBottomCenterTextIcon,
+  LanguageIcon
 } from '@heroicons/react/24/outline';
+import { toast } from 'react-hot-toast';
 
 export default function Account() {
   const router = useRouter();
@@ -24,6 +28,21 @@ export default function Account() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeBg, setActiveBg] = useState('bg-slate-50/50');
+  const [activeModal, setActiveModal] = useState(null);
+
+  // Settings states
+  const [tfaEnabled, setTfaEnabled] = useState(false);
+  const [privacySettings, setPrivacySettings] = useState({
+    showOnlineStatus: true,
+    showReadReceipts: true,
+    allowCourseDiscovery: true
+  });
+  const [notificationSettings, setNotificationSettings] = useState({
+    pushNotifications: true,
+    emailAlerts: false,
+    soundEnabled: true
+  });
+  const [language, setLanguage] = useState('English');
 
   useEffect(() => {
     const saved = localStorage.getItem('chat_bg_color');
@@ -67,8 +86,20 @@ export default function Account() {
   const setChatBg = (bg) => {
     setActiveBg(bg);
     localStorage.setItem('chat_bg_color', bg);
-    // Alert or small toast if we had one
+    toast.success('Chat background updated', {
+      style: { background: '#333', color: '#fff', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }
+    });
   };
+
+  const handleItemClick = (item) => {
+    if (item.href) {
+      router.push(item.href);
+    } else {
+      setActiveModal(item.id);
+    }
+  };
+
+  const closeModal = () => setActiveModal(null);
 
   if (loading) {
     return (
@@ -85,31 +116,25 @@ export default function Account() {
     ...(user?.role === 'ADMIN' ? [{
       title: 'Administration',
       items: [
-        { icon: ShieldCheckIcon, label: 'Admin Command Center', color: 'bg-indigo-600 text-white', href: '/admin', badge: 'Active' }
+        { id: 'admin', icon: ShieldCheckIcon, label: 'Admin Command Center', color: 'bg-indigo-600 text-white', href: '/admin', badge: 'Active' }
       ]
     }] : []),
     {
       title: 'Security & Access',
       items: [
-        { icon: KeyIcon, label: 'Change Password', color: 'bg-amber-50 text-amber-600' },
-        { icon: ShieldCheckIcon, label: 'Two-Factor Auth', color: 'bg-emerald-50 text-emerald-600', badge: 'New' },
-        { icon: LockClosedIcon, label: 'Privacy Settings', color: 'bg-indigo-50 text-indigo-600' }
+        { id: 'password', icon: KeyIcon, label: 'Change Password', color: 'bg-amber-50 text-amber-600' },
+        { id: '2fa', icon: ShieldCheckIcon, label: 'Two-Factor Auth', color: 'bg-emerald-50 text-emerald-600', badge: tfaEnabled ? 'On' : 'New' },
+        { id: 'privacy', icon: LockClosedIcon, label: 'Privacy Settings', color: 'bg-indigo-50 text-indigo-600' }
       ]
     },
     {
       title: 'Preferences',
       items: [
-        { icon: BellIcon, label: 'Notifications', color: 'bg-rose-50 text-rose-600' },
-        { icon: GlobeAltIcon, label: 'Language', color: 'bg-blue-50 text-blue-600', value: 'English' }
+        { id: 'notifications', icon: BellIcon, label: 'Notifications', color: 'bg-rose-50 text-rose-600' },
+        { id: 'language', icon: GlobeAltIcon, label: 'Language', color: 'bg-blue-50 text-blue-600', value: language }
       ]
     }
   ];
-
-  const handleItemClick = (item) => {
-    if (item.href) {
-      router.push(item.href);
-    }
-  };
 
   return (
     <>
@@ -118,7 +143,6 @@ export default function Account() {
       </Head>
       
       <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--bg-page)' }}>
-        {/* Header - Royal Blue */}
         <header className="sticky top-0 z-30 bg-primary-600 px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-2 h-14 shadow-md transition-all">
           <div className="max-w-xl mx-auto px-2">
             <h1 className="text-xl font-black text-white tracking-tight leading-tight">Account</h1>
@@ -127,65 +151,31 @@ export default function Account() {
         </header>
 
         <div className="max-w-2xl mx-auto p-4 space-y-8">
-
-          {/* Profile Card */}
           <ProfileCard user={user} onUpdate={handleUpdateProfile} />
 
-          {/* Settings Sections */}
           <div className="space-y-6">
-            {/* Theme Hub - 10 Dynamic Options */}
             <div className="space-y-3">
               <div className="flex items-center justify-between px-4">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>Theme Hub</h3>
                 <span className="px-2 py-0.5 bg-primary-100 text-primary-700 text-[8px] font-black uppercase rounded">10 Options</span>
               </div>
               <div className="rounded-[2.5rem] p-6 shadow-2xl border transition-all duration-500" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-12 h-12 rounded-2xl bg-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/30">
-                    <SwatchIcon className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <span className="block text-sm font-black" style={{ color: 'var(--text-primary)' }}>Visual Identity</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Current: {availableThemes.find(t => t.id === theme)?.name}</span>
-                  </div>
-                </div>
-
                 <div className="grid grid-cols-5 gap-4">
                   {availableThemes.map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setTheme(t.id)}
-                      className="group relative flex flex-col items-center space-y-2 focus:outline-none"
-                    >
-                      <div 
-                        className={`w-full aspect-square rounded-2xl border-4 transition-all duration-300 flex items-center justify-center shadow-sm group-hover:scale-110 group-active:scale-95 ${
-                          theme === t.id ? 'border-primary-500 scale-110 shadow-xl shadow-primary-500/20' : 'border-transparent hover:border-slate-200'
-                        }`}
-                        style={{ backgroundColor: t.color }}
-                      >
-                        {theme === t.id && (
-                          <div className="bg-primary-500 rounded-full p-1 shadow-lg animate-in zoom-in-50 duration-300">
-                            <CheckCircleIcon className="w-4 h-4 text-white" />
-                          </div>
-                        )}
-                        {theme !== t.id && (
-                          <div className="w-2 h-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: t.textColor }}></div>
-                        )}
+                    <button key={t.id} onClick={() => setTheme(t.id)} className="group relative flex flex-col items-center space-y-2">
+                      <div className={`w-full aspect-square rounded-2xl border-4 transition-all duration-300 flex items-center justify-center shadow-sm group-hover:scale-110 ${theme === t.id ? 'border-primary-500 scale-110 shadow-xl shadow-primary-500/20' : 'border-transparent hover:border-slate-200'}`} style={{ backgroundColor: t.color }}>
+                        {theme === t.id && <div className="bg-primary-500 rounded-full p-1 shadow-lg animate-in zoom-in-50 duration-300"><CheckCircleIcon className="w-4 h-4 text-white" /></div>}
                       </div>
-                      <span className="text-[8px] font-black uppercase tracking-tighter truncate w-full text-center" style={{ color: theme === t.id ? 'var(--primary)' : 'var(--text-muted)' }}>
-                        {t.name.split(' ')[0]}
-                      </span>
+                      <span className="text-[8px] font-black uppercase tracking-tighter truncate w-full text-center" style={{ color: theme === t.id ? 'var(--primary)' : 'var(--text-muted)' }}>{t.name.split(' ')[0]}</span>
                     </button>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Chat Wallpaper Hub */}
             <div className="space-y-3">
               <div className="flex items-center justify-between px-4">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>Chat Wallpaper</h3>
-                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase rounded">6 Presets</span>
               </div>
               <div className="rounded-[2.5rem] p-6 shadow-2xl border transition-all" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
                 <div className="grid grid-cols-6 gap-3">
@@ -197,17 +187,8 @@ export default function Account() {
                     { id: 'bg-sky-50', name: 'Cloud', color: '#f0f9ff' },
                     { id: 'bg-primary-500', name: 'Sea', color: '#2E8BC0' }
                   ].map((bg) => (
-                    <button
-                      key={bg.id}
-                      onClick={() => setChatBg(bg.id)}
-                      className={`relative flex flex-col items-center space-y-2 group transition-all`}
-                    >
-                      <div 
-                        className={`w-full aspect-square rounded-xl border-2 transition-all shadow-sm flex items-center justify-center ${
-                          activeBg === bg.id ? 'border-primary-500 scale-110 shadow-lg' : 'border-slate-100 hover:border-slate-300'
-                        }`}
-                        style={{ backgroundColor: bg.color }}
-                      >
+                    <button key={bg.id} onClick={() => setChatBg(bg.id)} className={`relative flex flex-col items-center space-y-2 transition-all`}>
+                      <div className={`w-full aspect-square rounded-xl border-2 transition-all shadow-sm flex items-center justify-center ${activeBg === bg.id ? 'border-primary-500 scale-110 shadow-lg' : 'border-slate-100 hover:border-slate-300'}`} style={{ backgroundColor: bg.color }}>
                         {activeBg === bg.id && <CheckCircleIcon className="w-4 h-4 text-primary-500" />}
                       </div>
                       <span className="text-[7px] font-black uppercase tracking-tighter text-slate-400">{bg.name}</span>
@@ -223,12 +204,7 @@ export default function Account() {
                 <div className="rounded-3xl shadow-xl shadow-slate-200/40 border overflow-hidden" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
                   <div className="divide-y divide-slate-50">
                     {section.items.map((item, i) => (
-                      <button 
-                        key={i} 
-                        onClick={() => handleItemClick(item)}
-                        className="w-full px-6 py-5 flex items-center justify-between transition-all group"
-                        style={{ backgroundColor: 'var(--bg-surface)' }}
-                      >
+                      <button key={i} onClick={() => handleItemClick(item)} className="w-full px-6 py-5 flex items-center justify-between group" style={{ backgroundColor: 'var(--bg-surface)' }}>
                         <div className="flex items-center space-x-4">
                           <div className={`w-11 h-11 rounded-2xl ${item.color} flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm`}>
                             <item.icon className="w-5 h-5" />
@@ -239,11 +215,7 @@ export default function Account() {
                           </div>
                         </div>
                         <div className="flex items-center space-x-3">
-                          {item.badge && (
-                            <span className="px-2 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase rounded-md shadow-lg shadow-emerald-500/20">
-                              {item.badge}
-                            </span>
-                          )}
+                          {item.badge && <span className="px-2 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase rounded-md shadow-lg shadow-emerald-500/20">{item.badge}</span>}
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-3.5 h-3.5 text-slate-200 group-hover:text-slate-400 transition-colors">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                           </svg>
@@ -256,45 +228,184 @@ export default function Account() {
             ))}
           </div>
 
-          {/* Logout */}
           <div className="px-2 pt-4">
-            <button
-              onClick={handleLogout}
-              className="w-full group hover:bg-rose-600 p-1.5 rounded-[2rem] border shadow-xl shadow-slate-200/50 transition-all active:scale-95 overflow-hidden"
-              style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4 p-3.5 h-full">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors">
+            <button onClick={handleLogout} className="w-full bg-rose-50/50 hover:bg-rose-100/50 p-1.5 rounded-[2rem] border border-rose-100 shadow-xl transition-all active:scale-95 group">
+              <div className="flex items-center justify-between p-3.5">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-200">
                     <ArrowRightOnRectangleIcon className="w-6 h-6" />
                   </div>
                   <div className="text-left">
-                    <span className="block text-sm font-black text-slate-800 group-hover:text-white transition-colors">Sign out session</span>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-rose-200 transition-colors">Protect your data</span>
+                    <span className="block text-sm font-black text-slate-800">Sign out session</span>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">End active login</span>
                   </div>
                 </div>
-                <div className="pr-6">
-                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-rose-500 group-hover:border-rose-400 transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-3 h-3 text-slate-300 group-hover:text-white">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                    </svg>
-                  </div>
-                </div>
+                <div className="pr-2"><CheckIcon className="w-5 h-5 text-rose-300" /></div>
               </div>
             </button>
           </div>
-
-          {/* Footer App Info */}
-          <div className="text-center py-12">
-            <div className="inline-block p-1 bg-white rounded-full border border-slate-100 mb-4 px-3">
-              <span className="text-[8px] font-black text-slate-300 uppercase tracking-[0.3em]">Build 992-0219-X</span>
-            </div>
-            <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">Campus Chat Professional v1.2.4</p>
-            <p className="text-[9px] text-slate-200 mt-2 font-medium">© 2026 Secured Academic Infrastructure Group.</p>
-          </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {activeModal && (
+          <SettingsModal 
+            type={activeModal} 
+            onClose={closeModal} 
+            states={{ tfaEnabled, setTfaEnabled, privacySettings, setPrivacySettings, notificationSettings, setNotificationSettings, language, setLanguage }}
+          />
+        )}
+      </AnimatePresence>
     </>
+  );
+}
+
+function SettingsModal({ type, onClose, states }) {
+  const [loading, setLoading] = useState(false);
+  const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' });
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (passwordData.new !== passwordData.confirm) return toast.error('Passwords do not match');
+    setLoading(true);
+    try {
+      await authAPI.changePassword({ 
+        currentPassword: passwordData.current, 
+        newPassword: passwordData.new 
+      });
+      toast.success('Password updated successfully');
+      onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderContent = () => {
+    switch(type) {
+      case 'password':
+        return (
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Password</label>
+              <input type="password" required value={passwordData.current} onChange={e => setPasswordData({...passwordData, current: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 font-bold outline-none" placeholder="••••••••" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Password</label>
+              <input type="password" required value={passwordData.new} onChange={e => setPasswordData({...passwordData, new: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 font-bold outline-none" placeholder="••••••••" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm New Password</label>
+              <input type="password" required value={passwordData.confirm} onChange={e => setPasswordData({...passwordData, confirm: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 font-bold outline-none" placeholder="••••••••" />
+            </div>
+            <button type="submit" disabled={loading} className="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-amber-500/20 active:scale-95 transition-all mt-4">
+              {loading ? 'Updating...' : 'Set New Password'}
+            </button>
+          </form>
+        );
+      case '2fa':
+        return (
+          <div className="space-y-6 text-center">
+            <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center transition-all ${states.tfaEnabled ? 'bg-emerald-500 shadow-emerald-200' : 'bg-slate-100 text-slate-400'} shadow-2xl`}>
+              <ShieldCheckIcon className={`w-10 h-10 ${states.tfaEnabled ? 'text-white' : ''}`} />
+            </div>
+            <div>
+              <h4 className="text-xl font-black text-slate-800 tracking-tight">Two-Factor Authentication</h4>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-2 px-4 leading-relaxed">Add an extra layer of security to your academic account using a mobile Authenticator.</p>
+            </div>
+            <button 
+              onClick={() => { states.setTfaEnabled(!states.tfaEnabled); toast.success(`2FA ${!states.tfaEnabled ? 'Enabled' : 'Disabled'}`); }}
+              className={`w-full py-4 rounded-xl font-black uppercase text-xs tracking-widest transition-all shadow-lg ${states.tfaEnabled ? 'bg-slate-800 text-white' : 'bg-emerald-600 text-white shadow-emerald-600/20'}`}
+            >
+              {states.tfaEnabled ? 'Disable Protection' : 'Enable Secure Access'}
+            </button>
+          </div>
+        );
+      case 'privacy':
+        return (
+          <div className="space-y-4">
+            {[
+              { id: 'showOnlineStatus', label: 'Show Online Status', desc: 'Allow others to see when you are active' },
+              { id: 'showReadReceipts', label: 'Read Receipts', desc: 'Sync message read status across devices' },
+              { id: 'allowCourseDiscovery', label: 'Course Visibility', desc: 'Let faculty members find your profile' }
+            ].map(setting => (
+              <div key={setting.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex-1 pr-4">
+                  <span className="block text-sm font-black text-slate-800">{setting.label}</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{setting.desc}</span>
+                </div>
+                <button 
+                  onClick={() => states.setPrivacySettings({...states.privacySettings, [setting.id]: !states.privacySettings[setting.id]})}
+                  className={`w-12 h-6 rounded-full transition-all relative ${states.privacySettings[setting.id] ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${states.privacySettings[setting.id] ? 'right-1' : 'left-1'}`} />
+                </button>
+              </div>
+            ))}
+          </div>
+        );
+      case 'notifications':
+        return (
+          <div className="space-y-4">
+            {[
+              { id: 'pushNotifications', label: 'Push Notifications', desc: 'Real-time alerts for new messages' },
+              { id: 'emailAlerts', label: 'Email Summaries', desc: 'Weekly roundup of academic activity' },
+              { id: 'soundEnabled', label: 'Notification Sounds', desc: 'Play sounds for incoming events' }
+            ].map(setting => (
+              <div key={setting.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex-1 pr-4">
+                  <span className="block text-sm font-black text-slate-800">{setting.label}</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{setting.desc}</span>
+                </div>
+                <button 
+                  onClick={() => states.setNotificationSettings({...states.notificationSettings, [setting.id]: !states.notificationSettings[setting.id]})}
+                  className={`w-12 h-6 rounded-full transition-all relative ${states.notificationSettings[setting.id] ? 'bg-rose-500' : 'bg-slate-200'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${states.notificationSettings[setting.id] ? 'right-1' : 'left-1'}`} />
+                </button>
+              </div>
+            ))}
+          </div>
+        );
+      case 'language':
+        return (
+          <div className="space-y-3">
+            {['English', 'Twi (Akan)', 'French', 'Spanish'].map(lang => (
+              <button 
+                key={lang}
+                onClick={() => { states.setLanguage(lang); toast.success(`Language set to ${lang}`); onClose(); }}
+                className={`w-full p-4 rounded-2xl border transition-all flex items-center justify-between ${states.language === lang ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-500' : 'bg-slate-50 border-slate-100'}`}
+              >
+                <div className="flex items-center space-x-3">
+                  <LanguageIcon className={`w-5 h-5 ${states.language === lang ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <span className={`text-sm font-black ${states.language === lang ? 'text-blue-700' : 'text-slate-600'}`}>{lang}</span>
+                </div>
+                {states.language === lang && <CheckCircleIcon className="w-5 h-5 text-blue-600" />}
+              </button>
+            ))}
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+      <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-800">
+            {type.replace(/([A-Z])/g, ' $1').replace('_', ' ')} Settings
+          </h3>
+          <button onClick={onClose} className="p-2 hover:bg-white rounded-full text-slate-400 hover:text-slate-600 transition-all border border-transparent hover:border-slate-100 shadow-sm">
+            <XMarkIcon className="w-5 h-5 stroke-[2.5px]" />
+          </button>
+        </div>
+        <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+          {renderContent()}
+        </div>
+      </motion.div>
+    </div>
   );
 }
 

@@ -84,17 +84,13 @@ const MessageBubble = React.memo(({
   };
 
   const bubbleClasses = isNana 
-    ? `group relative p-5 rounded-[24px] shadow-sm border select-none animate-fade-in w-full bg-surface border-slate-200/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
+    ? `group relative p-5 rounded-[24px] shadow-sm border select-none animate-fade-in w-fit max-w-full bg-surface border-slate-200/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
     : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} animate-fade-in select-none touch-pan-y`;
 
   const nanaStyles = isNana ? {
     display: "block",
-    width: "100%",
-    maxWidth: "100%",
     wordBreak: "normal",
-    whiteSpace: "pre-wrap",
-    overflowWrap: "break-word",
-    wordWrap: "break-word"
+    overflowWrap: "anywhere"
   } : {};
 
   return (

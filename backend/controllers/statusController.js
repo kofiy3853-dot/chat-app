@@ -226,3 +226,59 @@ exports.getStatusViewers = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+exports.deleteStatus = async (req, res) => {
+  try {
+    const { statusId } = req.params;
+    const userId = req.user.id;
+
+    const status = await prisma.status.findUnique({
+      where: { id: statusId }
+    });
+
+    if (!status) {
+      return res.status(404).json({ message: 'Status not found' });
+    }
+
+    if (status.userId !== userId) {
+      return res.status(403).json({ message: 'Unauthorized to delete this status' });
+    }
+
+    await prisma.status.delete({
+      where: { id: statusId }
+    });
+
+    res.json({ message: 'Status deleted successfully' });
+  } catch (error) {
+    console.error('[STATUS ERROR] deleteStatus failed:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+exports.deleteStatus = async (req, res) => {
+  try {
+    const { statusId } = req.params;
+    const userId = req.user.id;
+
+    const status = await prisma.status.findUnique({
+      where: { id: statusId }
+    });
+
+    if (!status) {
+      return res.status(404).json({ message: 'Status not found' });
+    }
+
+    if (status.userId !== userId) {
+      return res.status(403).json({ message: 'Unauthorized to delete this status' });
+    }
+
+    await prisma.status.delete({
+      where: { id: statusId }
+    });
+
+    res.json({ message: 'Status deleted successfully' });
+  } catch (error) {
+    console.error('[STATUS ERROR] deleteStatus failed:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};

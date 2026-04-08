@@ -179,7 +179,8 @@ export const statusAPI = {
   getStatuses: () => api.get('/status'),
   viewStatus: (statusId) => api.post(`/status/${statusId}/view`),
   getViewers: (statusId) => api.get(`/status/${statusId}/viewers`),
-  uploadImage: (formData) => api.post('/status/upload', formData)
+  uploadImage: (formData) => api.post('/status/upload', formData),
+  deleteStatus: (statusId) => api.delete(`/status/${statusId}`)
 };
 
 // Event API

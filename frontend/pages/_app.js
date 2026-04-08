@@ -23,12 +23,9 @@ function ThemeColorSync() {
   const [metaColor, setMetaColor] = useState('#2e8bc0');
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const computedStyle = getComputedStyle(document.documentElement);
-      const statusBarColor = computedStyle.getPropertyValue('--status-bar').trim();
-      if (statusBarColor) setMetaColor(statusBarColor);
-    }, 100);
-    return () => clearTimeout(timer);
+    const computedStyle = getComputedStyle(document.documentElement);
+    const statusBarColor = computedStyle.getPropertyValue('--status-bar').trim();
+    if (statusBarColor) setMetaColor(statusBarColor);
   }, [theme]);
 
   return (
@@ -45,7 +42,7 @@ function AuthLoader() {
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, background: 'white',
+        position: 'fixed', inset: 0, backgroundColor: 'var(--bg-page)',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', zIndex: 99999
       }}
@@ -228,7 +225,10 @@ function AppContent({ Component, pageProps }) {
         return;
       }
 
-      if (payload?.notification) {
+      const displayTitle = payload.notification?.title || payload.data?.title;
+      const displayBody = payload.notification?.body || payload.data?.body;
+
+      if (displayTitle) {
         toast.custom((t) => (
           <div
             className="max-w-sm w-full bg-[#2e8bc0] rounded-2xl flex items-center p-4 text-white cursor-pointer shadow-2xl animate-in fade-in slide-in-from-top-full border border-white/20 backdrop-blur-md"
@@ -239,8 +239,8 @@ function AppContent({ Component, pageProps }) {
             }}
           >
             <div className="flex-1">
-              <p className="text-sm font-bold tracking-tight">{payload.notification.title}</p>
-              <p className="text-xs mt-1 opacity-90 line-clamp-1">{payload.notification.body}</p>
+              <p className="text-sm font-bold tracking-tight">{displayTitle}</p>
+              <p className="text-xs mt-1 opacity-90 line-clamp-1">{displayBody}</p>
             </div>
           </div>
         ), { duration: 4000, position: 'top-center' });
@@ -270,7 +270,7 @@ function AppContent({ Component, pageProps }) {
   const shouldHideNavbar = hideNavbarPages.includes(normalizedPath) || isDynamicChat || isDynamicCourse;
 
   return (
-    <div className="min-h-screen font-['Outfit',sans-serif]" style={{ backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
+    <div className="min-h-screen font-['Outfit',sans-serif]" style={{ backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)' }}>
       <Toaster
         position="top-center"
         reverseOrder={false}

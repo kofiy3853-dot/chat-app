@@ -23,50 +23,56 @@ export default function NanaPage() {
   const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
+    console.log('[NANA] Component mounted');
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
+        console.log('[NANA] User detected:', user.role);
         setCurrentUser(user);
         
-        // If Nana is logged in, she sees the terminal
         if (user.role === 'NANA') {
-          // Nana terminal logic is handled in the render
+          console.log('[NANA] Nana account detected, skipping session fetch');
+          setLoading(false);
         } else {
-          // Students get the dedicated chat session
           initNanaChat();
         }
       } catch (e) {
-        console.error('Failed to parse user session:', e);
+        console.error('[NANA] Failed to parse user session:', e);
+        setLoading(false);
       }
     } else {
+       console.log('[NANA] No user session, redirecting to login');
        router.replace('/login');
     }
   }, []);
 
   const initNanaChat = async () => {
     try {
+      console.log('[NANA] Initializing chat session...');
       setLoading(true);
       const res = await chatAPI.getNanaSession();
+      console.log('[NANA] Session response:', res.data);
       if (res.data?.conversation?.id) {
         setConversationId(res.data.conversation.id);
+      } else {
+        console.warn('[NANA] No conversation ID returned from API');
       }
     } catch (e) {
-      console.error('Failed to initialize Nana session:', e);
+      console.error('[NANA] Failed to initialize Nana session:', e);
     } finally {
       setLoading(false);
     }
   };
 
   const handleClearChat = async () => {
-    if (!confirm('Are you sure you want to clear your conversation with Nana? This cannot be undone.')) return;
+    if (!conversationId || !window.confirm('Clear all messages with Nana?')) return;
     try {
       setLoading(true);
       await chatAPI.deleteConversation(conversationId);
-      setConversationId(null);
-      await initNanaChat();
-    } catch (e) {
-      console.error('Failed to clear chat:', e);
+      window.location.reload();
+    } catch (err) {
+      console.error('Clear error:', err);
       alert('Failed to clear chat. Please try again.');
     } finally {
       setLoading(false);
@@ -94,7 +100,7 @@ export default function NanaPage() {
               <p className="text-[10px] opacity-60 mt-1 uppercase tracking-widest font-sans font-bold">Authorized Intelligence Asset only</p>
             </div>
             <div className="mt-4 md:mt-0 flex flex-wrap items-center gap-2 md:gap-4">
-              <div className="px-3 py-1 bg-[#00ff41]/10 border border-[#00ff41]/30 rounded text-[10px] font-bold">CPU: 12%</div>
+              <div className="px-3 py-1 bg-[#00ff41]/10 border border-[#00ff41]/30 rounded text-[10px] font-bold">CPU: {Math.floor(Math.random() * 15 + 5)}%</div>
               <div className="px-3 py-1 bg-[#00ff41]/10 border border-[#00ff41]/30 rounded text-[10px] font-bold">LATENCY: 14ms</div>
               <button 
                 onClick={() => router.push('/')}
@@ -163,7 +169,7 @@ export default function NanaPage() {
                      <span className="ml-4 text-[10px] opacity-40 font-bold uppercase tracking-[0.2em] font-sans">Global Activity Stream</span>
                   </div>
                   <div className="flex-1 overflow-y-auto space-y-3 text-[11px] leading-relaxed pr-2 custom-scrollbar font-mono">
-                     <p className="text-white/20">[TIMESTAMP: 2024-04-02T23:44:11Z]</p>
+                     <p className="text-white/20">[TIMESTAMP: {new Date().toISOString()}]</p>
                      <p><span className="text-yellow-400">INFO:</span> Establishing secure handshake with KTU internal API...</p>
                      <p><span className="text-[#00ff41]">SUCCESS:</span> Handshake verified. Channel encrypted.</p>
                      <p><span className="text-blue-400">TASK:</span> Analyzing student sentiment for upcoming Hackathon.</p>
@@ -190,7 +196,7 @@ export default function NanaPage() {
     );
   }
 
-  // --- 🎓 STUDENT CHAT VIEW (Simple & Direct Fix) ---
+  // --- 🎓 STUDENT CHAT VIEW ---
   return (
     <div className="flex flex-col h-screen bg-app relative transition-all duration-500 overflow-hidden pt-14">
       <Head>
@@ -234,7 +240,7 @@ export default function NanaPage() {
                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all border border-red-500/20 hover:bg-red-500/10 text-red-500"
                title="Clear Chat"
             >
-               <TrashIcon className="w-4.5 h-4.5" />
+               <TrashIcon className="w-5 h-5" />
             </button>
           )}
           <button 
@@ -242,14 +248,14 @@ export default function NanaPage() {
              className="w-9 h-9 rounded-xl flex items-center justify-center transition-all border border-white/5"
              style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text-navbar)' }}
           >
-             <CommandLineIcon className="w-4.5 h-4.5" />
+             <CommandLineIcon className="w-5 h-5" />
           </button>
         </div>
       </header>
 
       {/* Main Chat Area */}
       <main className="flex-1 min-h-0 flex flex-col relative">
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {loading ? (
             <motion.div 
               key="loading"
@@ -268,18 +274,30 @@ export default function NanaPage() {
               key="chat"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="flex-1 flex flex-col min-h-0"
             >
               <ChatBox conversationId={conversationId} />
             </motion.div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+            <motion.div 
+              key="unavailable"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex-1 flex flex-col items-center justify-center p-8 text-center"
+            >
                <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center mb-6">
                  <SparklesIcon className="w-10 h-10 text-primary-400" />
                </div>
                <h3 className="text-lg font-black text-slate-800 tracking-tight">Nana is unavailable</h3>
                <p className="text-xs text-slate-400 font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-widest">Unable to establish a secure connection to the AI Hub. Please check your internet and try again.</p>
-            </div>
+               <button 
+                onClick={initNanaChat}
+                className="mt-6 px-6 py-2 bg-primary-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary-600/20"
+               >
+                 Retry Connection
+               </button>
+            </motion.div>
           )}
         </AnimatePresence>
 
@@ -287,6 +305,7 @@ export default function NanaPage() {
         <AnimatePresence>
           {showTerminalOverlay && (
             <motion.div 
+              key="terminal"
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 100 }}
@@ -295,7 +314,7 @@ export default function NanaPage() {
               <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
                 <span className="text-[10px] font-black text-[#00ff41]/60 tracking-widest uppercase">System Diagnostics</span>
                 <button onClick={() => setShowTerminalOverlay(false)} className="text-white/40 hover:text-white">
-                  <ArrowLeftIcon className="w-3 h-3 rotate-90" />
+                  <XMarkIcon className="w-4 h-4" />
                 </button>
               </div>
               <div className="space-y-1 font-mono text-[9px] text-[#00ff41]/80">
@@ -321,7 +340,7 @@ export default function NanaPage() {
             <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
               <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">AI Hub Info</h2>
               <button onClick={() => setShowProfile(false)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-600 shadow-sm border border-slate-100 transition-all hover:scale-105">
-                <XMarkIcon className="w-5 h-5 stroke-[3px]" />
+                <XMarkIcon className="w-5 h-5 stroke-[2px]" />
               </button>
             </div>
 

@@ -30,7 +30,7 @@ export default function Courses() {
     setUser(currentUser);
     
     // Set default tab based on role
-    if (currentUser?.role === 'INSTRUCTOR' || currentUser?.role === 'ADMIN') {
+    if (currentUser?.role === 'LECTURER' || currentUser?.role === 'ADMIN') {
       setModalTab('CREATE');
     }
 
@@ -87,7 +87,7 @@ export default function Courses() {
     );
   }
 
-  const isEducator = user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN';
+  const isEducator = user?.role === 'LECTURER' || user?.role === 'ADMIN';
 
   return (
     <>

@@ -88,15 +88,25 @@ export default function Document() {
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              (function() {
-                try {
-                  var saved = localStorage.getItem('theme_v2') || 'white';
-                  document.documentElement.setAttribute('data-theme', saved);
-                  if (saved === 'dark' || saved === 'deep-indigo' || saved === 'black') {
-                    document.getElementById('initial-loader').style.backgroundColor = '#0f172a';
-                  }
-                } catch (e) {}
-              })();
+                (function() {
+                  try {
+                    var saved = localStorage.getItem('theme_v2') || 'white';
+                    document.documentElement.setAttribute('data-theme', saved);
+                    var bg = '#ffffff';
+                    if (saved === 'dark') bg = '#0f172a';
+                    if (saved === 'deep-indigo') bg = '#020617';
+                    if (saved === 'matrix') bg = '#000000';
+                    if (saved === 'indigo-pulse') bg = '#ffffff';
+                    if (saved === 'cyan-glow') bg = '#ffffff';
+                    if (saved === 'red') bg = '#ffffff';
+                    if (saved === 'blue') bg = '#ffffff';
+                    if (saved === 'violet') bg = '#ffffff';
+                    if (bg !== '#ffffff') {
+                      document.getElementById('initial-loader').style.backgroundColor = bg;
+                      document.getElementById('loader-title').style.color = '#ffffff';
+                    }
+                  } catch (e) {}
+                })();
             `,
           }}
         />

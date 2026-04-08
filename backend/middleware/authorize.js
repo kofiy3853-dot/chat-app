@@ -14,8 +14,9 @@ const authorize = (action) => {
       // If no course context, fall back to global role checks for specific sensitive routes
       if (globalRole === 'ADMIN') return next();
       
-      if (action === 'create_official_announcement' && globalRole === 'LECTURER') return next();
-      if (action === 'create_event' && (globalRole === 'LECTURER' || globalRole === 'COURSE_REP')) return next();
+      const contextlessActions = ['manage_course', 'create_official_announcement', 'create_event'];
+      if (contextlessActions.includes(action) && globalRole === 'LECTURER') return next();
+      if (action === 'create_event' && globalRole === 'COURSE_REP') return next();
       
       return res.status(403).json({ message: 'Course context required for this action' });
     }

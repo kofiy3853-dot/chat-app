@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
-import { getFullFileUrl, getInitials, formatRelativeTime } from '../utils/helpers';
+import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { getFullFileUrl, getInitials, formatRelativeTime, getCurrentUser } from '../utils/helpers';
 
 interface Status {
   id: string;
@@ -27,18 +27,21 @@ interface StatusViewerProps {
   initialGroupIndex: number;
   onClose: () => void;
   onViewStatus: (statusId: string) => void;
+  onDeleteStatus?: (statusId: string) => void;
 }
 
 const StatusViewer: React.FC<StatusViewerProps> = ({ 
   groups, 
   initialGroupIndex, 
   onClose,
-  onViewStatus 
+  onViewStatus,
+  onDeleteStatus 
 }) => {
   const [groupIndex, setGroupIndex] = useState(initialGroupIndex);
   const [statusIndex, setStatusIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
+  const currentUser = getCurrentUser();
 
   const currentGroup = groups[groupIndex];
   const currentStatus = currentGroup?.statuses[statusIndex];
@@ -92,6 +95,13 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
     }
   };
 
+  const handleDelete = () => {
+    if (!currentStatus || !onDeleteStatus) return;
+    if (window.confirm('Delete this status update?')) {
+      onDeleteStatus(currentStatus.id);
+    }
+  };
+
   if (!currentGroup || !currentStatus) return null;
 
   return (
@@ -138,9 +148,26 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
             <span className="text-[10px] font-black uppercase tracking-widest text-white/50">{formatRelativeTime(currentStatus.createdAt)}</span>
           </div>
         </div>
-        <button onClick={onClose} className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all active:scale-90">
-          <XMarkIcon className="w-6 h-6 text-white" />
-        </button>
+        <div className="flex items-center space-x-2">
+          {currentUser && currentUser.id === currentGroup.user.id && (
+            <button 
+              onClick={handleDelete} 
+              aria-label="Delete status"
+              title="Delete status"
+              className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-full transition-all active:scale-90 mr-1"
+            >
+              <TrashIcon className="w-6 h-6 text-red-500" />
+            </button>
+          )}
+          <button 
+            onClick={onClose} 
+            aria-label="Close viewer"
+            title="Close viewer"
+            className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all active:scale-90"
+          >
+            <XMarkIcon className="w-6 h-6 text-white" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}
