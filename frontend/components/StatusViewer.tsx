@@ -157,6 +157,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
               className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-full transition-all active:scale-90 mr-1"
             >
               <TrashIcon className="w-6 h-6 text-red-500" />
+              <span className="sr-only">Delete status</span>
             </button>
           )}
           <button 
@@ -166,6 +167,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
             className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all active:scale-90"
           >
             <XMarkIcon className="w-6 h-6 text-white" />
+            <span className="sr-only">Close viewer</span>
           </button>
         </div>
       </div>

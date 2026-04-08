@@ -206,7 +206,8 @@ export const anonymousAPI = {
 };
 
 export const pushAPI = {
-  updateFcmToken: (fcmToken) => api.post('/notifications/fcm-token', { fcmToken })
+  updateFcmToken: (fcmToken) => api.post('/notifications/fcm-token', { fcmToken }),
+  testPush: () => api.post('/notifications/test')
 };
 
 export default api;

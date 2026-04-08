@@ -128,14 +128,27 @@ exports.getOrCreateNanaSession = async (req, res) => {
     });
 
     // Fetch the authentic Nana Profile from the DB
-    const nanaProfile = await prisma.user.findFirst({
+    let nanaProfile = await prisma.user.findFirst({
       where: { role: 'NANA' },
       select: { id: true, name: true, avatar: true }
     });
 
+    // If Nana is missing, create the system character automatically
     if (!nanaProfile) {
-      return res.status(500).json({ message: 'Nana system user not found in the database. Please ensure the NANA user is initialized.' });
+      console.log('[NANA] Nana system user not found. Creating default identity...');
+      nanaProfile = await prisma.user.create({
+        data: {
+          id: NANA_USER_ID,
+          email: 'nana@ktu.edu.gh',
+          password: 'SYSTEM_MANAGED_IDENTITY', // Not used for login
+          name: 'Nana (Campus AI)',
+          role: 'NANA',
+          avatar: 'https://img.icons8.com/isometric/512/bot.png'
+        },
+        select: { id: true, name: true, avatar: true }
+      });
     }
+
     const realNanaId = nanaProfile.id;
 
     if (!conversation) {

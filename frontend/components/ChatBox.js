@@ -52,7 +52,8 @@ const MessageBubble = React.memo(({
   addReaction, 
   deleteMessage,
   handleJoinCall,
-  onReply
+  onReply,
+  onLoad
 }) => {
   const timestamp = formatMessageTime(message.createdAt);
   const isTemp = message.id?.toString().startsWith('temp');
@@ -189,13 +190,13 @@ const MessageBubble = React.memo(({
             ) : (
               <div className="space-y-2">
                 {(message.type === 'IMAGE' || message.type === 'FILE') && message.fileUrl && (
-                  <AttachmentBubble message={message} />
+                  <AttachmentBubble message={message} onLoad={onLoad} />
                 )}
                 {message.type === 'VOICE' && message.fileUrl && (
                   <VoiceBubble message={message} />
                 )}
                 {message.attachments?.map((a, i) => (
-                  <AttachmentBubble key={i} message={{ ...message, fileUrl: a.url, fileName: a.name }} />
+                  <AttachmentBubble key={i} message={{ ...message, fileUrl: a.url, fileName: a.name }} onLoad={onLoad} />
                 ))}
                 {message.content && (
                   <>
@@ -590,40 +591,60 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
-  // --- 4. Scroll Management ---
+  // --- 4. Advanced Scroll Management ---
   const isFirstLoad = useRef(true);
+  const prevHeightRef = useRef(0);
 
+  // Debounced auto-scroll function
+  const scrollToBottomIfNear = useCallback((behavior = 'smooth') => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const isNearBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 250;
+    const lastMessage = messages[messages.length - 1];
+    const isMyMessage = lastMessage?.senderId === currentUser?.id || lastMessage?.sender?.id === currentUser?.id;
+
+    if (isNearBottom || isMyMessage) {
+      scrollToBottom(behavior);
+    }
+  }, [messages, currentUser?.id]);
+
+  // Initial scroll and message-length change scroll
   useEffect(() => {
     if (messages.length > 0) {
-      const scroll = () => {
-        if (isFirstLoad.current) {
-          scrollToBottom('auto');
-          isFirstLoad.current = false;
-        } else {
-          const lastMessage = messages[messages.length - 1];
-          const isMyMessage = lastMessage?.senderId === currentUser?.id || lastMessage?.sender?.id === currentUser?.id;
-          
-          // Use the ref directly instead of showScrollBottom state to avoid any race conditions with React state updates
-          const scrollContainer = scrollContainerRef.current;
-          const isNearBottom = scrollContainer 
-            ? (scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 200)
-            : true;
-          
-          if (isNearBottom || isMyMessage) {
-            scrollToBottom('smooth');
-          }
-        }
-      };
-
-      // Use a brief timeout to ensure the DOM has finished rendering and height is accurate
-      const timer = setTimeout(scroll, 100);
-      return () => clearTimeout(timer);
+      if (isFirstLoad.current) {
+        scrollToBottom('auto');
+        isFirstLoad.current = false;
+        // Seed the initial height
+        if (scrollContainerRef.current) prevHeightRef.current = scrollContainerRef.current.scrollHeight;
+      } else {
+        scrollToBottomIfNear('smooth');
+      }
     }
-  }, [messages.length, conversationId, currentUser?.id]); // Removed showScrollBottom to prevent trigger loops
+  }, [messages.length, conversationId]);
 
-  // Reset first load flag when switching conversations
+  // ResizeObserver for dynamic content (images, Nana AI markdown)
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const observer = new ResizeObserver(() => {
+      const currentHeight = scrollContainer.scrollHeight;
+      // Only scroll if height increased (new content or finished loading)
+      if (currentHeight > prevHeightRef.current) {
+        scrollToBottomIfNear('smooth');
+      }
+      prevHeightRef.current = currentHeight;
+    });
+
+    observer.observe(scrollContainer);
+    return () => observer.disconnect();
+  }, [scrollToBottomIfNear]);
+
+  // Reset flags when switching conversations
   useEffect(() => {
     isFirstLoad.current = true;
+    prevHeightRef.current = 0;
   }, [conversationId]);
 
   const handleSendMessage = async (e, overrideContent = null) => {
@@ -907,6 +928,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
                     deleteMessage={handleDeleteMessage}
                     handleJoinCall={handleJoinCall}
                     onReply={handleReplyTo}
+                    onLoad={() => scrollToBottomIfNear('smooth')}
                   />
                 ))}
               </div>

@@ -14,7 +14,7 @@ import {
 import { formatFileSize, getFullFileUrl } from '../utils/helpers';
 import React, { useState, useRef, useMemo } from 'react';
 
-export const AttachmentBubble = React.memo(({ message }) => {
+export const AttachmentBubble = React.memo(({ message, onLoad }) => {
   const isImage = message.type === 'IMAGE' || (message.fileName && /\.(jpg|jpeg|png|gif|webp)$/i.test(message.fileName));
   const isVideo = message.fileName && /\.(mp4|webm|mov|ogg)$/i.test(message.fileName);
   
@@ -41,6 +41,7 @@ export const AttachmentBubble = React.memo(({ message }) => {
           src={fullUrl} 
           alt={message.fileName || "Image attachment"} 
           loading="lazy"
+          onLoad={onLoad}
           onError={() => setHasError(true)}
           className="max-w-full rounded-2xl border border-slate-100 shadow-sm transition-opacity hover:brightness-95 cursor-pointer max-h-[300px] min-w-[150px] object-cover"
         />

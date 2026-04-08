@@ -94,14 +94,21 @@ function AppContent({ Component, pageProps }) {
   useEffect(() => {
     // 1. Service Worker & Firebase Push (only when authenticated)
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(reg => {
-          if (reg.active && localStorage.getItem('token')) {
-            requestFirebaseNotificationPermission().then(token => {
-              if (token) pushAPI.updateFcmToken(token).catch(console.error);
-            }).catch(console.warn);
+      window.addEventListener('load', async () => {
+        try {
+          const reg = await navigator.serviceWorker.register('/sw.js');
+          console.log('[SW] Registered successfully');
+
+          // Sync token if already logged in or after successful registration
+          if (localStorage.getItem('token')) {
+            const token = await requestFirebaseNotificationPermission();
+            if (token) {
+              await pushAPI.updateFcmToken(token).catch(() => {});
+            }
           }
-        }).catch(err => console.error('SW error', err));
+        } catch (err) {
+          console.warn('[SW] Registration failed:', err.message);
+        }
       });
     }
 

@@ -19,6 +19,7 @@ async function sendPushNotification(fcmTokens, payload) {
     if (validTokens.length === 0) return;
 
     const messagePayload = {
+      // Data payload for Service Worker control
       data: {
         title: payload.title || 'Campus Chat',
         body: payload.message || 'New notification',
@@ -27,7 +28,28 @@ async function sendPushNotification(fcmTokens, payload) {
         messageId: payload.messageId ? String(payload.messageId) : undefined,
         ...(payload.extraData || {})
       },
+      // Notification block for native system backup (Android/iOS)
+      notification: {
+        title: payload.title || 'Campus Chat',
+        body: payload.message || 'New notification',
+      },
       tokens: validTokens,
+      android: {
+        priority: 'high',
+        notification: {
+          sound: 'default',
+          clickAction: 'OPEN_CHAT',
+          channelId: 'campus_chat_messages'
+        }
+      },
+      webpush: {
+        headers: {
+          Urgency: 'high'
+        },
+        fcmOptions: {
+          link: payload.url || '/'
+        }
+      }
     };
 
     // REQUIREMENT 4: Log every notification attempt

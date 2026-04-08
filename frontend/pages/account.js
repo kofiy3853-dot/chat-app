@@ -18,9 +18,11 @@ import {
   CheckIcon,
   XMarkIcon,
   ChatBubbleBottomCenterTextIcon,
-  LanguageIcon
+  LanguageIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
+import { pushAPI } from '../services/api';
 
 export default function Account() {
   const router = useRouter();
@@ -262,7 +264,24 @@ export default function Account() {
 
 function SettingsModal({ type, onClose, states }) {
   const [loading, setLoading] = useState(false);
+  const [testLoading, setTestLoading] = useState(false);
   const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' });
+
+  const handleTestPush = async () => {
+    setTestLoading(true);
+    try {
+      const response = await pushAPI.testPush();
+      toast.success(response.data.message, { 
+        icon: '🚀', 
+        duration: 5000,
+        style: { background: '#1e293b', color: '#fff', borderRadius: '16px' }
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Permission denied by browser');
+    } finally {
+      setTestLoading(false);
+    }
+  };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -366,6 +385,29 @@ function SettingsModal({ type, onClose, states }) {
                 </button>
               </div>
             ))}
+            
+            <div className="pt-4 mt-4 border-t border-slate-100">
+              <button 
+                onClick={handleTestPush}
+                disabled={testLoading}
+                className="w-full flex items-center justify-between p-4 bg-rose-50 rounded-2xl border border-rose-100 hover:bg-rose-100/50 transition-all active:scale-[0.98] group"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white shadow-lg ${testLoading ? 'animate-pulse' : ''}`}>
+                    <BellIcon className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-sm font-black text-slate-800">Test Configuration</span>
+                    <span className="text-[9px] font-black text-primary-600 uppercase tracking-widest">Verify device registration</span>
+                  </div>
+                </div>
+                {testLoading ? (
+                  <div className="w-4 h-4 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <CheckCircleIcon className="w-4 h-4 text-primary-300 group-hover:text-primary-600 transition-colors" />
+                )}
+              </button>
+            </div>
           </div>
         );
       case 'language':
