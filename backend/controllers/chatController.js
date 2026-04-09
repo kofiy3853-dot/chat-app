@@ -135,18 +135,35 @@ exports.getOrCreateNanaSession = async (req, res) => {
 
     // If Nana is missing, create the system character automatically
     if (!nanaProfile) {
-      console.log('[NANA] Nana system user not found. Creating default identity...');
-      nanaProfile = await prisma.user.create({
-        data: {
-          id: NANA_USER_ID,
-          email: 'nana@ktu.edu.gh',
-          password: 'SYSTEM_MANAGED_IDENTITY', // Not used for login
-          name: 'Nana (Campus AI)',
-          role: 'NANA',
-          avatar: 'https://img.icons8.com/isometric/512/bot.png'
-        },
-        select: { id: true, name: true, avatar: true }
-      });
+      console.log('[NANA] System user not found in database. Initializing default identity...');
+      try {
+        nanaProfile = await prisma.user.create({
+          data: {
+            id: NANA_USER_ID,
+            email: 'nana.agent@ktu.edu.gh', // Normalized system email
+            password: 'SYSTEM_MANAGED_IDENTITY', 
+            name: 'Nana AI Agent',
+            role: 'NANA',
+            avatar: 'https://img.icons8.com/isometric/512/bot.png',
+            department: 'System Services',
+            faculty: 'KTU Virtual Campus'
+          },
+          select: { id: true, name: true, avatar: true }
+        });
+        console.log('✓ [NANA] Fallback identity created for Nana AI Agent');
+      } catch (recoveryErr) {
+        // If creation fails (e.g. ID or email already exists but role wasn't NANA), 
+        // try to find the user by ID as a last resort.
+        nanaProfile = await prisma.user.findUnique({
+          where: { id: NANA_USER_ID },
+          select: { id: true, name: true, avatar: true }
+        });
+        
+        if (!nanaProfile) {
+          console.error('[NANA] Recovery failed: ID or Role mismatch.');
+          throw new Error('Nana system profile is inaccessible.');
+        }
+      }
     }
 
     const realNanaId = nanaProfile.id;

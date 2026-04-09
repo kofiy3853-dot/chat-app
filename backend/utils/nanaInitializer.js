@@ -21,7 +21,7 @@ async function initializeNana() {
       const nana = await prisma.user.create({
         data: {
           id: NANA_USER_ID,
-          email: 'nana@智能 agent.ktu.edu.gh', // Distinct system email
+          email: 'nana.agent@ktu.edu.gh', // Normalized system email
           password: 'SYSTEM_MANAGED_IDENTITY', 
           name: 'Nana AI Agent',
           role: 'NANA',
