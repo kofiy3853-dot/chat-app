@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import Fuse from 'fuse.js';
 import { courseAPI } from '../services/api';
 import CourseCard from '../components/courses/CourseCard';
 import CreateCourseForm from '../components/courses/CreateCourseForm';
+import EmptyState from '../components/EmptyState';
 import { getCurrentUser } from '../utils/helpers';
 import { 
   PlusIcon, 
@@ -65,16 +67,26 @@ export default function Courses() {
     }
   };
 
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = 
-      course.name.toLowerCase().includes(search.toLowerCase()) || 
-      course.code.toLowerCase().includes(search.toLowerCase());
+  const filteredCourses = useMemo(() => {
+    let result = [...courses];
     
-    if (filter === 'ALL') return matchesSearch;
-    if (filter === 'ONGOING') return matchesSearch && course.isActive;
-    if (filter === 'COMPLETED') return matchesSearch && !course.isActive;
-    return matchesSearch;
-  });
+    // 1. Fuzzy Search
+    if (search.trim()) {
+      const fuse = new Fuse(courses, {
+        keys: ['name', 'code'],
+        threshold: 0.35,
+        location: 0,
+        distance: 100
+      });
+      result = fuse.search(search).map(r => r.item);
+    }
+
+    // 2. Tab filtering
+    if (filter === 'ONGOING') result = result.filter(c => c.isActive);
+    else if (filter === 'COMPLETED') result = result.filter(c => !c.isActive);
+
+    return result;
+  }, [courses, search, filter]);
 
   if (loading) {
     return (
@@ -144,13 +156,13 @@ export default function Courses() {
         {/* Course Grid */}
         <main className="flex-1 overflow-y-auto px-6 py-6 pb-[max(env(safe-area-inset-bottom),100px)] scrollbar-hide">
           {filteredCourses.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-6 -rotate-6 transition-transform hover:rotate-0 duration-500">
-                <AcademicCapIcon className="w-12 h-12 text-slate-200" />
-              </div>
-              <h3 className="text-xl font-black text-slate-800 tracking-tight">No courses found</h3>
-              <p className="text-sm text-slate-500 mt-2 font-medium max-w-[200px] mx-auto italic">Try adjusting your filters or search terms</p>
-            </div>
+            <EmptyState 
+              title={search ? "No matches found" : "No courses enrolled"}
+              description={search ? `We couldn't find any courses matching "${search}". Try a different code or name.` : "You haven't joined any academic courses yet. Join or create one to get started."}
+              actionText={!search ? (isEducator ? "Create Course" : "Join Course") : undefined}
+              onAction={() => setShowModal(true)}
+              icon={search ? '🔍' : '📚'}
+            />
           ) : (
             <div className="grid grid-cols-1 gap-6">
               {filteredCourses.map((course) => (

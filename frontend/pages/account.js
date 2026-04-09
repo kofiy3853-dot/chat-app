@@ -158,10 +158,22 @@ export default function Account() {
                 <div className="grid grid-cols-5 gap-4">
                   {availableThemes.map((t) => (
                     <button key={t.id} onClick={() => setTheme(t.id)} className="group relative flex flex-col items-center space-y-2">
-                      <div className={`w-full aspect-square rounded-2xl border-4 transition-all duration-300 flex items-center justify-center shadow-sm group-hover:scale-110 ${theme === t.id ? 'border-primary-500 scale-110 shadow-xl shadow-primary-500/20' : 'border-transparent hover:border-slate-200'}`} style={{ backgroundColor: t.color }}>
-                        {theme === t.id && <div className="bg-primary-500 rounded-full p-1 shadow-lg animate-in zoom-in-50 duration-300"><CheckCircleIcon className="w-4 h-4 text-white" /></div>}
+                      <div 
+                        className={`w-full aspect-square rounded-2xl border-4 transition-all duration-300 flex items-center justify-center shadow-sm group-hover:scale-110 ${theme === t.id ? 'border-primary-500 scale-110 shadow-xl shadow-primary-500/20' : 'border-transparent hover:border-slate-200'}`} 
+                        style={{ 
+                          background: t.id === 'system' ? 'linear-gradient(135deg, #f8fafc 50%, #0f172a 50%)' : t.color 
+                        }}
+                      >
+                        {theme === t.id && (
+                          <div className="bg-primary-500 rounded-full p-1 shadow-lg animate-in zoom-in-50 duration-300">
+                            <CheckIcon className="w-4 h-4 text-white stroke-[4px]" />
+                          </div>
+                        )}
+                        {t.id === 'system' && theme !== t.id && (
+                          <SwatchIcon className="w-5 h-5 text-slate-400 group-hover:text-primary-500 transition-colors" />
+                        )}
                       </div>
-                      <span className="text-[8px] font-black uppercase tracking-tighter truncate w-full text-center" style={{ color: theme === t.id ? 'var(--primary)' : 'var(--text-muted)' }}>{t.name.split(' ')[0]}</span>
+                      <span className="text-[8px] font-black uppercase tracking-tighter truncate w-full text-center" style={{ color: theme === t.id ? 'var(--primary)' : 'var(--text-muted)' }}>{t.name}</span>
                     </button>
                   ))}
                 </div>

@@ -29,11 +29,9 @@ import { AttachmentBubble, VoiceBubble } from './ChatMedia';
 import { 
   initDB, 
   cacheMessages, 
-  getCachedMessages, 
-  queueMessage, 
-  getOutboxMessages, 
-  removeFromOutbox 
+  getCachedMessages 
 } from '../utils/indexedDB';
+import useOfflineChat from '../hooks/useOfflineChat';
 import Markdown from 'markdown-to-jsx';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
@@ -447,29 +445,16 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
     }
   };
 
-  const syncOutbox = async () => {
-    if (!navigator.onLine) return;
-    try {
-      const outbox = await getOutboxMessages();
-      const relevant = outbox.filter(m => m.conversationId === conversationId);
-      if (relevant.length === 0) return;
-
-      console.log('[OFFLINE] Syncing outbox...', relevant.length);
-      for (const msg of relevant) {
-        if (!msg.fileUrl) {
-          sendMessage({
-            conversationId: msg.conversationId,
-            content: msg.content,
-            tempId: msg.tempId,
-            replyToId: msg.replyToId
-          });
-          await removeFromOutbox(msg.tempId);
-        }
-      }
-    } catch (err) {
-      console.error('Outbox sync failed:', err);
+  const { isOnline, sendWithQueue, syncQueue } = useOfflineChat(conversationId, async (msg) => {
+    if (!msg.fileUrl) {
+      sendMessage({
+        conversationId: msg.conversationId,
+        content: msg.content,
+        tempId: msg.tempId,
+        replyToId: msg.replyToId
+      });
     }
-  };
+  });
 
   // --- 3. Effects & Initialization ---
 
@@ -480,12 +465,6 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
     // Load background preference
     const savedBg = localStorage.getItem('chat_bg_color');
     if (savedBg) setBgColor(savedBg);
-
-    // Sync outbox if we come online
-    const handleOnline = () => syncOutbox();
-    window.addEventListener('online', handleOnline);
-
-    return () => window.removeEventListener('online', handleOnline);
   }, []);
 
   useEffect(() => {
@@ -596,7 +575,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
         socket.on('chat-lock-updated', handleLockUpdated);
       }
 
-      syncOutbox();
+      syncQueue();
       setTypingUsers([]); // Clear indicators on chat switch
 
       return () => {
@@ -709,31 +688,26 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
     setMediaFile(null);
     setReplyTo(null);
 
-    // --- OFFLINE QUEUING LOGIC ---
-    if (!navigator.onLine) {
-        await queueMessage({ ...msgData, conversationId });
-        console.log('[OFFLINE] Message queued to outbox');
-        return;
-    }
-
     setIsSending(true);
 
     try {
-      if (mediaFile) {
-        const fd = new FormData();
-        const type = mediaFile.type.startsWith('image/') ? 'IMAGE' : (mediaFile.type.startsWith('audio/') ? 'VOICE' : 'FILE');
-        
-        fd.append('file', mediaFile);
-        fd.append('conversationId', conversationId);
-        fd.append('content', msgData.content);
-        fd.append('type', type);
-        fd.append('tempId', tempId);
-        if (replyTo?.id) fd.append('replyToId', replyTo.id);
+      await sendWithQueue(msgData, async (data) => {
+        if (mediaFile) {
+          const fd = new FormData();
+          const type = mediaFile.type.startsWith('image/') ? 'IMAGE' : (mediaFile.type.startsWith('audio/') ? 'VOICE' : 'FILE');
+          
+          fd.append('file', mediaFile);
+          fd.append('conversationId', conversationId);
+          fd.append('content', data.content);
+          fd.append('type', type);
+          fd.append('tempId', tempId);
+          if (replyTo?.id) fd.append('replyToId', replyTo.id);
 
-        await chatAPI.uploadMessageAttachment(fd);
-      } else {
-        sendMessage({ conversationId, content: msgData.content, tempId, replyToId: replyTo?.id });
-      }
+          await chatAPI.uploadMessageAttachment(fd);
+        } else {
+          sendMessage({ conversationId, content: data.content, tempId, replyToId: replyTo?.id });
+        }
+      });
     } catch (err) {
       console.error('[DEBUG] Send error:', err);
     } finally {

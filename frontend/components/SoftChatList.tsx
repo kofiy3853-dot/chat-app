@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import SoftChatListItem from './SoftChatListItem';
 import { TrashIcon } from '@heroicons/react/24/solid';
+import EmptyState from './EmptyState';
 
 interface ChatListProps {
   conversations: any[];
@@ -35,23 +36,13 @@ const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onC
 
   if (conversations.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center px-6 py-20 text-center mt-4">
-        <div className="w-24 h-24 mb-6">
-           <svg fill="currentColor" viewBox="0 0 24 24" className="w-full h-full text-slate-200">
-              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12c0 1.846.5 3.58 1.383 5.093L2 22l4.907-1.383A9.957 9.957 0 0012 22z" />
-           </svg>
-        </div>
-        <h3 className="text-xl font-bold text-slate-800 mb-2">No chats yet</h3>
-        <p className="text-[15px] font-medium text-slate-500 mb-8 max-w-[220px]">
-          Start a conversation to begin connecting with friends.
-        </p>
-        <button 
-          onClick={onStartChat}
-          className="bg-primary-500 text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-primary-500/30 active:scale-95 transition-transform"
-        >
-          Start Chat
-        </button>
-      </div>
+      <EmptyState 
+        title="No chats yet"
+        description="Start a conversation to begin connecting with friends and colleagues across campus."
+        actionText="Start Chat"
+        onAction={onStartChat}
+        icon="💬"
+      />
     );
   }
 

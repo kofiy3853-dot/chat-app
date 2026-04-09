@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PlusIcon } from '@heroicons/react/24/solid';
 import { toast } from 'react-hot-toast';
 import { getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
+import { getSocket } from '../services/socket';
 import { statusAPI as api } from '../services/api';
 import StatusViewer from './StatusViewer';
 import UploadStatusModal from './UploadStatusModal';
@@ -15,6 +16,7 @@ interface Status {
   backgroundColor?: string;
   caption?: string;
   createdAt: string;
+  viewCount?: number;
 }
 
 interface UserGroupedStatus {
@@ -51,6 +53,21 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
 
   useEffect(() => {
     fetchStatuses();
+
+    const socket = getSocket();
+    if (socket) {
+      const handleStatusViewUpdate = (data: any) => {
+        setGroups(prev => prev.map(group => ({
+          ...group,
+          statuses: group.statuses.map(s => s.id === data.statusId ? { ...s, viewCount: data.viewCount } : s)
+        })));
+      };
+
+      socket.on('status-viewed-update', handleStatusViewUpdate);
+      return () => {
+        socket.off('status-viewed-update', handleStatusViewUpdate);
+      };
+    }
   }, []);
 
   const handleOpenViewer = (index: number) => {

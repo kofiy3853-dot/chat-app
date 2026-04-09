@@ -197,20 +197,99 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-// ─── PUSH SUBSCRIPTION CHANGE ────────────────────────────────────────────────
-// Fires when the browser rotates the push subscription key (rare but important)
-self.addEventListener("pushsubscriptionchange", (event) => {
-  event.waitUntil(
-    self.registration.pushManager.subscribe(event.oldSubscription.options)
-      .then(async (subscription) => {
-        // Re-send the new subscription to the server
-        const token = await clients.matchAll({ type: 'window' })
-          .then(cls => cls[0]?.postMessage({ type: 'GET_TOKEN' }));
-        return fetch('/api/notifications/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(subscription.toJSON())
-        });
-      })
-  );
+// ─── BACKGROUND SYNC ──────────────────────────────────────────────────────────
+// Handles deferred message sending when connectivity returns
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-messages') {
+    event.waitUntil(syncMessages());
+  }
 });
+
+/**
+ * Iterates through the 'outbox' in IndexedDB and attempts to POST pending messages.
+ */
+async function syncMessages() {
+  try {
+    const db = await openIndexedDB();
+    const outbox = await getAllFromStore(db, 'outbox');
+    
+    if (outbox.length === 0) return;
+
+    for (const msg of outbox) {
+      if (msg.fileUrl) continue; // Attachments still require manual handling in foreground for now
+
+      try {
+        // We need the auth token which should be stored in 'meta' or similar store
+        const authData = await getFromStore(db, 'auth', 'current');
+        if (!authData?.token) {
+           console.warn('[SW] No auth token found for background sync');
+           continue; 
+        }
+
+        const response = await fetch('/api/chat/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authData.token}`
+          },
+          body: JSON.stringify({
+            conversationId: msg.conversationId,
+            content: msg.content,
+            tempId: msg.tempId,
+            replyToId: msg.replyToId
+          })
+        });
+
+        if (response.ok) {
+          await deleteFromStore(db, 'outbox', msg.tempId);
+          console.log('[SW] Background sync successful for:', msg.tempId);
+        }
+      } catch (err) {
+        console.error('[SW] Message sync failed:', err);
+        // We don't throw here to allow other messages to try, 
+        // but if it's a network error, the browser will retry the whole 'sync' event anyway.
+      }
+    }
+  } catch (err) {
+    console.error('[SW] Sync process error:', err);
+  }
+}
+
+// ─── INDEXEDDB HELPERS (RAW API) ──────────────────────────────────────────────
+function openIndexedDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('campus_chat_db', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+  });
+}
+
+function getAllFromStore(db, storeName) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function getFromStore(db, storeName, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const request = store.get(key);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function deleteFromStore(db, storeName, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    const request = store.delete(key);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}

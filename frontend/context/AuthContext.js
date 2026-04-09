@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { initSocket, disconnectSocket } from '../services/socket';
+import { saveAuthToken } from '../utils/indexedDB';
 
 // ─── Route Configuration ──────────────────────────────────────────────────────
 // "/" is the MAIN DASHBOARD — strictly protected.
@@ -33,6 +34,8 @@ export function AuthProvider({ children }) {
       if (token && userStr) {
         const parsed = JSON.parse(userStr);
         setUser(parsed);
+        // Sync to IndexedDB for SW
+        saveAuthToken(token).catch(() => {});
         // Re-establish socket with the stored token
         initSocket();
       }
@@ -49,6 +52,8 @@ export function AuthProvider({ children }) {
   const login = useCallback((userData, token) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
+    // Save to IndexedDB for Background Sync/Service Worker
+    saveAuthToken(token).catch(err => console.warn('[IDB] Failed to save token:', err));
     setUser(userData);
     initSocket();
   }, []);
@@ -57,6 +62,8 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    // Clear from IndexedDB (optional but good practice)
+    saveAuthToken(null).catch(() => {});
     setUser(null);
     disconnectSocket();
   }, []);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/solid';
 import { getFullFileUrl, getInitials, formatRelativeTime, getCurrentUser } from '../utils/helpers';
 
 interface Status {
@@ -11,6 +11,7 @@ interface Status {
   backgroundColor?: string;
   caption?: string;
   createdAt: string;
+  viewCount?: number;
 }
 
 interface UserGroupedStatus {
@@ -201,10 +202,24 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
         )}
       </div>
 
+      {/* View Count for Owner */}
+      {currentUser && currentUser.id === currentGroup.user.id && (
+        <div className="absolute bottom-12 left-0 right-0 flex flex-col items-center justify-center z-30 animate-fade-in">
+           <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-xl overflow-hidden active:scale-95 transition-all cursor-default">
+              <EyeIcon className="w-4 h-4 text-white" />
+              <span className="text-white text-xs font-black tracking-tight">
+                 {currentStatus.viewCount || 0} {(currentStatus.viewCount || 0) === 1 ? 'View' : 'Views'}
+              </span>
+           </div>
+        </div>
+      )}
+
       {/* Close by swipe gesture area or bottom button */}
-      <div className="absolute bottom-6 flex justify-center z-20">
-         <div className="w-12 h-1.5 bg-white/30 rounded-full animate-bounce" />
-      </div>
+      {! (currentUser && currentUser.id === currentGroup.user.id) && (
+        <div className="absolute bottom-6 flex justify-center z-20">
+            <div className="w-12 h-1.5 bg-white/30 rounded-full animate-bounce" />
+        </div>
+      )}
     </motion.div>
   );
 };

@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
+import PageWrapper from '../components/PageWrapper';
 import Navbar from '../components/Navbar';
 import { getSocket } from '../services/socket';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { CallProvider } from '../context/CallContext';
-import { ThemeProvider } from '../context/ThemeContext';
+import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { requestFirebaseNotificationPermission, onMessageListener } from '../config/firebase';
 import { pushAPI } from '../services/api';
@@ -13,7 +14,6 @@ import { Toaster, toast } from 'react-hot-toast';
 import useAuthRedirect from '../hooks/useAuthRedirect';
 import { BellIcon } from '@heroicons/react/24/outline';
 import Head from 'next/head';
-import { useTheme } from '../context/ThemeContext';
 import { playNotificationSound } from '../utils/sound';
 import '../styles/globals.css';
 
@@ -23,6 +23,7 @@ function ThemeColorSync() {
   const [metaColor, setMetaColor] = useState('#2e8bc0');
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const computedStyle = getComputedStyle(document.documentElement);
     const statusBarColor = computedStyle.getPropertyValue('--status-bar').trim();
     if (statusBarColor) setMetaColor(statusBarColor);
@@ -36,15 +37,13 @@ function ThemeColorSync() {
 }
 
 // ─── Auth-aware Loader ────────────────────────────────────────────────────────
-// Renders a spinner while the auth state is being hydrated from localStorage.
-// This prevents ANY content from flashing before we know who the user is.
 function AuthLoader() {
   return (
     <div
       style={{
         position: 'fixed', inset: 0, backgroundColor: 'var(--bg-page)',
         display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', zIndex: 99999
+        alignItems: 'center', justifyCenter: 'center', zIndex: 99999
       }}
     >
       <div style={{
@@ -92,14 +91,12 @@ function AppContent({ Component, pageProps }) {
 
   // ── PWA / Offline / SW Setup ───────────────────────────────────────────────
   useEffect(() => {
-    // 1. Service Worker & Firebase Push (only when authenticated)
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         try {
           const reg = await navigator.serviceWorker.register('/sw.js');
           console.log('[SW] Registered successfully');
 
-          // Sync token if already logged in or after successful registration
           if (localStorage.getItem('token')) {
             const token = await requestFirebaseNotificationPermission();
             if (token) {
@@ -112,25 +109,21 @@ function AppContent({ Component, pageProps }) {
       });
     }
 
-    // 2. Online/Offline
     const handleOnline  = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     if (typeof navigator !== 'undefined') setIsOffline(!navigator.onLine);
 
-    // 3. PWA Install Prompt
     const handleBeforeInstallPrompt = (e) => { e.preventDefault(); setDeferredPrompt(e); };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // 4. Hide splash screen
     const loader = document.getElementById('initial-loader');
     if (loader) {
       loader.style.opacity = '0';
       setTimeout(() => { loader.style.display = 'none'; loader.remove?.(); }, 500);
     }
 
-    // 5. Clear App Badge on Load/Interaction
     const clearBadge = () => {
       if ('clearAppBadge' in navigator) {
         navigator.clearAppBadge().catch(() => {});
@@ -147,7 +140,7 @@ function AppContent({ Component, pageProps }) {
     };
   }, []);
 
-  // ── Global Socket Notifications (only when authenticated) ─────────────────
+  // ── Global Socket Notifications ────────────────────────────────────────────
   useEffect(() => {
     if (!isAuthenticated) return;
     const socket = getSocket();
@@ -158,7 +151,6 @@ function AppContent({ Component, pageProps }) {
       const msg = data.message;
       if (msg.senderId === user?.id) return;
 
-      // Deduplication
       const msgId = msg.id || msg.tempId;
       if (msgId && notifiedIdsRef.current.includes(msgId)) return;
       if (msgId) notifiedIdsRef.current = [msgId, ...notifiedIdsRef.current].slice(0, 50);
@@ -186,86 +178,10 @@ function AppContent({ Component, pageProps }) {
       ), { duration: 4000, position: 'top-center' });
     };
 
-    const handleNewNotification = (data) => {
-      if (router.pathname === '/activity') return;
-      if (data.notification?.type === 'MESSAGE' || data.notification?.type === 'MENTION') return;
-      
-      const notifId = data.notification?.id;
-      if (notifId && notifiedIdsRef.current.includes(notifId)) return;
-      if (notifId) notifiedIdsRef.current = [notifId, ...notifiedIdsRef.current].slice(0, 50);
-
-      playNotificationSound();
-      toast.custom((t) => (
-        <div
-          className={`${t.visible ? 'animate-in fade-in zoom-in-95' : 'animate-out fade-out zoom-out-95'} max-w-xs w-full bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-center space-x-3 text-white border border-slate-800`}
-          onClick={() => { router.push('/activity'); toast.dismiss(t.id); }}
-        >
-          <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center">
-            <BellIcon className="w-4 h-4" />
-          </div>
-          <div className="flex-1">
-            <p className="text-xs font-black uppercase tracking-widest">{data.title || 'New Alert'}</p>
-            <p className="text-[10px] opacity-70 mt-0.5 truncate">{data.content}</p>
-          </div>
-        </div>
-      ), { duration: 5000 });
-    };
-
-    const unsubscribeFCM = onMessageListener((payload) => {
-      // 1. DEDUPLICATION: Use the database message ID if available in data, or the FCM internal ID
-      const msgId = payload.data?.messageId || payload.messageId || payload.fcmMessageId;
-      if (msgId && notifiedIdsRef.current.includes(msgId)) return;
-      if (msgId) notifiedIdsRef.current = [msgId, ...notifiedIdsRef.current].slice(0, 50);
-
-      // 2. SUPPRESSION: Don't show toast if user is already looking at this chat
-      const chatId = payload.data?.chatId || payload.data?.conversationId;
-      if (chatId && router.pathname === '/chat/[id]' && router.query.id === chatId) return;
-
-      // DEDUPLICATION: We only show a foreground toast if the payload is DATA-ONLY.
-      // If payload or notification exists, the browser/SW usually handles it,
-      // and showing a toast on TOP of that creates a "double" visual effect.
-      // Additionally, we check document.visibilityState to avoid double alerts.
-      if (payload?.notification && document.visibilityState === 'visible') {
-        // Silently update UI or just ignore if the browser already popped a notification
-        // Most browsers show a notification even if you are in foreground.
-        // We'll let the default notification show and SKIP the custom toast here.
-        return;
-      }
-
-      const displayTitle = payload.notification?.title || payload.data?.title;
-      const displayBody = payload.notification?.body || payload.data?.body;
-
-      if (displayTitle) {
-        toast.custom((t) => (
-          <div
-            className="max-w-sm w-full bg-[#2e8bc0] rounded-2xl flex items-center p-4 text-white cursor-pointer shadow-2xl animate-in fade-in slide-in-from-top-full border border-white/20 backdrop-blur-md"
-            onClick={() => { 
-              const url = payload.data?.url || (chatId ? `/chat/${chatId}` : null);
-              if (url) router.push(url); 
-              toast.dismiss(t.id); 
-            }}
-          >
-            <div className="flex-1">
-              <p className="text-sm font-bold tracking-tight">{displayTitle}</p>
-              <p className="text-xs mt-1 opacity-90 line-clamp-1">{displayBody}</p>
-            </div>
-          </div>
-        ), { duration: 4000, position: 'top-center' });
-      }
-
-    });
-
     socket.on('new-message', handleNewMessage);
-    socket.on('new-notification', handleNewNotification);
-
-    return () => {
-      socket.off('new-message', handleNewMessage);
-      socket.off('new-notification', handleNewNotification);
-      if (unsubscribeFCM) unsubscribeFCM();
-    };
+    return () => { socket.off('new-message', handleNewMessage); };
   }, [isAuthenticated, router.pathname, router.query.id, user?.id]);
 
-  // ── While auth is loading: show spinner (only for protected pages) ───────
   const isPublicPage = ['/login', '/register'].includes(router.pathname);
   if (loading && !isPublicPage) return <AuthLoader />;
 
@@ -287,26 +203,32 @@ function AppContent({ Component, pageProps }) {
           error: { style: { background: '#1e293b', color: '#fff' }, iconTheme: { primary: '#ef4444', secondary: '#fff' } },
         }}
       />
+      
+      {isOffline && (
+        <div className="bg-rose-500 text-white text-center py-2 text-sm font-black uppercase tracking-widest fixed top-0 left-0 right-0 z-[60] shadow-lg">
+          Offline Mode
+        </div>
+      )}
+
+      {deferredPrompt && (
+        <div className="bg-primary-600 text-white text-center py-3 px-4 text-sm font-black sticky top-0 z-50 flex justify-center items-center gap-4 shadow-xl animate-fade-in-down">
+          <span className="uppercase tracking-tight">Experience Campus Chat as an App</span>
+          <button
+            onClick={() => { deferredPrompt.prompt(); deferredPrompt.userChoice.then(res => res.outcome === 'accepted' && setDeferredPrompt(null)); }}
+            className="bg-white text-primary-600 px-6 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-md hover:bg-slate-50 transition-all"
+          >
+            Install Now
+          </button>
+        </div>
+      )}
+
       <main className={shouldHideNavbar ? 'relative h-[100dvh] overflow-hidden flex flex-col' : 'pb-[calc(env(safe-area-inset-bottom)+90px)] relative'}>
-        {isOffline && (
-          <div className="bg-rose-500 text-white text-center py-2 text-sm font-black uppercase tracking-widest sticky top-0 z-50 shadow-lg">
-            Offline Mode
-          </div>
-        )}
-        {deferredPrompt && (
-          <div className="bg-primary-600 text-white text-center py-3 px-4 text-sm font-black sticky top-0 z-50 flex justify-center items-center gap-4 shadow-xl animate-fade-in-down">
-            <span className="uppercase tracking-tight">Experience Campus Chat as an App</span>
-            <button
-              onClick={() => { deferredPrompt.prompt(); deferredPrompt.userChoice.then(res => res.outcome === 'accepted' && setDeferredPrompt(null)); }}
-              className="bg-white text-primary-600 px-6 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-md hover:bg-slate-50 transition-all"
-            >
-              Install Now
-            </button>
-          </div>
-        )}
-        <Component {...pageProps} />
+        <PageWrapper>
+          <Component {...pageProps} />
+        </PageWrapper>
       </main>
-      {isAuthenticated && !shouldHideNavbar && <Navbar />}
+
+      {isAuthenticated && !shouldHideNavbar && <Navbar user={user} loading={loading} />}
       <CallInterface />
     </div>
   );

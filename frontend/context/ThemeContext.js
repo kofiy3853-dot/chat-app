@@ -1,8 +1,10 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { ThemeProvider as NextThemeProvider, useTheme as useNextTheme } from 'next-themes';
 
 export const AVAILABLE_THEMES = [
   { id: 'light', name: 'Light Mode', color: '#ffffff', textColor: '#2e8bc0' },
   { id: 'dark', name: 'Dark Mode', color: '#1a1a1a', textColor: '#ffffff' },
+  { id: 'system', name: 'System Default', color: 'transparent', textColor: '#64748b' },
   { id: 'indigo-pulse', name: 'Indigo Pulse', color: '#4338ca', textColor: '#e0e7ff' },
   { id: 'cyan-glow', name: 'Cyan Glow', color: '#06b6d4', textColor: '#ffffff' },
   { id: 'deep-indigo', name: 'Deep Indigo', color: '#3730a3', textColor: '#ffffff' },
@@ -10,36 +12,31 @@ export const AVAILABLE_THEMES = [
   { id: 'blue', name: 'Cobalt', color: '#2563eb', textColor: '#93c5fd' },
   { id: 'violet', name: 'Amethyst', color: '#7c3aed', textColor: '#c4b5fd' },
   { id: 'matrix', name: 'Matrix', color: '#00ff41', textColor: '#00ff41' },
-  { id: 'white', name: 'White', color: '#ffffff', textColor: '#2e8bc0' }
 ];
 
 const ThemeContext = createContext({ 
-  theme: 'white', 
+  theme: 'system', 
   setTheme: () => {},
   availableThemes: AVAILABLE_THEMES
 });
 
-export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState('white');
-
-  useEffect(() => {
-    // Read saved preference
-    const saved = localStorage.getItem('theme_v2') || 'white';
-    setThemeState(saved);
-    document.documentElement.setAttribute('data-theme', saved);
-  }, []);
-
-  const setTheme = (themeId) => {
-    if (!AVAILABLE_THEMES.some(t => t.id === themeId)) return;
-    setThemeState(themeId);
-    localStorage.setItem('theme_v2', themeId);
-    document.documentElement.setAttribute('data-theme', themeId);
-  };
-
+function ThemeSync({ children }) {
+  const { theme, setTheme } = useNextTheme();
+  
   return (
     <ThemeContext.Provider value={{ theme, setTheme, availableThemes: AVAILABLE_THEMES }}>
       {children}
     </ThemeContext.Provider>
+  );
+}
+
+export function ThemeProvider({ children }) {
+  return (
+    <NextThemeProvider attribute="data-theme" defaultTheme="system" enableSystem={true}>
+      <ThemeSync>
+        {children}
+      </ThemeSync>
+    </NextThemeProvider>
   );
 }
 

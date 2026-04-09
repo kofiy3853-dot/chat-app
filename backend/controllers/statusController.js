@@ -95,6 +95,11 @@ exports.getStatuses = async (req, res) => {
           where: {
             viewerId: userId
           }
+        },
+        _count: {
+          select: {
+            views: true
+          }
         }
       },
       orderBy: {
@@ -112,7 +117,14 @@ exports.getStatuses = async (req, res) => {
           hasUnseen: false
         };
       }
-      acc[uId].statuses.push(status);
+      
+      const statusData = {
+        ...status,
+        viewCount: status._count.views
+      };
+      delete statusData._count; // Clean up
+
+      acc[uId].statuses.push(statusData);
       if (status.views.length === 0 && uId !== userId) {
         acc[uId].hasUnseen = true;
       }
