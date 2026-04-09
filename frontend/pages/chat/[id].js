@@ -32,6 +32,7 @@ export default function ChatPage() {
   const [showProfile, setShowProfile] = useState(false);
   const [showMediaGallery, setShowMediaGallery] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [modalImgError, setModalImgError] = useState(false);
   const [messages, setMessages] = useState([]);
   
   const { callUser } = useCall();

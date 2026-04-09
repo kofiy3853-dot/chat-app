@@ -60,9 +60,16 @@ const MessageBubble = React.memo(({
   const isNana = message.sender?.role?.toUpperCase() === 'NANA';
 
   const [localEditContent, setLocalEditContent] = useState(message.content);
+  const [hasImgError, setHasImgError] = useState(false);
+
   useEffect(() => {
     setLocalEditContent(message.content);
   }, [message.content]);
+
+  // Reset image error state when message sender changes (unlikely for a single bubble but safe)
+  useEffect(() => {
+    setHasImgError(false);
+  }, [message.sender?.avatar]);
 
   const [touchStart, setTouchStart] = useState(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -109,8 +116,15 @@ const MessageBubble = React.memo(({
               {(() => {
                 const avatar = message.sender?.avatar;
                 const fullUrl = getFullFileUrl(avatar);
-                return fullUrl ? (
-                  <img src={fullUrl} loading="lazy" decoding="async" className="w-full h-full object-cover" alt="" />
+                return (fullUrl && !hasImgError) ? (
+                  <img 
+                    src={fullUrl} 
+                    loading="lazy" 
+                    decoding="async" 
+                    className="w-full h-full object-cover" 
+                    alt="" 
+                    onError={() => setHasImgError(true)}
+                  />
                 ) : (
                   getInitials(message.sender?.name)
                 );
