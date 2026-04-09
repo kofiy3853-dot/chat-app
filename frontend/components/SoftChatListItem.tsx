@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import { useRouter } from 'next/router';
 import { formatShortTime, getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
 
@@ -61,6 +61,8 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
 }) => {
   const router = useRouter();
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
+  // Per-item image error state — ensures graceful fallback to initials
+  const [imgError, setImgError] = useState(false);
 
   const startPress = useCallback(() => {
     pressTimer.current = setTimeout(() => {
@@ -79,10 +81,11 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
   const isOnline = otherParticipant?.isOnline;
   const unread = conversation.unreadCount ?? 0;
   const isGroup = conversation.type === 'GROUP';
+  const isNana = otherParticipant?.role === 'NANA';
 
   const lastMsg = conversation.lastMessage;
   const time = conversation.lastMessageAt ? formatShortTime(conversation.lastMessageAt) : '';
-  
+
   let preview = getLastMsgPreview(lastMsg);
   const isSomeoneTyping = typingUsers && Object.keys(typingUsers).length > 0;
   if (isSomeoneTyping) {
@@ -91,6 +94,8 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
   }
 
   const avatarUrl = getFullFileUrl(avatar);
+  // Only show image if URL resolves, no error occurred, and it's not the Nana bot
+  const showImage = !!avatarUrl && !imgError && !isNana;
 
   return (
     <div
@@ -116,29 +121,35 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
       )}
 
       {/* Avatar */}
-      <div 
+      <div
         className="relative flex-shrink-0 mr-3 cursor-pointer"
         onClick={(e) => {
-           if (otherParticipant?.role === 'NANA') {
-             e.stopPropagation();
-             router.push('/nana');
-           }
+          if (isNana) {
+            e.stopPropagation();
+            router.push('/nana');
+          }
         }}
       >
         <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
-          {avatarUrl && otherParticipant?.role !== 'NANA' ? (
+          {showImage ? (
             <img
               src={avatarUrl}
               loading="lazy"
               decoding="async"
               className="w-full h-full object-cover"
               alt={name}
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              onError={() => setImgError(true)}
             />
           ) : (
-            <div className={`w-full h-full flex items-center justify-center ${otherParticipant?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white font-black text-lg' : `bg-gradient-to-br ${getAvatarColor(name)} text-white font-bold`}`}>
-              <span className={otherParticipant?.role === 'NANA' ? '' : 'text-sm'}>
-                {otherParticipant?.role === 'NANA' ? 'N' : getInitials(name)}
+            <div
+              className={`w-full h-full flex items-center justify-center ${
+                isNana
+                  ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white font-black text-lg'
+                  : `bg-gradient-to-br ${getAvatarColor(name)} text-white font-bold`
+              }`}
+            >
+              <span className={isNana ? '' : 'text-sm'}>
+                {isNana ? 'N' : getInitials(name)}
               </span>
             </div>
           )}
@@ -153,22 +164,32 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
       {/* Text */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-0.5">
-          <h3 className={`text-[15px] truncate pr-2 ${unread > 0 ? 'font-bold text-app-primary' : 'font-semibold text-app-primary'}`}>
+          <h3
+            className={`text-[15px] truncate pr-2 ${
+              unread > 0 ? 'font-bold text-app-primary' : 'font-semibold text-app-primary'
+            }`}
+          >
             {name}
           </h3>
-          <span className={`text-[11px] flex-shrink-0 ${unread > 0 ? 'text-primary-500 font-semibold' : 'text-gray-400 font-normal'}`}>
+          <span
+            className={`text-[11px] flex-shrink-0 ${
+              unread > 0 ? 'text-primary-500 font-semibold' : 'text-gray-400 font-normal'
+            }`}
+          >
             {time}
           </span>
         </div>
 
         <div className="flex items-center justify-between">
-          <p className={`text-[13px] truncate pr-2 leading-snug ${
-            isSomeoneTyping
-              ? 'text-primary-500 font-semibold italic'
-              : unread > 0
-              ? 'text-gray-700 font-medium'
-              : 'text-gray-400 font-normal'
-          }`}>
+          <p
+            className={`text-[13px] truncate pr-2 leading-snug ${
+              isSomeoneTyping
+                ? 'text-primary-500 font-semibold italic'
+                : unread > 0
+                ? 'text-gray-700 font-medium'
+                : 'text-gray-400 font-normal'
+            }`}
+          >
             {preview}
           </p>
 
