@@ -383,6 +383,12 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
   const fileInputRef = useRef(null);
   const convDataRef = useRef(null);
   const userRoleRef = useRef('STUDENT');
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
 
   useEffect(() => {
     convDataRef.current = convData;
@@ -400,6 +406,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
       const newMessages = response.data.messages || [];
       const conversation = response.data.conversation;
 
+      if (!isMounted.current) return;
       if (conversation) {
         setConvData(conversation);
         if (conversation.type === 'COURSE' && conversation.course) {
@@ -417,10 +424,12 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
       await cacheMessages(conversationId, newMessages);
       console.log(`[DEBUG] Rendered ${newMessages.length} messages`);
     } catch (err) {
-      console.error('[DEBUG] Fetch error:', err);
-      setError('Failed to load chat');
+      if (isMounted.current) {
+        console.error('[DEBUG] Fetch error:', err);
+        setError('Failed to load chat');
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   };
 

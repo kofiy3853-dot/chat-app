@@ -188,10 +188,10 @@ export default function NewChatModal({ isOpen, onClose }) {
                   </div>
                   <div className="flex-1 text-left min-w-0">
                     <div className="flex items-center space-x-2">
-                      <p className="text-sm font-black text-gray-900 truncate">Nana</p>
-                      <span className="px-1.5 py-0.5 bg-primary-500 text-[8px] font-black text-white rounded-md uppercase tracking-tighter">AI Assistant</span>
+                      <p className="text-sm font-black text-gray-900 truncate">Nana AI Agent</p>
+                      <span className="px-1.5 py-0.5 bg-indigo-600 text-[8px] font-black text-white rounded-md uppercase tracking-tighter">System Service</span>
                     </div>
-                    <p className="text-xs text-gray-500 font-medium truncate mt-0.5">Ask me about campus life, courses, or events!</p>
+                    <p className="text-xs text-indigo-600/70 font-bold uppercase tracking-tight truncate mt-0.5">KTU Virtual Campus Support</p>
                     <div className="flex items-center space-x-1.5 mt-1">
                       <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
                       <span className="text-[10px] font-bold text-green-600 uppercase tracking-tight">Active Now</span>

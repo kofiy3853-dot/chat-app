@@ -87,7 +87,10 @@ exports.getUserById = async (req, res) => {
 exports.getOnlineUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      where: { isOnline: true },
+      where: { 
+        isOnline: true,
+        role: { notIn: ['NANA', 'ADMIN'] }
+      },
       select: {
         id: true,
         email: true,

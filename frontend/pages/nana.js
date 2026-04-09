@@ -227,8 +227,8 @@ export default function NanaPage() {
               </div>
             </div>
             <div>
-              <h1 className="font-black text-base tracking-tight leading-none" style={{ color: 'var(--text-navbar)' }}>Nana AI</h1>
-              <p className="font-bold text-[10px] uppercase tracking-widest mt-1" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 40%)' }}>Campus Specialist</p>
+              <h1 className="font-black text-base tracking-tight leading-none" style={{ color: 'var(--text-navbar)' }}>Nana AI Agent</h1>
+              <p className="font-bold text-[10px] uppercase tracking-widest mt-1" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 40%)' }}>KTU System Service</p>
             </div>
           </div>
         </div>
@@ -354,14 +354,14 @@ export default function NanaPage() {
                 </div>
               </div>
 
-              <h1 className="text-2xl font-black text-slate-800 tracking-tight text-center">Nana AI</h1>
-              <div className="mt-1 px-3 py-1 bg-slate-50 border border-slate-100 rounded-lg">
-                <p className="text-[11px] font-black text-slate-500 italic uppercase">
-                  "Campus Specialist"
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight text-center">Nana AI Agent</h1>
+              <div className="mt-1 px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-lg">
+                <p className="text-[11px] font-black text-indigo-600 italic uppercase">
+                  "System-Managed Intelligence Asset"
                 </p>
               </div>
               <p className="text-sm font-bold uppercase tracking-widest mt-3 text-green-500">
-                Online & Secure
+                Authorized & Secure
               </p>
             </div>
           </div>

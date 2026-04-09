@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef, useEffect as uE } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -45,18 +45,28 @@ const MessagesPage: React.FC = () => {
   const [showOverflow, setShowOverflow] = useState(false);
   const [showFAB, setShowFAB] = useState(false);
   const overflowRef = useRef<HTMLDivElement>(null);
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted.current) return;
     const localUser = getCurrentUser();
-    if (!localUser) { router.push('/login'); return; }
+    if (!localUser) { router.replace('/login'); return; }
     setUser(localUser);
     
     // Optimistic cache loading for instant SPA feeling
     const cachedChats = localStorage.getItem('cached_conversations');
     if (cachedChats) {
       try {
-        setConversations(JSON.parse(cachedChats));
-        setLoading(false);
+        const parsed = JSON.parse(cachedChats);
+        if (isMounted.current) {
+          setConversations(parsed);
+          setLoading(false);
+        }
       } catch (e) {
         console.error('Cache parse error');
       }
@@ -178,6 +188,7 @@ const MessagesPage: React.FC = () => {
   const fetchData = async () => {
     try {
       const convRes = await chatAPI.getConversations();
+      if (!isMounted.current) return;
       const newChats = convRes.data.conversations || [];
       setConversations(newChats);
       // Update cache
@@ -185,7 +196,7 @@ const MessagesPage: React.FC = () => {
     } catch (err) {
       console.error('Fetch data error:', err);
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   };
 

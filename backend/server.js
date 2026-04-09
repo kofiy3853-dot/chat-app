@@ -207,11 +207,16 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 // Test database connection
+const { initializeNana } = require('./utils/nanaInitializer');
+
 async function startServer() {
   try {
     // Test Prisma connection
     await prisma.$connect();
     console.log('✓ Connected to Supabase PostgreSQL database');
+    
+    // Proactively initialize system accounts
+    await initializeNana();
     
     // Verify critical tables exist
     try {

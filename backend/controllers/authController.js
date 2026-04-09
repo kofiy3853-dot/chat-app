@@ -108,7 +108,12 @@ exports.register = async (req, res) => {
 
     const upperRole = role ? role.toUpperCase() : 'STUDENT';
     
-    console.log(`[REGISTER ATTEMPT] Name: ${name}, Email: ${email}, Role: ${upperRole}, StudentID: ${studentId}, StaffID: ${staffId}`);
+    // NANA Role Protection: Prevent spoofing the system agent
+    if (upperRole === 'NANA') {
+      return res.status(403).json({ 
+        message: 'Access Denied. The NANA identity is a protected system agent and cannot be manually assigned.' 
+      });
+    }
 
     // Email domain restriction: ktu.edu.gh only (case insensitive)
     const normalizedEmail = email?.trim().toLowerCase();
@@ -368,7 +373,12 @@ exports.getMe = async (req, res) => {
 // Update user profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, department, faculty, level, avatar, status } = req.body;
+    const { name, department, faculty, level, avatar, status, role } = req.body;
+    
+    // Prevent unauthorized role escalation or NANA spoofing
+    if (role && role.toUpperCase() === 'NANA') {
+        return res.status(403).json({ message: 'Illegal action. Cannot assume System Agent identity.' });
+    }
     
     const { user } = await prisma.$transaction(async (tx) => {
       const updatedUser = await tx.user.update({
