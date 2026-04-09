@@ -22,7 +22,10 @@ export default function useAuthRedirect() {
     const path = router.pathname;
 
     const isPublicRoute    = ROUTE_CONFIG.public.includes(path);
-    const isProtectedRoute = ROUTE_CONFIG.protected.some(p => path === p || path.startsWith(p + '/'));
+    // Fixed: Ensure '/' prefix doesn't match public routes like '/login'
+    const isProtectedRoute = ROUTE_CONFIG.protected.some(p => 
+      path === p || (p !== '/' && path.startsWith(p + '/'))
+    );
 
     // ── GUARD 1: Unauthenticated + protected route ───────────────────────────
     if (!isAuthenticated && isProtectedRoute) {

@@ -41,9 +41,6 @@ export default function NanaPage() {
         console.error('[NANA] Failed to parse user session:', e);
         setLoading(false);
       }
-    } else {
-       console.log('[NANA] No user session, redirecting to login');
-       router.replace('/login');
     }
   }, []);
 

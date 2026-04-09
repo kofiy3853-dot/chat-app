@@ -55,24 +55,25 @@ const MessagesPage: React.FC = () => {
   useEffect(() => {
     if (!isMounted.current) return;
     const localUser = getCurrentUser();
-    if (!localUser) { router.replace('/login'); return; }
-    setUser(localUser);
-    
-    // Optimistic cache loading for instant SPA feeling
-    const cachedChats = localStorage.getItem('cached_conversations');
-    if (cachedChats) {
-      try {
-        const parsed = JSON.parse(cachedChats);
-        if (isMounted.current) {
-          setConversations(parsed);
-          setLoading(false);
+    if (localUser) {
+      setUser(localUser);
+      
+      // Optimistic cache loading for instant SPA feeling
+      const cachedChats = localStorage.getItem('cached_conversations');
+      if (cachedChats) {
+        try {
+          const parsed = JSON.parse(cachedChats);
+          if (isMounted.current) {
+            setConversations(parsed);
+            setLoading(false);
+          }
+        } catch (e) {
+          console.error('Cache parse error');
         }
-      } catch (e) {
-        console.error('Cache parse error');
       }
+      fetchData();
     }
-    fetchData();
-  }, [router]);
+  }, []); // Only on mount. Router-level guard handles the redirect if no user.
 
   const avatarUrl = useMemo(() => {
     return user ? getFullFileUrl(user.avatar) : null;

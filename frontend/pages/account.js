@@ -56,18 +56,11 @@ export default function Account() {
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
     try {
       const response = await authAPI.getMe();
       setUser(response.data.user);
     } catch (error) {
-      localStorage.removeItem('token');
-      router.push('/login');
+      console.warn('Silent identity verification failed:', error.message);
     } finally {
       setLoading(false);
     }

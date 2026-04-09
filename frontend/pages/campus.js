@@ -18,12 +18,8 @@ const CampusPage = () => {
 
   useEffect(() => {
     const localUser = getCurrentUser();
-    if (!localUser) {
-      router.push('/login');
-      return;
-    }
-    setUser(localUser);
-  }, [router]);
+    if (localUser) setUser(localUser);
+  }, []);
 
   const tabs = [
     { id: 'events', label: 'Events' },

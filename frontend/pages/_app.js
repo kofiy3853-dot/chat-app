@@ -266,9 +266,7 @@ function AppContent({ Component, pageProps }) {
   }, [isAuthenticated, router.pathname, router.query.id, user?.id]);
 
   // ── While auth is loading: show spinner (only for protected pages) ───────
-  const publicPages = ['/login', '/register', '/'];
-  const isPublicPage = publicPages.includes(router.pathname);
-  
+  const isPublicPage = ['/login', '/register'].includes(router.pathname);
   if (loading && !isPublicPage) return <AuthLoader />;
 
   const normalizedPath  = router.pathname;

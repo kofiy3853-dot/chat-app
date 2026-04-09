@@ -45,7 +45,7 @@ export default function Courses() {
       console.error('Failed to fetch courses:', error);
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
-        router.push('/login');
+        // Remote centralized guard will handle redirect if we reload or navigate
       }
     } finally {
       setLoading(false);

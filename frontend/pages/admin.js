@@ -27,14 +27,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
-       const user = JSON.parse(userStr);
-       if (user.role !== 'ADMIN') {
-          router.push('/');
-          return;
+       try {
+         const user = JSON.parse(userStr);
+         if (user.role === 'ADMIN') setCurrentUser(user);
+       } catch (e) {
+         console.error('Session error');
        }
-       setCurrentUser(user);
-    } else {
-       router.push('/login');
     }
     
     // Simulate fetching admin stats

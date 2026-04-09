@@ -2,11 +2,11 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { initSocket, disconnectSocket } from '../services/socket';
 
 // ─── Route Configuration ──────────────────────────────────────────────────────
-// "/" is intentionally PUBLIC — it's the landing/redirect target, not a protected dashboard.
-// Protected routes are matched by prefix so /chat/123 is automatically covered by '/chat'.
+// "/" is the MAIN DASHBOARD — strictly protected.
+// Public routes are entry points only (Login/Register).
 export const ROUTE_CONFIG = {
-  public: ['/', '/login', '/register'],
-  protected: ['/chat', '/courses', '/account', '/admin', '/nana', '/events', '/activity', '/status', '/announcements', '/anonymous', '/discover'],
+  public: ['/login', '/register'],
+  protected: ['/', '/chat', '/courses', '/account', '/admin', '/nana', '/events', '/activity', '/status', '/announcements', '/anonymous', '/discover'],
 };
 
 // Role → allowed route prefixes. Routes not listed default to allowed.
