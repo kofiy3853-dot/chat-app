@@ -526,8 +526,11 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
         }
       };
 
-      const handleUserTyping = ({ userId, userName, isTyping }) => {
+      const handleUserTyping = ({ userId, userName, isTyping, conversationId: cid }) => {
+        if (cid !== conversationId) return; // Only show for current chat
         if (userId === currentUser?.id) return;
+        
+        console.log(`[DEBUG] Typing received: ${userName} isTyping=${isTyping}`);
         setTypingUsers(prev => isTyping 
           ? [...prev.filter(u => u.id !== userId), { id: userId, name: userName }]
           : prev.filter(u => u.id !== userId)
@@ -580,6 +583,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
       }
 
       syncOutbox();
+      setTypingUsers([]); // Clear indicators on chat switch
 
       return () => {
         if (socket) {
@@ -945,20 +949,24 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
           ))
         )}
         
-        {typingUsers.length > 0 && (
-          <div className="px-6 py-3 flex items-center space-x-3 bg-gradient-to-r from-surface/80 to-transparent backdrop-blur-sm animate-in fade-in slide-in-from-left-4 duration-500">
-            <div className="flex space-x-1.5 items-center h-4">
-              <span className="w-1.5 h-1.5 bg-primary-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
-              <span className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-              <span className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce" />
-            </div>
-            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest bg-white/50 px-3 py-1 rounded-full border border-slate-100">
-              {typingUsers[0].name} is typing...
-            </span>
-          </div>
-        )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Floating Typing Indicator - moved outside scroll for visibility */}
+      {typingUsers.length > 0 && (
+        <div className="absolute bottom-[80px] left-4 z-30 pointer-events-none">
+          <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200/50 shadow-lg animate-in slide-in-from-bottom-2 duration-300">
+            <div className="flex space-x-1 items-center h-4 px-1">
+              <span className="w-1 h-1 bg-primary-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <span className="w-1 h-1 bg-primary-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <span className="w-1 h-1 bg-primary-400 rounded-full animate-bounce" />
+            </div>
+            <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest whitespace-nowrap">
+              {typingUsers.length === 1 ? `${typingUsers[0].name.split(' ')[0]} is typing` : 'Several people typing'}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Footer Input Area */}
       <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-surface border-t border-slate-200/50 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] shrink-0 relative">

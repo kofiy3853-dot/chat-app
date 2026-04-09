@@ -525,13 +525,14 @@ const setupChatSockets = (io) => {
     // Typing indicator
     socket.on('typing', (data) => {
       const { conversationId, isTyping } = data;
-      console.log(`[TYPING DEBUG] User:${socket.user.name} isTyping:${isTyping} in conv:${conversationId}`);
+      // Broad cast to all in room except sender
       socket.to(`conversation:${conversationId}`).emit('user-typing', {
         userId: socket.user.id,
         userName: socket.user.name,
         conversationId,
         isTyping
       });
+      console.log(`[SOCKET] Broadcast typing:${isTyping} for user:${socket.user.name} in conv:${conversationId}`);
     });
 
     // Mark messages as read
