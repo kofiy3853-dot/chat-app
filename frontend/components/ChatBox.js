@@ -29,7 +29,8 @@ import { AttachmentBubble, VoiceBubble } from './ChatMedia';
 import { 
   initDB, 
   cacheMessages, 
-  getCachedMessages 
+  getCachedMessages,
+  getOutboxMessages
 } from '../utils/indexedDB';
 import useOfflineChat from '../hooks/useOfflineChat';
 import Markdown from 'markdown-to-jsx';

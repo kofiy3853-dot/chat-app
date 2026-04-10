@@ -260,7 +260,7 @@ export default function ChatPage() {
                   {(() => {
                     const isNana = otherParticipant?.user?.role === 'NANA';
                     if (isNana) return 'N';
-                    const avatar = otherParticipant?.user?.avatar;
+                    const avatar = conversation?.avatar || otherParticipant?.user?.avatar;
                     const fullUrl = getFullFileUrl(avatar);
                     return (
                       <>
@@ -414,7 +414,7 @@ export default function ChatPage() {
                   <div className={`w-32 h-32 rounded-3xl flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden bg-slate-100 ${otherParticipant?.user?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600' : ''}`}>
                     {(() => {
                       if (otherParticipant?.user?.role === 'NANA') return <div className="text-white">N</div>;
-                      const avatar = otherParticipant?.user?.avatar;
+                      const avatar = conversation?.avatar || otherParticipant?.user?.avatar;
                       const fullUrl = getFullFileUrl(avatar);
                       return (
                         <>

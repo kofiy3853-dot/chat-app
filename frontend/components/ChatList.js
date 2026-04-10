@@ -433,7 +433,7 @@ const ChatListItem = React.memo(({
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-400 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-sm overflow-hidden">
             {(() => {
               const other = conversation.participants?.find(p => p.userId !== currentUser?.id)?.user;
-              const avatar = other?.avatar;
+              const avatar = conversation.avatar || other?.avatar;
               const fullUrl = getFullFileUrl(avatar);
               return fullUrl ? (
                 <img src={fullUrl} loading="lazy" decoding="async" className="w-full h-full object-cover" alt="" />
