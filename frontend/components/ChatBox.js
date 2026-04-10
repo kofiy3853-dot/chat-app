@@ -173,11 +173,23 @@ const MessageBubble = React.memo(({
             }}
             onTouchEnd={(e) => clearTimeout(e.currentTarget.dataset.timer)}
             onTouchMove={(e) => clearTimeout(e.currentTarget.dataset.timer)}
+            id={`message-${message.id || message.tempId}`}
             className={bubbleClasses}
             style={nanaStyles}
           >
             {message.replyTo && !message.isDeleted && (
-              <div className={`mb-2 p-2 rounded-lg border-l-4 text-[10px] ${isMine ? 'bg-black/10 border-white/40' : 'bg-surface-2 border-primary-500'}`}>
+              <div 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const targetMsg = document.getElementById(`message-${message.replyTo.id}`);
+                  if (targetMsg) {
+                    targetMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetMsg.classList.add('ring-2', 'ring-primary-500', 'drop-shadow-lg');
+                    setTimeout(() => targetMsg.classList.remove('ring-2', 'ring-primary-500', 'drop-shadow-lg'), 1500);
+                  }
+                }}
+                className={`mb-2 p-2 rounded-lg border-l-4 text-[10px] cursor-pointer hover:opacity-80 transition-all ${isMine ? 'bg-black/10 border-white/40' : 'bg-surface-2 border-primary-500'}`}
+              >
                 <p className="font-black uppercase tracking-tight opacity-60">
                    Replying to {message.replyTo.sender?.name || 'User'}
                 </p>
@@ -335,12 +347,15 @@ const MessageBubble = React.memo(({
   );
 });
 
-export default function ChatBox({ conversationId, onMessagesUpdate }) {
+export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery, participants = [] }) {
   // --- 1. State Management ---
   const typingTimeoutRef = useRef(null);
   const isCurrentlyTyping = useRef(false);
 
   const [messages, setMessages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -355,6 +370,8 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [isSending, setIsSending] = useState(false);
+  const [showMentionPicker, setShowMentionPicker] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
   const audioChunksRef = useRef([]);
 
   // Nana Session Logic
@@ -413,14 +430,18 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
 
   // --- 3a. Core Data Functions (defined BEFORE effects that call them) ---
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (currentPage = 1, append = false) => {
     try {
-      const response = await chatAPI.getMessages(conversationId);
+      if (append) setIsLoadingMore(true);
+      const response = await chatAPI.getMessages(conversationId, currentPage, 50);
       const newMessages = response.data.messages || [];
       const conversation = response.data.conversation;
 
       if (!isMounted.current) return;
-      if (conversation) {
+      
+      setHasMore(response.data.hasMore ?? newMessages.length === 50);
+
+      if (conversation && !append) {
         setConvData(conversation);
         if (conversation.type === 'COURSE' && conversation.course) {
           setIsLocked(!!conversation.course.announcementsOnly);
@@ -431,18 +452,28 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
 
       setMessages(prev => {
         const outbox = prev.filter(m => m.id?.toString().startsWith('temp'));
+        if (append) {
+          const existingIds = new Set(prev.map(m => m.id));
+          const uniqueNew = newMessages.filter(m => !existingIds.has(m.id));
+          return [...uniqueNew, ...prev.filter(m => !m.id?.toString().startsWith('temp')), ...outbox];
+        }
         return [...newMessages, ...outbox];
       });
 
-      await cacheMessages(conversationId, newMessages);
-      console.log(`[DEBUG] Rendered ${newMessages.length} messages`);
+      if (!append) {
+        await cacheMessages(conversationId, newMessages);
+        console.log(`[DEBUG] Rendered ${newMessages.length} messages`);
+      }
     } catch (err) {
-      if (isMounted.current) {
+      if (isMounted.current && !append) {
         console.error('[DEBUG] Fetch error:', err);
         setError('Failed to load chat');
       }
     } finally {
-      if (isMounted.current) setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+        setIsLoadingMore(false);
+      }
     }
   };
 
@@ -817,6 +848,19 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
     const val = e.target.value;
     setNewMessage(val);
 
+    // Detect @ mentions
+    const cursorPosition = e.target.selectionStart;
+    const textBeforeCursor = val.slice(0, cursorPosition);
+    const match = textBeforeCursor.match(/@([\w\s]*)$/);
+    
+    // We only trigger mentions if we're typing a single word after @ or starting
+    if (match && !match[1].includes('  ')) {
+      setShowMentionPicker(true);
+      setMentionQuery(match[1].toLowerCase());
+    } else {
+      setShowMentionPicker(false);
+    }
+
     if (!isCurrentlyTyping.current && val.trim().length > 0) {
       isCurrentlyTyping.current = true;
       sendTyping(conversationId, true);
@@ -831,7 +875,13 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
   }, [conversationId]);
 
   // --- 5. Data Grouping ---
-  const groupedMessages = useMemo(() => groupMessagesByDate(messages), [messages]);
+  const filteredMessages = useMemo(() => {
+    if (!searchQuery) return messages;
+    const lowerQuery = searchQuery.toLowerCase();
+    return messages.filter(m => m.content && m.content.toLowerCase().includes(lowerQuery));
+  }, [messages, searchQuery]);
+
+  const groupedMessages = useMemo(() => groupMessagesByDate(filteredMessages), [filteredMessages]);
 
 
   // --- 6. Final Render ---
@@ -847,11 +897,23 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
             // Use a more precise threshold (100px instead of 300px)
             const atBottom = scrollHeight - scrollTop - clientHeight < 150;
             if (showScrollBottom === atBottom) setShowScrollBottom(!atBottom);
+
+            // Infinite scroll logic tracking
+            if (scrollTop < 100 && hasMore && !isLoadingMore && !searchQuery) {
+              const nextPage = page + 1;
+              setPage(nextPage);
+              fetchMessages(nextPage, true);
+            }
           }
         }}
         className="flex-1 overflow-y-auto p-4 scrollbar-hide overscroll-contain relative"
         style={{ overflowAnchor: 'auto' }}
       >
+        {isLoadingMore && (
+           <div className="flex justify-center p-4">
+              <div className="w-6 h-6 border-2 border-slate-200 border-t-primary-500 rounded-full animate-spin"></div>
+           </div>
+        )}
         {showScrollBottom && (
           <button
             onClick={() => scrollToBottom()}
@@ -980,6 +1042,45 @@ export default function ChatBox({ conversationId, onMessagesUpdate }) {
               lazyLoadEmojis={true}
               autoFocusSearch={false}
             />
+          </div>
+        )}
+        {showMentionPicker && participants.length > 0 && (
+          <div className="absolute bottom-full left-4 mb-2 min-w-[220px] max-w-[80vw] max-h-48 overflow-y-auto bg-surface border border-slate-200/50 shadow-2xl rounded-xl z-50 animate-in slide-in-from-bottom-2 no-scrollbar">
+            {participants.filter(p => p.user?.id !== currentUser?.id && (!mentionQuery || (p.user && p.user.name.toLowerCase().includes(mentionQuery)))).length > 0 ? (
+              participants.filter(p => p.user?.id !== currentUser?.id && (!mentionQuery || (p.user && p.user.name.toLowerCase().includes(mentionQuery)))).map(p => (
+                <button
+                  key={p.userId}
+                  type="button"
+                  onClick={() => {
+                    const val = newMessage;
+                    const el = document.activeElement;
+                    let cursorPosition = val.length;
+                    
+                    if (el && el.tagName === 'TEXTAREA') {
+                       cursorPosition = el.selectionStart;
+                    }
+
+                    const textBeforeCursor = val.slice(0, cursorPosition);
+                    const textAfterCursor = val.slice(cursorPosition);
+                    const replaced = textBeforeCursor.replace(/@[\w\s]*$/, `@${p.user.name} `);
+                    setNewMessage(replaced + textAfterCursor);
+                    setShowMentionPicker(false);
+                    if (el) el.focus();
+                  }}
+                  className="w-full flex items-center gap-3 p-2.5 hover:bg-surface-2 transition-colors text-left border-b border-slate-200/50 last:border-none"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                    {p.user?.avatar ? <img src={getFullFileUrl(p.user.avatar)} className="w-full h-full object-cover" /> : getInitials(p.user?.name)}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-app-primary leading-tight">{p.user?.name}</span>
+                    <span className="text-[9px] font-semibold text-app-secondary uppercase tracking-widest">{p.role || 'Member'}</span>
+                  </div>
+                </button>
+              ))
+            ) : (
+                <div className="p-3 text-center text-xs font-bold text-app-secondary uppercase tracking-widest">No matching users</div>
+            )}
           </div>
         )}
         <form onSubmit={handleSendMessage} className="flex flex-col space-y-2">

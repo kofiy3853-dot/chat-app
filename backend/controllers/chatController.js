@@ -537,7 +537,7 @@ exports.sendMessage = async (req, res) => {
     if (req.io) {
       const participants = await prisma.conversationParticipant.findMany({
         where: { conversationId },
-        select: { userId: true }
+        include: { user: { select: { id: true, name: true, fcmToken: true } } }
       });
 
       const recipients = participants.filter(p => p.userId !== req.user.id);
@@ -550,12 +550,27 @@ exports.sendMessage = async (req, res) => {
 
       // Send notifications to each recipient in parallel
       await Promise.all(recipients.map(async (recipient) => {
+        const recipientUser = recipient.user;
+        let isMentioned = false;
+        
+        if (content && typeof content === 'string' && recipientUser?.name) {
+          const recName = recipientUser.name;
+          const recFirstName = recName.split(' ')[0];
+          if (content.includes(`@${recName}`) || content.includes(`@${recFirstName}`)) {
+            isMentioned = true;
+          }
+        }
+
+        const notificationTitle = isMentioned 
+          ? `🔔 ${message.sender.name} mentioned you!` 
+          : `New message from ${message.sender.name}`;
+
         // Create DB Notification
         const notification = await prisma.notification.create({
           data: {
-            type: 'MESSAGE',
-            title: `New message from ${message.sender.name}`,
-            content: content.length > 50 ? content.substring(0, 50) + '...' : content,
+            type: isMentioned ? 'MENTION' : 'MESSAGE',
+            title: notificationTitle,
+            content: content && content.length > 50 ? content.substring(0, 50) + '...' : content,
             recipientId: recipient.userId,
             senderId: req.user.id,
             messageId: message.id
@@ -574,24 +589,23 @@ exports.sendMessage = async (req, res) => {
 
         // FCM: Send push to the recipient's registered device
         try {
-          const recipientUser = await prisma.user.findUnique({
-            where: { id: recipient.userId },
-            select: { fcmToken: true }
-          });
-          
           if (recipientUser?.fcmToken) {
             const msgPreview = content
               ? (content.length > 80 ? content.substring(0, 80) + '…' : content)
               : 'Sent an attachment';
 
+            const pushTitle = isMentioned 
+              ? `🔔 ${message.sender.name} mentioned you!` 
+              : `💬 ${message.sender.name}`;
+
             await sendPushNotification([recipientUser.fcmToken], {
-              title: `💬 ${message.sender.name}`,
+              title: pushTitle,
               message: msgPreview,
               url: `/chat/${conversationId}`,
               badgeCount: unreadCount, // Pass latest unread count to set app icon badge
               messageId: message.id, // For deduplication
               extraData: {
-                type: 'MESSAGE',
+                type: isMentioned ? 'MENTION' : 'MESSAGE',
                 chatId: String(conversationId),
                 senderName: message.sender.name
               }

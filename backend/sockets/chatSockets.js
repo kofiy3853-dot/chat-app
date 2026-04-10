@@ -427,7 +427,7 @@ const setupChatSockets = (io) => {
 
                 // 3. Call Nana AI brain
                 console.log(`[Nana AI Trigger] Fetching brain response...`);
-                const aiResponse = await getNanaAiResponse(content, history.reverse(), socket.user);
+                const aiResponse = await getNanaAiResponse(content, history.reverse(), socket.user, conversationId);
                 
                 // 4. Save & Emit
                 const nanaMessage = await prisma.$transaction(async (tx) => {

@@ -15,7 +15,8 @@ import {
   CalendarDaysIcon,
   LinkIcon,
   XMarkIcon,
-  PhotoIcon
+  PhotoIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import { getCurrentUser, getInitials, getAvatarColor, getFullFileUrl } from '../../utils/helpers';
 import { useCall } from '../../context/CallContext';
@@ -31,6 +32,8 @@ export default function ChatPage() {
   const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showMediaGallery, setShowMediaGallery] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [imgError, setImgError] = useState(false);
   const [modalImgError, setModalImgError] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -226,16 +229,17 @@ export default function ChatPage() {
 
   return (
     <>
-      <div className="flex flex-col h-screen bg-page relative transition-all duration-500 overflow-hidden pt-[max(env(safe-area-inset-top,0px),56px)]">
+      <div className="flex flex-col h-[100dvh] bg-page relative transition-all duration-300 overflow-hidden w-full max-w-xl mx-auto">
         <Head>
           <title>{name} | Campus Chat</title>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         </Head>
 
         <header
-          className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-1.5 flex items-center justify-between border-b h-14"
+          className="w-full z-[100] flex flex-col border-b shrink-0"
           style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
         >
+          <div className="flex items-center justify-between px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-1.5 min-h-[56px]">
           {/* Left: back + avatar + name */}
           <div className="flex items-center space-x-3 min-w-0">
             <Link
@@ -311,6 +315,13 @@ export default function ChatPage() {
           {/* Right: call buttons */}
           <div className="flex items-center space-x-2">
             <button
+              onClick={() => setShowSearch(!showSearch)}
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${showSearch ? 'bg-black/10' : 'bg-black/5 hover:bg-black/10'}`}
+              style={{ color: 'var(--text-navbar)' }}
+            >
+              <MagnifyingGlassIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px'}} />
+            </button>
+            <button
               onClick={() => handleStartCall('VOICE')}
               disabled={!otherParticipant}
               className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-black/10 transition-all disabled:opacity-30"
@@ -383,10 +394,31 @@ export default function ChatPage() {
               )}
             </div>
           </div>
+        </div>
+        {showSearch && (
+            <div className="w-full bg-page border-t border-slate-200/50 px-4 py-2 flex items-center transition-all shadow-sm" style={{ background: 'var(--bg-page)', borderColor: 'var(--border)' }}>
+               <input 
+                 autoFocus 
+                 value={searchQuery} 
+                 onChange={e => setSearchQuery(e.target.value)} 
+                 placeholder="Search in conversation..." 
+                 className="w-full rounded-2xl py-2 px-4 text-sm outline-none border focus:ring-2 focus:ring-primary-500/20"
+                 style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}
+               />
+               <button onClick={() => { setShowSearch(false); setSearchQuery(''); }} className="ml-2 p-1.5 rounded-full hover:bg-black/5 text-slate-500 flex-shrink-0 transition-colors">
+                  <XMarkIcon className="w-5 h-5" />
+               </button>
+            </div>
+          )}
         </header>
 
         {/* Chat Component */}
-        <ChatBox conversationId={id} onMessagesUpdate={setMessages} />
+        <ChatBox 
+          conversationId={id} 
+          onMessagesUpdate={setMessages} 
+          searchQuery={searchQuery} 
+          participants={conversation?.participants || []} 
+        />
       </div>
 
       {/* Participant Profile Modal */}

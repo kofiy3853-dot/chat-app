@@ -1,4 +1,5 @@
 const { OpenAI } = require('openai');
+const prisma = require('../prisma/client');
 
 let openai = null;
 if (process.env.OPENAI_API_KEY) {
@@ -20,7 +21,7 @@ const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
  * @param {object} user - The user object sending the message
  * @returns {Promise<string>}
  */
-const getNanaAiResponse = async (userMessage, history = [], user = null) => {
+const getNanaAiResponse = async (userMessage, history = [], user = null, conversationId = null) => {
   if (!openai) {
     console.warn('[Nana AI] AI connection is offline.');
     return "Hello! I'm Nana, your campus assistant. My AI connection is currently offline (API key missing), but I'm still here to help with what I can!";
@@ -30,6 +31,40 @@ const getNanaAiResponse = async (userMessage, history = [], user = null) => {
     // Format history for OpenAI - Limit to last 10 messages for token safety
     const recentHistory = history.slice(-10);
     
+    let extendedContext = '';
+    
+    if (conversationId) {
+      try {
+        const conv = await prisma.conversation.findUnique({
+          where: { id: conversationId },
+          include: {
+            course: {
+              include: {
+                assignments: { where: { deadline: { gt: new Date() } }, orderBy: { deadline: 'asc' }, take: 3 },
+                materials: { orderBy: { createdAt: 'desc' }, take: 3 }
+              }
+            }
+          }
+        });
+
+        if (conv && conv.course) {
+          extendedContext = `\n\nCURRENT COURSE CONTEXT:\nYou are assisting in the chat for Course: ${conv.course.code} - ${conv.course.name}.`;
+          
+          if (conv.course.assignments?.length > 0) {
+             extendedContext += `\nUpcoming Assignments:\n` + conv.course.assignments.map(a => `- ${a.title} (Due: ${new Date(a.deadline).toLocaleDateString()}) [${a.points} pts]`).join('\n');
+          } else {
+             extendedContext += `\nNo upcoming assignments.`;
+          }
+          
+          if (conv.course.materials?.length > 0) {
+             extendedContext += `\nRecent Materials:\n` + conv.course.materials.map(m => `- ${m.title}`).join('\n');
+          }
+        }
+      } catch (err) {
+        console.error('[Nana AI] Error fetching RAG context:', err.message);
+      }
+    }
+
     const messages = [
       { 
         role: "system", 
@@ -54,7 +89,7 @@ const getNanaAiResponse = async (userMessage, history = [], user = null) => {
         
         STUDENT CONTEXT:
         You are currently talking to **${user?.name || 'a student'}**.
-        Reflect that you are a KTU campus specialist.`
+        Reflect that you are a KTU campus specialist.${extendedContext}`
       }
     ];
 
