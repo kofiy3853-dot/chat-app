@@ -29,11 +29,14 @@ import { AttachmentBubble, VoiceBubble } from './ChatMedia';
 import { 
   initDB, 
   cacheMessages, 
+  cacheConversation,
   getCachedMessages,
-  getOutboxMessages
+  getOutboxMessages,
+  getCachedConversation
 } from '../utils/indexedDB';
 import useOfflineChat from '../hooks/useOfflineChat';
 import Markdown from 'markdown-to-jsx';
+import { GroupedVirtuoso } from 'react-virtuoso';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 // --- Memoized Message Bubble Component (defined at module scope to prevent remounting on ChatBox re-renders) ---
@@ -421,6 +424,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   const fileInputRef = useRef(null);
   const convDataRef = useRef(null);
   const userRoleRef = useRef('STUDENT');
+  const virtuosoRef = useRef(null);
   const isMounted = useRef(true);
 
   useEffect(() => {
@@ -638,6 +642,14 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   }, [conversationId, currentUser]);
 
   const scrollToBottom = useCallback((behavior = 'smooth') => {
+    if (virtuosoRef.current) {
+      virtuosoRef.current.scrollToIndex({
+        index: messages.length - 1,
+        align: 'end',
+        behavior
+      });
+      return;
+    }
     const container = scrollContainerRef.current;
     if (container) {
       const targetScroll = container.scrollHeight - container.clientHeight;
@@ -649,7 +661,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
     } else {
       messagesEndRef.current?.scrollIntoView({ behavior, block: 'end' });
     }
-  }, []);
+  }, [messages.length]);
 
   // --- 4. Advanced Scroll Management ---
   const isFirstLoad = useRef(true);
@@ -659,15 +671,18 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
 
   // Checks if we should auto-scroll (if user is at bottom or it's their own message)
   const scrollToBottomIfNear = useCallback((behavior = 'smooth') => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 350;
     const lastMessage = messages[messages.length - 1];
     const isMyMessage = lastMessage?.senderId === currentUser?.id || lastMessage?.sender?.id === currentUser?.id;
 
-    if (isNearBottom || isMyMessage) {
+    if (isMyMessage) {
       scrollToBottom(behavior);
+      return;
+    }
+
+    if (virtuosoRef.current) {
+        // We'll let Virtuoso's followOutput handle this or manually check if needed
+        // but simple way for now:
+        scrollToBottom(behavior);
     }
   }, [messages, currentUser?.id, scrollToBottom]);
 
@@ -919,13 +934,25 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   }, [conversationId]);
 
   // --- 5. Data Grouping ---
-  const filteredMessages = useMemo(() => {
-    if (!searchQuery) return messages;
-    const lowerQuery = searchQuery.toLowerCase();
-    return messages.filter(m => m.content && m.content.toLowerCase().includes(lowerQuery));
+  const groupedData = useMemo(() => {
+    const filtered = searchQuery 
+      ? messages.filter(m => m.content && m.content.toLowerCase().includes(searchQuery.toLowerCase()))
+      : messages;
+    
+    const groups = groupMessagesByDate(filtered);
+    const sortedDates = Object.keys(groups).sort((a, b) => new Date(a) - new Date(b));
+    
+    const groupCounts = [];
+    const flattened = [];
+    
+    sortedDates.forEach(date => {
+      const msgs = groups[date];
+      groupCounts.push(msgs.length);
+      flattened.push(...msgs);
+    });
+    
+    return { groupCounts, sortedDates, flattened };
   }, [messages, searchQuery]);
-
-  const groupedMessages = useMemo(() => groupMessagesByDate(filteredMessages), [filteredMessages]);
 
 
   // --- 6. Final Render ---
@@ -933,123 +960,132 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
 
   return (
     <div className={`flex-1 flex flex-col min-h-0 relative transition-colors duration-500 ${bgColor} overflow-hidden`}>
-      <div 
-        ref={scrollContainerRef} 
-        onScroll={() => {
-          if (scrollContainerRef.current) {
-            const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-            // Use a more precise threshold (150px instead of 300px)
-            const atBottom = scrollHeight - scrollTop - clientHeight < 150;
-            if (showScrollBottom === atBottom) setShowScrollBottom(!atBottom);
-
-            // Infinite scroll logic tracking - prevent jump
-            if (scrollTop < 80 && hasMore && !isLoadingMore && !searchQuery) {
-              const nextPage = page + 1;
-              setPage(nextPage);
-              fetchMessages(nextPage, true);
-            }
-          }
-        }}
-        className="flex-1 overflow-y-auto p-4 scrollbar-hide overscroll-contain relative"
-        style={{ overflowAnchor: 'auto', WebkitOverflowScrolling: 'touch' }}
-      >
-        {isLoadingMore && (
-           <div className="flex justify-center p-4">
-              <div className="w-6 h-6 border-2 border-slate-200 border-t-primary-500 rounded-full animate-spin"></div>
-           </div>
-        )}
-        {showScrollBottom && (
-          <button
-            onClick={() => scrollToBottom()}
-            className="absolute bottom-24 right-4 p-2.5 bg-surface border border-slate-200/50 text-app-primary rounded-full hover:brightness-95 transition-all z-30"
-          >
-            <ChevronDownIcon className="w-5 h-5 stroke-[3px]" />
-          </button>
-        )}
-        {loading ? (
-          <div className="h-full flex items-center justify-center">
-              <div className="flex flex-col items-center">
-                  <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-600 rounded-full animate-spin"></div>
-                  <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Gathering messages...</p>
-              </div>
-          </div>
-        ) : !conversationId ? (
-            <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-surface-2/30">
-              <div className="w-20 h-20 rounded-3xl bg-surface flex items-center justify-center mb-6 border border-slate-200/50">
-                <ChatBubbleLeftIcon className="w-10 h-10 text-primary-400" />
-              </div>
-              <h3 className="text-lg font-black text-app-primary tracking-tight">Select a conversation</h3>
-              <p className="text-xs text-app-secondary font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-wider">Choose a contact from your inbox to start a secure encrypted chat session.</p>
+      {loading ? (
+        <div className="h-full flex items-center justify-center">
+            <div className="flex flex-col items-center">
+                <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-600 rounded-full animate-spin"></div>
+                <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Gathering messages...</p>
             </div>
-        ) : messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-surface-2 flex items-center justify-center mb-3 border border-slate-200/50">
-              <SparklesIcon className="w-6 h-6 text-primary-600" />
+        </div>
+      ) : !conversationId ? (
+          <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-surface-2/30">
+            <div className="w-20 h-20 rounded-3xl bg-surface flex items-center justify-center mb-6 border border-slate-200/50">
+              <ChatBubbleLeftIcon className="w-10 h-10 text-primary-400" />
             </div>
-            <h3 className="text-sm font-black text-app-primary tracking-tight">
-              {isNanaSession ? "Nana is here to help!" : "No messages yet"}
-            </h3>
-            <p className="text-[10px] text-app-secondary font-bold mt-1 max-w-[240px] leading-relaxed uppercase tracking-widest">
-              {isNanaSession 
-                ? "Ask about courses, food, or campus events." 
-                : "Your conversation history will appear here."}
-            </p>
-            
-            {isNanaSession && (
-              <div className="mt-4 grid grid-cols-1 gap-1.5 w-full max-w-xs">
-                {QUICK_ACTIONS.slice(0, 3).map((action, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSendMessage(null, action.query)}
-                    className="p-2 bg-surface border border-slate-200/50 rounded-xl text-[10px] font-black text-app-primary text-left flex items-center gap-2 group"
-                  >
-                    <span>{action.label.split(' ')[0]}</span>
-                    <span>{action.label.split(' ').slice(1).join(' ')}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+            <h3 className="text-lg font-black text-app-primary tracking-tight">Select a conversation</h3>
+            <p className="text-xs text-app-secondary font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-wider">Choose a contact from your inbox to start a secure encrypted chat session.</p>
           </div>
-        ) : (
-          Object.entries(groupedMessages).map(([date, dateMsgs]) => (
-            <div key={date} className="px-2">
-              <div className="flex justify-center my-6 sticky top-2 z-10">
+      ) : messages.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-surface-2 flex items-center justify-center mb-3 border border-slate-200/50">
+            <SparklesIcon className="w-6 h-6 text-primary-600" />
+          </div>
+          <h3 className="text-sm font-black text-app-primary tracking-tight">
+            {isNanaSession ? "Nana is here to help!" : "No messages yet"}
+          </h3>
+          <p className="text-[10px] text-app-secondary font-bold mt-1 max-w-[240px] leading-relaxed uppercase tracking-widest">
+            {isNanaSession 
+              ? "Ask about courses, food, or campus events." 
+              : "Your conversation history will appear here."}
+          </p>
+          
+          {isNanaSession && (
+            <div className="mt-4 grid grid-cols-1 gap-1.5 w-full max-w-xs">
+              {QUICK_ACTIONS.slice(0, 3).map((action, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSendMessage(null, action.query)}
+                  className="p-2 bg-surface border border-slate-200/50 rounded-xl text-[10px] font-black text-app-primary text-left flex items-center gap-2 group"
+                >
+                  <span>{action.label.split(' ')[0]}</span>
+                  <span>{action.label.split(' ').slice(1).join(' ')}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex-1 min-h-0 relative">
+          <GroupedVirtuoso
+            ref={virtuosoRef}
+            groupCounts={groupedData.groupCounts}
+            groupContent={(index) => (
+              <div className="flex justify-center my-6">
                 <span className="bg-surface/90 backdrop-blur px-3 py-1 rounded-full border border-slate-200/50 text-[9px] font-black text-app-secondary uppercase tracking-widest">
-                  {formatMessageTime(date)}
+                  {formatMessageTime(groupedData.sortedDates[index])}
                 </span>
               </div>
-              <div className="space-y-1">
-                {dateMsgs.map((msg, idx) => {
-                  const isNewSender = idx === 0 || dateMsgs[idx - 1].senderId !== msg.senderId;
-                  return (
-                    <MessageBubble 
-                      key={msg.id || msg.tempId} 
-                      message={msg} 
-                      isMine={msg.senderId === currentUser?.id || msg.sender?.id === currentUser?.id} 
-                      showSender={isNewSender && msg.senderId !== currentUser?.id}
-                      currentUser={currentUser}
-                      isActiveMenu={activeMenuId === (msg.id || msg.tempId)}
-                      setActiveMenuId={setActiveMenuId}
-                      isEditing={editingMessageId === (msg.id || msg.tempId)}
-                      onStartEdit={handleStartEdit}
-                      onCancelEdit={handleCancelEdit}
-                      onSaveEdit={handleSaveEdit}
-                      addReaction={addReaction}
-                      deleteMessage={handleDeleteMessage}
-                      handleJoinCall={handleJoinCall}
-                      onReply={handleReplyTo}
-                      onLoad={handleMessageLoad}
-                      showTail={isNewSender}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ))
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
+            )}
+            itemContent={(index, groupIndex) => {
+              const msg = groupedData.flattened[index];
+              if (!msg) return null;
+              
+              // Calculate if new sender for tail logic
+              let isNewSender = true;
+              if (index > 0) {
+                const prevMsg = groupedData.flattened[index - 1];
+                // Only consider same sender if within the SAME group
+                const itemsInPrevGroups = groupedData.groupCounts.slice(0, groupIndex).reduce((a, b) => a + b, 0);
+                const indexInGroup = index - itemsInPrevGroups;
+                if (indexInGroup > 0) {
+                  isNewSender = prevMsg.senderId !== msg.senderId;
+                }
+              }
+
+              return (
+                <div className="px-4">
+                  <MessageBubble 
+                    key={msg.id || msg.tempId} 
+                    message={msg} 
+                    isMine={msg.senderId === currentUser?.id || msg.sender?.id === currentUser?.id} 
+                    showSender={isNewSender && msg.senderId !== currentUser?.id}
+                    currentUser={currentUser}
+                    isActiveMenu={activeMenuId === (msg.id || msg.tempId)}
+                    setActiveMenuId={setActiveMenuId}
+                    isEditing={editingMessageId === (msg.id || msg.tempId)}
+                    onStartEdit={handleStartEdit}
+                    onCancelEdit={handleCancelEdit}
+                    onSaveEdit={handleSaveEdit}
+                    addReaction={addReaction}
+                    deleteMessage={handleDeleteMessage}
+                    handleJoinCall={handleJoinCall}
+                    onReply={handleReplyTo}
+                    onLoad={handleMessageLoad}
+                    showTail={isNewSender}
+                  />
+                </div>
+              );
+            }}
+            followOutput="smooth"
+            initialTopMostItemIndex={groupedData.flattened.length - 1}
+            atBottomStateChange={(atBottom) => setShowScrollBottom(!atBottom)}
+            startReached={() => {
+              if (hasMore && !isLoadingMore && !searchQuery) {
+                const nextPage = page + 1;
+                setPage(nextPage);
+                fetchMessages(nextPage, true);
+              }
+            }}
+            className="h-full no-scrollbar"
+            style={{ paddingBottom: '20px' }}
+            components={{
+              Header: () => isLoadingMore ? (
+                <div className="flex justify-center p-4">
+                  <div className="w-6 h-6 border-2 border-slate-200 border-t-primary-500 rounded-full animate-spin"></div>
+                </div>
+              ) : null,
+            }}
+          />
+          {showScrollBottom && (
+            <button
+              onClick={() => scrollToBottom()}
+              className="absolute bottom-6 right-4 p-2.5 bg-surface border border-slate-200/50 text-app-primary rounded-full shadow-lg hover:brightness-95 transition-all z-30"
+            >
+              <ChevronDownIcon className="w-5 h-5 stroke-[3px]" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Floating Typing Indicator - moved outside scroll for visibility */}
       {typingUsers.length > 0 && (
@@ -1247,3 +1283,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
     </div>
   );
 }
+
+
+
+
