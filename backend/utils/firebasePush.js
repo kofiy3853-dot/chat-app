@@ -25,8 +25,16 @@ async function sendPushNotification(fcmTokens, payload) {
         body: payload.message || 'New notification',
         url: payload.url || '/',
         unreadCount: String(payload.badgeCount || 0),
-        messageId: payload.messageId ? String(payload.messageId) : undefined,
-        ...(payload.extraData || {})
+        // Conditionally include messageId — FCM rejects keys with undefined values
+        ...(payload.messageId ? { messageId: String(payload.messageId) } : {}),
+        // Defensively stringify all extraData values — FCM rejects non-string data fields
+        ...(payload.extraData
+          ? Object.fromEntries(
+              Object.entries(payload.extraData)
+                .filter(([, v]) => v !== undefined && v !== null)
+                .map(([k, v]) => [k, String(v)])
+            )
+          : {})
       },
       // Notification block for native system backup (Android/iOS)
       notification: {
@@ -64,18 +72,19 @@ async function sendPushNotification(fcmTokens, payload) {
     if (response.failureCount > 0) {
       const invalidTokens = [];
       response.responses.forEach((resp, idx) => {
-        if (!resp.success) {
-          const error = resp.error;
-          const token = validTokens[idx];
-          
-          console.warn(`[FCM] Failure for token: ${token.substring(0, 10)}... Error: ${error.code}`);
+          if (!resp.success) {
+            const error = resp.error;
+            const token = validTokens[idx];
+            
+            console.warn(`[FCM] Failure for token: ${token.substring(0, 10)}... | Error: ${error.code} | Msg: ${error.message}`);
 
-          // Tokens that are invalid or no longer registered should be removed from DB
-          if (error.code === 'messaging/invalid-registration-token' || 
-              error.code === 'messaging/registration-token-not-registered') {
-            invalidTokens.push(token);
+            // Tokens that are invalid, or for a different project, should be removed
+            if (error.code === 'messaging/invalid-registration-token' || 
+                error.code === 'messaging/registration-token-not-registered' ||
+                error.code === 'messaging/mismatched-credential') {
+              invalidTokens.push(token);
+            }
           }
-        }
       });
 
       if (invalidTokens.length > 0) {

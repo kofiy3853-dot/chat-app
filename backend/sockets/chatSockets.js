@@ -1,6 +1,7 @@
 const prisma = require('../prisma/client');
 const { socketAuthMiddleware } = require('../middleware/authMiddleware');
 const { getNanaAiResponse } = require('../services/nanaAi');
+const { sendPushNotification } = require('../utils/firebasePush');
 const setupChatSockets = (io) => {
   // Apply auth middleware to socket connections
   io.use(socketAuthMiddleware);
@@ -256,38 +257,9 @@ const setupChatSockets = (io) => {
           });
         });
 
-        // Background Push - do not block
-        Promise.all(recipients.map(async (recipient) => {
-          try {
-            // Check if recipient is actively viewing this room
-            const roomSockets = await io.in(`viewing:${conversationId}`).fetchSockets();
-            const isViewing = roomSockets.some(s => s.user?.id === recipient.userId);
+        // NOTE: FCM push is sent below inside the notification creation block.
+        // Sending push here AND there was causing double notifications + rate limiting.
 
-            if (!isViewing) {
-              const userObj = await prisma.user.findUnique({ where: { id: recipient.userId } });
-              if (userObj?.fcmToken) {
-                const unreadCount = await prisma.notification.count({ where: { recipientId: recipient.userId, isRead: false } });
-                const { sendPushNotification } = require('../utils/firebasePush');
-                
-                sendPushNotification(userObj.fcmToken, {
-                  title: `${socket.user.name} in ${convInfo?.name || 'Chat'}`,
-                  message: type === 'IMAGE' ? 'Sent an image' : (type === 'VOICE' ? 'Sent a voice memo' : content),
-                  url: `/chat/${conversationId}`,
-                  badgeCount: unreadCount,
-                  messageId: message.id, // For deduplication
-                  extraData: { 
-                    type: 'MESSAGE',
-                    chatId: String(conversationId),
-                    senderId: socket.user.id,
-                    senderName: socket.user.name
-                  }
-                });
-              }
-            }
-          } catch (err) {
-            console.error('[PUSH BG ERROR]:', err);
-          }
-        })).catch(e => console.error('[PUSH CRITICAL ERROR]:', e));
 
         const mentionRegex = /@\[([^\]]+)\]\(([^)]+)\)/g;
         const mentions = [...content.matchAll(mentionRegex)];
@@ -322,7 +294,8 @@ const setupChatSockets = (io) => {
               title: notification.title,
               message: notification.content,
               url: notification.actionUrl,
-              extraData: { mention: 'true', conversationId }
+              // FCM requires all data values to be strings
+              extraData: { mention: 'true', conversationId: String(conversationId) }
             });
           }
         }));
@@ -359,25 +332,25 @@ const setupChatSockets = (io) => {
               }
             });
 
-            // REQUIREMENT 3: Trigger FCM notification for offline recipient
+            const totalUnreadCount = await prisma.notification.count({ 
+              where: { recipientId: recipient.userId, isRead: false } 
+            });
+
             const recipientUser = await prisma.user.findUnique({
               where: { id: recipient.userId },
               select: { fcmToken: true }
             });
 
             if (recipientUser?.fcmToken) {
-              const { sendPushNotification } = require('../utils/firebasePush');
               sendPushNotification(recipientUser.fcmToken, {
                 title: notification.title,
                 message: notification.content,
                 url: `/chat/${conversationId}`,
-                extraData: { conversationId, messageId: message.id }
+                badgeCount: totalUnreadCount,
+                messageId: message.id,
+                extraData: { conversationId: String(conversationId), messageId: String(message.id) }
               });
             }
-
-            const totalUnreadCount = await prisma.notification.count({ 
-              where: { recipientId: recipient.userId, isRead: false } 
-            });
 
             io.to(`user:${recipient.userId}`).emit('new-notification', {
               notification,

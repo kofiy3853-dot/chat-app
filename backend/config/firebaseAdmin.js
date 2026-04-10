@@ -6,7 +6,7 @@ try {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
-    console.log('[FIREBASE] Firebase initialized successfully via JSON string.');
+    console.log(`[FIREBASE] Initialized successfully. Project: ${serviceAccount.project_id} | Account: ${serviceAccount.client_email}`);
   } 
   else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_PRIVATE_KEY) {
     admin.initializeApp({
@@ -16,7 +16,7 @@ try {
         privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
       })
     });
-    console.log('[FIREBASE] Firebase initialized successfully via separate ENV vars.');
+    console.log(`[FIREBASE] Initialized successfully. Project: ${process.env.FIREBASE_PROJECT_ID} | Account: ${process.env.FIREBASE_CLIENT_EMAIL}`);
   } else {
     // REQUIREMENT 1: Throw error if credentials missing
     throw new Error('MISSING FIREBASE CREDENTIALS: Set FIREBASE_SERVICE_ACCOUNT_KEY or separate PROJECT_ID/PRIVATE_KEY environment variables.');
