@@ -685,6 +685,10 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
     prevHeightRef.current = 0;
   }, [conversationId]);
 
+  const handleMessageLoad = useCallback(() => {
+    scrollToBottomIfNear('smooth');
+  }, [scrollToBottomIfNear]);
+
   const handleSendMessage = async (e, overrideContent = null) => {
     if (e) e.preventDefault();
     const contentToSend = overrideContent || newMessage;
@@ -906,8 +910,8 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
             }
           }
         }}
-        className="flex-1 overflow-y-auto p-4 scrollbar-hide overscroll-contain relative"
-        style={{ overflowAnchor: 'auto' }}
+        className="flex-1 overflow-y-auto p-4 scrollbar-hide overscroll-contain relative transform-gpu will-change-transform"
+        style={{ overflowAnchor: 'auto', WebkitOverflowScrolling: 'touch' }}
       >
         {isLoadingMore && (
            <div className="flex justify-center p-4">
@@ -992,7 +996,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                     deleteMessage={handleDeleteMessage}
                     handleJoinCall={handleJoinCall}
                     onReply={handleReplyTo}
-                    onLoad={() => scrollToBottomIfNear('smooth')}
+                    onLoad={handleMessageLoad}
                   />
                 ))}
               </div>

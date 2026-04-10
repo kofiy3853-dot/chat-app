@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, useDeferredValue } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -20,7 +20,6 @@ import { chatAPI, userAPI } from '../services/api';
 import { getSocket } from '../services/socket';
 import dynamic from 'next/dynamic';
 import { getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
-import { motion, AnimatePresence } from 'framer-motion';
 
 
 const SoftChatList = dynamic(() => import('../components/SoftChatList'), { ssr: false, loading: () => <div className="p-4 text-center text-sm text-gray-400">Loading chats...</div> });
@@ -35,6 +34,7 @@ const MessagesPage: React.FC = () => {
   const [imgError, setImgError] = useState(false);
   const [conversations, setConversations] = useState<any[]>([]);
   const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'messages' | 'calls' | 'contacts'>('messages');
   const [typingInConvs, setTypingInConvs] = useState<{ [key: string]: { [userId: string]: string } }>({});
@@ -214,9 +214,9 @@ const MessagesPage: React.FC = () => {
     return filtered.filter(conv => {
       const name = (conv.name || conv.participants?.find((p: any) => p.userId !== user?.id)?.user?.name || '').toLowerCase();
       const lastMsg = (conv.lastMessage?.content || '').toLowerCase();
-      return name.includes(search.toLowerCase()) || lastMsg.includes(search.toLowerCase());
+      return name.includes(deferredSearch.toLowerCase()) || lastMsg.includes(deferredSearch.toLowerCase());
     });
-  }, [conversations, search, user, chatFilter]);
+  }, [conversations, deferredSearch, user, chatFilter]);
 
   const handleChatClick = useCallback((id: string) => {
     const conv = conversations.find(c => c.id === id);
@@ -256,15 +256,14 @@ const MessagesPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans w-full" style={{ backgroundColor: 'var(--bg-page)' }}>
+    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans w-full bg-[var(--bg-page)]">
       <Head>
         <title>Messages | Campus Chat</title>
       </Head>
 
       {/* ─── Header ─── */}
       <header 
-        className="w-full z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),12px)] pb-2 border-b shrink-0 flex flex-col"
-        style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
+        className="w-full z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),12px)] pb-2 border-b shrink-0 flex flex-col bg-[var(--bg-navbar)] text-[var(--text-navbar)] border-[var(--border)]"
       >
         <div className="flex items-center justify-between">
           {/* Avatar */}
@@ -289,8 +288,8 @@ const MessagesPage: React.FC = () => {
 
           {/* Title and Branding */}
           <div className="flex flex-col items-center">
-            <h1 className="text-xl font-black tracking-tight leading-tight" style={{ color: 'var(--text-navbar)' }}>KTU Campus</h1>
-            <p className="text-[10px] font-bold uppercase tracking-widest -mt-0.5" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 30%)' }}>Innovating for Development</p>
+            <h1 className="text-xl font-black tracking-tight leading-tight text-[var(--text-navbar)]">KTU Campus</h1>
+            <p className="text-[10px] font-bold uppercase tracking-widest -mt-0.5 text-[color-mix(in_srgb,var(--text-navbar),transparent_30%)]">Innovating for Development</p>
           </div>
 
           <div className="relative" ref={overflowRef}>
@@ -303,13 +302,8 @@ const MessagesPage: React.FC = () => {
               <EllipsisVerticalIcon className="w-5 h-5" />
             </button>
 
-            <AnimatePresence>
               {showOverflow && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.92, y: -4 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.92, y: -4 }}
-                  transition={{ duration: 0.12 }}
+                <div
                   className="absolute right-0 top-11 w-52 bg-surface rounded-2xl border border-app-light overflow-hidden z-50 py-1"
                 >
                   <button
@@ -357,22 +351,21 @@ const MessagesPage: React.FC = () => {
                       </button>
                     </>
                   )}
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
           </div>
         </div>
 
       </header>
 
       {/* ─── Stories Section ─── */}
-      <div className="px-2 pt-2 pb-1 border-b" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+      <div className="px-2 pt-2 pb-1 border-b bg-[var(--bg-surface)] border-[var(--border)]">
         <SoftStories currentUser={user} />
       </div>
 
       {/* ─── Nana AI Hub Link ─── */}
       {!search && user?.role !== 'NANA' && (
-        <div className="px-4 pt-3 pb-1" style={{ backgroundColor: 'var(--bg-page)' }}>
+        <div className="px-4 pt-3 pb-1 bg-[var(--bg-page)]">
           <Link href="/nana">
             <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 shadow-lg shadow-primary-100 cursor-pointer active:scale-[0.98] transition-all">
               <div className="absolute top-[-10px] right-[-10px] p-3 opacity-20 group-hover:scale-110 transition-transform">
@@ -394,9 +387,9 @@ const MessagesPage: React.FC = () => {
       )}
 
       {/* ─── Segmented Filter + Count Row ─── */}
-      <div className="sticky top-[130px] z-20 px-4 py-2.5 border-b flex items-center justify-between shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+      <div className="sticky top-[130px] z-20 px-4 py-2.5 border-b flex items-center justify-between shadow-sm bg-[var(--bg-surface)] border-[var(--border)]">
         {/* Segmented Control */}
-        <div className="inline-flex items-center rounded-xl p-0.5 space-x-0.5" style={{ backgroundColor: 'var(--bg-page)' }}>
+        <div className="inline-flex items-center rounded-xl p-0.5 space-x-0.5 bg-[var(--bg-page)]">
           {(['all', 'courses', 'groups', 'unread'] as const).map((f) => (
             <button
               key={f}
@@ -421,15 +414,9 @@ const MessagesPage: React.FC = () => {
       </div>
 
       {/* ─── Chat List ─── */}
-      <main className="flex-1 overflow-y-auto no-scrollbar pb-[max(env(safe-area-inset-bottom,0px),100px)]" style={{ backgroundColor: 'var(--bg-page)' }}>
-        <AnimatePresence mode="wait">
+      <main className="flex-1 overflow-y-auto no-scrollbar pb-[max(env(safe-area-inset-bottom,0px),100px)] bg-[var(--bg-page)]">
           {activeTab === 'messages' && (
-            <motion.div
-              key="messages"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
+            <div>
               <SoftChatList
                 conversations={filteredConversations}
                 currentUser={user}
@@ -448,9 +435,8 @@ const MessagesPage: React.FC = () => {
                   });
                 }}
               />
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
       </main>
 
       {/* ─── Floating Action Button ─── */}

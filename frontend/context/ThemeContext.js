@@ -15,7 +15,7 @@ export const AVAILABLE_THEMES = [
 ];
 
 const ThemeContext = createContext({ 
-  theme: 'system', 
+  theme: 'light', 
   setTheme: () => {},
   availableThemes: AVAILABLE_THEMES
 });
@@ -32,7 +32,7 @@ function ThemeSync({ children }) {
 
 export function ThemeProvider({ children }) {
   return (
-    <NextThemeProvider attribute="data-theme" defaultTheme="system" enableSystem={true}>
+    <NextThemeProvider attribute="data-theme" defaultTheme="light" enableSystem={true}>
       <ThemeSync>
         {children}
       </ThemeSync>

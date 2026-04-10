@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Virtuoso } from 'react-virtuoso';
 import SoftChatListItem from './SoftChatListItem';
 import { TrashIcon } from '@heroicons/react/24/solid';
 import EmptyState from './EmptyState';
@@ -46,37 +47,52 @@ const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onC
     );
   }
 
+  const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Find the main scroll container from index.tsx layout
+    const parent = document.querySelector('main');
+    if (parent) setScrollParent(parent as HTMLElement);
+  }, []);
+
   return (
-    <div className="divide-y divide-slate-50">
-      {conversations.map(conv => (
-        <div key={conv.id} className="relative select-none">
-          <SoftChatListItem 
-            conversation={conv} 
-            currentUser={currentUser} 
-            onClick={onChatClick}
-            typingUsers={typingInConvs?.[conv.id]}
-            onLongPress={() => setLongPressedId(conv.id)}
-            isSelected={selectedIds?.has(conv.id)}
-          />
-          {longPressedId === conv.id && (
-            <>
-              <div 
-                className="fixed inset-0 z-[100] bg-black/5" 
-                onClick={(e) => { e.stopPropagation(); setLongPressedId(null); }}
+    <div className="w-full relative min-h-screen">
+      {scrollParent && (
+        <Virtuoso
+          customScrollParent={scrollParent}
+          data={conversations}
+          className="divide-y divide-slate-50 pb-[100px]"
+          itemContent={(index, conv) => (
+            <div className="relative select-none">
+              <SoftChatListItem 
+                conversation={conv} 
+                currentUser={currentUser} 
+                onClick={onChatClick}
+                typingUsers={typingInConvs?.[conv.id]}
+                onLongPress={() => setLongPressedId(conv.id)}
+                isSelected={selectedIds?.has(conv.id)}
               />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] flex flex-col items-center">
-                <button 
-                  onClick={(e) => { onDelete?.(conv.id, e); setLongPressedId(null); }}
-                  className="bg-red-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-red-500/20 flex items-center space-x-2 active:scale-95 transition-transform"
-                >
-                  <TrashIcon className="w-5 h-5 text-white" />
-                  <span className="text-sm font-bold tracking-wide">Delete Chat</span>
-                </button>
-              </div>
-            </>
+              {longPressedId === conv.id && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-[100] bg-black/5" 
+                    onClick={(e) => { e.stopPropagation(); setLongPressedId(null); }}
+                  />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] flex flex-col items-center">
+                    <button 
+                      onClick={(e) => { onDelete?.(conv.id, e); setLongPressedId(null); }}
+                      className="bg-red-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-red-500/20 flex items-center space-x-2 active:scale-95 transition-transform"
+                    >
+                      <TrashIcon className="w-5 h-5 text-white" />
+                      <span className="text-sm font-bold tracking-wide">Delete Chat</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           )}
-        </div>
-      ))}
+        />
+      )}
     </div>
   );
 };
