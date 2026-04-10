@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { motion, AnimatePresence } from 'framer-motion';
 import ProfileCard from '../components/ProfileCard';
 import { authAPI } from '../services/api';
 import { disconnectSocket } from '../services/socket';
@@ -56,13 +55,32 @@ export default function Account() {
   }, []);
 
   const checkAuth = async () => {
+    // 1. Read from localStorage immediately — zero latency, no 401 risk
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      try { setUser(JSON.parse(stored)); } catch (_) {}
+    }
+    setLoading(false);
+
+    // 2. Silently refresh from server in background (non-blocking)
+    // We use a raw fetch here to bypass the global axios 401 interceptor
+    // so a stale/expired session doesn't nuke localStorage and force a redirect
+    const token = localStorage.getItem('token');
+    if (!token) return;
     try {
-      const response = await authAPI.getMe();
-      setUser(response.data.user);
-    } catch (error) {
-      console.warn('Silent identity verification failed:', error.message);
-    } finally {
-      setLoading(false);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user) {
+          setUser(data.user);
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+      }
+      // If 401, silently ignore — user still sees their cached profile
+    } catch (_) {
+      // Network error — silently ignore
     }
   };
 
@@ -254,15 +272,13 @@ export default function Account() {
         </div>
       </div>
 
-      <AnimatePresence>
-        {activeModal && (
-          <SettingsModal 
-            type={activeModal} 
-            onClose={closeModal} 
-            states={{ tfaEnabled, setTfaEnabled, privacySettings, setPrivacySettings, notificationSettings, setNotificationSettings, language, setLanguage }}
-          />
-        )}
-      </AnimatePresence>
+      {activeModal && (
+        <SettingsModal 
+          type={activeModal} 
+          onClose={closeModal} 
+          states={{ tfaEnabled, setTfaEnabled, privacySettings, setPrivacySettings, notificationSettings, setNotificationSettings, language, setLanguage }}
+        />
+      )}
     </>
   );
 }
@@ -438,8 +454,8 @@ function SettingsModal({ type, onClose, states }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
-      <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
+      <div onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+      <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-800">
             {type.replace(/([A-Z])/g, ' $1').replace('_', ' ')} Settings
@@ -451,7 +467,7 @@ function SettingsModal({ type, onClose, states }) {
         <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
           {renderContent()}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
