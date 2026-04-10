@@ -74,9 +74,17 @@ export default function Register() {
     const { name, email, password, confirmPassword, role } = formData;
 
     // Basic common validation
-    if (!name.trim() || !email.trim() || !password.trim()) {
+    if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       setError('Essential profile details are mandatory.');
       toast.error('Please fill in your profile info.');
+      setLoading(false);
+      return;
+    }
+
+    // Password match check — run early before file/network checks
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      toast.error('Passwords do not match.');
       setLoading(false);
       return;
     }
@@ -85,12 +93,14 @@ export default function Register() {
     if (role === 'LECTURER') {
       if (!formData.staffId?.trim()) {
         setError('Staff ID is required for lecturers.');
+        toast.error('Staff ID is required.');
         setLoading(false);
         return;
       }
     } else {
       if (!formData.studentId?.trim() || !formData.level) {
         setError('Student ID and Level are required.');
+        toast.error('Please fill in your Student ID and Level.');
         setLoading(false);
         return;
       }
@@ -123,11 +133,7 @@ export default function Register() {
       return;
     }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
+    // (Password match already validated above — skip duplicate check)
 
     try {
       const data = new FormData();

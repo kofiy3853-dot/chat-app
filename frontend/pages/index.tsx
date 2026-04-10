@@ -442,13 +442,8 @@ const MessagesPage: React.FC = () => {
       {/* ─── Floating Action Button ─── */}
       <div className="fixed bottom-24 right-4 z-[200]">
         <div className="relative">
-          <AnimatePresence>
             {showFAB && (
-              <motion.div
-                initial={{ opacity: 0, y: 8, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 8, scale: 0.9 }}
-                transition={{ duration: 0.15 }}
+              <div
                 className="absolute bottom-16 right-0 w-48 bg-surface rounded-2xl shadow-2xl border border-app-light overflow-hidden py-1"
               >
                 <button
@@ -488,9 +483,8 @@ const MessagesPage: React.FC = () => {
                   </div>
                   <span>New Status</span>
                 </button>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
 
           <button
             aria-label="New message"

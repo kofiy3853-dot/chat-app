@@ -28,7 +28,9 @@ export default function Login() {
     setError('');
     setServerStatus('');
 
-    const attemptLogin = async () => authAPI.login(formData);
+    // Trim whitespace to prevent silent login failures
+    const trimmedData = { email: formData.email.trim().toLowerCase(), password: formData.password.trim() };
+    const attemptLogin = async () => authAPI.login(trimmedData);
 
     try {
       let response;
