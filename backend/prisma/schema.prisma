@@ -106,6 +106,7 @@ model ConversationParticipant {
 
   isArchived     Boolean         @default(false)
   isDeleted      Boolean         @default(false)
+  clearedAt      DateTime?
 
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)

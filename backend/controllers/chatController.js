@@ -63,6 +63,15 @@ exports.getConversations = async (req, res) => {
       }
     });
 
+    // Post-filter: Hide lastMessage if it was sent BEFORE the participant cleared their history
+    conversations = conversations.map(conv => {
+      const me = conv.participants.find(p => p.userId === userId);
+      if (me && me.clearedAt && conv.lastMessageAt && new Date(conv.lastMessageAt) <= new Date(me.clearedAt)) {
+        return { ...conv, lastMessage: null };
+      }
+      return conv;
+    });
+
 
     const conversationIds = conversations.map(c => c.id);
     const unreadCounts = await prisma.message.groupBy({
@@ -424,7 +433,10 @@ exports.getMessages = async (req, res) => {
     const messages = await prisma.message.findMany({
       where: {
         conversationId: conversationId,
-        isDeleted: false
+        isDeleted: false,
+        createdAt: {
+          gt: participant.clearedAt || new Date(0)
+        }
       },
       include: {
         sender: {
@@ -526,6 +538,7 @@ exports.sendMessage = async (req, res) => {
           lastMessageAt: new Date()
         }
       }),
+      // Re-enable for everyone so they see the new message even if they deleted the chat previously
       prisma.conversationParticipant.updateMany({
         where: { conversationId },
         data: { isDeleted: false }
@@ -1135,90 +1148,44 @@ exports.getTotalUnreadMessages = async (req, res) => {
   }
 };
 
-// Clear all chat messages
+// Clear chat messages (Defaults to Clear for Me)
 exports.clearChat = async (req, res) => {
   try {
     const { id } = req.params;
+    const { global = false } = req.query; // Support optional global clear for owners
     const userId = req.user.id;
 
-    console.log(`[CLEAR CHAT] Starting for CID:${id} by User:${userId}`);
+    const participant = await prisma.conversationParticipant.findFirst({
+      where: { userId, conversationId: id }
+    });
 
-    try {
-      // 1. Verify access - Using findFirst for better environment compatibility
-      const participant = await prisma.conversationParticipant.findFirst({
-        where: {
-          userId: userId,
-          conversationId: id
-        }
-      });
+    if (!participant) return res.status(404).json({ message: 'Chat not found' });
 
-      if (!participant) {
-        console.warn(`[CLEAR CHAT] Access denied for user:${userId} on CID:${id}`);
-        return res.status(403).json({ message: 'Access denied: You are not a participant in this conversation.' });
-      }
-
-      // Execute as a transaction to ensure database consistency
+    // 1. GLOBAL CLEAR (Owner/Admin Only)
+    if (global && (participant.role === 'OWNER' || participant.role === 'ADMIN' || req.user.role === 'ADMIN')) {
       await prisma.$transaction(async (tx) => {
-        console.log(`[CLEAR CHAT] Transaction started for CID:${id}`);
-
-        // A. Handle Conversation pointers first
-        await tx.conversation.update({
-          where: { id },
-          data: {
-            lastMessageId: null,
-            lastMessageAt: new Date()
-          }
-        });
-
-        // B. Get all message IDs for manual relation cleanup
-        const messages = await tx.message.findMany({
-          where: { conversationId: id },
-          select: { id: true }
-        });
-        const messageIds = messages.map(m => m.id);
-
-        if (messageIds.length > 0) {
-          // C. Delete notifications linked to these messages
-          await tx.notification.deleteMany({
-            where: { messageId: { in: messageIds } }
-          });
-
-          // D. Delete receipts & reactions
-          await tx.readReceipt.deleteMany({ where: { messageId: { in: messageIds } } });
-          await tx.reaction.deleteMany({ where: { messageId: { in: messageIds } } });
-
-          // E. Break self-referential reply chains
-          await tx.message.updateMany({
-            where: { id: { in: messageIds } },
-            data: { replyToId: null }
-          });
-
-          // F. Final message deletion
-          await tx.message.deleteMany({
-            where: { id: { in: messageIds } }
-          });
+        await tx.conversation.update({ where: { id }, data: { lastMessageId: null, lastMessageAt: new Date() } });
+        const msgs = await tx.message.findMany({ where: { conversationId: id }, select: { id: true } });
+        const ids = msgs.map(m => m.id);
+        if (ids.length > 0) {
+          await tx.notification.deleteMany({ where: { messageId: { in: ids } } });
+          await tx.readReceipt.deleteMany({ where: { messageId: { in: ids } } });
+          await tx.reaction.deleteMany({ where: { messageId: { in: ids } } });
+          await tx.message.updateMany({ where: { id: { in: ids } }, data: { replyToId: null } });
+          await tx.message.deleteMany({ where: { id: { in: ids } } });
         }
-        
-        console.log(`[CLEAR CHAT] Successfully cleared ${messageIds.length} messages and relations`);
       });
-
-      // 5. Notify all participants via Socket
-      if (req.io) {
-        req.io.to(`conversation:${id}`).emit('chat-cleared', { conversationId: id });
-      }
-
-      return res.json({ message: 'Chat history cleared successfully' });
-
-    } catch (dbError) {
-      console.error('[CLEAR CHAT] DB Error:', dbError);
-      return res.status(500).json({ 
-        message: `Database Error: ${dbError.message || 'Unknown DB error'}`,
-        code: dbError.code,
-        meta: dbError.meta
+      if (req.io) req.io.to(`conversation:${id}`).emit('chat-cleared', { conversationId: id });
+    } else {
+      // 2. CLEAR FOR ME (Native Behavior)
+      await prisma.conversationParticipant.update({
+        where: { id: participant.id },
+        data: { clearedAt: new Date() }
       });
     }
-  } catch (outerError) {
-    console.error('[CLEAR CHAT] Outer Error:', outerError);
-    return res.status(500).json({ message: 'Internal server error', error: outerError.message });
+
+    res.json({ message: 'Chat history cleared' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

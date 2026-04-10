@@ -195,7 +195,7 @@ export default function ChatPage() {
   };
 
   const handleClearChat = async () => {
-    if (window.confirm('Are you sure you want to clear all messages? This cannot be undone.')) {
+    if (window.confirm('Clear your chat history? This will only remove messages from your view and cannot be undone.')) {
       try {
         await chatAPI.clearChat(id);
         setShowMenu(false);
