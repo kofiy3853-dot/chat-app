@@ -46,8 +46,7 @@ exports.getConversations = async (req, res) => {
                 avatar: true,
                 role: true
               }
-            },
-            readReceipts: true
+            }
           }
         },
         course: {
@@ -424,8 +423,8 @@ exports.getMessages = async (req, res) => {
     // REMOVED isDeleted filter temporarily to rule out missing column
     const messages = await prisma.message.findMany({
       where: {
-        conversationId: conversationId
-        // isDeleted: false (Removing filter to check if column exists)
+        conversationId: conversationId,
+        isDeleted: false
       },
       include: {
         sender: {
@@ -441,7 +440,7 @@ exports.getMessages = async (req, res) => {
             user: { select: { id: true, name: true } }
           }
         }
-        // DEFERRED: readReceipts (Potential heavy join)
+        // DEFERRED: readReceipts (Managed via real-time logic for performance)
       },
       orderBy: { createdAt: 'desc' },
       skip: (parseInt(page) - 1) * parseInt(limit),

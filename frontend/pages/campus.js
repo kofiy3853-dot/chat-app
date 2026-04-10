@@ -6,9 +6,11 @@ import {
   ChevronLeftIcon
 } from '@heroicons/react/24/outline';
 import TabNavigation from '../components/campus/TabNavigation';
-import EventTab from '../components/campus/EventTab';
-import AnnouncementTab from '../components/campus/AnnouncementTab';
-import AnonymousTab from '../components/campus/AnonymousTab';
+import dynamic from 'next/dynamic';
+
+const EventTab = dynamic(() => import('../components/campus/EventTab'), { loading: () => <div className="p-20 text-center animate-pulse text-slate-400">Loading events...</div> });
+const AnnouncementTab = dynamic(() => import('../components/campus/AnnouncementTab'), { loading: () => <div className="p-20 text-center animate-pulse text-slate-400">Loading news...</div> });
+const AnonymousTab = dynamic(() => import('../components/campus/AnonymousTab'), { loading: () => <div className="p-20 text-center animate-pulse text-slate-400">Loading whispers...</div> });
 import { getCurrentUser } from '../utils/helpers';
 
 const CampusPage = () => {

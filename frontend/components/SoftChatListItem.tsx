@@ -1,6 +1,7 @@
 import React, { useRef, useCallback, useState } from 'react';
 import { useRouter } from 'next/router';
 import { formatShortTime, getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
+import { CheckIcon } from '@heroicons/react/24/outline';
 
 interface User {
   id: string;
@@ -20,6 +21,7 @@ interface Message {
   createdAt: string;
   senderId: string;
   type?: string;
+  readReceipts?: any[];
 }
 
 interface Conversation {
@@ -183,8 +185,8 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
 
         {/* Bottom Row: Message Preview and Unread Badge */}
         <div className="flex items-start justify-between gap-3">
-          <p
-            className={`text-[13px] line-clamp-2 leading-[1.35] break-words flex-grow min-w-0 ${
+          <div
+            className={`text-[13px] line-clamp-1 leading-[1.35] break-words flex-grow min-w-0 flex items-center ${
               isSomeoneTyping
                 ? 'text-primary-500 font-semibold italic'
                 : unread > 0
@@ -192,8 +194,28 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
                 : 'text-gray-500 font-normal'
             }`}
           >
-            {preview}
-          </p>
+            {lastMsg?.senderId === currentUser?.id && unread === 0 && (
+              <div className="flex -space-x-1.5 mr-1.5 flex-shrink-0">
+                {(lastMsg?.readReceipts?.length ?? 0) > 0 ? (
+                  <>
+                    <CheckIcon className="w-3.5 h-3.5 stroke-[3.5px] text-sky-400" />
+                    <CheckIcon className="w-3.5 h-3.5 stroke-[3.5px] text-sky-400" />
+                  </>
+                ) : (
+                  <>
+                    <CheckIcon className="w-3.5 h-3.5 stroke-[3.5px] text-gray-300" />
+                    <CheckIcon className="w-3.5 h-3.5 stroke-[3.5px] text-gray-300" />
+                  </>
+                )}
+              </div>
+            )}
+            <span className="truncate">
+              {isGroup && lastMsg && lastMsg.senderId !== currentUser?.id && !isSomeoneTyping && (
+                <span className="font-bold mr-1">{(lastMsg as any).sender?.name?.split(' ')[0]}:</span>
+              )}
+              {preview}
+            </span>
+          </div>
 
           {unread > 0 && (
             <div className="flex-shrink-0 mt-0.5">

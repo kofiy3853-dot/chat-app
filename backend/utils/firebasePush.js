@@ -61,12 +61,12 @@ async function sendPushNotification(fcmTokens, payload) {
     };
 
     // REQUIREMENT 4: Log every notification attempt
-    console.log(`[FCM] Sending push to ${validTokens.length} token(s)...`);
+    console.log(`[FCM] Sending push to ${validTokens.length} token(s)... Payload:`, JSON.stringify(messagePayload, null, 2));
 
     const response = await admin.messaging().sendEachForMulticast(messagePayload);
     
     // Log overall success
-    console.log(`[FCM] Successfully delivered to ${response.successCount} device(s).`);
+    console.log(`[FCM] Broadcast complete. Success: ${response.successCount} | Failure: ${response.failureCount}`);
 
     // REQUIREMENT 5: Handle token cleanup for invalid tokens
     if (response.failureCount > 0) {

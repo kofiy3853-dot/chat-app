@@ -52,7 +52,8 @@ const MessageBubble = React.memo(({
   deleteMessage,
   handleJoinCall,
   onReply,
-  onLoad
+  onLoad,
+  showTail = true
 }) => {
   const timestamp = formatMessageTime(message.createdAt);
   const isTemp = message.id?.toString().startsWith('temp');
@@ -92,7 +93,7 @@ const MessageBubble = React.memo(({
 
   const bubbleClasses = isNana 
     ? `group relative p-5 rounded-[24px] shadow-sm border select-none animate-fade-in w-fit max-w-full bg-surface border-slate-200/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
-    : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} animate-fade-in select-none touch-pan-y`;
+    : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} animate-fade-in select-none touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`;
 
   const nanaStyles = isNana ? {
     display: "block",
@@ -284,22 +285,27 @@ const MessageBubble = React.memo(({
               </div>
             )}
 
-            <div className={`flex items-center mt-1.5 space-x-1 justify-end ${isMine ? 'text-white/60' : 'text-black/40'}`}>
+            <div className={`flex items-center mt-1.5 space-x-1 justify-end ${isMine ? 'text-white/70' : 'text-black/40'}`}>
               <span className="text-[9px] font-bold italic">{timestamp}</span>
               {isMine && (
                 isTemp ? (
                   <ArrowPathIcon className="w-2.5 h-2.5 animate-spin" />
                 ) : (
-                  <div className="flex -space-x-1">
-                    {(message.readReceipts?.length > 0) ? (
-                      <>
-                        <CheckIcon className="w-3 h-3 stroke-[4px] text-emerald-400 drop-shadow-sm" />
-                        <CheckIcon className="w-3 h-3 stroke-[4px] text-emerald-400 drop-shadow-sm" />
-                      </>
+                    message.readReceipts?.length > 0 ? (
+                      <div className="flex -space-x-1.5 translate-y-[1px]">
+                        <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3, type: "spring", stiffness: 500 }}>
+                          <CheckIcon className="w-3 h-3 stroke-[3px] text-sky-400 drop-shadow-sm" />
+                        </motion.div>
+                        <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3, delay: 0.1, type: "spring", stiffness: 500 }}>
+                          <CheckIcon className="w-3 h-3 stroke-[3px] text-sky-400 drop-shadow-sm" />
+                        </motion.div>
+                      </div>
                     ) : (
-                      <CheckIcon className="w-3 h-3 stroke-[4px] text-white/50" />
-                    )}
-                  </div>
+                      <div className="flex -space-x-1.5 translate-y-[1px]">
+                        <CheckIcon className="w-3 h-3 stroke-[3px] text-white/50" />
+                        <CheckIcon className="w-3 h-3 stroke-[3px] text-white/50" />
+                      </div>
+                    )
                 )
               )}
             </div>
@@ -355,6 +361,8 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   const [messages, setMessages] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
+  const isFetchingRef = useRef(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [newMessage, setNewMessage] = useState('');
@@ -431,6 +439,9 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   // --- 3a. Core Data Functions (defined BEFORE effects that call them) ---
 
   const fetchMessages = async (currentPage = 1, append = false) => {
+    if (!conversationId || isFetchingRef.current) return;
+    
+    isFetchingRef.current = true;
     try {
       if (append) setIsLoadingMore(true);
       const response = await chatAPI.getMessages(conversationId, currentPage, 50);
@@ -474,6 +485,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
         setLoading(false);
         setIsLoadingMore(false);
       }
+      isFetchingRef.current = false;
     }
   };
 
@@ -731,8 +743,16 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
         if (mediaFile) {
           const fd = new FormData();
           const type = mediaFile.type.startsWith('image/') ? 'IMAGE' : (mediaFile.type.startsWith('audio/') ? 'VOICE' : 'FILE');
+          let fileToUpload = mediaFile;
+          if (mediaFile.type.startsWith('image/')) {
+            try {
+              fileToUpload = await compressImage(mediaFile);
+            } catch (err) {
+              console.warn('Compression failed, uploading original', err);
+            }
+          }
           
-          fd.append('file', mediaFile);
+          fd.append('file', fileToUpload);
           fd.append('conversationId', conversationId);
           fd.append('content', data.content);
           fd.append('type', type);
@@ -979,26 +999,30 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                 </span>
               </div>
               <div className="space-y-1">
-                {dateMsgs.map((m, i) => (
-                  <MessageBubble 
-                    key={m.id || m.tempId} 
-                    message={m} 
-                    isMine={m.senderId === currentUser?.id || m.sender?.id === currentUser?.id} 
-                    showSender={i === 0 || dateMsgs[i-1].senderId !== m.senderId}
-                    currentUser={currentUser}
-                    isActiveMenu={activeMenuId === (m.id || m.tempId)}
-                    setActiveMenuId={setActiveMenuId}
-                    isEditing={editingMessageId === (m.id || m.tempId)}
-                    onStartEdit={handleStartEdit}
-                    onCancelEdit={handleCancelEdit}
-                    onSaveEdit={handleSaveEdit}
-                    addReaction={addReaction}
-                    deleteMessage={handleDeleteMessage}
-                    handleJoinCall={handleJoinCall}
-                    onReply={handleReplyTo}
-                    onLoad={handleMessageLoad}
-                  />
-                ))}
+                {dateMsgs.map((msg, idx) => {
+                  const isNewSender = idx === 0 || dateMsgs[idx - 1].senderId !== msg.senderId;
+                  return (
+                    <MessageBubble 
+                      key={msg.id || msg.tempId} 
+                      message={msg} 
+                      isMine={msg.senderId === currentUser?.id || msg.sender?.id === currentUser?.id} 
+                      showSender={isNewSender && msg.senderId !== currentUser?.id}
+                      currentUser={currentUser}
+                      isActiveMenu={activeMenuId === (msg.id || msg.tempId)}
+                      setActiveMenuId={setActiveMenuId}
+                      isEditing={editingMessageId === (msg.id || msg.tempId)}
+                      onStartEdit={handleStartEdit}
+                      onCancelEdit={handleCancelEdit}
+                      onSaveEdit={handleSaveEdit}
+                      addReaction={addReaction}
+                      deleteMessage={handleDeleteMessage}
+                      handleJoinCall={handleJoinCall}
+                      onReply={handleReplyTo}
+                      onLoad={handleMessageLoad}
+                      showTail={isNewSender}
+                    />
+                  );
+                })}
               </div>
             </div>
           ))
@@ -1156,7 +1180,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                         e.preventDefault();
                       }
                     }}
-                    placeholder={canSend ? "Message..." : "Only lecturers can post here..."}
+                    aria-label="Type your message"
                     className="flex-1 bg-transparent border-none text-sm py-2 px-1 max-h-32 resize-none focus:ring-0 focus:outline-none outline-none font-medium disabled:text-app-secondary"
                     rows={1}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}

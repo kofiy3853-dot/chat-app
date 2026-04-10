@@ -133,6 +133,7 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
                     placeholder="Type your status..."
                     value={textContent}
                     onChange={(e) => setTextContent(e.target.value)}
+                    aria-label="Status text"
                     className="w-full bg-transparent border-none outline-none text-white text-2xl font-black text-center placeholder-white/40 resize-none h-32"
                   />
                   <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -170,6 +171,7 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
                     placeholder="Add a caption..."
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
+                    aria-label="Status caption"
                     className="w-full bg-slate-50 rounded-2xl px-5 py-4 text-slate-700 font-bold outline-none border border-transparent focus:border-primary-100 transition-all"
                   />
                 </motion.div>

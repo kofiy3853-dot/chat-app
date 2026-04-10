@@ -22,6 +22,7 @@ import { getCurrentUser, getInitials, getAvatarColor, getFullFileUrl } from '../
 import { useCall } from '../../context/CallContext';
 import { sendMessage as sendSocketMessage } from '../../services/socket';
 import { SharedMediaGallery } from '../../components/ChatMedia';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function ChatPage() {
   const router = useRouter();
@@ -37,6 +38,7 @@ export default function ChatPage() {
   const [imgError, setImgError] = useState(false);
   const [modalImgError, setModalImgError] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [typingUsers, setTypingUsers] = useState([]);
   
   const { callUser } = useCall();
 
@@ -138,9 +140,19 @@ export default function ChatPage() {
         });
       };
 
+      const handleUserTyping = ({ userId, userName, isTyping, conversationId: cid }) => {
+        if (cid !== id) return;
+        if (userId === currentUser?.id) return;
+        setTypingUsers(prev => isTyping 
+          ? [...prev.filter(u => u.id !== userId), { id: userId, name: userName }]
+          : prev.filter(u => u.id !== userId)
+        );
+      };
+
       if (socket) {
         socket.on('user-status-changed', handleUserStatusChange);
         socket.on('chat-lock-updated', handleLockUpdated);
+        socket.on('user-typing', handleUserTyping);
       }
 
       return () => {
@@ -148,6 +160,7 @@ export default function ChatPage() {
         if (socket) {
           socket.off('user-status-changed', handleUserStatusChange);
           socket.off('chat-lock-updated', handleLockUpdated);
+          socket.off('user-typing', handleUserTyping);
         }
       };
     }
@@ -305,7 +318,17 @@ export default function ChatPage() {
                       Locked by Lecturer
                     </span>
                   ) : (
-                    isOnline ? 'Online' : 'Offline'
+                    typingUsers.length > 0 ? (
+                      <span className="text-primary-400 font-bold animate-pulse">
+                        {typingUsers.length === 1 ? 'typing...' : 'several people typing...'}
+                      </span>
+                    ) : (
+                      isOnline ? 'Online' : (
+                        otherParticipant?.user?.lastSeen ? (
+                          `Last seen ${formatDistanceToNow(new Date(otherParticipant.user.lastSeen), { addSuffix: true })}`
+                        ) : 'Offline'
+                      )
+                    )
                   )}
                 </p>
               </div>

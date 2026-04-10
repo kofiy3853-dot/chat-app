@@ -13,12 +13,29 @@ const api = axios.create({
   timeout: 60000 // 60s to handle Render.com cold starts (can take up to 50s)
 });
 
-// Warmup the backend server silently (fire-and-forget)
-// Called by the login page to avoid cold-start timeout on the actual login request
+// Warmup the backend server (throttled to avoid redundant network noise)
+let isWarmingUp = false;
+let lastWarmup = 0;
+
 export const warmupServer = () => {
+  const now = Date.now();
+  // Don't warmup more than once every 5 minutes or if a request is already in progress
+  if (isWarmingUp || (now - lastWarmup < 300000)) return Promise.resolve();
+  
+  isWarmingUp = true;
+  lastWarmup = now;
+
   const backendBase = API_URL.replace('/api', '');
-  return fetch(`${backendBase}/health`, { method: 'GET', signal: AbortSignal.timeout(55000) })
-    .catch(() => {}); // Ignore errors — just warming up
+  return fetch(`${backendBase}/health`, { 
+    method: 'GET', 
+    // Reduced timeout: 12.5s is enough to signal Render to wake up without hanging browser connections
+    signal: AbortSignal.timeout(12500),
+    priority: 'low'
+  })
+    .catch(() => {}) // Ignore errors — just warming up
+    .finally(() => { 
+      isWarmingUp = false; 
+    });
 };
 
 // Request interceptor to add auth token

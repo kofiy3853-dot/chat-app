@@ -197,8 +197,11 @@ export const getFullFileUrl = (url) => {
   return `${baseUrl}${path}`;
 };
 
-// Client-side image compression using Canvas
-export const compressImage = (file, maxWidth = 512, maxHeight = 512, quality = 0.6) => {
+/**
+ * Client-side image compression using Canvas
+ * Optimizes images by resizing and converting to WebP format
+ */
+export const compressImage = (file, maxWidth = 1024, maxHeight = 1024, quality = 0.7) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -210,6 +213,7 @@ export const compressImage = (file, maxWidth = 512, maxHeight = 512, quality = 0
         let width = img.width;
         let height = img.height;
 
+        // Resize logic maintaining aspect ratio
         if (width > height) {
           if (width > maxWidth) {
             height *= maxWidth / width;
@@ -225,20 +229,24 @@ export const compressImage = (file, maxWidth = 512, maxHeight = 512, quality = 0
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('Failed to get canvas context'));
+        
         ctx.drawImage(img, 0, 0, width, height);
 
+        // Convert to WebP for modern performance
         canvas.toBlob((blob) => {
           if (blob) {
-            // Return a new File object
-            const compressedFile = new File([blob], file.name, {
-              type: 'image/jpeg',
+            // Rename extension to .webp
+            const newName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+            const compressedFile = new File([blob], newName, {
+              type: 'image/webp',
               lastModified: Date.now(),
             });
             resolve(compressedFile);
           } else {
             reject(new Error('Canvas toBlob failed'));
           }
-        }, 'image/jpeg', quality);
+        }, 'image/webp', quality);
       };
       img.onerror = (e) => reject(e);
     };

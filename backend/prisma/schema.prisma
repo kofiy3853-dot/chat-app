@@ -113,6 +113,7 @@ model ConversationParticipant {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@unique([userId, conversationId])
+  @@index([userId, isDeleted])
 }
 
 model Message {

@@ -125,41 +125,53 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
           className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1"
         >
           <div className="relative p-[2px] rounded-full border-2 border-dashed border-app-light">
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-2 flex items-center justify-center">
-              {currentUser?.avatar ? (
-                <img src={getFullFileUrl(currentUser.avatar)} className="w-full h-full object-cover" alt="My Status" />
-              ) : (
-                <span className="text-gray-600 text-sm font-bold">{getInitials(currentUser?.name)}</span>
-              )}
-            </div>
-            <div className="absolute bottom-0 right-0 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-              <PlusIcon className="w-3 h-3 text-white" />
-            </div>
-          </div>
-          <p className="text-xs font-medium text-gray-700 mt-1 truncate w-full text-center">My Status</p>
-        </div>
-
-        {/* Other Users' Statuses */}
-        {groups.map((group, index) => (
-          <div 
-            key={group.user.id} 
-            onClick={() => handleOpenViewer(index)}
-            role="button"
-            aria-label={`View status from ${group.user.name}`}
-            title={`View status from ${group.user.name}`}
-            className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 group outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1"
-          >
-            <div className={`relative p-[2px] rounded-full transition-all duration-300 border-2 ${group.hasUnseen ? 'border-primary-500' : 'border-app-light'}`}>
               <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-2 flex items-center justify-center">
-                {group.user.avatar ? (
-                  <img src={getFullFileUrl(group.user.avatar)} className="w-full h-full object-cover" alt={group.user.name} />
+                {currentUser?.avatar ? (
+                  <img 
+                    src={getFullFileUrl(currentUser.avatar)} 
+                    loading="lazy" 
+                    decoding="async" 
+                    className="w-full h-full object-cover" 
+                    alt="My Status" 
+                  />
                 ) : (
-                  <div className={`w-full h-full flex items-center justify-center text-white text-sm font-bold bg-gradient-to-tr ${getAvatarColor(group.user.name)}`}>
-                    {getInitials(group.user.name)}
-                  </div>
+                  <span className="text-gray-600 text-sm font-bold">{getInitials(currentUser?.name)}</span>
                 )}
               </div>
+              <div className="absolute bottom-0 right-0 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                <PlusIcon className="w-3 h-3 text-white" />
+              </div>
             </div>
+            <p className="text-xs font-medium text-gray-700 mt-1 truncate w-full text-center">My Status</p>
+          </div>
+  
+          {/* Other Users' Statuses */}
+          {groups.map((group, index) => (
+            <div 
+              key={group.user.id} 
+              onClick={() => handleOpenViewer(index)}
+              role="button"
+              aria-label={`View status from ${group.user.name}`}
+              title={`View status from ${group.user.name}`}
+              className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 group outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1"
+            >
+              <div className={`relative p-[2px] rounded-full transition-all duration-300 border-2 ${group.hasUnseen ? 'border-primary-500' : 'border-app-light'}`}>
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-2 flex items-center justify-center">
+                  {group.user.avatar ? (
+                    <img 
+                      src={getFullFileUrl(group.user.avatar)} 
+                      loading="lazy" 
+                      decoding="async" 
+                      className="w-full h-full object-cover" 
+                      alt={group.user.name} 
+                    />
+                  ) : (
+                    <div className={`w-full h-full flex items-center justify-center text-white text-sm font-bold bg-gradient-to-tr ${getAvatarColor(group.user.name)}`}>
+                      {getInitials(group.user.name)}
+                    </div>
+                  )}
+                </div>
+              </div>
             <p className={`text-xs mt-1 truncate w-full text-center ${group.hasUnseen ? 'font-semibold text-gray-900' : 'font-medium text-gray-500'}`}>
               {group.user.name.split(' ')[0]}
             </p>

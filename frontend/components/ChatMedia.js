@@ -223,7 +223,13 @@ export const SharedMediaGallery = ({ messages = [] }) => {
                          </div>
                        </>
                     ) : (
-                      <img src={url} alt={m.fileName} className="w-full h-full object-cover" />
+                      <img 
+                        src={url} 
+                        loading="lazy"
+                        decoding="async"
+                        alt={m.fileName} 
+                        className="w-full h-full object-cover" 
+                      />
                     )}
                     <a href={url} download={m.fileName} className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40">
                       <ArrowDownTrayIcon className="w-6 h-6 text-white" />
