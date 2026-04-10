@@ -637,41 +637,59 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
     }
   }, [conversationId, currentUser]);
 
-  const scrollToBottom = (behavior = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
-  };
+  const scrollToBottom = useCallback((behavior = 'smooth') => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const targetScroll = container.scrollHeight - container.clientHeight;
+      if (behavior === 'auto' || behavior === 'instant') {
+        container.scrollTop = targetScroll + 100;
+      } else {
+        container.scrollTo({ top: targetScroll + 100, behavior });
+      }
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior, block: 'end' });
+    }
+  }, []);
 
   // --- 4. Advanced Scroll Management ---
   const isFirstLoad = useRef(true);
   const prevHeightRef = useRef(0);
+  const prevMsgCount = useRef(0);
+  const prevFirstMsgId = useRef(null);
 
-  // Debounced auto-scroll function
+  // Checks if we should auto-scroll (if user is at bottom or it's their own message)
   const scrollToBottomIfNear = useCallback((behavior = 'smooth') => {
-    const scrollContainer = scrollContainerRef.current;
-    if (!scrollContainer) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-    const isNearBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 250;
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 350;
     const lastMessage = messages[messages.length - 1];
     const isMyMessage = lastMessage?.senderId === currentUser?.id || lastMessage?.sender?.id === currentUser?.id;
 
     if (isNearBottom || isMyMessage) {
       scrollToBottom(behavior);
     }
-  }, [messages, currentUser?.id]);
+  }, [messages, currentUser?.id, scrollToBottom]);
 
-  // Initial scroll and message-length change scroll
+  // Main scroll effect
   useEffect(() => {
     if (messages.length > 0) {
+      // Determine if we are loading initial data or adding a new message (at the bottom)
+      const isNewMessageAtBottom = messages.length > prevMsgCount.current && 
+                                  (messages[0]?.id === prevFirstMsgId.current || !prevFirstMsgId.current);
+      
       if (isFirstLoad.current) {
         scrollToBottom('auto');
         isFirstLoad.current = false;
-        // Seed the initial height
         if (scrollContainerRef.current) prevHeightRef.current = scrollContainerRef.current.scrollHeight;
-      } else {
+      } else if (isNewMessageAtBottom) {
         scrollToBottomIfNear('smooth');
       }
+      
+      prevMsgCount.current = messages.length;
+      prevFirstMsgId.current = messages[0]?.id;
     }
-  }, [messages.length, conversationId]);
+  }, [messages.length, conversationId, scrollToBottom, scrollToBottomIfNear]);
 
   // ResizeObserver for dynamic content (images, Nana AI markdown)
   useEffect(() => {
@@ -695,6 +713,8 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   useEffect(() => {
     isFirstLoad.current = true;
     prevHeightRef.current = 0;
+    prevMsgCount.current = 0;
+    prevFirstMsgId.current = null;
   }, [conversationId]);
 
   const handleMessageLoad = useCallback(() => {
@@ -918,19 +938,19 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
         onScroll={() => {
           if (scrollContainerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-            // Use a more precise threshold (100px instead of 300px)
+            // Use a more precise threshold (150px instead of 300px)
             const atBottom = scrollHeight - scrollTop - clientHeight < 150;
             if (showScrollBottom === atBottom) setShowScrollBottom(!atBottom);
 
-            // Infinite scroll logic tracking
-            if (scrollTop < 100 && hasMore && !isLoadingMore && !searchQuery) {
+            // Infinite scroll logic tracking - prevent jump
+            if (scrollTop < 80 && hasMore && !isLoadingMore && !searchQuery) {
               const nextPage = page + 1;
               setPage(nextPage);
               fetchMessages(nextPage, true);
             }
           }
         }}
-        className="flex-1 overflow-y-auto p-4 scrollbar-hide overscroll-contain relative transform-gpu will-change-transform"
+        className="flex-1 overflow-y-auto p-4 scrollbar-hide overscroll-contain relative"
         style={{ overflowAnchor: 'auto', WebkitOverflowScrolling: 'touch' }}
       >
         {isLoadingMore && (
