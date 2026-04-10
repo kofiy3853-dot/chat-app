@@ -161,42 +161,46 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
         )}
       </div>
 
-      {/* Text */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-0.5">
+      {/* Text Configuration */}
+      <div className="flex-1 min-w-0 flex flex-col justify-center">
+        {/* Top Row: Name and Time */}
+        <div className="flex items-center justify-between gap-2 mb-0.5">
           <h3
-            className={`text-[15px] truncate pr-2 ${
+            className={`text-[15px] truncate flex-grow ${
               unread > 0 ? 'font-bold text-app-primary' : 'font-semibold text-app-primary'
             }`}
           >
             {name}
           </h3>
           <span
-            className={`text-[11px] flex-shrink-0 ${
-              unread > 0 ? 'text-primary-500 font-semibold' : 'text-gray-400 font-normal'
+            className={`text-[11px] flex-shrink-0 whitespace-nowrap ${
+              unread > 0 ? 'text-primary-500 font-bold' : 'text-gray-400 font-medium'
             }`}
           >
             {time}
           </span>
         </div>
 
-        <div className="flex items-center justify-between">
+        {/* Bottom Row: Message Preview and Unread Badge */}
+        <div className="flex items-start justify-between gap-3">
           <p
-            className={`text-[13px] truncate pr-2 leading-snug ${
+            className={`text-[13px] line-clamp-2 leading-[1.35] break-words flex-grow min-w-0 ${
               isSomeoneTyping
                 ? 'text-primary-500 font-semibold italic'
                 : unread > 0
-                ? 'text-gray-700 font-medium'
-                : 'text-gray-400 font-normal'
+                ? 'text-gray-800 font-medium'
+                : 'text-gray-500 font-normal'
             }`}
           >
             {preview}
           </p>
 
           {unread > 0 && (
-            <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-[11px] font-bold text-white bg-primary-500">
-              {unread > 99 ? '99+' : unread}
-            </span>
+            <div className="flex-shrink-0 mt-0.5">
+              <span className="min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-[11px] font-bold text-white shadow-sm bg-primary-500 ring-2 ring-white">
+                {unread > 99 ? '99+' : unread}
+              </span>
+            </div>
           )}
         </div>
       </div>

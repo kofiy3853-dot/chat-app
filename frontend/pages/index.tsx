@@ -256,17 +256,17 @@ const MessagesPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans pt-[max(env(safe-area-inset-top,0px),64px)]" style={{ backgroundColor: 'var(--bg-page)' }}>
+    <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans w-full" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Head>
         <title>Messages | Campus Chat</title>
       </Head>
 
       {/* ─── Header ─── */}
       <header 
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),12px)] pb-2 border-b h-14"
+        className="w-full z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),12px)] pb-2 border-b shrink-0 flex flex-col"
         style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
       >
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between">
           {/* Avatar */}
           <button
             onClick={() => router.push('/account')}
