@@ -939,7 +939,14 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       ? messages.filter(m => m.content && m.content.toLowerCase().includes(searchQuery.toLowerCase()))
       : messages;
     
-    const groups = groupMessagesByDate(filtered);
+    // Explicitly sort by createdAt to prevent "jumping" or out-of-order messages
+    const sorted = [...filtered].sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.timestamp);
+      const dateB = new Date(b.createdAt || b.timestamp);
+      return dateA - dateB;
+    });
+    
+    const groups = groupMessagesByDate(sorted);
     const sortedDates = Object.keys(groups).sort((a, b) => new Date(a) - new Date(b));
     
     const groupCounts = [];
