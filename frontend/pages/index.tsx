@@ -28,6 +28,8 @@ const NewChatModal = dynamic(() => import('../components/NewChatModal'), { ssr: 
 const UploadStatusModal = dynamic(() => import('../components/UploadStatusModal'), { ssr: false });
 import { toast } from 'react-hot-toast';
 
+import { motion, AnimatePresence } from 'framer-motion';
+
 const MessagesPage: React.FC = () => {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -38,15 +40,29 @@ const MessagesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'messages' | 'calls' | 'contacts'>('messages');
   const [typingInConvs, setTypingInConvs] = useState<{ [key: string]: { [userId: string]: string } }>({});
+  
+  // State for Modals and Search
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
-  const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
-  const [chatFilter, setChatFilter] = useState<'all' | 'unread' | 'groups' | 'courses'>('all');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showOverflow, setShowOverflow] = useState(false);
   const [showFAB, setShowFAB] = useState(false);
+  
+  // State for Selections and Filters
+  const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
+  const [chatFilter, setChatFilter] = useState<'all' | 'unread' | 'groups' | 'courses'>('all');
+  
+  // Refs
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const overflowRef = useRef<HTMLDivElement>(null);
   const isMounted = useRef(true);
   const isFetchingRef = useRef(false);
+
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
 
   useEffect(() => {
     isMounted.current = true;
@@ -172,9 +188,17 @@ const MessagesPage: React.FC = () => {
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         setIsModalOpen(true);
+      }
+      if (e.key === 'Escape') {
+        setIsSearchOpen(false);
+        setSearch('');
       }
       if (e.altKey) {
         if (e.key === '1') setChatFilter('all');
@@ -298,7 +322,17 @@ const MessagesPage: React.FC = () => {
             <p className="text-[10px] font-bold uppercase tracking-widest -mt-0.5 text-[color-mix(in_srgb,var(--text-navbar),transparent_30%)]">Innovating for Development</p>
           </div>
 
-          <div className="relative" ref={overflowRef}>
+          <div className="flex items-center space-x-1" ref={overflowRef}>
+            <button
+              aria-label="Search chats"
+              onClick={() => {
+                setIsSearchOpen(v => !v);
+                if (isSearchOpen) setSearch('');
+              }}
+              className={`w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 transition-all ${isSearchOpen ? 'text-primary-600 bg-primary-50' : 'text-[var(--text-navbar)]'}`}
+            >
+              {isSearchOpen ? <XMarkIcon className="w-5 h-5" /> : <MagnifyingGlassIcon className="w-5 h-5" />}
+            </button>
             <button
               aria-label="More options"
               onClick={() => setShowOverflow(v => !v)}
@@ -364,22 +398,32 @@ const MessagesPage: React.FC = () => {
 
       </header>
       
-      {/* ─── Search Bar ─── */}
-      <div className="px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border)]">
-        <div className="relative group">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-            <MagnifyingGlassIcon className="h-4 w-4 text-app-muted group-focus-within:text-primary-500 transition-colors" />
-          </div>
-          <input
-            type="text"
-            className="block w-full pl-10 pr-4 py-2.5 bg-[var(--bg-page)] border border-[var(--border)] rounded-2xl text-sm font-semibold text-app-primary placeholder-app-muted focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all shadow-sm"
-            placeholder="Search chats..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search chats"
-          />
-        </div>
-      </div>
+      {/* ─── Search Bar (Collapsible) ─── */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border)] overflow-hidden"
+          >
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon className="h-4 w-4 text-app-muted group-focus-within:text-primary-500 transition-colors" />
+              </div>
+              <input
+                ref={searchInputRef}
+                type="text"
+                className="block w-full pl-10 pr-4 py-2.5 bg-[var(--bg-page)] border border-[var(--border)] rounded-2xl text-sm font-semibold text-app-primary placeholder-app-muted focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all shadow-sm"
+                placeholder="Search chats..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label="Search chats"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ─── Stories Section ─── */}
       <div className="px-2 pt-2 pb-1 border-b bg-[var(--bg-surface)] border-[var(--border)]">

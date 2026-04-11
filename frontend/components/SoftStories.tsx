@@ -4,7 +4,7 @@ import { PlusIcon } from '@heroicons/react/24/solid';
 import { toast } from 'react-hot-toast';
 import { getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
 import { getSocket } from '../services/socket';
-import { statusAPI as api } from '../services/api';
+import { statusAPI as api, chatAPI } from '../services/api';
 import StatusViewer from './StatusViewer';
 import UploadStatusModal from './UploadStatusModal';
 
@@ -78,7 +78,6 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
   const handleViewStatus = async (statusId: string) => {
     try {
       await api.viewStatus(statusId);
-      // Update local state if needed (optional since we'll refetch/refresh next time)
     } catch (err) {
       console.error('Failed to record status view:', err);
     }
@@ -89,7 +88,6 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
       await api.deleteStatus(statusId);
       toast.success('Status deleted');
       
-      // Update local state to remove the status immediately
       const updatedGroups = groups.map(group => ({
         ...group,
         statuses: group.statuses.filter(s => s.id !== statusId)
@@ -97,13 +95,34 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
       
       setGroups(updatedGroups);
       
-      // If no more statuses in the currently viewing group, close the viewer
       if (updatedGroups.length === 0 || !updatedGroups[selectedGroupIndex]) {
         setViewerOpen(false);
       }
     } catch (err) {
       console.error('Failed to delete status:', err);
       toast.error('Failed to delete status');
+    }
+  };
+
+  const handleReplyStatus = async (status: Status, message: string, userId: string) => {
+    try {
+      const convRes = await chatAPI.getOrCreateDirectConversation(userId);
+      const conversationId = convRes.data.id;
+
+      const statusRef = status.type === 'TEXT' 
+        ? `"${status.textContent}"` 
+        : (status.caption || 'Image/Video status');
+      
+      const content = `Replied to your status: ${statusRef}\n\n${message}`;
+
+      await chatAPI.sendMessage({
+        conversationId,
+        content,
+        type: 'TEXT'
+      });
+    } catch (err) {
+      console.error('Failed to reply to status:', err);
+      throw err;
     }
   };
 
@@ -116,7 +135,6 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
   return (
     <>
       <div className="flex items-center space-x-4 overflow-x-auto scrollbar-hide py-1 px-1">
-        {/* My Status Item */}
         <div 
           onClick={() => setUploadOpen(true)}
           role="button"
@@ -127,13 +145,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
           <div className="relative p-[2px] rounded-full border-2 border-dashed border-app-light">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-2 flex items-center justify-center">
                 {currentUser?.avatar ? (
-                  <img 
-                    src={getFullFileUrl(currentUser.avatar)} 
-                    loading="lazy" 
-                    decoding="async" 
-                    className="w-full h-full object-cover" 
-                    alt="My Status" 
-                  />
+                  <img src={getFullFileUrl(currentUser.avatar)} loading="lazy" decoding="async" className="w-full h-full object-cover" alt="My Status" />
                 ) : (
                   <span className="text-gray-600 text-sm font-bold">{getInitials(currentUser?.name)}</span>
                 )}
@@ -145,7 +157,6 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
             <p className="text-xs font-medium text-gray-700 mt-1 truncate w-full text-center">My Status</p>
           </div>
   
-          {/* Other Users' Statuses */}
           {groups.map((group, index) => (
             <div 
               key={group.user.id} 
@@ -158,13 +169,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
               <div className={`relative p-[2px] rounded-full transition-all duration-300 border-2 ${group.hasUnseen ? 'border-primary-500' : 'border-app-light'}`}>
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-2 flex items-center justify-center">
                   {group.user.avatar ? (
-                    <img 
-                      src={getFullFileUrl(group.user.avatar)} 
-                      loading="lazy" 
-                      decoding="async" 
-                      className="w-full h-full object-cover" 
-                      alt={group.user.name} 
-                    />
+                    <img src={getFullFileUrl(group.user.avatar)} loading="lazy" decoding="async" className="w-full h-full object-cover" alt={group.user.name} />
                   ) : (
                     <div className={`w-full h-full flex items-center justify-center text-white text-sm font-bold bg-gradient-to-tr ${getAvatarColor(group.user.name)}`}>
                       {getInitials(group.user.name)}
@@ -187,6 +192,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
             onClose={() => { setViewerOpen(false); fetchStatuses(); }} 
             onViewStatus={handleViewStatus}
             onDeleteStatus={handleDeleteStatus}
+            onReply={handleReplyStatus}
           />
         )}
         {uploadOpen && (

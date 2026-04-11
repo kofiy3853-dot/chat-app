@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/solid';
+import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, EyeIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import { getFullFileUrl, getInitials, formatRelativeTime, getCurrentUser } from '../utils/helpers';
+import { toast } from 'react-hot-toast';
 
 interface Status {
   id: string;
@@ -29,6 +30,7 @@ interface StatusViewerProps {
   onClose: () => void;
   onViewStatus: (statusId: string) => void;
   onDeleteStatus?: (statusId: string) => void;
+  onReply?: (status: Status, message: string, userId: string) => Promise<void>;
 }
 
 const StatusViewer: React.FC<StatusViewerProps> = ({ 
@@ -36,11 +38,14 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
   initialGroupIndex, 
   onClose,
   onViewStatus,
-  onDeleteStatus 
+  onDeleteStatus,
+  onReply
 }) => {
   const [groupIndex, setGroupIndex] = useState(initialGroupIndex);
   const [statusIndex, setStatusIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [replyText, setReplyText] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
   const currentUser = getCurrentUser();
 
@@ -59,20 +64,22 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
 
     if (progressInterval.current) clearInterval(progressInterval.current);
 
-    progressInterval.current = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          handleNext();
-          return 100;
-        }
-        return prev + STEP;
-      });
-    }, 50);
+    if (!isSending) {
+        progressInterval.current = setInterval(() => {
+        setProgress((prev) => {
+            if (prev >= 100) {
+            handleNext();
+            return 100;
+            }
+            return prev + STEP;
+        });
+        }, 50);
+    }
 
     return () => {
       if (progressInterval.current) clearInterval(progressInterval.current);
     };
-  }, [groupIndex, statusIndex]);
+  }, [groupIndex, statusIndex, isSending]);
 
   const handleNext = () => {
     if (statusIndex < currentGroup.statuses.length - 1) {
@@ -103,7 +110,25 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
     }
   };
 
+  const handleReplySubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!replyText.trim() || !onReply || !currentStatus || isSending) return;
+
+    setIsSending(true);
+    try {
+      await onReply(currentStatus, replyText, currentGroup.user.id);
+      setReplyText('');
+      toast.success('Reply sent!');
+    } catch (err) {
+      toast.error('Failed to send reply');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   if (!currentGroup || !currentStatus) return null;
+
+  const isOwner = currentUser && currentUser.id === currentGroup.user.id;
 
   return (
     <motion.div 
@@ -139,7 +164,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
              {currentGroup.user.avatar ? (
                 <img src={getFullFileUrl(currentGroup.user.avatar)} className="w-full h-full object-cover rounded-xl" alt="" />
              ) : (
-                <div className="w-full h-full bg-primary-500 flex items-center justify-center text-white text-sm font-black rounded-xl">
+                <div className={`w-full h-full flex items-center justify-center text-white text-sm font-black rounded-xl bg-primary-500`}>
                     {getInitials(currentGroup.user.name)}
                 </div>
              )}
@@ -150,31 +175,29 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          {currentUser && currentUser.id === currentGroup.user.id && (
+          {isOwner && (
             <button 
-              onClick={handleDelete} 
-              aria-label="Delete status"
+              onClick={(e) => { e.stopPropagation(); handleDelete(); }} 
               title="Delete status"
+              aria-label="Delete status"
               className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-full transition-all active:scale-90 mr-1"
             >
               <TrashIcon className="w-6 h-6 text-red-500" />
-              <span className="sr-only">Delete status</span>
             </button>
           )}
           <button 
-            onClick={onClose} 
-            aria-label="Close viewer"
+            onClick={(e) => { e.stopPropagation(); onClose(); }} 
             title="Close viewer"
+            aria-label="Close viewer"
             className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all active:scale-90"
           >
             <XMarkIcon className="w-6 h-6 text-white" />
-            <span className="sr-only">Close viewer</span>
           </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="w-full max-w-lg h-full flex items-center justify-center relative bg-black rounded-3xl overflow-hidden shadow-2xl">
+      <div className="w-full max-w-lg h-[80vh] flex items-center justify-center relative bg-[#111] rounded-3xl overflow-hidden shadow-2xl">
         {currentStatus.type === 'TEXT' ? (
           <div 
             className="w-full h-full flex flex-col items-center justify-center p-12 text-center"
@@ -202,24 +225,46 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
         )}
       </div>
 
-      {/* View Count for Owner */}
-      {currentUser && currentUser.id === currentGroup.user.id && (
-        <div className="absolute bottom-12 left-0 right-0 flex flex-col items-center justify-center z-30 animate-fade-in">
-           <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-xl overflow-hidden active:scale-95 transition-all cursor-default">
-              <EyeIcon className="w-4 h-4 text-white" />
-              <span className="text-white text-xs font-black tracking-tight">
-                 {currentStatus.viewCount || 0} {(currentStatus.viewCount || 0) === 1 ? 'View' : 'Views'}
-              </span>
-           </div>
-        </div>
-      )}
-
-      {/* Close by swipe gesture area or bottom button */}
-      {! (currentUser && currentUser.id === currentGroup.user.id) && (
-        <div className="absolute bottom-6 flex justify-center z-20">
-            <div className="w-12 h-1.5 bg-white/30 rounded-full animate-bounce" />
-        </div>
-      )}
+      {/* Footer: View Count or Reply Input */}
+      <div className="absolute bottom-8 left-0 right-0 px-6 z-30 flex flex-col items-center">
+        {isOwner ? (
+          <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-xl transiton-all">
+            <EyeIcon className="w-4 h-4 text-white" />
+            <span className="text-white text-xs font-black tracking-tight">
+              {currentStatus.viewCount || 0} {(currentStatus.viewCount || 0) === 1 ? 'View' : 'Views'}
+            </span>
+          </div>
+        ) : (
+          <form 
+            onSubmit={handleReplySubmit} 
+            onClick={(e) => e.stopPropagation()} 
+            className="w-full max-w-sm flex items-center space-x-2 bg-white/10 backdrop-blur-xl p-1.5 pl-4 rounded-2xl border border-white/20 group focus-within:bg-white/20 transition-all"
+          >
+            <input 
+              type="text"
+              placeholder="Reply to status..."
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              onFocus={() => { if (progressInterval.current) clearInterval(progressInterval.current); }}
+              onBlur={() => { /* Resume logic if desired */ }}
+              className="flex-1 bg-transparent border-none text-white text-sm placeholder:text-white/40 focus:ring-0 py-2"
+            />
+            <button 
+              type="submit"
+              disabled={!replyText.trim() || isSending}
+              title="Send reply"
+              aria-label="Send reply"
+              className="p-2 bg-primary-500 text-white rounded-xl shadow-lg disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
+            >
+              {isSending ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <PaperAirplaneIcon className="w-5 h-5 -rotate-45" />
+              )}
+            </button>
+          </form>
+        )}
+      </div>
     </motion.div>
   );
 };
