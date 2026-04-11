@@ -43,7 +43,7 @@ function AuthLoader() {
       style={{
         position: 'fixed', inset: 0, backgroundColor: 'var(--bg-page)',
         display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyCenter: 'center', zIndex: 99999
+        alignItems: 'center', justifyContent: 'center', zIndex: 99999
       }}
     >
       <div style={{

@@ -7,10 +7,15 @@ export default function Document() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
-        <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
+        <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <meta name="apple-mobile-web-app-title" content="Campus Chat" />
+        <meta name="application-name" content="Campus Chat" />
+        <meta name="msapplication-TileColor" content="#2E8BC0" />
+        <meta name="theme-color" content="#2E8BC0" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
         <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <style>{`
           #initial-loader {
@@ -85,31 +90,6 @@ export default function Document() {
         `}</style>
       </Head>
       <body className="antialiased">
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-                (function() {
-                  try {
-                    var saved = localStorage.getItem('theme_v2') || 'white';
-                    document.documentElement.setAttribute('data-theme', saved);
-                    var bg = '#ffffff';
-                    if (saved === 'dark') bg = '#0f172a';
-                    if (saved === 'deep-indigo') bg = '#020617';
-                    if (saved === 'matrix') bg = '#000000';
-                    if (saved === 'indigo-pulse') bg = '#ffffff';
-                    if (saved === 'cyan-glow') bg = '#ffffff';
-                    if (saved === 'red') bg = '#ffffff';
-                    if (saved === 'blue') bg = '#ffffff';
-                    if (saved === 'violet') bg = '#ffffff';
-                    if (bg !== '#ffffff') {
-                      document.getElementById('initial-loader').style.backgroundColor = bg;
-                      document.getElementById('loader-title').style.color = '#ffffff';
-                    }
-                  } catch (e) {}
-                })();
-            `,
-          }}
-        />
         <div id="initial-loader">
           <div className="loader-content">
             <div style={{ position: 'relative', marginBottom: '2.5rem' }}>
@@ -132,6 +112,34 @@ export default function Document() {
             </div>
           </div>
         </div>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+                (function() {
+                  try {
+                    var saved = localStorage.getItem('theme_v2') || 'white';
+                    document.documentElement.setAttribute('data-theme', saved);
+                    var bg = '#ffffff';
+                    if (saved === 'dark') bg = '#0f172a';
+                    if (saved === 'deep-indigo') bg = '#020617';
+                    if (saved === 'matrix') bg = '#000000';
+                    if (saved === 'indigo-pulse') bg = '#ffffff';
+                    if (saved === 'cyan-glow') bg = '#ffffff';
+                    if (saved === 'red') bg = '#ffffff';
+                    if (saved === 'blue') bg = '#ffffff';
+                    if (saved === 'violet') bg = '#ffffff';
+                    
+                    var loader = document.getElementById('initial-loader');
+                    var title = document.getElementById('loader-title');
+                    if (loader && bg !== '#ffffff') {
+                      loader.style.backgroundColor = bg;
+                      if (title) title.style.color = '#ffffff';
+                    }
+                  } catch (e) {}
+                })();
+            `,
+          }}
+        />
         <Main />
         <NextScript />
       </body>
