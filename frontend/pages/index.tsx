@@ -28,7 +28,7 @@ const NewChatModal = dynamic(() => import('../components/NewChatModal'), { ssr: 
 const UploadStatusModal = dynamic(() => import('../components/UploadStatusModal'), { ssr: false });
 import { toast } from 'react-hot-toast';
 
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 const MessagesPage: React.FC = () => {
   const router = useRouter();
@@ -399,31 +399,26 @@ const MessagesPage: React.FC = () => {
       </header>
       
       {/* ─── Search Bar (Collapsible) ─── */}
-      <AnimatePresence>
-        {isSearchOpen && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border)] overflow-hidden"
-          >
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-4 w-4 text-app-muted group-focus-within:text-primary-500 transition-colors" />
-              </div>
-              <input
-                ref={searchInputRef}
-                type="text"
-                className="block w-full pl-10 pr-4 py-2.5 bg-[var(--bg-page)] border border-[var(--border)] rounded-2xl text-sm font-semibold text-app-primary placeholder-app-muted focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all shadow-sm"
-                placeholder="Search chats..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                aria-label="Search chats"
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div 
+        className={`transition-all duration-300 ease-in-out border-b border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden ${
+          isSearchOpen ? 'max-h-20 opacity-100 py-3 px-4' : 'max-h-0 opacity-0 py-0 px-4 pointer-events-none'
+        }`}
+      >
+        <div className="relative group">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <MagnifyingGlassIcon className="h-4 w-4 text-app-muted group-focus-within:text-primary-500 transition-colors" />
+          </div>
+          <input
+            ref={searchInputRef}
+            type="text"
+            className="block w-full pl-10 pr-4 py-2.5 bg-[var(--bg-page)] border border-[var(--border)] rounded-2xl text-sm font-semibold text-app-primary placeholder-app-muted focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all shadow-sm"
+            placeholder="Search chats..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search chats"
+          />
+        </div>
+      </div>
 
       {/* ─── Stories Section ─── */}
       <div className="px-2 pt-2 pb-1 border-b bg-[var(--bg-surface)] border-[var(--border)]">
