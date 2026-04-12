@@ -106,7 +106,7 @@ const MessageBubble = React.memo(({
 
   return (
     <div 
-      className={`flex w-full mb-5 px-2 ${isMine ? 'justify-end' : 'justify-start'} transition-transform duration-200`}
+      className={`flex w-full mb-5 px-2 ${isMine ? 'justify-end' : 'justify-start'} duration-0`}
       style={{ transform: `translateX(${swipeOffset}px)` }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -242,7 +242,7 @@ const MessageBubble = React.memo(({
                         </div>
                         <button 
                           onClick={(e) => { e.stopPropagation(); const url = message.content.split('Join here: ')[1]; window.open(url, '_blank'); }}
-                          className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black shadow-lg shadow-emerald-500/20 transition-colors flex items-center justify-center space-x-2"
+                          className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black shadow-md transition-colors flex items-center justify-center space-x-2"
                         >
                           <span>Join Call</span>
                           <ArrowPathIcon className="w-3 h-3" />

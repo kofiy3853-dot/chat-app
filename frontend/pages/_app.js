@@ -164,7 +164,7 @@ function AppContent({ Component, pageProps }) {
       playNotificationSound();
       toast.custom((t) => (
         <div
-          className={`${t.visible ? 'animate-in fade-in slide-in-from-top-full duration-300' : 'animate-out fade-out slide-out-to-top-full duration-300'} max-w-sm w-full bg-white/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active:scale-95 transition-all mb-4`}
+          className={`${t.visible ? 'duration-0' : 'animate-out fade-out slide-out-to-top-full duration-300'} max-w-sm w-full bg-white/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active:scale-95 transition-all mb-4`}
           onClick={() => { router.push(`/chat/${data.conversationId}`); toast.dismiss(t.id); }}
         >
           <div className="flex-1 w-0">

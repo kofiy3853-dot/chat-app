@@ -7,7 +7,7 @@ const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div
       key={router.pathname}
-      className="w-full min-h-full transition-opacity duration-300 ease-out"
+      className="w-full min-h-full"
     >
       {children}
     </div>

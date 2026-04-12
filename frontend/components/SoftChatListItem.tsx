@@ -107,7 +107,7 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
       onMouseLeave={endPress}
       onTouchStart={startPress}
       onTouchEnd={endPress}
-      className={`flex items-center px-4 py-3.5 cursor-pointer transition-colors duration-150 relative select-none border-b border-app-light last:border-0 ${
+      className={`flex items-center px-4 py-3.5 cursor-pointer duration-0 duration-150 relative select-none border-b border-app-light last:border-0 ${
         isSelected ? 'bg-primary-50' : 'hover:bg-surface-2 active:bg-surface-2'
       }`}
     >

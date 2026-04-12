@@ -301,7 +301,7 @@ const MessagesPage: React.FC = () => {
           <button
             onClick={() => router.push('/account')}
             aria-label="Profile"
-            className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active:scale-95 transition-all bg-white"
+            className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active:scale-95 duration-0 bg-white"
           >
             {avatarUrl && !imgError ? (
               <img 
@@ -332,14 +332,14 @@ const MessagesPage: React.FC = () => {
                 setIsSearchOpen(v => !v);
                 if (isSearchOpen) setSearch('');
               }}
-              className={`w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 transition-all ${isSearchOpen ? 'text-primary-600 bg-primary-50' : 'text-[var(--text-navbar)]'}`}
+              className={`w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 duration-0 ${isSearchOpen ? 'text-primary-600 bg-primary-50' : 'text-[var(--text-navbar)]'}`}
             >
               {isSearchOpen ? <XMarkIcon className="w-5 h-5" /> : <MagnifyingGlassIcon className="w-5 h-5" />}
             </button>
             <button
               aria-label="More options"
               onClick={() => setShowOverflow(v => !v)}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 transition-all"
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 duration-0"
               style={{ color: 'var(--text-navbar)' }}
             >
               <EllipsisVerticalIcon className="w-5 h-5" />
@@ -403,7 +403,7 @@ const MessagesPage: React.FC = () => {
       
       {/* ─── Search Bar (Collapsible) ─── */}
       <div 
-        className={`transition-all duration-300 ease-in-out border-b border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden ${
+        className={`duration-0 duration-300 ease-in-out border-b border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden ${
           isSearchOpen ? 'max-h-20 opacity-100 py-3 px-4' : 'max-h-0 opacity-0 py-0 px-4 pointer-events-none'
         }`}
       >
@@ -414,7 +414,7 @@ const MessagesPage: React.FC = () => {
           <input
             ref={searchInputRef}
             type="text"
-            className="block w-full pl-10 pr-4 py-2.5 bg-[var(--bg-page)] border border-[var(--border)] rounded-2xl text-sm font-semibold text-app-primary placeholder-app-muted focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all shadow-sm"
+            className="block w-full pl-10 pr-4 py-2.5 bg-[var(--bg-page)] border border-[var(--border)] rounded-2xl text-sm font-semibold text-app-primary placeholder-app-muted focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 duration-0 shadow-sm"
             placeholder="Search chats..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -432,7 +432,7 @@ const MessagesPage: React.FC = () => {
       {!search && user?.role !== 'NANA' && (
         <div className="px-4 pt-3 pb-1 bg-[var(--bg-page)]">
           <Link href="/nana">
-            <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 shadow-lg shadow-primary-100 cursor-pointer active:scale-[0.98] transition-all">
+            <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 shadow-lg shadow-primary-100 cursor-pointer active:scale-[0.98] duration-0">
               <div className="absolute top-[-10px] right-[-10px] p-3 opacity-20 group-hover:scale-110 transition-transform">
                  <SparklesIcon className="w-20 h-20 text-white" />
               </div>
@@ -459,7 +459,7 @@ const MessagesPage: React.FC = () => {
             <button
               key={f}
               onClick={() => setChatFilter(f)}
-              className={`px-4 py-1.5 rounded-[10px] text-xs font-semibold capitalize transition-all ${
+              className={`px-4 py-1.5 rounded-[10px] text-xs font-semibold capitalize duration-0 ${
                 chatFilter === f
                   ? 'bg-surface text-app-primary shadow-sm font-bold'
                   : 'text-app-muted hover:text-app-secondary'
@@ -554,7 +554,7 @@ const MessagesPage: React.FC = () => {
           <button
             aria-label="New message"
             onClick={() => setShowFAB(v => !v)}
-            className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95 ${showFAB ? 'bg-gray-800 rotate-45' : 'bg-primary-600 shadow-primary-200'}`}
+            className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center duration-0 active:scale-95 ${showFAB ? 'bg-gray-800 rotate-45' : 'bg-primary-600 shadow-primary-200'}`}
           >
             <PlusIcon className="w-6 h-6 text-white stroke-[2.5px]" />
           </button>
