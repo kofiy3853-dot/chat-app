@@ -1,17 +1,10 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { 
-  SparklesIcon, 
-  ArrowLeftIcon,
-  CpuChipIcon,
-  ShieldCheckIcon,
-  CommandLineIcon,
-  XMarkIcon,
-  TrashIcon
-} from '@heroicons/react/24/outline';
+import { SparklesIcon, ArrowLeftIcon, CpuChipIcon, ShieldCheckIcon, CommandLineIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { chatAPI } from '../services/api';
 import ChatBox from '../components/ChatBox';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function NanaPage() {
   const router = useRouter();
@@ -252,55 +245,57 @@ export default function NanaPage() {
       {/* Main Chat Area */}
       <main className="flex-1 min-h-0 flex flex-col relative">
         <div>
-          {loading ? (
-            <div 
-              key="loading"
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 z-30 bg-app flex items-center justify-center"
-            >
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
-                <p className="mt-4 text-xs font-black text-primary-600/60 uppercase tracking-widest">Initializing AI Hub...</p>
-              </div>
-            </div>
-          ) : conversationId ? (
-            <div 
-              key="chat"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex-1 flex flex-col min-h-0"
-            >
-              <ChatBox conversationId={conversationId} />
-            </div>
-          ) : (
-            <div 
-              key="unavailable"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex-1 flex flex-col items-center justify-center p-8 text-center"
-            >
-               <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center mb-6">
-                 <SparklesIcon className="w-10 h-10 text-primary-400" />
-               </div>
-               <h3 className="text-lg font-black text-slate-800 tracking-tight">Nana is unavailable</h3>
-               <p className="text-xs text-slate-400 font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-widest">Unable to establish a secure connection to the AI Hub. Please check your internet and try again.</p>
-               <button 
-                onClick={initNanaChat}
-                className="mt-6 px-6 py-2 bg-primary-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary-600/20"
-               >
-                 Retry Connection
-               </button>
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div 
+                key="loading"
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-30 bg-app flex items-center justify-center"
+              >
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+                  <p className="mt-4 text-xs font-black text-primary-600/60 uppercase tracking-widest">Initializing AI Hub...</p>
+                </div>
+              </motion.div>
+            ) : conversationId ? (
+              <motion.div 
+                key="chat"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex-1 flex flex-col min-h-0"
+              >
+                <ChatBox conversationId={conversationId} />
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="unavailable"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex-1 flex flex-col items-center justify-center p-8 text-center"
+              >
+                 <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center mb-6">
+                   <SparklesIcon className="w-10 h-10 text-primary-400" />
+                 </div>
+                 <h3 className="text-lg font-black text-slate-800 tracking-tight">Nana is unavailable</h3>
+                 <p className="text-xs text-slate-400 font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-widest">Unable to establish a secure connection to the AI Hub. Please check your internet and try again.</p>
+                 <button 
+                  onClick={initNanaChat}
+                  className="mt-6 px-6 py-2 bg-primary-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary-600/20"
+                 >
+                   Retry Connection
+                 </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Diagnostic Terminal Overlay (Easter Egg) */}
         <AnimatePresence>
           {showTerminalOverlay && (
-            <div 
+            <motion.div 
               key="terminal"
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
@@ -320,9 +315,9 @@ export default function NanaPage() {
                 <p>[INIT] Handshake: SECURE (AES-256)</p>
                 <p className="animate-pulse">_</p>
               </div>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
       </main>
 
       {/* Nana Profile Modal */}
