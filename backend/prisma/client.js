@@ -14,17 +14,18 @@ const patchUrl = (url) => {
   const cleanUrl = url.split('?')[0];
   const params = new URLSearchParams(url.split('?')[1] || '');
   
+  // Remove conflicting SSL params from the URL so our Pool ssl config takes precedence
   params.delete('sslmode');
   params.delete('sslaccept');
   params.delete('sslcert');
   params.delete('sslkey');
   params.delete('sslrootcert');
   
-  if (!params.has('sslmode')) {
-    params.set('sslmode', 'require');
-  }
+  // Do NOT add sslmode=require, because pg-connection-string forces string validation, 
+  // overriding our pool's rejectUnauthorized: false.
   
-  return `${cleanUrl}?${params.toString()}`;
+  const queryString = params.toString();
+  return queryString ? `${cleanUrl}?${queryString}` : cleanUrl;
 };
 
 if (process.env.DATABASE_URL) {
