@@ -218,6 +218,7 @@ self.addEventListener("notificationclick", (event) => {
 // ─── BACKGROUND SYNC ──────────────────────────────────────────────────────────
 // Handles deferred message sending when connectivity returns
 self.addEventListener('sync', (event) => {
+  console.log('[SW] Sync event:', event.tag);
   if (event.tag === 'sync-messages') {
     event.waitUntil(syncMessages());
   }
@@ -276,7 +277,7 @@ async function syncMessages() {
 // ─── INDEXEDDB HELPERS (RAW API) ──────────────────────────────────────────────
 function openIndexedDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('campus_chat_db', 1);
+    const request = indexedDB.open('campus_chat_db', 2);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
   });
