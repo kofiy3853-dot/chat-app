@@ -8,7 +8,7 @@ import { CallProvider } from '../context/CallContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { requestFirebaseNotificationPermission, onMessageListener } from '../config/firebase';
-import { pushAPI } from '../services/api';
+import { pushAPI, warmupServer } from '../services/api';
 import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'react-hot-toast';
 import useAuthRedirect from '../hooks/useAuthRedirect';
@@ -88,9 +88,15 @@ function AppContent({ Component, pageProps }) {
 
   // Deduplication cache for notifications
   const notifiedIdsRef = useRef([]);
+  const warmedRef = useRef(false);
 
   // ── PWA / Offline / SW Setup ───────────────────────────────────────────────
   useEffect(() => {
+    if (!warmedRef.current) {
+      warmedRef.current = true;
+      warmupServer();
+    }
+
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         try {

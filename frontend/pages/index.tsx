@@ -219,8 +219,11 @@ const MessagesPage: React.FC = () => {
       if (!isMounted.current) return;
       const newChats = convRes.data.conversations || [];
       setConversations(newChats);
-      // Update cache
-      localStorage.setItem('cached_conversations', JSON.stringify(newChats));
+      try {
+        localStorage.setItem('cached_conversations', JSON.stringify(newChats));
+      } catch (e: any) {
+        console.warn('Cache write skipped:', e?.message);
+      }
     } catch (err) {
       console.error('Fetch data error:', err);
     } finally {
