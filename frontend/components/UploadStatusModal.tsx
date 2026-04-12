@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, PhotoIcon, PencilIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import api, { statusAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
@@ -72,17 +71,8 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
-    >
-      <motion.div 
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        className="bg-surface w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
-      >
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
+      <div className="bg-surface w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[90vh] transition-transform">
         <div className="p-6 border-b border-app-light flex items-center justify-between">
           <h3 className="text-xl font-black text-app-primary tracking-tight">Post Status</h3>
           <button onClick={onClose} title="Close modal" aria-label="Close modal" className="p-2 hover:bg-surface-2 rounded-full transition-colors">
@@ -120,12 +110,8 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
 
           {/* Preview Area */}
           <div className="px-6 pb-6">
-            <AnimatePresence mode="wait">
               {type === 'TEXT' ? (
-                <motion.div 
-                  key="text"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
+                <div 
                   className="rounded-3xl p-8 min-h-[240px] flex flex-col items-center justify-center transition-colors shadow-inner"
                   style={{ backgroundColor: bgColor }}
                 >
@@ -148,12 +134,9 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
                        />
                     ))}
                   </div>
-                </motion.div>
+                </div>
               ) : (
-                <motion.div 
-                  key="image"
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
+                <div 
                   className="space-y-4"
                 >
                   <div className="aspect-[4/3] rounded-3xl bg-slate-100 overflow-hidden relative group">
@@ -174,9 +157,8 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
                     aria-label="Status caption"
                     className="w-full bg-slate-50 rounded-2xl px-5 py-4 text-slate-700 font-bold outline-none border border-transparent focus:border-primary-100 transition-all"
                   />
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
           </div>
         </div>
 
@@ -194,10 +176,10 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
                  <span>Upload Status</span>
                </>
              )}
-           </button>
+</button>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 

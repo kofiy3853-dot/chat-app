@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   SparklesIcon, 
   ArrowLeftIcon,
@@ -252,9 +251,9 @@ export default function NanaPage() {
 
       {/* Main Chat Area */}
       <main className="flex-1 min-h-0 flex flex-col relative">
-        <AnimatePresence mode="wait">
+        <div>
           {loading ? (
-            <motion.div 
+            <div 
               key="loading"
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
@@ -265,9 +264,9 @@ export default function NanaPage() {
                 <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
                 <p className="mt-4 text-xs font-black text-primary-600/60 uppercase tracking-widest">Initializing AI Hub...</p>
               </div>
-            </motion.div>
+            </div>
           ) : conversationId ? (
-            <motion.div 
+            <div 
               key="chat"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -275,9 +274,9 @@ export default function NanaPage() {
               className="flex-1 flex flex-col min-h-0"
             >
               <ChatBox conversationId={conversationId} />
-            </motion.div>
+            </div>
           ) : (
-            <motion.div 
+            <div 
               key="unavailable"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -294,14 +293,14 @@ export default function NanaPage() {
                >
                  Retry Connection
                </button>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
 
         {/* Diagnostic Terminal Overlay (Easter Egg) */}
         <AnimatePresence>
           {showTerminalOverlay && (
-            <motion.div 
+            <div 
               key="terminal"
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
@@ -321,9 +320,9 @@ export default function NanaPage() {
                 <p>[INIT] Handshake: SECURE (AES-256)</p>
                 <p className="animate-pulse">_</p>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </main>
 
       {/* Nana Profile Modal */}

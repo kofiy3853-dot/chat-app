@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { motion } from 'framer-motion';
 import { 
   UsersIcon, 
   ChatBubbleLeftRightIcon, 
@@ -91,21 +90,18 @@ export default function AdminDashboard() {
              { label: 'Live Sessions', value: stats.onlineUsers, icon: GlobeAltIcon, color: 'emerald' },
              { label: 'Messages Sent', value: stats.totalMessages.toLocaleString(), icon: ChatBubbleLeftRightIcon, color: 'blue' },
              { label: 'Course Units', value: stats.courses, icon: AcademicCapIcon, color: 'violet' }
-           ].map((stat, i) => (
-             <motion.div 
-               key={i}
-               initial={{ y: 20, opacity: 0 }}
-               animate={{ y: 0, opacity: 1 }}
-               transition={{ delay: i * 0.1 }}
-               className="bg-slate-800/40 p-6 rounded-3xl border border-slate-700/50 shadow-xl"
-             >
-                <div className={`w-10 h-10 rounded-xl mb-4 flex items-center justify-center bg-${stat.color}-500/10 border border-${stat.color}-500/20`}>
-                   <stat.icon className={`w-6 h-6 text-${stat.color}-400`} />
-                </div>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{stat.label}</p>
-                <h3 className="text-3xl font-black mt-1">{stat.value}</h3>
-             </motion.div>
-           ))}
+].map((stat, i) => (
+              <div 
+                key={i}
+                className="bg-slate-800/40 p-6 rounded-3xl border border-slate-700/50 shadow-xl transition-all duration-300"
+              >
+                 <div className={`w-10 h-10 rounded-xl mb-4 flex items-center justify-center bg-${stat.color}-500/10 border border-${stat.color}-500/20`}>
+                    <stat.icon className={`w-6 h-6 text-${stat.color}-400`} />
+                 </div>
+                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{stat.label}</p>
+                 <h3 className="text-3xl font-black mt-1">{stat.value}</h3>
+              </div>
+            ))}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -121,17 +117,15 @@ export default function AdminDashboard() {
                  </div>
                  
                  {/* Visual placeholder for chart */}
-                 <div className="h-48 flex items-end justify-between px-2 gap-2">
-                    {[35, 62, 45, 90, 65, 85, 30, 48, 75, 40, 55, 95].map((h, i) => (
-                      <motion.div 
-                        key={i}
-                        initial={{ height: 0 }}
-                        animate={{ height: `${h}%` }}
-                        transition={{ delay: 0.5 + (i * 0.05), type: 'spring' }}
-                        className="flex-1 bg-gradient-to-t from-indigo-600 to-indigo-400 rounded-t-lg opacity-80"
-                      ></motion.div>
-                    ))}
-                 </div>
+<div className="h-48 flex items-end justify-between px-2 gap-2">
+                     {[35, 62, 45, 90, 65, 85, 30, 48, 75, 40, 55, 95].map((h, i) => (
+                       <div 
+                         key={i}
+                         className="flex-1 bg-gradient-to-t from-indigo-600 to-indigo-400 rounded-t-lg opacity-80 transition-all duration-500"
+                         style={{ height: `${h}%` }}
+                       ></div>
+                     ))}
+                  </div>
                  <div className="flex justify-between mt-4 text-[10px] text-slate-500 font-black uppercase px-1 tracking-tighter">
                     <span>12:00</span><span>15:00</span><span>18:00</span><span>21:00</span><span>00:00</span>
                  </div>

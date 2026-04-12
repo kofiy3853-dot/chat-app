@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { PlusIcon } from '@heroicons/react/24/solid';
 import { toast } from 'react-hot-toast';
 import { getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
@@ -184,8 +183,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
         ))}
       </div>
 
-      <AnimatePresence>
-        {viewerOpen && (
+      {viewerOpen && (
           <StatusViewer 
             groups={groups} 
             initialGroupIndex={selectedGroupIndex} 
@@ -201,7 +199,6 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
             onSuccess={() => fetchStatuses()} 
           />
         )}
-      </AnimatePresence>
     </>
   );
 };

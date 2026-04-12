@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, EyeIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import { getFullFileUrl, getInitials, formatRelativeTime, getCurrentUser } from '../utils/helpers';
 import { toast } from 'react-hot-toast';
@@ -131,12 +130,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
   const isOwner = currentUser && currentUser.id === currentGroup.user.id;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 1.05 }}
-      className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4 touch-none"
-    >
+    <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4 touch-none">
       {/* Tap Areas for Navigation */}
       <div className="absolute inset-0 flex z-10">
         <div className="w-1/3 h-full" onClick={handlePrev} />
@@ -265,7 +259,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
           </form>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
