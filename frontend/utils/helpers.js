@@ -161,12 +161,12 @@ export const groupMessagesByDate = (messages) => {
 // Get current user from localStorage
 export const getCurrentUser = () => {
   if (typeof window === 'undefined') return null;
-  const userStr = localStorage.getItem('user');
-  if (!userStr) return null;
   try {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return null;
     return JSON.parse(userStr);
   } catch (error) {
-    console.error('Failed to parse user from localStorage:', error);
+    console.warn('Failed to get user from localStorage:', error);
     return null;
   }
 };

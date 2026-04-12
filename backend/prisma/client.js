@@ -11,14 +11,18 @@ const { Pool } = require('pg');
 const patchUrl = (url) => {
   if (!url) return url;
   
-  // Strip existing SSL parameters to avoid conflicts
-  let cleanUrl = url.split('?')[0];
-  let params = new URLSearchParams(url.split('?')[1] || '');
+  const cleanUrl = url.split('?')[0];
+  const params = new URLSearchParams(url.split('?')[1] || '');
   
   params.delete('sslmode');
   params.delete('sslaccept');
-  params.set('sslmode', 'no-verify');
-  params.set('sslaccept', 'accept_invalid_certs');
+  params.delete('sslcert');
+  params.delete('sslkey');
+  params.delete('sslrootcert');
+  
+  if (!params.has('sslmode')) {
+    params.set('sslmode', 'require');
+  }
   
   return `${cleanUrl}?${params.toString()}`;
 };
@@ -35,8 +39,9 @@ const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error('[DB ERROR] Neither DIRECT_URL nor DATABASE_URL is set! Cannot connect to database.');
+  console.log('[DB INFO] The server will fail on startup. Please set DATABASE_URL environment variable.');
 } else {
-  console.log('[DB OVERRIDE] Applied SSL bypass to database connection strings.');
+  console.log('[DB OVERRIDE] Applied SSL configuration to database connection string.');
 }
 
 const pool = new Pool({

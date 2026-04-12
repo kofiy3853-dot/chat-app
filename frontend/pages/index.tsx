@@ -240,7 +240,7 @@ const MessagesPage: React.FC = () => {
     else if (chatFilter === 'courses') filtered = filtered.filter(c => c.type === 'COURSE');
     
     return filtered.filter(conv => {
-      const name = (conv.name || conv.participants?.find((p: any) => p.userId !== user?.id)?.user?.name || '').toLowerCase();
+      const name = (conv.name || (conv.participants || []).find((p: any) => p.userId !== user?.id)?.user?.name || '').toLowerCase();
       const lastMsg = (conv.lastMessage?.content || '').toLowerCase();
       return name.includes(deferredSearch.toLowerCase()) || lastMsg.includes(deferredSearch.toLowerCase());
     });

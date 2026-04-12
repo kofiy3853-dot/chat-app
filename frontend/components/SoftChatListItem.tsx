@@ -77,7 +77,7 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
     if (pressTimer.current) clearTimeout(pressTimer.current);
   }, []);
 
-  const otherParticipant = conversation.participants?.find(p => p.userId !== currentUser?.id)?.user;
+  const otherParticipant = (conversation.participants || []).find(p => p.userId !== currentUser?.id)?.user;
   const name = conversation.name || otherParticipant?.name || 'Chat';
   const avatar = otherParticipant?.avatar;
   const isOnline = otherParticipant?.isOnline;

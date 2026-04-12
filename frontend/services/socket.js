@@ -29,8 +29,7 @@ export const initSocket = () => {
 
   socket.on('disconnect', (reason) => {
     console.log('Socket disconnected:', reason);
-    if (reason === 'io server disconnect') {
-      // the disconnection was initiated by the server, you need to reconnect manually
+    if (reason === 'io server disconnect' && socket) {
       socket.connect();
     }
   });
