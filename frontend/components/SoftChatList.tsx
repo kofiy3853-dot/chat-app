@@ -18,6 +18,13 @@ interface ChatListProps {
 
 const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onChatClick, loading, onStartChat, typingInConvs, onDelete, selectedIds, onToggleSelect }) => {
   const [longPressedId, setLongPressedId] = useState<string | null>(null);
+  const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Find the main scroll container from index.tsx layout
+    const parent = document.querySelector('main');
+    if (parent) setScrollParent(parent as HTMLElement);
+  }, []);
 
   if (loading) {
     return (
@@ -46,14 +53,6 @@ const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onC
       />
     );
   }
-
-  const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    // Find the main scroll container from index.tsx layout
-    const parent = document.querySelector('main');
-    if (parent) setScrollParent(parent as HTMLElement);
-  }, []);
 
   return (
     <div className="w-full relative min-h-screen">

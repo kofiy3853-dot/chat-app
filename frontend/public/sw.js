@@ -1,5 +1,5 @@
-importScripts('https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/11.7.1/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: "AIzaSyAOtUMkW1zGB1OJKpfUqU2QzHrcqJWxGZg",
@@ -9,6 +9,7 @@ firebase.initializeApp({
   messagingSenderId: "165706271744",
   appId: "1:165706271744:web:4d1f86939d13ddb2479ce5"
 });
+
 
 const messaging = firebase.messaging();
 
@@ -143,21 +144,22 @@ self.addEventListener("fetch", (event) => {
 
 // ─── BACKGROUND PUSH NOTIFICATIONS ──────────────────────────────────────────
 // Handled by Firebase Messaging for data-only messages. 
-// Firebase automatically handles 'notification' fields.
+// We use data-only payloads for maximum reliability across browsers.
 messaging.onBackgroundMessage((payload) => {
   console.log('[SW] Received background message:', payload);
 
-  const title = payload.notification?.title || payload.data?.title || 'Campus Chat';
-  const body = payload.notification?.body || payload.data?.body || 'New message received!';
+  // Extract data from the payload (backend now sends data-only)
+  const title = payload.data?.title || 'Campus Hub';
+  const body = payload.data?.body || 'New message received!';
   const url = payload.data?.url || '/';
-  const unreadCount = parseInt(payload.data?.unreadCount || 1);
+  const unreadCount = parseInt(payload.data?.unreadCount || '0');
 
   const options = {
     body,
     icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png", // URL to alpha-only image
     vibrate: [200, 100, 200],
-    tag: url,
+    tag: url, // Groups notifications by URL (e.g. same chat room)
     renotify: true,
     data: { url },
     actions: [
@@ -166,25 +168,29 @@ messaging.onBackgroundMessage((payload) => {
     ]
   };
 
-  // Skip showing notification if a client is already focused
-  return clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-    const isVisible = clients.some(client => client.visibilityState === 'visible' && client.focused);
+  // Skip showing notification if a client is already focused in the foreground
+  return clients.matchAll({ type: 'window', includeUncontrolled: true }).then(allClients => {
+    const isVisible = allClients.some(client => client.visibilityState === 'visible' && client.focused);
     
-    // We only show manual notification for 'data' payloads that don't have 'notification'
-    // because Firebase SDK handles the 'notification' payload automatically.
+    // REQUIREMENT: Manual display is MANDATORY for data-only payloads.
+    // We do NOT check for payload.notification here because we want full control.
     const tasks = [];
     
-    if (!isVisible && !payload.notification) {
+    if (!isVisible) {
       tasks.push(self.registration.showNotification(title, options));
     }
 
-    if ('setAppBadge' in navigator) {
+    // Update app badge if supported (iOS/Android/Desktop Chrome)
+    if ('setAppBadge' in navigator && unreadCount > 0) {
       tasks.push(navigator.setAppBadge(unreadCount).catch(() => {}));
+    } else if ('clearAppBadge' in navigator && unreadCount === 0) {
+      tasks.push(navigator.clearAppBadge().catch(() => {}));
     }
     
     return Promise.all(tasks);
   });
 });
+
 
 // ─── NOTIFICATION CLICK ───────────────────────────────────────────────────────
 self.addEventListener("notificationclick", (event) => {
