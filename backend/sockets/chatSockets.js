@@ -382,7 +382,18 @@ const setupChatSockets = (io) => {
           
           (async () => {
              try {
-                // 1. Typing indicator - Use dynamic ID
+                // 1. Get recipients early to avoid ReferenceError
+                const chatParticipants = await prisma.conversationParticipant.findMany({
+                  where: { conversationId },
+                  select: { userId: true }
+                });
+                const recipients = chatParticipants.filter(p => p.userId !== realNanaId);
+
+                if (!recipients || recipients.length === 0) {
+                  console.warn("[Nana AI] No recipients found for conversation:", conversationId);
+                }
+
+                // 2. Typing indicator - Use dynamic ID
                 io.to(`conversation:${conversationId}`).emit('user-typing', {
                   userId: realNanaId,
                   userName: realNanaName,
@@ -390,7 +401,7 @@ const setupChatSockets = (io) => {
                   isTyping: true
                 });
 
-                // 2. Build contextual history
+                // 3. Build contextual history
                 const history = await prisma.message.findMany({
                   where: { conversationId, isDeleted: false },
                   orderBy: { createdAt: 'desc' },
@@ -398,11 +409,11 @@ const setupChatSockets = (io) => {
                   include: { sender: { select: { id: true, name: true, role: true } } }
                 });
 
-                // 3. Call Nana AI brain
+                // 4. Call Nana AI brain
                 console.log(`[Nana AI Trigger] Fetching brain response...`);
                 const aiResponse = await getNanaAiResponse(content, history.reverse(), socket.user, conversationId);
                 
-                // 4. Save & Emit
+                // 5. Save & Emit
                 const nanaMessage = await prisma.$transaction(async (tx) => {
                   const m = await tx.message.create({
                     data: { conversationId, senderId: realNanaId, content: aiResponse, type: 'TEXT' },
@@ -417,7 +428,7 @@ const setupChatSockets = (io) => {
                   return m;
                 });
 
-                // 5. Stop typing + broadcast
+                // 6. Stop typing + broadcast
                 io.to(`conversation:${conversationId}`).emit('user-typing', {
                   userId: realNanaId,
                   userName: realNanaName,
@@ -437,13 +448,7 @@ const setupChatSockets = (io) => {
                   });
                 });
                 
-                // 6. Handle notification for the student (parallel)
-                const chatParticipants = await prisma.conversationParticipant.findMany({
-                  where: { conversationId },
-                  select: { userId: true }
-                });
-                
-                const recipients = chatParticipants.filter(p => p.userId !== realNanaId);
+                // 7. Handle notification for the student (parallel)
                 await Promise.all(recipients.map(async (recipient) => {
                   // Only notify if recipient is NOT viewing the conversation actively
                   const viewingRoom = io.sockets.adapter.rooms.get(`viewing:${conversationId}`);
@@ -548,14 +553,13 @@ const setupChatSockets = (io) => {
         });
 
         console.log(`[NOTIF DEBUG] Marked ${updatedNotifications.count} notification(s) as read for user:${socket.user.id}`);
-        if (updatedNotifications.count > 0) {
-          // Send updated count to the user's navbar badge
-          const newCount = await prisma.notification.count({
-            where: { recipientId: socket.user.id, isRead: false }
-          });
-          console.log(`[NOTIF DEBUG] Emitting unread-count=${newCount} to room user:${socket.user.id}`);
-          io.to(`user:${socket.user.id}`).emit('unread-count', { count: newCount });
-        }
+        
+        // Always fetch and send updated count to the user's navbar badge to ensure perfect sync
+        const newCount = await prisma.notification.count({
+          where: { recipientId: socket.user.id, isRead: false }
+        });
+        console.log(`[NOTIF DEBUG] Emitting unread-count=${newCount} to room user:${socket.user.id}`);
+        io.to(`user:${socket.user.id}`).emit('unread-count', { count: newCount });
 
         // Notify all participants in the conversation (including the sender's other devices)
         io.to(`conversation:${conversationId}`).emit('messages-read', {

@@ -15,12 +15,24 @@ const messaging = firebase.messaging();
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open("app-cache").then(cache => {
-      return cache.addAll([
+      console.log("[SW] Pre-caching core assets with credentials...");
+      const assets = [
         "/",
         "/manifest.json",
         "/icons/icon-192.png",
         "/favicon.ico"
-      ]).catch(err => console.warn("Initial cache error:", err));
+      ];
+      
+      return Promise.all(
+        assets.map(url => 
+          fetch(url, { credentials: 'include' })
+            .then(response => {
+              if (response.ok) return cache.put(url, response);
+              throw new Error(`Failed to fetch ${url}: ${response.status}`);
+            })
+            .catch(err => console.warn(`[SW] Pre-cache error for ${url}:`, err))
+        )
+      );
     })
   );
   self.skipWaiting();

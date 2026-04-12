@@ -73,28 +73,23 @@ exports.getConversations = async (req, res) => {
     });
 
 
-    const conversationIds = conversations.map(c => c.id);
-    const unreadCounts = await prisma.message.groupBy({
-      by: ['conversationId'],
-      where: {
-        conversationId: { in: conversationIds },
-        senderId: { not: userId },
-        readReceipts: {
-          none: {
-            userId: userId
+    const conversationsWithUnread = await Promise.all(conversations.map(async (conv) => {
+      const unreadCount = await prisma.message.count({
+        where: {
+          conversationId: conv.id,
+          senderId: { not: userId },
+          readReceipts: {
+            none: {
+              userId: userId
+            }
           }
         }
-      },
-      _count: true
-    });
-
-    const conversationsWithUnread = conversations.map(conv => {
-      const countObj = unreadCounts.find(c => c.conversationId === conv.id);
+      });
       return {
         ...conv,
-        unreadCount: countObj ? countObj._count : 0
+        unreadCount
       };
-    });
+    }));
 
     res.json({ conversations: conversationsWithUnread });
   } catch (error) {
