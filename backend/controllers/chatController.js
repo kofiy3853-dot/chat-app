@@ -9,61 +9,84 @@ const NANA_SESSION_MARKER = '__nana__';
 
 // Get user's conversations
 exports.getConversations = async (req, res) => {
+  const userId = req.user?.id;
   try {
-    const userId = req.user.id;
+    if (!userId) {
+      console.error('[getConversations] ERROR: No user ID on request');
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    console.log(`[getConversations] START for user: ${userId}`);
 
-    let conversations = await prisma.conversation.findMany({
-      where: {
-        participants: {
-          some: {
-            userId: userId,
-            isDeleted: false
-          }
+    // Phase 1: Test DB connectivity with a lightweight ping
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+    } catch (dbErr) {
+      console.error('[getConversations] DB CONNECTIVITY FAILURE:', dbErr.message);
+      return res.status(503).json({ message: 'Database unavailable, please retry shortly.', error: dbErr.message });
+    }
+
+    // Phase 2: Fetch conversations
+    console.log('[getConversations] Fetching conversations from DB...');
+    let conversations;
+    try {
+      conversations = await prisma.conversation.findMany({
+        where: {
+          participants: {
+            some: {
+              userId: userId,
+              isDeleted: false
+            }
+          },
+          isActive: true
         },
-        isActive: true
-      },
-      include: {
-        participants: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-                role: true,
-                isOnline: true,
-                lastSeen: true
+        include: {
+          participants: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatar: true,
+                  role: true,
+                  isOnline: true,
+                  lastSeen: true
+                }
               }
+            }
+          },
+          lastMessage: {
+            include: {
+              sender: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatar: true,
+                  role: true
+                }
+              }
+            }
+          },
+          course: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              announcementsOnly: true
             }
           }
         },
-        lastMessage: {
-          include: {
-            sender: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-                role: true
-              }
-            }
-          }
-        },
-        course: {
-          select: {
-            id: true,
-            code: true,
-            name: true,
-            announcementsOnly: true
-          }
+        orderBy: {
+          lastMessageAt: 'desc'
         }
-      },
-      orderBy: {
-        lastMessageAt: 'desc'
-      }
-    });
+      });
+    } catch (findErr) {
+      console.error('[getConversations] PHASE 2 (findMany) FAILED:', findErr.message, findErr.stack);
+      return res.status(500).json({ message: 'Failed to fetch conversations', error: findErr.message });
+    }
 
-    // Post-filter: Hide lastMessage if it was sent BEFORE the participant cleared their history
+    console.log(`[getConversations] Found ${conversations.length} conversations`);
+
+    // Phase 3: Post-filter for cleared chat history
     conversations = conversations.map(conv => {
       const me = conv.participants.find(p => p.userId === userId);
       if (me && me.clearedAt && conv.lastMessageAt && new Date(conv.lastMessageAt) <= new Date(me.clearedAt)) {
@@ -72,27 +95,32 @@ exports.getConversations = async (req, res) => {
       return conv;
     });
 
-
-    const conversationsWithUnread = await Promise.all(conversations.map(async (conv) => {
-      const unreadCount = await prisma.message.count({
-        where: {
-          conversationId: conv.id,
-          senderId: { not: userId },
-          readReceipts: {
-            none: {
-              userId: userId
+    // Phase 4: Attach unread counts
+    console.log('[getConversations] Computing unread counts...');
+    let conversationsWithUnread;
+    try {
+      conversationsWithUnread = await Promise.all(conversations.map(async (conv) => {
+        const unreadCount = await prisma.message.count({
+          where: {
+            conversationId: conv.id,
+            senderId: { not: userId },
+            readReceipts: {
+              none: { userId: userId }
             }
           }
-        }
-      });
-      return {
-        ...conv,
-        unreadCount
-      };
-    }));
+        });
+        return { ...conv, unreadCount };
+      }));
+    } catch (unreadErr) {
+      console.error('[getConversations] PHASE 4 (unread counts) FAILED:', unreadErr.message);
+      // Gracefully degrade — return conversations without unread counts
+      conversationsWithUnread = conversations.map(conv => ({ ...conv, unreadCount: 0 }));
+    }
 
+    console.log('[getConversations] SUCCESS — returning response');
     res.json({ conversations: conversationsWithUnread });
   } catch (error) {
+    console.error(`[getConversations] UNHANDLED ERROR for user ${userId}:`, error.message, error.stack);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
