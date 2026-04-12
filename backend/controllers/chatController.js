@@ -805,6 +805,7 @@ exports.uploadAttachment = async (req, res) => {
     const fileUrl = await uploadToSupabase(localFile);
     
     if (!fileUrl) {
+      console.error('[UPLOAD] Failed - fileUrl is null. Check Supabase credentials/bucket.');
       return res.status(500).json({ message: 'Failed to upload to cloud storage' });
     }
 
