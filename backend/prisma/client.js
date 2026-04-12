@@ -35,33 +35,33 @@ if (process.env.DIRECT_URL) {
 }
 
 // Now read the connection string after patching
-const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+let connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error('[DB ERROR] Neither DIRECT_URL nor DATABASE_URL is set! Cannot connect to database.');
   console.log('[DB INFO] The server will fail on startup. Please set DATABASE_URL environment variable.');
+  module.exports = null;
 } else {
   console.log('[DB OVERRIDE] Applied SSL configuration to database connection string.');
+  
+  const pool = new Pool({
+    connectionString,
+    ssl: { rejectUnauthorized: false },
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  });
+
+  pool.on('error', (err) => {
+    console.error('[PG POOL ERROR]', err.message);
+  });
+
+  const adapter = new PrismaPg(pool);
+
+  const prisma = new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+  });
+
+  module.exports = prisma;
 }
-
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-});
-
-
-pool.on('error', (err) => {
-  console.error('[PG POOL ERROR]', err.message);
-});
-
-const adapter = new PrismaPg(pool);
-
-const prisma = new PrismaClient({
-  adapter,
-  log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
-});
-
-module.exports = prisma;

@@ -9,7 +9,7 @@ import {
   CalendarDaysIcon,
   BuildingLibraryIcon
 } from '@heroicons/react/24/outline';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import NewChatModal from './NewChatModal';
 import { getSocket } from '../services/socket';
 import { userAPI, chatAPI } from '../services/api';
@@ -19,6 +19,12 @@ export default function Navbar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
+  const currentUserId = useMemo(() => {
+    try {
+      const user = localStorage.getItem('user');
+      return user ? JSON.parse(user)?.id : null;
+    } catch { return null; }
+  }, []);
 
   useEffect(() => {
     // 1. Fetch initial counts immediately on mount
@@ -56,7 +62,7 @@ export default function Navbar() {
         // Add handler for new messages across any conversation
         socket.on('new-message', (data) => {
           // If the message is from someone else, refresh the total unread count
-          if (data.message.senderId !== JSON.parse(localStorage.getItem('user'))?.id) {
+          if (currentUserId && data.message.senderId !== currentUserId) {
             chatAPI.getUnreadChatCount()
               .then(r => { if (r?.data?.count !== undefined) setChatUnreadCount(r.data.count); })
               .catch(() => {});
