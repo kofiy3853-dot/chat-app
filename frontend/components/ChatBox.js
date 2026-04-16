@@ -296,12 +296,12 @@ const MessageBubble = React.memo(({
                 ) : (
                     message.readReceipts?.length > 0 ? (
                       <div className="flex -space-x-1.5 translate-y-[1px]">
-                        <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3, type: "spring", stiffness: 500 }}>
+                        <div className="animate-read-receipt-1">
                           <CheckIcon className="w-3 h-3 stroke-[3px] text-sky-400 drop-shadow-sm" />
-                        </motion.div>
-                        <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3, delay: 0.1, type: "spring", stiffness: 500 }}>
+                        </div>
+                        <div className="animate-read-receipt-2">
                           <CheckIcon className="w-3 h-3 stroke-[3px] text-sky-400 drop-shadow-sm" />
-                        </motion.div>
+                        </div>
                       </div>
                     ) : (
                       <div className="flex -space-x-1.5 translate-y-[1px]">

@@ -314,6 +314,15 @@ header.sticky {
   animation: fadeIn 0.3s ease-out forwards;
 }
 
+@keyframes readReceiptScale {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-read-receipt-1 { animation: readReceiptScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.animate-read-receipt-2 { animation: readReceiptScale 0.3s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
 /* ═══════════════════════ Scrollbar ═════════════════════════ */
 ::-webkit-scrollbar          { width: 5px; }
 ::-webkit-scrollbar-track    { background: transparent; }
