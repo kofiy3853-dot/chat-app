@@ -8,7 +8,6 @@ import {
   SpeakerWaveIcon,
   VideoCameraSlashIcon
 } from '@heroicons/react/24/outline';
-import { KeepAwake } from '@capacitor-community/keep-awake';
 
 export default function CallInterface() {
   const { 
@@ -54,6 +53,7 @@ export default function CallInterface() {
       if (!isActive) return;
       try {
         if (typeof window !== 'undefined' && window.capacitor) {
+          const { KeepAwake } = await import('@capacitor-community/keep-awake');
           await KeepAwake.keepAwake();
         } else if ('wakeLock' in navigator) {
           wakeLock = await navigator.wakeLock.request('screen');
@@ -64,6 +64,7 @@ export default function CallInterface() {
     const disableKeepAwake = async () => {
       try {
         if (typeof window !== 'undefined' && window.capacitor) {
+          const { KeepAwake } = await import('@capacitor-community/keep-awake');
           await KeepAwake.allowSleep();
         } else if (wakeLock) {
           await wakeLock.release();

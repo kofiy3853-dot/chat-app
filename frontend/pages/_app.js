@@ -1,15 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
 import PageWrapper from '../components/PageWrapper';
 import Navbar from '../components/Navbar';
 import { getSocket } from '../services/socket';
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { CallProvider } from '../context/CallContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { requestFirebaseNotificationPermission, onMessageListener } from '../config/firebase';
 import { pushAPI, warmupServer } from '../services/api';
-import dynamic from 'next/dynamic';
 import { Toaster, toast } from 'react-hot-toast';
 import useAuthRedirect from '../hooks/useAuthRedirect';
 import { BellIcon } from '@heroicons/react/24/outline';

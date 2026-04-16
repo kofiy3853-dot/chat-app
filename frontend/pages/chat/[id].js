@@ -5,7 +5,6 @@ import Link from 'next/link';
 import ChatBox from '../../components/ChatBox';
 import { chatAPI } from '../../services/api';
 import { initSocket, joinConversation, leaveConversation } from '../../services/socket';
-import { KeepAwake } from '@capacitor-community/keep-awake';
 import { 
   ArrowLeftIcon, 
   EllipsisVerticalIcon, 
@@ -48,6 +47,7 @@ export default function ChatPage() {
     const enableKeepAwake = async () => {
       try {
         if (typeof window !== 'undefined' && window.capacitor) {
+          const { KeepAwake } = await import('@capacitor-community/keep-awake');
           await KeepAwake.keepAwake();
         } else if ('wakeLock' in navigator) {
           wakeLock = await navigator.wakeLock.request('screen');
@@ -60,6 +60,7 @@ export default function ChatPage() {
     const disableKeepAwake = async () => {
       try {
         if (typeof window !== 'undefined' && window.capacitor) {
+          const { KeepAwake } = await import('@capacitor-community/keep-awake');
           await KeepAwake.allowSleep();
         } else if (wakeLock) {
           await wakeLock.release();
