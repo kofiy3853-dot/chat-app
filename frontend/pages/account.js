@@ -166,38 +166,6 @@ export default function Account() {
         <div className="max-w-2xl mx-auto p-4 space-y-8">
           <ProfileCard user={user} onUpdate={handleUpdateProfile} />
 
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between px-4">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>Theme Hub</h3>
-                <span className="px-2 py-0.5 bg-primary-100 text-primary-700 text-[8px] font-black uppercase rounded">10 Options</span>
-              </div>
-              <div className="rounded-[2.5rem] p-6 shadow-2xl border transition-all duration-500" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
-                <div className="grid grid-cols-5 gap-4">
-                  {availableThemes.map((t) => (
-                    <button key={t.id} onClick={() => setTheme(t.id)} className="group relative flex flex-col items-center space-y-2">
-                      <div 
-                        className={`w-full aspect-square rounded-2xl border-4 transition-all duration-300 flex items-center justify-center shadow-sm group-hover:scale-110 ${theme === t.id ? 'border-primary-500 scale-110 shadow-xl shadow-primary-500/20' : 'border-transparent hover:border-slate-200'}`} 
-                        style={{ 
-                          background: t.id === 'system' ? 'linear-gradient(135deg, #f8fafc 50%, #0f172a 50%)' : t.color 
-                        }}
-                      >
-                        {theme === t.id && (
-                          <div className="bg-primary-500 rounded-full p-1 shadow-lg animate-in zoom-in-50 duration-300">
-                            <CheckIcon className="w-4 h-4 text-white stroke-[4px]" />
-                          </div>
-                        )}
-                        {t.id === 'system' && theme !== t.id && (
-                          <SwatchIcon className="w-5 h-5 text-slate-400 group-hover:text-primary-500 transition-colors" />
-                        )}
-                      </div>
-                      <span className="text-[8px] font-black uppercase tracking-tighter truncate w-full text-center" style={{ color: theme === t.id ? 'var(--primary)' : 'var(--text-muted)' }}>{t.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
             <div className="space-y-3">
               <div className="flex items-center justify-between px-4">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>Chat Wallpaper</h3>
