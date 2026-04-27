@@ -7,7 +7,6 @@ build/
 uploads/
 *.log
 .DS_Store
-package-lock.json
 frontend/node_modules/
 backend/node_modules/
 frontend/.next/
