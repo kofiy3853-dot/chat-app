@@ -4,17 +4,17 @@
 
 /* ═══════════════════════════════════════════════════════
    SINGLE SOURCE OF TRUTH — KTU Campus Chat Design Tokens
-   Primary brand colour: #7C3AED  (Purple)
+   Primary brand colour: #FF4B4B  (Coral Red)
    ═══════════════════════════════════════════════════════ */
 :root {
   /* ── Brand (Anchor - consistent across themes) ── */
-  --primary:         #7C3AED;           /* Purple */
-  --primary-hover:   #6D28D9;
-  --primary-light:   rgba(124, 58, 237, 0.1);
-  --primary-shadow:  rgba(124, 58, 237, 0.2);
+  --primary:         #FF4B4B;           /* Coral Red */
+  --primary-hover:   #FF3333;
+  --primary-light:   rgba(255, 75, 75, 0.1);
+  --primary-shadow:  rgba(255, 75, 75, 0.2);
 
   /* ── Newly Requested Tokens ── */
-  --sea-blue:        #7C3AED;
+  --sea-blue:        #FF4B4B;
   --purple:          #a855f7;
   --indigo:          #6366f1;
   --deep-indigo:     #4338ca;
@@ -38,26 +38,28 @@
   --accent-cyan:      #22d3ee;
   --accent-purple:    #a855f7;
 
-  /* ── Default (Light) ── */
-  --bg-page:         var(--bg-pure-white);   
-  --bg-surface:      var(--bg-pure-white);
-  --bg-surface-2:    var(--bg-cloud-white);
-  --bg-input:        var(--bg-soft-mist);
-  --bg-navbar:       var(--sea-blue);
+  /* ── Default (Now Dark Red Neumorphic) ── */
+  --bg-page:         #22242A;   
+  --bg-surface:      #2A2C33;
+  --bg-surface-2:    #22242A;
+  --bg-input:        #2A2C33;
+  --bg-navbar:       #22242A; /* Match page background */
 
-  --text-primary:    var(--text-jet-black);   
-  --text-secondary:  var(--text-slate-gray);
-  --text-muted:      var(--text-cool-gray);
-  --text-navbar:     #ffffff;   
+  --text-primary:    #FFFFFF;   
+  --text-secondary:  #A1A1AA;
+  --text-muted:      #71717A;
+  --text-navbar:     #FFFFFF;
 
-  --border:          #e5e7eb;
-  --border-light:    #f3f4f6;
+  --border:          #3F3F46;
+  --border-light:    #2A2C33;
 
-  --bubble-me-bg:    var(--sea-blue);
-  --bubble-me-text:  #ffffff;
-  --bubble-other-bg: var(--bg-soft-mist);
-  --bubble-other-text:var(--text-jet-black);
+  --bubble-me-bg:    var(--sea-blue); /* Coral Red */
+  --bubble-me-text:  #FFFFFF;
+  --bubble-other-bg: #2A2C33;
+  --bubble-other-text: #FFFFFF;
   --bubble-radius:   18px;
+  
+  color-scheme: dark;
 }
 
 [data-theme="dark"] {
