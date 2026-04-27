@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { authAPI, pushAPI, warmupServer } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { requestFirebaseNotificationPermission } from '../config/firebase';
-import { AcademicCapIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleOvalLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
 export default function Login() {
@@ -81,17 +81,17 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>Login | Campus Chat</title>
+        <title>Login | Connect</title>
       </Head>
 
       <div className="h-full w-full overflow-y-auto bg-gray-50 px-4 flex flex-col py-8">
         <div className="max-w-md w-full mx-auto my-auto shrink-0">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4 shadow-lg shadow-primary-200">
-              <AcademicCapIcon className="w-10 h-10 text-white" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-800 rounded-2xl mb-4 shadow-lg shadow-slate-200">
+              <ChatBubbleOvalLeftEllipsisIcon className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Campus Chat</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Connect</h1>
             <p className="text-gray-500 mt-2">Sign in to continue</p>
           </div>
 
@@ -125,7 +125,7 @@ export default function Login() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="your@email.edu"
+                  placeholder="your@email.com"
                   aria-label="Email address"
                   required
                 />

@@ -3,24 +3,24 @@ import { AcademicCapIcon, UserIcon, BriefcaseIcon } from '@heroicons/react/24/ou
 const roles = [
   {
     id: 'STUDENT',
-    title: 'Student',
-    description: 'Join as a regular student to chat with peers and access materials.',
+    title: 'User',
+    description: 'Join as a regular member to participate in discussions.',
     icon: UserIcon,
-    color: 'bg-blue-50 text-blue-600 border-blue-100'
+    color: 'bg-slate-50 text-slate-600 border-slate-100'
   },
   {
     id: 'COURSE_REP',
-    title: 'Course Rep',
-    description: 'Manage course announcements and represent your class.',
-    icon: AcademicCapIcon,
-    color: 'bg-purple-50 text-purple-600 border-purple-100'
+    title: 'Facilitator',
+    description: 'Manage community announcements and represent your group.',
+    icon: UserIcon,
+    color: 'bg-slate-50 text-slate-600 border-slate-100'
   },
   {
     id: 'LECTURER',
-    title: 'Lecturer',
-    description: 'Create courses, upload materials, and manage student communication.',
+    title: 'Admin',
+    description: 'Manage community settings and members.',
     icon: BriefcaseIcon,
-    color: 'bg-emerald-50 text-emerald-600 border-emerald-100'
+    color: 'bg-slate-50 text-slate-600 border-slate-100'
   }
 ];
 
@@ -29,7 +29,7 @@ export default function RoleSelection({ onSelect }) {
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center mb-8">
         <h2 className="text-xl font-bold text-gray-900">Choose Your Role</h2>
-        <p className="text-sm text-gray-500 mt-1">Select how you will participate in the campus network</p>
+        <p className="text-sm text-gray-500 mt-1">Select how you will participate in the network</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">

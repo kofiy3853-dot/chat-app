@@ -208,7 +208,7 @@ export default function ChatPage() {
   };
 
   const handleSendCallLink = () => {
-    const callLink = `https://campus-chat.com/call/${id}-${Math.random().toString(36).substring(7)}`;
+    const callLink = `https://connect.app/call/${id}-${Math.random().toString(36).substring(7)}`;
     sendSocketMessage({
       conversationId: id,
       content: `Let's have a quick call! Join here: ${callLink}`,
@@ -245,7 +245,7 @@ export default function ChatPage() {
     <>
       <div className="flex flex-col h-[100dvh] bg-page relative transition-all duration-300 overflow-hidden w-full max-w-xl mx-auto">
         <Head>
-          <title>{name} | Campus Chat</title>
+          <title>{name} | Connect</title>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         </Head>
 
@@ -271,13 +271,11 @@ export default function ChatPage() {
               <div className="relative">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold overflow-hidden ring-2 ring-white/30"
                   style={{ 
-                    background: otherParticipant?.user?.role === 'NANA' ? 'linear-gradient(to top right, var(--primary), var(--indigo))' : 'rgba(255,255,255,0.2)',
+                    background: 'rgba(255,255,255,0.2)',
                     color: '#ffffff'
                   }}
                 >
                   {(() => {
-                    const isNana = otherParticipant?.user?.role === 'NANA';
-                    if (isNana) return 'N';
                     const avatar = conversation?.avatar || otherParticipant?.user?.avatar;
                     const fullUrl = getFullFileUrl(avatar);
                     return (
@@ -467,9 +465,8 @@ export default function ChatPage() {
               <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
                 {/* Giant Avatar */}
                 <div className="relative mb-6 group">
-                  <div className={`w-32 h-32 rounded-3xl flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden bg-slate-100 ${otherParticipant?.user?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600' : ''}`}>
+                <div className={`w-32 h-32 rounded-3xl flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden bg-slate-100`}>
                     {(() => {
-                      if (otherParticipant?.user?.role === 'NANA') return <div className="text-white">N</div>;
                       const avatar = conversation?.avatar || otherParticipant?.user?.avatar;
                       const fullUrl = getFullFileUrl(avatar);
                       return (
@@ -511,7 +508,6 @@ export default function ChatPage() {
                 </p>
 
                 {/* Quick Actions Card */}
-                {otherParticipant?.user?.role !== 'NANA' && (
                   <div className="w-full bg-slate-50 rounded-2xl p-4 mt-8 flex justify-around border border-slate-100">
                     <button onClick={() => { setShowProfile(false); handleStartCall('VOICE'); }} className="flex flex-col items-center space-y-2 group">
                       <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-primary-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-all border border-slate-100">
@@ -526,7 +522,6 @@ export default function ChatPage() {
                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-emerald-500">Video</span>
                     </button>
                   </div>
-                )}
               </div>
           </div>
         </>

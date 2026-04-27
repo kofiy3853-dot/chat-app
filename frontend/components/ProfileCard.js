@@ -81,8 +81,7 @@ export default function ProfileCard({ user, onUpdate }) {
   return (
     <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
       {/* Cover Header */}
-      <div className="h-32 bg-gradient-to-r from-primary-600 via-indigo-600 to-violet-600 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+      <div className="h-32 bg-slate-200 relative overflow-hidden">
         <div className="absolute top-4 right-6">
           {!isEditing && (
             <button
@@ -101,7 +100,7 @@ export default function ProfileCard({ user, onUpdate }) {
         <div className="relative -mt-14 mb-6 flex items-end justify-between">
           <div className="relative group">
             <div className="w-28 h-28 rounded-[2rem] bg-white p-1.5 shadow-xl relative flex-shrink-0">
-              <div className="w-full h-full rounded-[1.6rem] bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-black shadow-inner overflow-hidden">
+              <div className="w-full h-full rounded-[1.6rem] bg-slate-100 flex items-center justify-center text-slate-400 text-4xl font-black shadow-inner overflow-hidden">
                 {formData.avatar || user?.avatar ? (
                   <img src={getFullFileUrl(formData.avatar || user?.avatar)} decoding="async" alt="Profile" className="w-full h-full object-cover" />
                 ) : (
@@ -240,7 +239,7 @@ export default function ProfileCard({ user, onUpdate }) {
               <div>
                 <h2 className="text-2xl font-black text-slate-900 tracking-tight">{user?.name}</h2>
                 <div className="flex items-center space-x-2 mt-1">
-                   <span className="text-[10px] font-black text-primary-500 uppercase tracking-widest bg-primary-50 px-2 py-0.5 rounded-md border border-primary-100">
+                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
                     Level {user?.level || 'N/A'}
                   </span>
                   <div className="px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md">
@@ -258,7 +257,7 @@ export default function ProfileCard({ user, onUpdate }) {
               {/* Data Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-colors">
-                  <div className="flex items-center space-x-2 text-primary-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
+                  <div className="flex items-center space-x-2 text-slate-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
                     <BuildingLibraryIcon className="w-3.5 h-3.5" />
                     <span>Faculty</span>
                   </div>
@@ -266,7 +265,7 @@ export default function ProfileCard({ user, onUpdate }) {
                 </div>
 
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-colors">
-                  <div className="flex items-center space-x-2 text-indigo-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
+                  <div className="flex items-center space-x-2 text-slate-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
                     <BuildingLibraryIcon className="w-3.5 h-3.5" />
                     <span>Department</span>
                   </div>
@@ -274,7 +273,7 @@ export default function ProfileCard({ user, onUpdate }) {
                 </div>
 
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-colors md:col-span-2">
-                  <div className="flex items-center space-x-2 text-amber-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
+                  <div className="flex items-center space-x-2 text-slate-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
                     <IdentificationIcon className="w-3.5 h-3.5" />
                     <span>Identification</span>
                   </div>
@@ -285,18 +284,18 @@ export default function ProfileCard({ user, onUpdate }) {
               {/* Status Section */}
               <div className="flex items-center space-x-4 pt-2 border-t border-slate-50 uppercase">
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-black text-slate-400 tracking-widest">Academic Status</span>
-                  <div className="flex items-center mt-1 text-emerald-600 space-x-1.5">
-                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                    <span className="text-[10px] font-black">Active Member</span>
+                  <span className="text-[8px] font-black text-slate-400 tracking-widest">Membership Status</span>
+                  <div className="flex items-center mt-1 text-slate-600 space-x-1.5">
+                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
+                    <span className="text-[10px] font-black">Verified Member</span>
                   </div>
                 </div>
                 <div className="h-6 w-px bg-slate-100" />
                 <div className="flex flex-col flex-1">
-                   <span className="text-[8px] font-black text-slate-400 tracking-widest">Innovation Hub</span>
-                   <div className="flex items-center mt-1 text-primary-600 space-x-1.5">
-                    <AcademicCapIcon className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-black">KTU Student Network</span>
+                   <span className="text-[8px] font-black text-slate-400 tracking-widest">Network</span>
+                   <div className="flex items-center mt-1 text-slate-600 space-x-1.5">
+                    <CheckCircleIcon className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-black">Connected Network</span>
                   </div>
                 </div>
               </div>

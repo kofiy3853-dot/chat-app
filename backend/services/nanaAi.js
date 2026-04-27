@@ -23,8 +23,8 @@ const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
  */
 const getNanaAiResponse = async (userMessage, history = [], user = null, conversationId = null) => {
   if (!openai) {
-    console.warn('[Nana AI] AI connection is offline.');
-    return "Hello! I'm Nana, your campus assistant. My AI connection is currently offline (API key missing), but I'm still here to help with what I can!";
+    console.warn('[Assistant AI] AI connection is offline.');
+    return "Hello! I'm your system assistant. My AI connection is currently offline, but I'm still here to help with what I can!";
   }
 
   try {

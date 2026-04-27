@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 
 import { initSocket } from '../services/socket';
 import { requestFirebaseNotificationPermission } from '../config/firebase';
-import { AcademicCapIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleOvalLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { compressImage } from '../utils/helpers';
 
@@ -108,22 +108,17 @@ export default function Register() {
 
     // Domain validation
     const normalizedEmail = email.toLowerCase().trim();
-    const isKtuEmail = normalizedEmail.endsWith('@stu.ktu.edu.gh') || 
-                       normalizedEmail.endsWith('@staff.ktu.edu.gh') || 
-                       normalizedEmail.endsWith('@ktu.edu.gh');
+    const isValidEmail = normalizedEmail.includes('@');
     
-    if (!isKtuEmail) {
-      setError('Registration is restricted to KTU university emails.');
-      toast.error('Access Denied. Use your university email.');
+    if (!isValidEmail) {
+      setError('Registration is restricted to valid emails.');
+      toast.error('Access Denied. Use your professional email.');
       setLoading(false);
       return;
     }
 
-    if (role === 'LECTURER' && !normalizedEmail.endsWith('@staff.ktu.edu.gh') && !normalizedEmail.endsWith('@ktu.edu.gh')) {
-        setError('Lecturers must use a staff or institution email (@staff.ktu.edu.gh).');
-        toast.error('Staff email required for lecturers.');
-        setLoading(false);
-        return;
+    if (role === 'LECTURER' && !normalizedEmail.endsWith('.com') && !normalizedEmail.endsWith('.org')) {
+        // Just a generic check or remove it
     }
 
     if (!avatar) {
@@ -208,18 +203,18 @@ export default function Register() {
   return (
     <>
       <Head>
-        <title>Join Campus Hub | Registration</title>
+        <title>Join the Platform | Registration</title>
       </Head>
 
       <div className="h-full w-full bg-[#FAFAFA] px-4 py-12 flex flex-col items-center overflow-y-auto">
         <div className="max-w-xl w-full">
           {/* Global Header */}
           <div className="text-center mb-10 transition-all duration-700">
-            <Link href="/" className="inline-flex items-center justify-center w-20 h-20 bg-primary-600 rounded-[2rem] shadow-xl shadow-primary-200 hover:scale-105 active:scale-95 transition-transform mb-6">
-              <AcademicCapIcon className="w-12 h-12 text-white" />
+            <Link href="/" className="inline-flex items-center justify-center w-20 h-20 bg-slate-800 rounded-[2rem] shadow-xl shadow-slate-200 hover:scale-105 active:scale-95 transition-transform mb-6">
+              <ChatBubbleOvalLeftEllipsisIcon className="w-12 h-12 text-white" />
             </Link>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tightest">CAMPUS HUB</h1>
-            <p className="text-sm font-medium text-gray-400 mt-2 uppercase tracking-widest italic">Koforidua Technical University</p>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tightest">CONNECT</h1>
+            <p className="text-sm font-medium text-gray-400 mt-2 uppercase tracking-widest italic">Global Communication Portal</p>
           </div>
 
           {/* Card Container */}
@@ -251,7 +246,7 @@ export default function Register() {
           </div>
 
           <div className="mt-8 text-center opacity-30">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">© 2026 KU Connect • Secure Academic Portal</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">© 2026 ConnectHub • Secure Messaging Platform</p>
           </div>
         </div>
       </div>
