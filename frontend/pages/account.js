@@ -219,7 +219,6 @@ export default function Account() {
                 </div>
               </div>
             ))}
-          </div>
 
           <div className="px-2 pt-4">
             <button onClick={handleLogout} className="w-full bg-rose-50/50 hover:bg-rose-100/50 p-1.5 rounded-[2rem] border border-rose-100 shadow-xl transition-all active:scale-95 group">
