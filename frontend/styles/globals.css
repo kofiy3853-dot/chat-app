@@ -4,17 +4,17 @@
 
 /* ═══════════════════════════════════════════════════════
    SINGLE SOURCE OF TRUTH — KTU Campus Chat Design Tokens
-   Primary brand colour: #FF4B4B  (Coral Red)
+   Primary brand colour: #FF0000  (Pure Red)
    ═══════════════════════════════════════════════════════ */
 :root {
   /* ── Brand (Anchor - consistent across themes) ── */
-  --primary:         #FF4B4B;           /* Coral Red */
-  --primary-hover:   #FF3333;
-  --primary-light:   rgba(255, 75, 75, 0.1);
-  --primary-shadow:  rgba(255, 75, 75, 0.2);
+  --primary:         #FF0000;           /* Pure Red */
+  --primary-hover:   #CC0000;
+  --primary-light:   rgba(255, 0, 0, 0.1);
+  --primary-shadow:  rgba(255, 0, 0, 0.2);
 
   /* ── Newly Requested Tokens ── */
-  --sea-blue:        #FF4B4B;
+  --sea-blue:        #FF0000;
   --purple:          #a855f7;
   --indigo:          #6366f1;
   --deep-indigo:     #4338ca;
@@ -38,24 +38,24 @@
   --accent-cyan:      #22d3ee;
   --accent-purple:    #a855f7;
 
-  /* ── Default (Now Dark Red Neumorphic) ── */
-  --bg-page:         #22242A;   
-  --bg-surface:      #2A2C33;
-  --bg-surface-2:    #22242A;
-  --bg-input:        #2A2C33;
-  --bg-navbar:       #22242A; /* Match page background */
+  /* ── Default (Pure Black & Red PWA Theme) ── */
+  --bg-page:         #000000;   
+  --bg-surface:      #000000;
+  --bg-surface-2:    #111111;
+  --bg-input:        #111111;
+  --bg-navbar:       #000000; 
 
   --text-primary:    #FFFFFF;   
-  --text-secondary:  #A1A1AA;
-  --text-muted:      #71717A;
+  --text-secondary:  #CCCCCC;
+  --text-muted:      #999999;
   --text-navbar:     #FFFFFF;
 
-  --border:          #3F3F46;
-  --border-light:    #2A2C33;
+  --border:          #1A1A1A;
+  --border-light:    #111111;
 
-  --bubble-me-bg:    var(--sea-blue); /* Coral Red */
+  --bubble-me-bg:    #8B0000; /* Dark Red */
   --bubble-me-text:  #FFFFFF;
-  --bubble-other-bg: #2A2C33;
+  --bubble-other-bg: #1A1A1A; /* Received bubbles */
   --bubble-other-text: #FFFFFF;
   --bubble-radius:   18px;
   
@@ -343,6 +343,22 @@ header.sticky {
     font-size: 14px;
     padding: 10px 15px; /* Slightly more padding for the wider span */
   }
+}
+
+/* ══════════════════════════════════════════════════════════
+   GLOBAL: Inputs & Textareas
+   Enforces dark #111111 bg, white text, and red focus ring
+   ══════════════════════════════════════════════════════════ */
+input, textarea {
+  background-color: #111111 !important;
+  color: #FFFFFF !important;
+  border-color: var(--border) !important;
+}
+
+input:focus, textarea:focus {
+  outline: 2px solid #FF0000 !important;
+  outline-offset: 2px;
+  border-color: #FF0000 !important;
 }
 
 /* ══════════════════════════════════════════════════════════

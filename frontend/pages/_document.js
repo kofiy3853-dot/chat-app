@@ -9,10 +9,11 @@ export default function Document() {
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
         <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <meta name="apple-mobile-web-app-title" content="Campus Chat" />
-        <meta name="application-name" content="Campus Chat" />
-        <meta name="msapplication-TileColor" content="#2E8BC0" />
-        <meta name="theme-color" content="#2E8BC0" />
+        <meta name="apple-mobile-web-app-title" content="Connect" />
+        <meta name="application-name" content="Connect" />
+        <meta name="msapplication-TileColor" content="#000000" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="background-color" content="#000000" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -21,7 +22,7 @@ export default function Document() {
           #initial-loader {
             position: fixed;
             inset: 0;
-            background: white;
+            background: #000000;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -52,7 +53,7 @@ export default function Document() {
           .loader-logo {
             width: 6rem;
             height: 6rem;
-            background: linear-gradient(to top right, #4f46e5, #6366f1);
+            background: linear-gradient(to top right, #8B0000, #FF0000);
             border-radius: 2.5rem;
             display: flex;
             align-items: center;
@@ -81,7 +82,7 @@ export default function Document() {
             width: 0.375rem;
             height: 0.375rem;
             border-radius: 50%;
-            background: #4f46e5;
+            background: #FF0000;
             animation: bounce 0.6s infinite alternate;
           }
           @keyframes bounce {
@@ -89,7 +90,7 @@ export default function Document() {
           }
         `}</style>
       </Head>
-      <body className="antialiased">
+      <body className="antialiased overflow-x-hidden w-full selection:bg-red-500/30 selection:text-red-200" style={{ backgroundColor: '#000000', color: '#FFFFFF' }}>
         <div id="initial-loader">
           <div className="loader-content">
             <div style={{ position: 'relative', marginBottom: '2.5rem' }}>
@@ -102,8 +103,8 @@ export default function Document() {
               </div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <h2 id="loader-title" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.5rem 0', letterSpacing: '-0.025em' }}>Campus Chat</h2>
-              <p style={{ fontSize: '10px', fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.4em' }}>Connecting Communities</p>
+              <h2 id="loader-title" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#FFFFFF', margin: '0 0 0.5rem 0', letterSpacing: '-0.025em' }}>Connect</h2>
+              <p style={{ fontSize: '10px', fontWeight: 700, color: '#FF0000', textTransform: 'uppercase', letterSpacing: '0.4em' }}>Professional Messaging</p>
               <div className="loading-dots">
                 <div className="dot"></div>
                 <div className="dot" style={{ animationDelay: '0.2s' }}></div>

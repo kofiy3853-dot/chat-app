@@ -1,12 +1,12 @@
 {
   "gcm_sender_id": "103953800507",
-  "name": "Campus Chat",
-  "short_name": "CampusChat",
-  "description": "Multi-university campus communication platform",
+  "name": "Connect",
+  "short_name": "Connect",
+  "description": "Professional messaging platform",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2E8BC0",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {
