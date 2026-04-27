@@ -362,16 +362,19 @@ input:focus, textarea:focus {
 }
 
 /* ══════════════════════════════════════════════════════════
-   GLOBAL: Disable all animations & transitions site-wide
+   GLOBAL: Disable all animations, transitions & blurs site-wide
    ══════════════════════════════════════════════════════════ */
 *,
 *::before,
 *::after {
-  animation-duration:        0.01ms !important;
-  animation-iteration-count: 1      !important;
-  transition-duration:       0.01ms !important;
-  transition-delay:          0ms    !important;
-  scroll-behavior:           auto   !important;
+  animation:                 none !important;
+  animation-duration:        0ms !important;
+  animation-iteration-count: 1 !important;
+  transition:                none !important;
+  transition-duration:       0ms !important;
+  transition-delay:          0ms !important;
+  backdrop-filter:           none !important;
+  scroll-behavior:           auto !important;
 }
 
 
