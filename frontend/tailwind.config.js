@@ -11,17 +11,17 @@ module.exports = {
       },
       colors: {
         primary: {
-          50:  'var(--primary-50, #e8f4fb)',
-          100: 'var(--primary-100, #c5e2f3)',
-          200: 'var(--primary-200, #9fd0ea)',
-          300: 'var(--primary-300, #6fbde1)',
-          400: 'var(--primary-400, #50aed9)',
-          500: 'var(--primary-500, #2E8BC0)',   // Default: KTU Sea Blue
-          600: 'var(--primary-600, #2E8BC0)',   
-          700: 'var(--primary-700, #1a6a92)',
-          800: 'var(--primary-800, #155575)',
-          900: 'var(--primary-900, #0d3d54)',
-          950: 'var(--primary-950, #072433)',
+          50:  'var(--primary-50,  #f5f0ff)',
+          100: 'var(--primary-100, #ede9fe)',
+          200: 'var(--primary-200, #ddd6fe)',
+          300: 'var(--primary-300, #c4b5fd)',
+          400: 'var(--primary-400, #a78bfa)',
+          500: 'var(--primary-500, #8B5CF6)',   // Purple
+          600: 'var(--primary-600, #7C3AED)',   // Purple 600
+          700: 'var(--primary-700, #6D28D9)',
+          800: 'var(--primary-800, #5B21B6)',
+          900: 'var(--primary-900, #4C1D95)',
+          950: 'var(--primary-950, #2E1065)',
         },
         'sea-blue':    'var(--sea-blue)',
         'purple':      'var(--purple)',
