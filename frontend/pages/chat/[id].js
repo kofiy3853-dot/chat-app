@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import ChatBox from '../../components/ChatBox';
 import { chatAPI } from '../../services/api';
+
+// Heavy components — load only when needed (code split)
+const ChatBox = dynamic(() => import('../../components/ChatBox'), { ssr: false });
 import { initSocket, joinConversation, leaveConversation } from '../../services/socket';
 import { 
   ArrowLeftIcon, 
@@ -20,8 +23,8 @@ import {
 import { getCurrentUser, getInitials, getAvatarColor, getFullFileUrl } from '../../utils/helpers';
 import { useCall } from '../../context/CallContext';
 import { sendMessage as sendSocketMessage } from '../../services/socket';
-import { SharedMediaGallery } from '../../components/ChatMedia';
 import { formatDistanceToNow } from 'date-fns';
+const SharedMediaGallery = dynamic(() => import('../../components/ChatMedia').then(m => ({ default: m.SharedMediaGallery })), { ssr: false });
 
 export default function ChatPage() {
   const router = useRouter();

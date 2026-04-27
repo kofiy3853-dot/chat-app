@@ -269,7 +269,8 @@ header.sticky {
   border-radius: var(--bubble-radius);
   max-width: 85%; 
   width: fit-content;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: none; /* Remove transition — bubbles don't need animation */
+  contain: content; /* Prevent layout ripple from bubble changes */
   
   /* Flexible Word Wrapping */
   word-break: normal;
@@ -311,7 +312,8 @@ header.sticky {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-out forwards;
+  animation: fadeIn 0.2s ease-out forwards; /* Shorter = snappier */
+  will-change: opacity, transform;
 }
 
 @keyframes readReceiptScale {
@@ -324,7 +326,7 @@ header.sticky {
 .animate-read-receipt-2 { animation: readReceiptScale 0.3s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 
 /* ═══════════════════════ Scrollbar ═════════════════════════ */
-::-webkit-scrollbar          { width: 5px; }
+::-webkit-scrollbar          { width: 4px; }
 ::-webkit-scrollbar-track    { background: transparent; }
 ::-webkit-scrollbar-thumb    { background: #e5e7eb; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
