@@ -107,12 +107,12 @@ export default function NanaPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1">
             {/* Left: Stats */}
             <div className="lg:col-span-1 space-y-6">
-              <div className="bg-[#00ff41]/5 p-6 rounded-2xl border border-[#00ff41]/20 shadow-[0_0_20px_rgba(0,255,65,0.05)]">
+              <div className="bg-[#00ff41]/5 p-6 rounded-2xl border border-[#00ff41]/20 ">
                 <h2 className="text-sm font-black uppercase tracking-tighter mb-4 text-[#00ff41]/80 flex items-center gap-2">
                   <CommandLineIcon className="w-4 h-4" /> Identity Probe
                 </h2>
                 <div className="flex items-center gap-5">
-                   <div className="w-16 h-16 rounded-full bg-[#00ff41] flex items-center justify-center text-black font-black text-2xl shadow-[0_0_15px_rgba(0,255,65,0.5)]">N</div>
+                   <div className="w-16 h-16 rounded-full bg-[#00ff41] flex items-center justify-center text-black font-black text-2xl ">N</div>
                    <div>
                       <p className="text-lg font-bold">Nana v4.2</p>
                       <p className="text-[10px] opacity-50 uppercase tracking-widest font-sans font-black">Origin: Cloud Compute Hub</p>
@@ -145,7 +145,7 @@ export default function NanaPage() {
 
             {/* Right: Console */}
             <div className="lg:col-span-2 flex flex-col min-h-[500px]">
-               <div className="bg-black/80 rounded-2xl border border-[#00ff41]/30 p-6 flex-1 flex flex-col shadow-2xl shadow-[#00ff41]/10 relative group">
+               <div className="bg-black/80 rounded-2xl border border-[#00ff41]/30 p-6 flex-1 flex flex-col shadow-2xl /10 relative group">
                   <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                      <span className="text-[9px] font-bold text-[#00ff41]/40 tracking-widest">AUTO_LOG_SYNC_ENABLED</span>
                   </div>
@@ -170,7 +170,7 @@ export default function NanaPage() {
                     <span className="text-[10px] font-bold opacity-80">CMD_PROMPT &gt; </span>
                     <div className="flex-1 h-auto min-h-[36px] bg-[#00ff41]/5 rounded-lg px-3 py-2 flex flex-col sm:flex-row sm:items-center justify-between border border-[#00ff41]/20 gap-2">
                        <span className="text-[10px] opacity-40 italic">Manual override required for active conversational interfaces.</span>
-                       <button onClick={() => router.push('/')} className="px-4 py-1.5 bg-[#00ff41] text-black hover:bg-white rounded text-[10px] font-black uppercase transition-colors shrink-0 whitespace-nowrap shadow-[0_0_10px_rgba(0,255,65,0.4)]">
+                       <button onClick={() => router.push('/')} className="px-4 py-1.5 bg-[#00ff41] text-black hover:bg-white rounded text-[10px] font-black uppercase transition-colors shrink-0 whitespace-nowrap ">
                          Launch Communicator
                        </button>
                     </div>

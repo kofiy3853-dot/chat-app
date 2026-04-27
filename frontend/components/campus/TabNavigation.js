@@ -16,7 +16,7 @@ const TabNavigation = ({ tabs, activeTab, onTabChange }) => {
           >
             {tab.label}
             {activeTab === tab.id && (
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary-500 rounded-full shadow-[0_0_8px_rgba(107,115,255,0.4)]" />
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary-500 rounded-full " />
             )}
           </button>
         ))}

@@ -261,7 +261,7 @@ export default function Activity() {
                       style={{ transition: 'opacity 0.35s ease, transform 0.35s ease' }}
                     >
                       {!activity.isRead && (
-                        <div className="absolute right-4 top-4 w-2 h-2 bg-primary-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-pulse"></div>
+                        <div className="absolute right-4 top-4 w-2 h-2 bg-primary-500 rounded-full  animate-pulse"></div>
                       )}
                       
                       <div className="flex items-start space-x-4">

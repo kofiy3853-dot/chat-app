@@ -71,7 +71,7 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
                       <div className="h-1.5 w-1.5 rounded-full bg-white animate-bounce delay-150" />
                    </div>
                    <div className="h-1 bg-white/30 rounded-full overflow-hidden">
-                      <div className="w-[60%] h-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>
+                      <div className="w-[60%] h-full bg-white "></div>
                    </div>
                 </div>
               </div>

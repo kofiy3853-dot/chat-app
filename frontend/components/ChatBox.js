@@ -1111,7 +1111,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       )}
 
       {/* Footer Input Area */}
-      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-surface border-t border-slate-200/50 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] shrink-0 relative">
+      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-surface border-t border-slate-200/50  shrink-0 relative">
         {isNanaSession && messages.length > 0 && (
           <div className="flex items-center space-x-2 px-1 mb-3 overflow-x-auto no-scrollbar pb-1">
             {QUICK_ACTIONS.map((action, idx) => (

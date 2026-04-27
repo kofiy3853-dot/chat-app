@@ -98,7 +98,7 @@ export default function CallInterface() {
       {/* Outgoing call (Caller's 'Calling...' screen) */}
       {call.isCalling && !callAccepted && (
         <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[999999] w-[90%] max-w-sm pointer-events-auto">
-          <div className="bg-white border-2 border-emerald-500 p-5 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(16,185,129,0.3)] flex items-center justify-between">
+          <div className="bg-white border-2 border-emerald-500 p-5 rounded-[2.5rem]  flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-xl font-black animate-pulse shadow-lg shadow-emerald-500/30">
                 {call.to?.name?.charAt(0) || '?'}
@@ -153,7 +153,7 @@ export default function CallInterface() {
               </button>
 
               <button onClick={answerCall} className="group flex flex-col items-center space-y-4">
-                <div className="w-24 h-24 rounded-[3rem] bg-emerald-500 text-white hover:bg-emerald-600 transition-all duration-500 flex items-center justify-center shadow-[0_25px_50px_-12px_rgba(16,185,129,0.5)] active:scale-90 animate-bounce">
+                <div className="w-24 h-24 rounded-[3rem] bg-emerald-500 text-white hover:bg-emerald-600 transition-all duration-500 flex items-center justify-center  active:scale-90 animate-bounce">
                   <PhoneIcon className="w-12 h-12" />
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Answer</span>

@@ -544,7 +544,7 @@ export default function CoursePage() {
                               </div>
                            </div>
                         </div>
-                        <button className="px-12 py-5 bg-slate-900 text-white rounded-[1.5rem] text-sm font-black hover:bg-slate-800 transition-all shadow-[0_20px_40px_rgba(15,23,42,0.2)] active:scale-95">
+                        <button className="px-12 py-5 bg-slate-900 text-white rounded-[1.5rem] text-sm font-black hover:bg-slate-800 transition-all  active:scale-95">
                            {assignment.submissions?.length > 0 ? 'Review Work' : 'Launch Task'}
                         </button>
                      </div>
@@ -636,7 +636,7 @@ export default function CoursePage() {
       {/* Material Upload Modal */}
       {isMaterialModalOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
-          <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden">
+          <div className="bg-white rounded-[3rem] w-full max-w-xl  overflow-hidden">
                <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
                   <div>
                     <h3 className="text-2xl font-black text-slate-900 leading-none">Resource Registry</h3>
@@ -670,7 +670,7 @@ export default function CoursePage() {
                       </div>
                     </div>
                   </div>
-                  <button type="submit" className="w-full py-5 bg-primary-600 text-white rounded-3xl text-sm font-black shadow-[0_25px_50px_-12px_rgba(37,99,235,0.4)] hover:shadow-[0_25px_50px_-12px_rgba(37,99,235,0.6)] hover:bg-primary-700 active:scale-95 transition-all duration-500">Deploy Resource</button>
+                  <button type="submit" className="w-full py-5 bg-primary-600 text-white rounded-3xl text-sm font-black  hover: hover:bg-primary-700 active:scale-95 transition-all duration-500">Deploy Resource</button>
                </form>
           </div>
         </div>

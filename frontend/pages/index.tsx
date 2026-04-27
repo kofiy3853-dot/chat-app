@@ -432,12 +432,12 @@ const MessagesPage: React.FC = () => {
       {!search && user?.role !== 'NANA' && (
         <div className="px-4 pt-3 pb-1 bg-[var(--bg-page)]">
           <Link href="/nana">
-            <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 shadow-lg shadow-primary-100 cursor-pointer active:scale-[0.98] duration-0">
+            <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 cursor-pointer active:scale-[0.98] duration-0">
               <div className="absolute top-[-10px] right-[-10px] p-3 opacity-20 group-hover:scale-110 transition-transform">
                  <SparklesIcon className="w-20 h-20 text-white" />
               </div>
               <div className="flex items-center space-x-3.5 relative z-10">
-                <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white font-black text-xl border border-white/30 shadow-sm">N</div>
+                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-white font-black text-xl border border-white/30">N</div>
                 <div>
                   <h3 className="text-white font-black text-sm tracking-tight mb-0.5">Nana AI Hub</h3>
                   <p className="text-white/80 text-[11px] font-bold uppercase tracking-widest flex items-center">
@@ -509,13 +509,13 @@ const MessagesPage: React.FC = () => {
         <div className="relative">
             {showFAB && (
               <div
-                className="absolute bottom-16 right-0 w-48 bg-surface rounded-2xl shadow-2xl border border-app-light overflow-hidden py-1"
+                className="absolute bottom-16 right-0 w-48 bg-surface rounded-2xl border border-app-light overflow-hidden py-1"
               >
                 <button
                   onClick={() => { startNanaChat(); setShowFAB(false); }}
                   className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-black text-primary-600 hover:bg-primary-50 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600 shadow-sm shadow-primary-500/10">
+                  <div className="w-8 h-8 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600">
                     <SparklesIcon className="w-5 h-5" />
                   </div>
                   <span>✨ Ask Nana AI</span>
@@ -554,7 +554,7 @@ const MessagesPage: React.FC = () => {
           <button
             aria-label="New message"
             onClick={() => setShowFAB(v => !v)}
-            className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center duration-0 active:scale-95 ${showFAB ? 'bg-gray-800 rotate-45' : 'bg-primary-600 shadow-primary-200'}`}
+            className={`w-14 h-14 rounded-full flex items-center justify-center duration-0 active:scale-95 ${showFAB ? 'bg-gray-800 rotate-45' : 'bg-primary-600'}`}
           >
             <PlusIcon className="w-6 h-6 text-white stroke-[2.5px]" />
           </button>
