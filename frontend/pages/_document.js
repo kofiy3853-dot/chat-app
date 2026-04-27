@@ -9,10 +9,10 @@ export default function Document() {
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
         <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <meta name="apple-mobile-web-app-title" content="Connect" />
-        <meta name="application-name" content="Connect" />
-        <meta name="msapplication-TileColor" content="#1e293b" />
-        <meta name="theme-color" content="#1e293b" />
+        <meta name="apple-mobile-web-app-title" content="Campus Chat" />
+        <meta name="application-name" content="Campus Chat" />
+        <meta name="msapplication-TileColor" content="#2E8BC0" />
+        <meta name="theme-color" content="#2E8BC0" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -102,7 +102,7 @@ export default function Document() {
               </div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <h2 id="loader-title" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.5rem 0', letterSpacing: '-0.025em' }}>Connect</h2>
+              <h2 id="loader-title" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.5rem 0', letterSpacing: '-0.025em' }}>Campus Chat</h2>
               <p style={{ fontSize: '10px', fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.4em' }}>Connecting Communities</p>
               <div className="loading-dots">
                 <div className="dot"></div>

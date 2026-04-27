@@ -3,15 +3,15 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════
-   SINGLE SOURCE OF TRUTH — Core Design Tokens
-   Primary brand colour: #3ABEF9  (Blue)
+   SINGLE SOURCE OF TRUTH — KTU Campus Chat Design Tokens
+   Primary brand colour: #3ABEF9  (Light Blue)
    ═══════════════════════════════════════════════════════ */
 :root {
-  /* ── Brand (Neutral & Professional) ── */
-  --primary:         #1e293b;           /* Slate 800 */
-  --primary-hover:   #0f172a;
-  --primary-light:   rgba(30, 41, 59, 0.1);
-  --primary-shadow:  rgba(30, 41, 59, 0.2);
+  /* ── Brand (Anchor - consistent across themes) ── */
+  --primary:         #2e8bc0;           /* Official KTU Sea Blue */
+  --primary-hover:   #2579a9;
+  --primary-light:   rgba(46, 139, 192, 0.1);
+  --primary-shadow:  rgba(46, 139, 192, 0.2);
 
   /* ── Newly Requested Tokens ── */
   --sea-blue:        #2E8BC0;
@@ -43,7 +43,7 @@
   --bg-surface:      var(--bg-pure-white);
   --bg-surface-2:    var(--bg-cloud-white);
   --bg-input:        var(--bg-soft-mist);
-  --bg-navbar:       var(--primary);
+  --bg-navbar:       var(--sea-blue);
 
   --text-primary:    var(--text-jet-black);   
   --text-secondary:  var(--text-slate-gray);
@@ -53,7 +53,7 @@
   --border:          #e5e7eb;
   --border-light:    #f3f4f6;
 
-  --bubble-me-bg:    var(--primary);
+  --bubble-me-bg:    var(--sea-blue);
   --bubble-me-text:  #ffffff;
   --bubble-other-bg: var(--bg-soft-mist);
   --bubble-other-text:var(--text-jet-black);

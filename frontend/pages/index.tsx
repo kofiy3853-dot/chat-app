@@ -232,7 +232,9 @@ const MessagesPage: React.FC = () => {
     }
   };
 
-
+  const startNanaChat = () => {
+    router.push('/nana');
+  };
 
   const filteredConversations = useMemo(() => {
     let filtered = conversations;
@@ -249,7 +251,14 @@ const MessagesPage: React.FC = () => {
 
   const handleChatClick = useCallback((id: string) => {
     const conv = conversations.find(c => c.id === id);
-    router.push(`/chat/${id}`);
+    const hasNana = conv?.participants?.some((p: any) => p.user?.role === 'NANA');
+    const isDirect = conv?.type === 'DIRECT';
+
+    if (isDirect && hasNana && user?.role !== 'NANA') {
+      router.push('/nana');
+    } else {
+      router.push(`/chat/${id}`);
+    }
   }, [router, conversations, user]);
 
   const handleDelete = async (id: string, e?: React.MouseEvent) => {
@@ -280,7 +289,7 @@ const MessagesPage: React.FC = () => {
   return (
     <div className="h-[100dvh] flex flex-col max-w-xl mx-auto relative overflow-hidden font-sans w-full bg-[var(--bg-page)]">
       <Head>
-        <title>Messages | Connect</title>
+        <title>Messages | Campus Chat</title>
       </Head>
 
       {/* ─── Header ─── */}
@@ -312,8 +321,8 @@ const MessagesPage: React.FC = () => {
 
           {/* Title and Branding */}
           <div className="flex flex-col items-center">
-            <h1 className="text-xl font-black tracking-tight leading-tight text-[var(--text-navbar)]">Connect Hub</h1>
-            <p className="text-[10px] font-bold uppercase tracking-widest -mt-0.5 text-[color-mix(in_srgb,var(--text-navbar),transparent_30%)]">Innovating Communication</p>
+            <h1 className="text-xl font-black tracking-tight leading-tight text-[var(--text-navbar)]">KTU Campus</h1>
+            <p className="text-[10px] font-bold uppercase tracking-widest -mt-0.5 text-[color-mix(in_srgb,var(--text-navbar),transparent_30%)]">Innovating for Development</p>
           </div>
 
           <div className="flex items-center space-x-1" ref={overflowRef}>
@@ -419,7 +428,28 @@ const MessagesPage: React.FC = () => {
         <SoftStories currentUser={user} />
       </div>
 
-
+      {/* ─── Nana AI Hub Link ─── */}
+      {!search && user?.role !== 'NANA' && (
+        <div className="px-4 pt-3 pb-1 bg-[var(--bg-page)]">
+          <Link href="/nana">
+            <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 shadow-lg shadow-primary-100 cursor-pointer active:scale-[0.98] duration-0">
+              <div className="absolute top-[-10px] right-[-10px] p-3 opacity-20 group-hover:scale-110 transition-transform">
+                 <SparklesIcon className="w-20 h-20 text-white" />
+              </div>
+              <div className="flex items-center space-x-3.5 relative z-10">
+                <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white font-black text-xl border border-white/30 shadow-sm">N</div>
+                <div>
+                  <h3 className="text-white font-black text-sm tracking-tight mb-0.5">Nana AI Hub</h3>
+                  <p className="text-white/80 text-[11px] font-bold uppercase tracking-widest flex items-center">
+                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                    Campus Assistant • Active Now
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+      )}
 
       {/* ─── Segmented Filter + Count Row ─── */}
       <div className="sticky top-[130px] z-20 px-4 py-2.5 border-b flex items-center justify-between shadow-sm bg-[var(--bg-surface)] border-[var(--border)]">
@@ -481,7 +511,16 @@ const MessagesPage: React.FC = () => {
               <div
                 className="absolute bottom-16 right-0 w-48 bg-surface rounded-2xl shadow-2xl border border-app-light overflow-hidden py-1"
               >
-
+                <button
+                  onClick={() => { startNanaChat(); setShowFAB(false); }}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-black text-primary-600 hover:bg-primary-50 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600 shadow-sm shadow-primary-500/10">
+                    <SparklesIcon className="w-5 h-5" />
+                  </div>
+                  <span>✨ Ask Nana AI</span>
+                </button>
+                <div className="h-px bg-gray-100 mx-3" />
                 <button
                   onClick={() => { setIsModalOpen(true); setShowFAB(false); }}
                   className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"

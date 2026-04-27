@@ -73,7 +73,7 @@ function AuthLoader() {
 
 const CallInterface = dynamic(() => import('../components/CallInterface'), { ssr: false });
 
-const hideNavbarPages = ['/login', '/register', '/events/create', '/anonymous/create', '/chat/[id]', '/courses/[id]'];
+const hideNavbarPages = ['/login', '/register', '/events/create', '/anonymous/create', '/chat/[id]', '/courses/[id]', '/nana'];
 
 // ─── Inner App (has access to AuthContext) ────────────────────────────────────
 function AppContent({ Component, pageProps }) {
@@ -217,7 +217,7 @@ function AppContent({ Component, pageProps }) {
 
       {deferredPrompt && (
         <div className="bg-primary-600 text-white text-center py-3 px-4 text-sm font-black sticky top-0 z-50 flex justify-center items-center gap-4 shadow-xl animate-fade-in-down">
-          <span className="uppercase tracking-tight">Experience Connect as an App</span>
+          <span className="uppercase tracking-tight">Experience Campus Chat as an App</span>
           <button
             onClick={() => { deferredPrompt.prompt(); deferredPrompt.userChoice.then(res => res.outcome === 'accepted' && setDeferredPrompt(null)); }}
             className="bg-white text-primary-600 px-6 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-md hover:bg-slate-50 transition-all"
