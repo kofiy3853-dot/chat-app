@@ -362,7 +362,7 @@ input:focus, textarea:focus {
 }
 
 /* ══════════════════════════════════════════════════════════
-   GLOBAL: Disable all animations, transitions & blurs site-wide
+   GLOBAL: Disable all animations, transitions, blurs & shadows
    ══════════════════════════════════════════════════════════ */
 *,
 *::before,
@@ -374,6 +374,7 @@ input:focus, textarea:focus {
   transition-duration:       0ms !important;
   transition-delay:          0ms !important;
   backdrop-filter:           none !important;
+  box-shadow:                none !important;
   scroll-behavior:           auto !important;
 }
 
