@@ -375,6 +375,9 @@ input:focus, textarea:focus {
   transition-delay:          0ms !important;
   backdrop-filter:           none !important;
   box-shadow:                none !important;
+  -webkit-box-shadow:        none !important;
+  text-shadow:               none !important;
+  filter:                    drop-shadow(0) !important;
   scroll-behavior:           auto !important;
 }
 

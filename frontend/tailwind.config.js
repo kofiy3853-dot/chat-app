@@ -9,6 +9,23 @@ module.exports = {
       fontFamily: {
         sans: ['Outfit', 'Inter', 'ui-sans-serif', 'system-ui'],
       },
+      boxShadow: {
+        'sm':  'none',
+        DEFAULT: 'none',
+        'md':  'none',
+        'lg':  'none',
+        'xl':  'none',
+        '2xl': 'none',
+        'inner': 'none',
+      },
+      dropShadow: {
+        'sm':  '0 0 0 rgba(0,0,0,0)',
+        DEFAULT: '0 0 0 rgba(0,0,0,0)',
+        'md':  '0 0 0 rgba(0,0,0,0)',
+        'lg':  '0 0 0 rgba(0,0,0,0)',
+        'xl':  '0 0 0 rgba(0,0,0,0)',
+        '2xl': '0 0 0 rgba(0,0,0,0)',
+      },
       colors: {
         primary: {
           50:  'var(--primary-50,  #FFF5F5)',
