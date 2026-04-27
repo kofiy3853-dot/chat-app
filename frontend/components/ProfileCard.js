@@ -6,6 +6,7 @@ import {
   AcademicCapIcon,
   PencilSquareIcon,
   CheckIcon,
+  CheckCircleIcon,
   XMarkIcon,
   IdentificationIcon,
   BuildingLibraryIcon,
