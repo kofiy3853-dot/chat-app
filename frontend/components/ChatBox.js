@@ -77,8 +77,8 @@ const MessageBubble = React.memo(({
 
 
   const bubbleClasses = isNana 
-    ? `group relative p-5 rounded-[24px] shadow-sm border select-none w-fit max-w-full bg-surface border-[var(--border)]/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
-    : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} select-none touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`;
+    ? `group relative p-5 rounded-[24px] shadow-sm border w-fit max-w-full bg-surface border-[var(--border)]/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
+    : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`;
 
   const nanaStyles = isNana ? {
     display: "block",
@@ -1260,15 +1260,19 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                     onChange={handleInputChange}
                     disabled={!canSend}
                     onPaste={(e) => {
-                      const item = e.clipboardData.items[0];
-                      if (item?.type.startsWith('image/')) {
-                        const file = item.getAsFile();
-                        if (file) {
-                          compressImage(file, 800, 800, 0.7).then(compressed => {
-                            setMediaFile(compressed);
-                          });
+                      const items = e.clipboardData?.items;
+                      if (!items) return;
+                      for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.startsWith('image/')) {
+                          const file = items[i].getAsFile();
+                          if (file) {
+                            compressImage(file, 800, 800, 0.7).then(compressed => {
+                              setMediaFile(compressed);
+                            });
+                          }
+                          e.preventDefault();
+                          break;
                         }
-                        e.preventDefault();
                       }
                     }}
                     aria-label="Type your message"
