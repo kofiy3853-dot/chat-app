@@ -144,19 +144,10 @@ export default function ChatPage() {
         });
       };
 
-      const handleUserTyping = ({ userId, userName, isTyping, conversationId: cid }) => {
-        if (cid !== id) return;
-        if (userId === currentUser?.id) return;
-        setTypingUsers(prev => isTyping 
-          ? [...prev.filter(u => u.id !== userId), { id: userId, name: userName }]
-          : prev.filter(u => u.id !== userId)
-        );
-      };
-
       if (socket) {
         socket.on('user-status-changed', handleUserStatusChange);
         socket.on('chat-lock-updated', handleLockUpdated);
-        socket.on('user-typing', handleUserTyping);
+        // NOTE: user-typing is handled entirely inside ChatBox.js — do NOT register a second listener here
       }
 
       return () => {
@@ -164,7 +155,6 @@ export default function ChatPage() {
         if (socket) {
           socket.off('user-status-changed', handleUserStatusChange);
           socket.off('chat-lock-updated', handleLockUpdated);
-          socket.off('user-typing', handleUserTyping);
         }
       };
     }

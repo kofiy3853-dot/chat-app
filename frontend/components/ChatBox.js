@@ -928,8 +928,6 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
     const cursorPosition = e.target.selectionStart;
     const textBeforeCursor = val.slice(0, cursorPosition);
     const match = textBeforeCursor.match(/@([\w\s]*)$/);
-    
-    // We only trigger mentions if we're typing a single word after @ or starting
     if (match && !match[1].includes('  ')) {
       setShowMentionPicker(true);
       setMentionQuery(match[1].toLowerCase());
@@ -937,13 +935,27 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       setShowMentionPicker(false);
     }
 
-    if (!isCurrentlyTyping.current && val.trim().length > 0) {
+    // If input is empty, stop typing indicator immediately
+    if (val.trim().length === 0) {
+      if (isCurrentlyTyping.current) {
+        isCurrentlyTyping.current = false;
+        sendTyping(conversationId, false);
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    // Start typing indicator if not already started
+    if (!isCurrentlyTyping.current) {
       isCurrentlyTyping.current = true;
       sendTyping(conversationId, true);
     }
 
+    // Reset the stop-typing timeout on each keystroke
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    
     typingTimeoutRef.current = setTimeout(() => {
       isCurrentlyTyping.current = false;
       sendTyping(conversationId, false);
@@ -1260,7 +1272,8 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                       }
                     }}
                     aria-label="Type your message"
-                    className="flex-1 bg-transparent border-none text-sm py-2 px-1 max-h-32 resize-none focus:ring-0 focus:outline-none outline-none font-medium disabled:text-app-secondary"
+                    style={{ outline: 'none', boxShadow: 'none' }}
+                    className="flex-1 bg-transparent border-none text-sm py-2 px-1 max-h-32 resize-none focus:ring-0 focus:outline-none font-medium disabled:text-app-secondary"
                     rows={1}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                   />

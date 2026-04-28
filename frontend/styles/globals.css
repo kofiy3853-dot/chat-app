@@ -191,6 +191,22 @@ input, textarea {
 input:focus, textarea:focus {
   border-color: var(--accent) !important;
   outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Chat message textarea — completely borderless & outline-free */
+textarea.border-none,
+textarea[class*="border-none"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+textarea.border-none:focus,
+textarea[class*="border-none"]:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 
