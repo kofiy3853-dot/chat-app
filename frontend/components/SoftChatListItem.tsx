@@ -27,7 +27,7 @@ interface Message {
 interface Conversation {
   id: string;
   name?: string;
-  type: 'DIRECT' | 'GROUP';
+  type: 'DIRECT' | 'GROUP' | 'COURSE' | 'ai';
   participants: Participant[];
   lastMessage?: Message;
   lastMessageAt?: string;
