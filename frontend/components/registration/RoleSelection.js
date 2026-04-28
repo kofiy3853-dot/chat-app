@@ -26,7 +26,7 @@ const roles = [
 
 export default function RoleSelection({ onSelect }) {
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-4 fade-in">
       <div className="text-center mb-8">
         <h2 className="text-xl font-bold text-gray-900">Choose Your Role</h2>
         <p className="text-sm text-gray-500 mt-1">Select how you will participate in the campus network</p>
@@ -37,9 +37,9 @@ export default function RoleSelection({ onSelect }) {
           <button
             key={role.id}
             onClick={() => onSelect(role.id)}
-            className={`flex items-center p-5 rounded-2xl border-2 border-transparent bg-white shadow-sm hover:border-primary-500 hover:shadow-md transition-all text-left group active:scale-[0.98] outline-none`}
+            className={`flex items-center p-5 rounded-2xl border-2 border-transparent bg-white shadow-sm hover:border-primary-500 hover:shadow-md  text-left group active:] outline-none`}
           >
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${role.color} group-hover:scale-110 transition-transform`}>
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${role.color} group-hover: `}>
               <role.icon className="w-6 h-6" />
             </div>
             <div className="ml-4">

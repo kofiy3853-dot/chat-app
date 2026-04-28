@@ -28,27 +28,18 @@ export default function Document() {
             align-items: center;
             justify-content: center;
             z-index: 999999;
-            transition: opacity 0.5s ease-out, visibility 0.5s;
           }
           .loader-content {
             display: flex;
             flex-direction: column;
             align-items: center;
-            animation: fadeIn 0.8s ease-out;
           }
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
+
           .loader-ring {
             position: absolute;
             inset: -20px;
             border-radius: 3rem;
             border: 2px solid rgba(107, 115, 255, 0.2);
-            animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-          }
-          @keyframes ping {
-            75%, 100% { transform: scale(1.5); opacity: 0; }
           }
           .loader-logo {
             width: 6rem;
@@ -64,14 +55,7 @@ export default function Document() {
             border: 4px solid white;
           }
           .loader-shimmer {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transform: translateX(-100%) skewX(-15deg);
-            animation: shimmer 2s infinite;
-          }
-          @keyframes shimmer {
-            100% { transform: translateX(200%) skewX(-15deg); }
+            display: none;
           }
           .loading-dots {
             display: flex;
@@ -83,10 +67,6 @@ export default function Document() {
             height: 0.375rem;
             border-radius: 50%;
             background: #FF0000;
-            animation: bounce 0.6s infinite alternate;
-          }
-          @keyframes bounce {
-            to { transform: translateY(-4px); opacity: 0.5; }
           }
         `}</style>
       </Head>
@@ -107,8 +87,8 @@ export default function Document() {
               <p style={{ fontSize: '10px', fontWeight: 700, color: '#FF0000', textTransform: 'uppercase', letterSpacing: '0.4em' }}>Professional Messaging</p>
               <div className="loading-dots">
                 <div className="dot"></div>
-                <div className="dot" style={{ animationDelay: '0.2s' }}></div>
-                <div className="dot" style={{ animationDelay: '0.4s' }}></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
               </div>
             </div>
           </div>
@@ -138,8 +118,7 @@ export default function Document() {
                     }
                   } catch (e) {}
                 })();
-            `,
-          }}
+            ` }}
         />
         <Main />
         <NextScript />

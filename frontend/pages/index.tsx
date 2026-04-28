@@ -301,7 +301,7 @@ const MessagesPage: React.FC = () => {
           <button
             onClick={() => router.push('/account')}
             aria-label="Profile"
-            className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active:scale-95 duration-0 bg-white"
+            className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active: bg-white"
           >
             {avatarUrl && !imgError ? (
               <img 
@@ -332,14 +332,14 @@ const MessagesPage: React.FC = () => {
                 setIsSearchOpen(v => !v);
                 if (isSearchOpen) setSearch('');
               }}
-              className={`w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 duration-0 ${isSearchOpen ? 'text-primary-600 bg-primary-50' : 'text-[var(--text-navbar)]'}`}
+              className={`w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:  ${isSearchOpen ? 'text-primary-600 bg-primary-50' : 'text-[var(--text-navbar)]'}`}
             >
               {isSearchOpen ? <XMarkIcon className="w-5 h-5" /> : <MagnifyingGlassIcon className="w-5 h-5" />}
             </button>
             <button
               aria-label="More options"
               onClick={() => setShowOverflow(v => !v)}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 duration-0"
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:"
               style={{ color: 'var(--text-navbar)' }}
             >
               <EllipsisVerticalIcon className="w-5 h-5" />
@@ -350,7 +350,7 @@ const MessagesPage: React.FC = () => {
                   className="absolute right-0 top-11 w-52 bg-surface rounded-2xl border border-app-light overflow-hidden z-50 py-1"
                 >
                   <button
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-app-secondary hover:bg-surface-2 transition-colors"
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-app-secondary hover:bg-surface-2"
                     onClick={() => {
                       if (selectedConversations.size === filteredConversations.length) {
                         setSelectedConversations(new Set());
@@ -364,7 +364,7 @@ const MessagesPage: React.FC = () => {
                     <span>{selectedConversations.size === filteredConversations.length && filteredConversations.length > 0 ? 'Deselect All' : 'Select All'}</span>
                   </button>
                   <button
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-primary-600 hover:bg-primary-50"
                     onClick={async () => {
                       try { await chatAPI.markAllAsRead(); fetchData(); } catch (err) { console.error(err); }
                       setShowOverflow(false);
@@ -377,7 +377,7 @@ const MessagesPage: React.FC = () => {
                     <>
                       <div className="h-px bg-gray-100 mx-3" />
                       <button
-                        className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+                        className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50"
                         onClick={async () => {
                           if (window.confirm(`Delete ${selectedConversations.size} conversations?`)) {
                             try {
@@ -403,18 +403,18 @@ const MessagesPage: React.FC = () => {
       
       {/* ─── Search Bar (Collapsible) ─── */}
       <div 
-        className={`duration-0 duration-300 ease-in-out border-b border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden ${
+        className={`  -out border-b border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden ${
           isSearchOpen ? 'max-h-20 opacity-100 py-3 px-4' : 'max-h-0 opacity-0 py-0 px-4 pointer-events-none'
         }`}
       >
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-            <MagnifyingGlassIcon className="h-4 w-4 text-app-muted group-focus-within:text-primary-500 transition-colors" />
+            <MagnifyingGlassIcon className="h-4 w-4 text-app-muted group-focus-within:text-primary-500" />
           </div>
           <input
             ref={searchInputRef}
             type="text"
-            className="block w-full pl-10 pr-4 py-2.5 bg-[var(--bg-page)] border border-[var(--border)] rounded-2xl text-sm font-semibold text-app-primary placeholder-app-muted focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 duration-0 shadow-sm"
+            className="block w-full pl-10 pr-4 py-2.5 bg-[var(--bg-page)] border border-[var(--border)] rounded-2xl text-sm font-semibold text-app-primary placeholder-app-muted focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 shadow-sm"
             placeholder="Search chats..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -432,8 +432,8 @@ const MessagesPage: React.FC = () => {
       {!search && user?.role !== 'NANA' && (
         <div className="px-4 pt-3 pb-1 bg-[var(--bg-page)]">
           <Link href="/nana">
-            <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 cursor-pointer active:scale-[0.98] duration-0">
-              <div className="absolute top-[-10px] right-[-10px] p-3 opacity-20 group-hover:scale-110 transition-transform">
+            <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 cursor-pointer active:]">
+              <div className="absolute top-[-10px] right-[-10px] p-3 opacity-20 group-hover:">
                  <SparklesIcon className="w-20 h-20 text-white" />
               </div>
               <div className="flex items-center space-x-3.5 relative z-10">
@@ -441,7 +441,7 @@ const MessagesPage: React.FC = () => {
                 <div>
                   <h3 className="text-white font-black text-sm tracking-tight mb-0.5">Nana AI Hub</h3>
                   <p className="text-white/80 text-[11px] font-bold uppercase tracking-widest flex items-center">
-                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-2"></span>
                     Campus Assistant • Active Now
                   </p>
                 </div>
@@ -459,7 +459,7 @@ const MessagesPage: React.FC = () => {
             <button
               key={f}
               onClick={() => setChatFilter(f)}
-              className={`px-4 py-1.5 rounded-[10px] text-xs font-semibold capitalize duration-0 ${
+              className={`px-4 py-1.5 rounded-[10px] text-xs font-semibold capitalize  ${
                 chatFilter === f
                   ? 'bg-surface text-app-primary shadow-sm font-bold'
                   : 'text-app-muted hover:text-app-secondary'
@@ -513,7 +513,7 @@ const MessagesPage: React.FC = () => {
               >
                 <button
                   onClick={() => { startNanaChat(); setShowFAB(false); }}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-black text-primary-600 hover:bg-primary-50 transition-colors"
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-black text-primary-600 hover:bg-primary-50"
                 >
                   <div className="w-8 h-8 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600">
                     <SparklesIcon className="w-5 h-5" />
@@ -523,7 +523,7 @@ const MessagesPage: React.FC = () => {
                 <div className="h-px bg-gray-100 mx-3" />
                 <button
                   onClick={() => { setIsModalOpen(true); setShowFAB(false); }}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   <div className="w-8 h-8 rounded-xl bg-surface-2 flex items-center justify-center text-app-muted">
                     <ChatBubbleOvalLeftEllipsisIcon className="w-4 h-4" />
@@ -532,7 +532,7 @@ const MessagesPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => { setIsModalOpen(true); setShowFAB(false); }}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
                     <UserGroupIcon className="w-4 h-4" />
@@ -541,7 +541,7 @@ const MessagesPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => { setIsStatusModalOpen(true); setShowFAB(false); }}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
                     <CameraIcon className="w-4 h-4" />
@@ -554,7 +554,7 @@ const MessagesPage: React.FC = () => {
           <button
             aria-label="New message"
             onClick={() => setShowFAB(v => !v)}
-            className={`w-14 h-14 rounded-full flex items-center justify-center duration-0 active:scale-95 ${showFAB ? 'bg-gray-800 rotate-45' : 'bg-primary-600'}`}
+            className={`w-14 h-14 rounded-full flex items-center justify-center  active: ${showFAB ? 'bg-gray-800 ' : 'bg-primary-600'}`}
           >
             <PlusIcon className="w-6 h-6 text-white stroke-[2.5px]" />
           </button>

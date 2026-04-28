@@ -237,7 +237,7 @@ export default function ChatPage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0f2ff' }}>
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-500 rounded-full"></div>
           <p className="mt-4 text-slate-500 font-medium">Connecting to chat...</p>
         </div>
       </div>
@@ -246,7 +246,7 @@ export default function ChatPage() {
 
   return (
     <>
-      <div className="flex flex-col h-[100dvh] bg-page relative transition-all duration-300 overflow-hidden w-full max-w-xl mx-auto">
+      <div className="flex flex-col h-[100dvh] bg-page relative overflow-hidden w-full max-w-xl mx-auto">
         <Head>
           <title>{name} | Campus Chat</title>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -261,7 +261,7 @@ export default function ChatPage() {
           <div className="flex items-center space-x-3 min-w-0">
             <Link
               href="/"
-              className="p-2 -ml-1 transition-colors"
+              className="p-2 -ml-1"
               style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 20%)' }}
             >
               <ArrowLeftIcon className="w-5 h-5 stroke-[2.5px]" />
@@ -302,7 +302,7 @@ export default function ChatPage() {
                   })()}
                 </div>
                 {isOnline && (
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full transition-all"></span>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></span>
                 )}
               </div>
 
@@ -318,12 +318,12 @@ export default function ChatPage() {
                 <p className="text-[11px] font-medium flex items-center" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 30%)' }}>
                   {conversation?.course?.announcementsOnly ? (
                     <span className="flex items-center">
-                      <div className="w-1.5 h-1.5 bg-rose-400 rounded-full mr-1.5 animate-pulse" />
+                      <div className="w-1.5 h-1.5 bg-rose-400 rounded-full mr-1.5" />
                       Locked by Lecturer
                     </span>
                   ) : (
                     typingUsers.length > 0 ? (
-                      <span className="text-primary-400 font-bold animate-pulse">
+                      <span className="text-primary-400 font-bold">
                         {typingUsers.length === 1 ? 'typing...' : 'several people typing...'}
                       </span>
                     ) : (
@@ -343,7 +343,7 @@ export default function ChatPage() {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setShowSearch(!showSearch)}
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${showSearch ? 'bg-black/10' : 'bg-black/5 hover:bg-black/10'}`}
+              className={`w-9 h-9 rounded-full flex items-center justify-center  ${showSearch ? 'bg-black/10' : 'bg-black/5 hover:bg-black/10'}`}
               style={{ color: 'var(--text-navbar)' }}
             >
               <MagnifyingGlassIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px'}} />
@@ -351,7 +351,7 @@ export default function ChatPage() {
             <button
               onClick={() => handleStartCall('VOICE')}
               disabled={!otherParticipant}
-              className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-black/10 transition-all disabled:opacity-30"
+              className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-black/10 disabled:opacity-30"
               style={{ color: 'var(--text-navbar)' }}
             >
               <PhoneIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px'}} />
@@ -359,7 +359,7 @@ export default function ChatPage() {
             <button
               onClick={() => handleStartCall('VIDEO')}
               disabled={!otherParticipant}
-              className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-black/10 transition-all disabled:opacity-30"
+              className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-black/10 disabled:opacity-30"
               style={{ color: 'var(--text-navbar)' }}
             >
               <VideoCameraIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px'}} />
@@ -367,7 +367,7 @@ export default function ChatPage() {
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-black/10 transition-all"
+                className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-black/10"
                 style={{ color: 'var(--text-navbar)' }}
               >
                 <EllipsisVerticalIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px'}} />
@@ -388,21 +388,21 @@ export default function ChatPage() {
                     <div className="p-2 space-y-1">
                       <button
                         onClick={() => { setShowMediaGallery(true); setShowMenu(false); }}
-                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl text-left"
                       >
                         <PhotoIcon className="w-4 h-4" />
                         <span>View Media & Files</span>
                       </button>
                       <button
                         onClick={handleSendCallLink}
-                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl text-left"
                       >
                         <LinkIcon className="w-4 h-4" />
                         <span>Send Call Link</span>
                       </button>
                       <button
                         onClick={handleScheduleCall}
-                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all text-left"
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl text-left"
                       >
                         <CalendarDaysIcon className="w-4 h-4" />
                         <span>Schedule Call</span>
@@ -410,7 +410,7 @@ export default function ChatPage() {
                       <div className="h-px bg-slate-50 my-1 mx-2" />
                       <button
                         onClick={handleClearChat}
-                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-all text-left"
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl text-left"
                       >
                         <TrashIcon className="w-4 h-4" />
                         <span>Clear All Chat</span>
@@ -423,7 +423,7 @@ export default function ChatPage() {
           </div>
         </div>
         {showSearch && (
-            <div className="w-full bg-page border-t border-slate-200/50 px-4 py-2 flex items-center transition-all shadow-sm" style={{ background: 'var(--bg-page)', borderColor: 'var(--border)' }}>
+            <div className="w-full bg-page border-t border-slate-200/50 px-4 py-2 flex items-center shadow-sm" style={{ background: 'var(--bg-page)', borderColor: 'var(--border)' }}>
                <input 
                  autoFocus 
                  value={searchQuery} 
@@ -432,7 +432,7 @@ export default function ChatPage() {
                  className="w-full rounded-2xl py-2 px-4 text-sm outline-none border focus:ring-2 focus:ring-primary-500/20"
                  style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}
                />
-               <button onClick={() => { setShowSearch(false); setSearchQuery(''); }} className="ml-2 p-1.5 rounded-full hover:bg-black/5 text-slate-500 flex-shrink-0 transition-colors">
+               <button onClick={() => { setShowSearch(false); setSearchQuery(''); }} className="ml-2 p-1.5 rounded-full hover:bg-black/5 text-slate-500 flex-shrink-0">
                   <XMarkIcon className="w-5 h-5" />
                </button>
             </div>
@@ -461,7 +461,7 @@ export default function ChatPage() {
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
                 <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Contact Info</h2>
-                <button onClick={() => setShowProfile(false)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-600 shadow-sm border border-slate-100 transition-all hover:scale-105">
+                <button onClick={() => setShowProfile(false)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-600 shadow-sm border border-slate-100 hover:">
                   <XMarkIcon className="w-5 h-5 stroke-[3px]" />
                 </button>
               </div>
@@ -495,7 +495,7 @@ export default function ChatPage() {
                   </div>
                   {isOnline && (
                     <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full shadow-lg flex items-center justify-center">
-                      <span className="w-2.5 h-2.5 bg-white rounded-full animate-pulse px-0"></span>
+                      <span className="w-2.5 h-2.5 bg-white rounded-full px-0"></span>
                     </div>
                   )}
                 </div>
@@ -517,13 +517,13 @@ export default function ChatPage() {
                 {otherParticipant?.user?.role !== 'NANA' && (
                   <div className="w-full bg-slate-50 rounded-2xl p-4 mt-8 flex justify-around border border-slate-100">
                     <button onClick={() => { setShowProfile(false); handleStartCall('VOICE'); }} className="flex flex-col items-center space-y-2 group">
-                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-primary-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-all border border-slate-100">
+                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-primary-500 group-hover:bg-primary-50 group-hover:text-primary-600 border border-slate-100">
                         <PhoneIcon className="w-5 h-5" />
                       </div>
                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary-500">Audio</span>
                     </button>
                     <button onClick={() => { setShowProfile(false); handleStartCall('VIDEO'); }} className="flex flex-col items-center space-y-2 group">
-                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-emerald-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all border border-slate-100">
+                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-emerald-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 border border-slate-100">
                         <VideoCameraIcon className="w-5 h-5" />
                       </div>
                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-emerald-500">Video</span>

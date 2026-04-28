@@ -76,7 +76,7 @@ export default function NewChatModal({ isOpen, onClose }) {
           <h2 className="text-xl font-bold text-gray-900">New Message</h2>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-xl"
           >
             <XMarkIcon className="w-6 h-6 text-gray-500" />
           </button>
@@ -85,14 +85,14 @@ export default function NewChatModal({ isOpen, onClose }) {
         {/* Search Input */}
         <div className="p-4 bg-gray-50/50">
           <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               placeholder="Search by name, email or ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               autoFocus
-              className="w-full bg-white border border-gray-200 rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm text-sm"
+              className="w-full bg-white border border-gray-200 rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm text-sm"
             />
           </div>
 
@@ -104,7 +104,7 @@ export default function NewChatModal({ isOpen, onClose }) {
                 <button
                   key={f}
                   onClick={() => setFaculty(f === 'ALL' ? '' : f)}
-                  className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight transition-all border shrink-0 ${
+                  className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight  border shrink-0 ${
                     (faculty === f || (f === 'ALL' && !faculty))
                       ? 'bg-primary-600 text-white border-primary-600 shadow-md shadow-primary-200'
                       : 'bg-white text-slate-500 border-slate-200 hover:border-primary-200'
@@ -121,7 +121,7 @@ export default function NewChatModal({ isOpen, onClose }) {
                 <button
                   key={l}
                   onClick={() => setLevel(l === 'ALL' ? '' : l)}
-                  className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight transition-all border shrink-0 ${
+                  className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight  border shrink-0 ${
                     (level === l || (l === 'ALL' && !level))
                       ? 'bg-primary-600 text-white border-primary-600 shadow-md shadow-primary-200'
                       : 'bg-white text-slate-500 border-slate-200 hover:border-primary-200'
@@ -138,7 +138,7 @@ export default function NewChatModal({ isOpen, onClose }) {
         <div className="flex-1 overflow-y-auto p-2 min-h-[300px]">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              <div className="rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
               <p className="text-sm text-gray-500 font-medium">Searching for classmates...</p>
             </div>
           ) : results.length > 0 ? (
@@ -147,7 +147,7 @@ export default function NewChatModal({ isOpen, onClose }) {
                 <button
                   key={user.id}
                   onClick={() => startChat(user)}
-                  className="w-full flex items-center space-x-3 p-3 hover:bg-primary-50 rounded-2xl transition-all group border border-transparent hover:border-primary-100"
+                  className="w-full flex items-center space-x-3 p-3 hover:bg-primary-50 rounded-2xl group border border-transparent hover:border-primary-100"
                 >
                   <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary-400 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm overflow-hidden">
                     {(() => {
@@ -180,10 +180,10 @@ export default function NewChatModal({ isOpen, onClose }) {
               {JSON.parse(localStorage.getItem('user') || '{}')?.role !== 'NANA' && (
                 <button
                   onClick={() => { router.push('/nana'); onClose(); }}
-                  className="w-full flex items-center space-x-4 p-4 bg-primary-50/50 hover:bg-primary-50 rounded-2xl transition-all group border border-primary-100 shadow-sm"
+                  className="w-full flex items-center space-x-4 p-4 bg-primary-50/50 hover:bg-primary-50 rounded-2xl group border border-primary-100 shadow-sm"
                 >
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary-500 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary-500/20 overflow-hidden shrink-0">
-                    <div className="animate-pulse absolute inset-0 bg-white/20"></div>
+                    <div className="absolute inset-0 bg-white/20"></div>
                     <span>N</span>
                   </div>
                   <div className="flex-1 text-left min-w-0">
@@ -193,7 +193,7 @@ export default function NewChatModal({ isOpen, onClose }) {
                     </div>
                     <p className="text-xs text-indigo-600/70 font-bold uppercase tracking-tight truncate mt-0.5">KTU Virtual Campus Support</p>
                     <div className="flex items-center space-x-1.5 mt-1">
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                       <span className="text-[10px] font-bold text-green-600 uppercase tracking-tight">Active Now</span>
                     </div>
                   </div>

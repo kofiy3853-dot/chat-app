@@ -107,7 +107,7 @@ const EventTab = () => {
   if (loading) {
     return (
       <div className="py-20 flex justify-center">
-        <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-500 rounded-full animate-spin"></div>
+        <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-500 rounded-full"></div>
       </div>
     );
   }
@@ -118,7 +118,7 @@ const EventTab = () => {
       <div className="px-4 pt-4">
         <button 
           onClick={() => router.push('/events/create')}
-          className="w-full flex items-center justify-between p-5 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-95 shadow-slate-100/50"
+          className="w-full flex items-center justify-between p-5 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md active: shadow-slate-100/50"
         >
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-primary-100/50 rounded-2xl flex items-center justify-center text-primary-600">
@@ -145,7 +145,7 @@ const EventTab = () => {
             <div 
               key={event.id} 
               onClick={() => setSelectedEvent(event)}
-              className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group shadow-slate-200/20 cursor-pointer hover:border-primary-200 transition-all active:scale-[0.99]"
+              className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group shadow-slate-200/20 cursor-pointer hover:border-primary-200 active:]"
             >
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -155,7 +155,7 @@ const EventTab = () => {
                           {event.category || 'Event'}
                        </span>
                     </div>
-                    <h2 className="text-xl font-black text-slate-900 leading-tight tracking-tight mb-2 group-hover:text-primary-600 transition-colors uppercase">
+                    <h2 className="text-xl font-black text-slate-900 leading-tight tracking-tight mb-2 group-hover:text-primary-600 uppercase">
                       {event.title}
                     </h2>
                     <p className="text-[11px] text-slate-500 font-bold line-clamp-2 leading-relaxed opacity-70">
@@ -182,7 +182,7 @@ const EventTab = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="flex items-center space-x-3 bg-slate-50 p-3 rounded-2xl border border-slate-100/50 hover:bg-primary-50 transition-colors"
+                    className="flex items-center space-x-3 bg-slate-50 p-3 rounded-2xl border border-slate-100/50 hover:bg-primary-50"
                   >
                     <MapPinIcon className="w-4 h-4 text-emerald-500" />
                     <p className="text-[10px] font-bold text-slate-700 truncate">{event.location || event.locationValue}</p>
@@ -197,7 +197,7 @@ const EventTab = () => {
                     {(currentUser?.id === event.creatorId || currentUser?.role === 'ADMIN') && (
                       <button 
                         onClick={(e) => handleDeleteEvent(e, event.id)}
-                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl"
                       >
                         <TrashIcon className="w-4 h-4" />
                       </button>
@@ -205,7 +205,7 @@ const EventTab = () => {
                   </div>
                   <button 
                     onClick={(e) => handleToggleJoin(e, event.id)}
-                    className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                    className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest  active: ${
                       event.isJoined 
                       ? 'bg-primary-50 text-primary-600' 
                       : 'bg-slate-900 text-white'
@@ -227,7 +227,7 @@ const EventTab = () => {
 
       {/* Detailed Modal Overlay */}
       {selectedEvent && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 fade-in">
            {/* Backdrop */}
            <div 
              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" 
@@ -235,7 +235,7 @@ const EventTab = () => {
            />
            
            {/* Modal Body */}
-           <div className="relative w-full max-w-xl bg-white rounded-t-[3rem] sm:rounded-[3rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300 flex flex-col max-h-[90vh]">
+           <div className="relative w-full max-w-xl bg-white rounded-t-[3rem] sm:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
               {/* Header/Banner Area */}
               <div className="h-48 bg-primary-600 relative shrink-0">
                  {selectedEvent.bannerUrl ? (
@@ -247,7 +247,7 @@ const EventTab = () => {
                  )}
                  <button 
                    onClick={() => setSelectedEvent(null)}
-                   className="absolute top-6 right-6 p-2 bg-black/20 backdrop-blur-md text-white rounded-2xl hover:bg-black/40 transition-all"
+                   className="absolute top-6 right-6 p-2 bg-black/20 backdrop-blur-md text-white rounded-2xl hover:bg-black/40"
                  >
                     <XMarkIcon className="w-6 h-6" />
                  </button>
@@ -329,7 +329,7 @@ const EventTab = () => {
                     
                     <button 
                       onClick={(e) => handleToggleJoin(e, selectedEvent.id)}
-                      className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest  ${
                          selectedEvent.isJoined 
                          ? 'bg-white/10 text-white border border-white/20' 
                          : 'bg-primary-500 text-white shadow-xl shadow-primary-500/30'

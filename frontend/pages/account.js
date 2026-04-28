@@ -118,7 +118,7 @@ export default function Account() {
     return (
       <div className="min-h-screen flex items-center justify-center font-black uppercase tracking-widest text-[10px]" style={{ backgroundColor: 'var(--bg-page)', color: 'var(--text-muted)' }}>
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full"></div>
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Loading Account...</p>
         </div>
       </div>
@@ -156,7 +156,7 @@ export default function Account() {
       </Head>
       
       <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--bg-page)' }}>
-        <header className="sticky top-0 z-30 bg-primary-600 px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-2 h-14 shadow-md transition-all">
+        <header className="sticky top-0 z-30 bg-primary-600 px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-2 h-14 shadow-md">
           <div className="max-w-xl mx-auto px-2">
             <h1 className="text-xl font-black text-white tracking-tight leading-tight">Account</h1>
             <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest mt-0.5">Academic Profile & Settings</p>
@@ -170,7 +170,7 @@ export default function Account() {
               <div className="flex items-center justify-between px-4">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>Chat Wallpaper</h3>
               </div>
-              <div className="rounded-[2.5rem] p-6 shadow-2xl border transition-all" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+              <div className="rounded-[2.5rem] p-6 shadow-2xl border" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
                 <div className="grid grid-cols-6 gap-3">
                   {[
                     { id: 'bg-white', name: 'Original', color: '#ffffff' },
@@ -180,8 +180,8 @@ export default function Account() {
                     { id: 'bg-sky-50', name: 'Cloud', color: '#f0f9ff' },
                     { id: 'bg-primary-500', name: 'Sea', color: '#2E8BC0' }
                   ].map((bg) => (
-                    <button key={bg.id} onClick={() => setChatBg(bg.id)} className={`relative flex flex-col items-center space-y-2 transition-all`}>
-                      <div className={`w-full aspect-square rounded-xl border-2 transition-all shadow-sm flex items-center justify-center ${activeBg === bg.id ? 'border-primary-500 scale-110 shadow-lg' : 'border-slate-100 hover:border-slate-300'}`} style={{ backgroundColor: bg.color }}>
+                    <button key={bg.id} onClick={() => setChatBg(bg.id)} className={`relative flex flex-col items-center space-y-2 `}>
+                      <div className={`w-full aspect-square rounded-xl border-2  shadow-sm flex items-center justify-center ${activeBg === bg.id ? 'border-primary-500  shadow-lg' : 'border-slate-100 hover:border-slate-300'}`} style={{ backgroundColor: bg.color }}>
                         {activeBg === bg.id && <CheckCircleIcon className="w-4 h-4 text-primary-500" />}
                       </div>
                       <span className="text-[7px] font-black uppercase tracking-tighter text-slate-400">{bg.name}</span>
@@ -199,7 +199,7 @@ export default function Account() {
                     {section.items.map((item, i) => (
                       <button key={i} onClick={() => handleItemClick(item)} className="w-full px-6 py-5 flex items-center justify-between group" style={{ backgroundColor: 'var(--bg-surface)' }}>
                         <div className="flex items-center space-x-4">
-                          <div className={`w-11 h-11 rounded-2xl ${item.color} flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm`}>
+                          <div className={`w-11 h-11 rounded-2xl ${item.color} flex items-center justify-center group-hover:  shadow-sm`}>
                             <item.icon className="w-5 h-5" />
                           </div>
                           <div className="text-left">
@@ -209,7 +209,7 @@ export default function Account() {
                         </div>
                         <div className="flex items-center space-x-3">
                           {item.badge && <span className="px-2 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase rounded-md shadow-lg shadow-emerald-500/20">{item.badge}</span>}
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-3.5 h-3.5 text-slate-200 group-hover:text-slate-400 transition-colors">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-3.5 h-3.5 text-slate-200 group-hover:text-slate-400">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                           </svg>
                         </div>
@@ -221,7 +221,7 @@ export default function Account() {
             ))}
 
           <div className="px-2 pt-4">
-            <button onClick={handleLogout} className="w-full bg-rose-50/50 hover:bg-rose-100/50 p-1.5 rounded-[2rem] border border-rose-100 shadow-xl transition-all active:scale-95 group">
+            <button onClick={handleLogout} className="w-full bg-rose-50/50 hover:bg-rose-100/50 p-1.5 rounded-[2rem] border border-rose-100 shadow-xl active: group">
               <div className="flex items-center justify-between p-3.5">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 rounded-2xl bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-200">
@@ -306,7 +306,7 @@ function SettingsModal({ type, onClose, states }) {
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm New Password</label>
               <input type="password" required value={passwordData.confirm} onChange={e => setPasswordData({...passwordData, confirm: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 font-bold outline-none" placeholder="••••••••" />
             </div>
-            <button type="submit" disabled={loading} className="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-amber-500/20 active:scale-95 transition-all mt-4">
+            <button type="submit" disabled={loading} className="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-amber-500/20 active: mt-4">
               {loading ? 'Updating...' : 'Set New Password'}
             </button>
           </form>
@@ -314,7 +314,7 @@ function SettingsModal({ type, onClose, states }) {
       case '2fa':
         return (
           <div className="space-y-6 text-center">
-            <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center transition-all ${states.tfaEnabled ? 'bg-emerald-500 shadow-emerald-200' : 'bg-slate-100 text-slate-400'} shadow-2xl`}>
+            <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center  ${states.tfaEnabled ? 'bg-emerald-500 shadow-emerald-200' : 'bg-slate-100 text-slate-400'} shadow-2xl`}>
               <ShieldCheckIcon className={`w-10 h-10 ${states.tfaEnabled ? 'text-white' : ''}`} />
             </div>
             <div>
@@ -323,7 +323,7 @@ function SettingsModal({ type, onClose, states }) {
             </div>
             <button 
               onClick={() => { states.setTfaEnabled(!states.tfaEnabled); toast.success(`2FA ${!states.tfaEnabled ? 'Enabled' : 'Disabled'}`); }}
-              className={`w-full py-4 rounded-xl font-black uppercase text-xs tracking-widest transition-all shadow-lg ${states.tfaEnabled ? 'bg-slate-800 text-white' : 'bg-emerald-600 text-white shadow-emerald-600/20'}`}
+              className={`w-full py-4 rounded-xl font-black uppercase text-xs tracking-widest  shadow-lg ${states.tfaEnabled ? 'bg-slate-800 text-white' : 'bg-emerald-600 text-white shadow-emerald-600/20'}`}
             >
               {states.tfaEnabled ? 'Disable Protection' : 'Enable Secure Access'}
             </button>
@@ -344,9 +344,9 @@ function SettingsModal({ type, onClose, states }) {
                 </div>
                 <button 
                   onClick={() => states.setPrivacySettings({...states.privacySettings, [setting.id]: !states.privacySettings[setting.id]})}
-                  className={`w-12 h-6 rounded-full transition-all relative ${states.privacySettings[setting.id] ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                  className={`w-12 h-6 rounded-full  relative ${states.privacySettings[setting.id] ? 'bg-indigo-600' : 'bg-slate-200'}`}
                 >
-                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${states.privacySettings[setting.id] ? 'right-1' : 'left-1'}`} />
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full  ${states.privacySettings[setting.id] ? 'right-1' : 'left-1'}`} />
                 </button>
               </div>
             ))}
@@ -367,9 +367,9 @@ function SettingsModal({ type, onClose, states }) {
                 </div>
                 <button 
                   onClick={() => states.setNotificationSettings({...states.notificationSettings, [setting.id]: !states.notificationSettings[setting.id]})}
-                  className={`w-12 h-6 rounded-full transition-all relative ${states.notificationSettings[setting.id] ? 'bg-rose-500' : 'bg-slate-200'}`}
+                  className={`w-12 h-6 rounded-full  relative ${states.notificationSettings[setting.id] ? 'bg-rose-500' : 'bg-slate-200'}`}
                 >
-                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${states.notificationSettings[setting.id] ? 'right-1' : 'left-1'}`} />
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full  ${states.notificationSettings[setting.id] ? 'right-1' : 'left-1'}`} />
                 </button>
               </div>
             ))}
@@ -378,10 +378,10 @@ function SettingsModal({ type, onClose, states }) {
               <button 
                 onClick={handleTestPush}
                 disabled={testLoading}
-                className="w-full flex items-center justify-between p-4 bg-rose-50 rounded-2xl border border-rose-100 hover:bg-rose-100/50 transition-all active:scale-[0.98] group"
+                className="w-full flex items-center justify-between p-4 bg-rose-50 rounded-2xl border border-rose-100 hover:bg-rose-100/50 active:] group"
               >
                 <div className="flex items-center space-x-3">
-                  <div className={`w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white shadow-lg ${testLoading ? 'animate-pulse' : ''}`}>
+                  <div className={`w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white shadow-lg ${testLoading ? '' : ''}`}>
                     <BellIcon className="w-5 h-5" />
                   </div>
                   <div className="text-left">
@@ -390,9 +390,9 @@ function SettingsModal({ type, onClose, states }) {
                   </div>
                 </div>
                 {testLoading ? (
-                  <div className="w-4 h-4 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-primary-600 border-t-transparent rounded-full" />
                 ) : (
-                  <CheckCircleIcon className="w-4 h-4 text-primary-300 group-hover:text-primary-600 transition-colors" />
+                  <CheckCircleIcon className="w-4 h-4 text-primary-300 group-hover:text-primary-600" />
                 )}
               </button>
             </div>
@@ -405,7 +405,7 @@ function SettingsModal({ type, onClose, states }) {
               <button 
                 key={lang}
                 onClick={() => { states.setLanguage(lang); toast.success(`Language set to ${lang}`); onClose(); }}
-                className={`w-full p-4 rounded-2xl border transition-all flex items-center justify-between ${states.language === lang ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-500' : 'bg-slate-50 border-slate-100'}`}
+                className={`w-full p-4 rounded-2xl border  flex items-center justify-between ${states.language === lang ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-500' : 'bg-slate-50 border-slate-100'}`}
               >
                 <div className="flex items-center space-x-3">
                   <LanguageIcon className={`w-5 h-5 ${states.language === lang ? 'text-blue-600' : 'text-slate-400'}`} />
@@ -427,7 +427,7 @@ function SettingsModal({ type, onClose, states }) {
           <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-800">
             {type.replace(/([A-Z])/g, ' $1').replace('_', ' ')} Settings
           </h3>
-          <button onClick={onClose} className="p-2 hover:bg-white rounded-full text-slate-400 hover:text-slate-600 transition-all border border-transparent hover:border-slate-100 shadow-sm">
+          <button onClick={onClose} className="p-2 hover:bg-white rounded-full text-slate-400 hover:text-slate-600 border border-transparent hover:border-slate-100 shadow-sm">
             <XMarkIcon className="w-5 h-5 stroke-[2.5px]" />
           </button>
         </div>

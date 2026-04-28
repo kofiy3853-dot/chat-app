@@ -142,7 +142,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
         {currentGroup.statuses.map((_, idx) => (
           <div key={idx} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-white transition-all duration-75" 
+              className="h-full bg-white" 
               style={{ 
                 width: idx < statusIndex ? '100%' : idx === statusIndex ? `${progress}%` : '0%' 
               }}
@@ -174,7 +174,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
               onClick={(e) => { e.stopPropagation(); handleDelete(); }} 
               title="Delete status"
               aria-label="Delete status"
-              className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-full transition-all active:scale-90 mr-1"
+              className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-full active: mr-1"
             >
               <TrashIcon className="w-6 h-6 text-red-500" />
             </button>
@@ -183,7 +183,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
             onClick={(e) => { e.stopPropagation(); onClose(); }} 
             title="Close viewer"
             aria-label="Close viewer"
-            className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all active:scale-90"
+            className="p-2 bg-white/10 hover:bg-white/20 rounded-full active:"
           >
             <XMarkIcon className="w-6 h-6 text-white" />
           </button>
@@ -232,7 +232,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
           <form 
             onSubmit={handleReplySubmit} 
             onClick={(e) => e.stopPropagation()} 
-            className="w-full max-w-sm flex items-center space-x-2 bg-white/10 backdrop-blur-xl p-1.5 pl-4 rounded-2xl border border-white/20 group focus-within:bg-white/20 transition-all"
+            className="w-full max-w-sm flex items-center space-x-2 bg-white/10 backdrop-blur-xl p-1.5 pl-4 rounded-2xl border border-white/20 group focus-within:bg-white/20"
           >
             <input 
               type="text"
@@ -248,12 +248,12 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
               disabled={!replyText.trim() || isSending}
               title="Send reply"
               aria-label="Send reply"
-              className="p-2 bg-primary-500 text-white rounded-xl shadow-lg disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
+              className="p-2 bg-primary-500 text-white rounded-xl shadow-lg disabled:opacity-50 disabled:grayscale active:"
             >
               {isSending ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
               ) : (
-                <PaperAirplaneIcon className="w-5 h-5 -rotate-45" />
+                <PaperAirplaneIcon className="w-5 h-5 -" />
               )}
             </button>
           </form>

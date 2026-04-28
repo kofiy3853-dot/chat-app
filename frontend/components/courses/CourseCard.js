@@ -32,7 +32,7 @@ export default function CourseCard({ course }) {
 
   return (
     <div
-      className="group relative bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
+      className="group relative bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:shadow-primary-500/5"
     >
       <Link href={`/courses/${course.id}`} className="absolute inset-0 z-10 rounded-[2rem]"></Link>
       
@@ -46,14 +46,14 @@ export default function CourseCard({ course }) {
             {course.semester} {course.year}
           </span>
         </div>
-        <button className="relative z-20 p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all">
+        <button className="relative z-20 p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-50 rounded-xl">
           <EllipsisHorizontalIcon className="w-5 h-5" />
         </button>
       </div>
 
       {/* Course Title */}
       <div className="mb-6">
-        <h3 className="text-xl font-black text-slate-900 group-hover:text-primary-600 transition-colors leading-tight line-clamp-2">
+        <h3 className="text-xl font-black text-slate-900 group-hover:text-primary-600 leading-tight line-clamp-2">
           {course.name}
         </h3>
         {course.description && (
@@ -66,7 +66,7 @@ export default function CourseCard({ course }) {
       {/* Instructor & Stats */}
       <div className="flex items-center justify-between pt-5 border-t border-slate-50">
         <div className="flex items-center space-x-3">
-          <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${getAvatarColor(instructorName)} flex items-center justify-center text-white text-xs font-black shadow-sm group-hover:rotate-6 transition-transform duration-300`}>
+          <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${getAvatarColor(instructorName)} flex items-center justify-center text-white text-xs font-black shadow-sm group-hover:  `}>
             {getInitials(instructorName)}
           </div>
           <div className="flex flex-col">
@@ -84,7 +84,7 @@ export default function CourseCard({ course }) {
           </div>
           
           {localUnreadCount > 0 && (
-            <div className={`flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-primary-600 text-white rounded-lg text-[10px] font-black shadow-lg shadow-primary-500/30 transition-all ${localUnreadCount > (course.unreadCount || 0) ? 'animate-bounce' : 'animate-pulse'}`}>
+            <div className={`flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-primary-600 text-white rounded-lg text-[10px] font-black shadow-lg shadow-primary-500/30  ${localUnreadCount > (course.unreadCount || 0) ? '' : ''}`}>
               {localUnreadCount}
             </div>
           )}

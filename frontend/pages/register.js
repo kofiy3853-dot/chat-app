@@ -214,8 +214,8 @@ export default function Register() {
       <div className="h-full w-full bg-[#FAFAFA] px-4 py-12 flex flex-col items-center overflow-y-auto">
         <div className="max-w-xl w-full">
           {/* Global Header */}
-          <div className="text-center mb-10 transition-all duration-700">
-            <Link href="/" className="inline-flex items-center justify-center w-20 h-20 bg-primary-600 rounded-[2rem] shadow-xl shadow-primary-200 hover:scale-105 active:scale-95 transition-transform mb-6">
+          <div className="text-center mb-10">
+            <Link href="/" className="inline-flex items-center justify-center w-20 h-20 bg-primary-600 rounded-[2rem] shadow-xl shadow-primary-200 hover: active: mb-6">
               <AcademicCapIcon className="w-12 h-12 text-white" />
             </Link>
             <h1 className="text-3xl font-black text-gray-900 tracking-tightest">CAMPUS HUB</h1>
@@ -229,7 +229,7 @@ export default function Register() {
             
             {error && (
               <div className="mb-8 p-4 bg-red-50 text-red-600 border border-red-100 rounded-2xl text-xs font-bold uppercase tracking-tight flex items-center">
-                <div className="w-2 h-2 bg-red-500 rounded-full mr-3 animate-pulse"></div>
+                <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
                 {error}
               </div>
             )}
@@ -243,7 +243,7 @@ export default function Register() {
             <div className="mt-10 text-center border-t border-gray-50 pt-8">
               <p className="text-sm text-gray-400 font-medium">
                 Already part of the network?{' '}
-                <Link href="/login" className="text-primary-600 hover:text-primary-700 font-bold ml-1 transition-colors">
+                <Link href="/login" className="text-primary-600 hover:text-primary-700 font-bold ml-1">
                   Sign In
                 </Link>
               </p>

@@ -38,10 +38,10 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
       <div 
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in" 
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm fade-in" 
         onClick={onClose} 
       />
-      <div className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-500">
+      <div className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
         
         {/* Header */}
         <div className="bg-slate-50/80 px-8 py-6 border-b border-slate-100 flex items-center justify-between">
@@ -51,7 +51,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }) {
            </div>
            <button 
              onClick={onClose}
-             className="p-2 bg-white rounded-xl text-slate-400 hover:text-slate-600 hover:shadow-sm transition-all border border-slate-100 active:scale-90"
+             className="p-2 bg-white rounded-xl text-slate-400 hover:text-slate-600 hover:shadow-sm border border-slate-100 active:"
            >
              <XMarkIcon className="w-5 h-5 stroke-2" />
            </button>
@@ -61,14 +61,14 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }) {
           <div className="space-y-1">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Event Title</label>
             <div className="relative">
-              <TagIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <TagIcon className="absolute left-4 top-1/2 -/2 w-4 h-4 text-slate-400" />
               <input
                 required
                 type="text"
                 placeholder="What's happening?"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none transition-all"
+                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none"
               />
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }) {
                 placeholder="Share the details..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none transition-all resize-none"
+                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none resize-none"
               />
             </div>
           </div>
@@ -92,27 +92,27 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }) {
             <div className="space-y-1">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Date & Time</label>
               <div className="relative">
-                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <CalendarIcon className="absolute left-4 top-1/2 -/2 w-4 h-4 text-slate-400" />
                 <input
                   required
                   type="datetime-local"
                   value={formData.dateTime}
                   onChange={(e) => setFormData({ ...formData, dateTime: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none transition-all appearance-none"
+                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none appearance-none"
                 />
               </div>
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Location</label>
               <div className="relative">
-                <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <MapPinIcon className="absolute left-4 top-1/2 -/2 w-4 h-4 text-slate-400" />
                 <input
                   required
                   type="text"
                   placeholder="Where at?"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none transition-all"
+                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none"
                 />
               </div>
             </div>
@@ -121,10 +121,10 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center space-x-3 py-4.5 bg-primary-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-primary-500 active:scale-[0.98] transition-all shadow-xl shadow-primary-200 disabled:opacity-50 mt-4"
+            className="w-full flex items-center justify-center space-x-3 py-4.5 bg-primary-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-primary-500 active:] shadow-xl shadow-primary-200 disabled:opacity-50 mt-4"
           >
             {loading ? (
-              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"></span>
             ) : (
               <>
                 <SparklesIcon className="w-4 h-4" />

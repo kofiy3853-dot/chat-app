@@ -75,7 +75,7 @@ export default function AdminDashboard() {
            </div>
            <button 
              onClick={logout}
-             className="p-2.5 bg-slate-700/50 hover:bg-red-500/20 hover:text-red-400 rounded-xl transition-all border border-slate-600/50"
+             className="p-2.5 bg-slate-700/50 hover:bg-red-500/20 hover:text-red-400 rounded-xl border border-slate-600/50"
            >
              <ArrowLeftOnRectangleIcon className="w-5 h-5" />
            </button>
@@ -93,7 +93,7 @@ export default function AdminDashboard() {
 ].map((stat, i) => (
               <div 
                 key={i}
-                className="bg-slate-800/40 p-6 rounded-3xl border border-slate-700/50 shadow-xl transition-all duration-300"
+                className="bg-slate-800/40 p-6 rounded-3xl border border-slate-700/50 shadow-xl"
               >
                  <div className={`w-10 h-10 rounded-xl mb-4 flex items-center justify-center bg-${stat.color}-500/10 border border-${stat.color}-500/20`}>
                     <stat.icon className={`w-6 h-6 text-${stat.color}-400`} />
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
                      {[35, 62, 45, 90, 65, 85, 30, 48, 75, 40, 55, 95].map((h, i) => (
                        <div 
                          key={i}
-                         className="flex-1 bg-gradient-to-t from-indigo-600 to-indigo-400 rounded-t-lg opacity-80 transition-all duration-500"
+                         className="flex-1 bg-gradient-to-t from-indigo-600 to-indigo-400 rounded-t-lg opacity-80"
                          style={{ height: `${h}%` }}
                        ></div>
                      ))}
@@ -179,7 +179,7 @@ export default function AdminDashboard() {
                     <p className="text-indigo-400">[info] Nana AI processing background tasks...</p>
                     <p className="text-slate-400">[info] Cache cleared: 452 items.</p>
                     <p className="text-emerald-400">[success] Database migrations complete.</p>
-                    <div className="w-1 h-3 bg-indigo-500 animate-pulse inline-block"></div>
+                    <div className="w-1 h-3 bg-indigo-500 inline-block"></div>
                  </div>
               </div>
            </div>

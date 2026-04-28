@@ -36,7 +36,7 @@ export default function CreateCourseForm({ onSuccess, onCancel }) {
       {/* Course Code & Name */}
       <div className="grid grid-cols-1 gap-4">
         <div className="relative">
-          <HashtagIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <HashtagIcon className="absolute left-4 top-1/2 -/2 w-5 h-5 text-slate-400" />
           <input
             type="text"
             name="code"
@@ -44,11 +44,11 @@ export default function CreateCourseForm({ onSuccess, onCancel }) {
             required
             value={formData.code}
             onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-            className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-bold placeholder:text-slate-300 focus:ring-4 focus:ring-primary-500/5 transition-all"
+            className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-bold placeholder:text-slate-300 focus:ring-4 focus:ring-primary-500/5"
           />
         </div>
         <div className="relative">
-          <BookOpenIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <BookOpenIcon className="absolute left-4 top-1/2 -/2 w-5 h-5 text-slate-400" />
           <input
             type="text"
             name="name"
@@ -56,7 +56,7 @@ export default function CreateCourseForm({ onSuccess, onCancel }) {
             required
             value={formData.name}
             onChange={handleChange}
-            className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-bold placeholder:text-slate-300 focus:ring-4 focus:ring-primary-500/5 transition-all"
+            className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-bold placeholder:text-slate-300 focus:ring-4 focus:ring-primary-500/5"
           />
         </div>
       </div>
@@ -70,19 +70,19 @@ export default function CreateCourseForm({ onSuccess, onCancel }) {
           rows="3"
           value={formData.description}
           onChange={handleChange}
-          className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 pl-12 pr-4 py-4 rounded-2xl text-sm font-medium placeholder:text-slate-300 focus:ring-4 focus:ring-primary-500/5 transition-all resize-none"
+          className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 pl-12 pr-4 py-4 rounded-2xl text-sm font-medium placeholder:text-slate-300 focus:ring-4 focus:ring-primary-500/5 resize-none"
         ></textarea>
       </div>
 
       {/* Semester & Year */}
       <div className="grid grid-cols-2 gap-4">
         <div className="relative">
-          <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <CalendarIcon className="absolute left-4 top-1/2 -/2 w-5 h-5 text-slate-400" />
           <select
             name="semester"
             value={formData.semester}
             onChange={handleChange}
-            className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-bold text-slate-700 focus:ring-4 focus:ring-primary-500/5 transition-all appearance-none"
+            className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-bold text-slate-700 focus:ring-4 focus:ring-primary-500/5 appearance-none"
           >
             <option value="Fall">Fall</option>
             <option value="Spring">Spring</option>
@@ -91,13 +91,13 @@ export default function CreateCourseForm({ onSuccess, onCancel }) {
           </select>
         </div>
         <div className="relative">
-          <AcademicCapIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <AcademicCapIcon className="absolute left-4 top-1/2 -/2 w-5 h-5 text-slate-400" />
           <input
             type="number"
             name="year"
             value={formData.year}
             onChange={handleChange}
-            className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-bold text-slate-700 focus:ring-4 focus:ring-primary-500/5 transition-all"
+            className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-bold text-slate-700 focus:ring-4 focus:ring-primary-500/5"
           />
         </div>
       </div>
@@ -107,14 +107,14 @@ export default function CreateCourseForm({ onSuccess, onCancel }) {
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-4 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all"
+          className="flex-1 px-4 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 hover:bg-slate-50"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="flex-[2] bg-slate-900 text-white px-4 py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-primary-600 hover:shadow-primary-500/30 active:scale-95 transition-all duration-300 disabled:opacity-50"
+          className="flex-[2] bg-slate-900 text-white px-4 py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-primary-600 hover:shadow-primary-500/30 active: disabled:opacity-50"
         >
           {loading ? 'Creating...' : 'Launch Course'}
         </button>

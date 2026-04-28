@@ -87,9 +87,9 @@ export default function ProfileCard({ user, onUpdate }) {
           {!isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="p-2.5 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-xl transition-all shadow-lg active:scale-95 group"
+              className="p-2.5 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-xl shadow-lg active: group"
             >
-              <PencilSquareIcon className="w-5 h-5 transition-transform" />
+              <PencilSquareIcon className="w-5 h-5" />
             </button>
           )}
         </div>
@@ -110,14 +110,14 @@ export default function ProfileCard({ user, onUpdate }) {
               </div>
               {uploadingAvatar && (
                 <div className="absolute inset-0 bg-white/60 rounded-[2rem] flex items-center justify-center backdrop-blur-sm z-10">
-                  <div className="w-6 h-6 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-4 border-primary-200 border-t-primary-600 rounded-full" />
                 </div>
               )}
             </div>
             {isEditing && (
               <label 
                 htmlFor="avatar-upload"
-                className="absolute bottom-0 right-0 p-2 bg-white text-primary-600 rounded-lg shadow-lg border border-slate-100 hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer"
+                className="absolute bottom-0 right-0 p-2 bg-white text-primary-600 rounded-lg shadow-lg border border-slate-100 hover: active: z-20 cursor-pointer"
               >
                 <CameraIcon className="w-4 h-4" />
                 <input 
@@ -146,12 +146,12 @@ export default function ProfileCard({ user, onUpdate }) {
                 <div className="space-y-1">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Full Name</label>
                   <div className="relative">
-                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <UserIcon className="absolute left-3 top-1/2 -/2 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all font-bold text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 font-bold text-sm"
                       required
                     />
                   </div>
@@ -160,12 +160,12 @@ export default function ProfileCard({ user, onUpdate }) {
                 <div className="space-y-1">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Faculty</label>
                   <div className="relative">
-                    <BuildingLibraryIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <BuildingLibraryIcon className="absolute left-3 top-1/2 -/2 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
                       value={formData.faculty}
                       onChange={(e) => setFormData({ ...formData, faculty: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all font-bold text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 font-bold text-sm"
                     />
                   </div>
                 </div>
@@ -173,12 +173,12 @@ export default function ProfileCard({ user, onUpdate }) {
                 <div className="space-y-1">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Department</label>
                   <div className="relative">
-                    <BuildingLibraryIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <BuildingLibraryIcon className="absolute left-3 top-1/2 -/2 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
                       value={formData.department}
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all font-bold text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 font-bold text-sm"
                     />
                   </div>
                 </div>
@@ -188,7 +188,7 @@ export default function ProfileCard({ user, onUpdate }) {
                   <select
                     value={formData.level}
                     onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all font-black text-sm text-slate-700 hover:bg-slate-100"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 font-black text-sm text-slate-700 hover:bg-slate-100"
                   >
                     <option value="">Select Level</option>
                     <option value="100">Level 100</option>
@@ -202,12 +202,12 @@ export default function ProfileCard({ user, onUpdate }) {
                 <div className="md:col-span-2 space-y-1">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Status Message</label>
                   <div className="relative">
-                    <ChatBubbleBottomCenterTextIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <ChatBubbleBottomCenterTextIcon className="absolute left-3 top-1/2 -/2 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all font-bold text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 font-bold text-sm"
                     />
                   </div>
                 </div>
@@ -217,7 +217,7 @@ export default function ProfileCard({ user, onUpdate }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-primary-600 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary-700 disabled:opacity-50 shadow-lg shadow-primary-600/20 transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 bg-primary-600 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary-700 disabled:opacity-50 shadow-lg shadow-primary-600/20 flex items-center justify-center space-x-2"
                 >
                   <CheckIcon className="w-4 h-4" />
                   <span>Save Profile</span>
@@ -225,7 +225,7 @@ export default function ProfileCard({ user, onUpdate }) {
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="flex-1 bg-slate-100 text-slate-500 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 bg-slate-100 text-slate-500 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 flex items-center justify-center space-x-2"
                 >
                   <XMarkIcon className="w-4 h-4" />
                   <span>Dismiss</span>
@@ -257,7 +257,7 @@ export default function ProfileCard({ user, onUpdate }) {
 
               {/* Data Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-colors">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                   <div className="flex items-center space-x-2 text-primary-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
                     <BuildingLibraryIcon className="w-3.5 h-3.5" />
                     <span>Faculty</span>
@@ -265,7 +265,7 @@ export default function ProfileCard({ user, onUpdate }) {
                   <p className="text-sm font-bold text-slate-800 truncate">{user?.faculty || 'Not Specified'}</p>
                 </div>
 
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-colors">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                   <div className="flex items-center space-x-2 text-indigo-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
                     <BuildingLibraryIcon className="w-3.5 h-3.5" />
                     <span>Department</span>
@@ -273,7 +273,7 @@ export default function ProfileCard({ user, onUpdate }) {
                   <p className="text-sm font-bold text-slate-800 truncate">{user?.department || 'Not Specified'}</p>
                 </div>
 
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-colors md:col-span-2">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 md:col-span-2">
                   <div className="flex items-center space-x-2 text-amber-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
                     <IdentificationIcon className="w-3.5 h-3.5" />
                     <span>Identification</span>

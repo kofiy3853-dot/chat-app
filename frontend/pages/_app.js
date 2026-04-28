@@ -60,13 +60,10 @@ function AuthLoader() {
       <div style={{ display: 'flex', gap: 6 }}>
         {[0, 0.15, 0.3].map((delay, i) => (
           <div key={i} style={{
-            width: 8, height: 8, borderRadius: '50%', background: '#2E8BC0',
-            animation: 'bounce 0.6s infinite alternate',
-            animationDelay: `${delay}s`
+            width: 8, height: 8, borderRadius: '50%', background: '#2E8BC0'
           }} />
         ))}
       </div>
-      <style>{`@keyframes bounce { to { transform: translateY(-6px); opacity: 0.4; } }`}</style>
     </div>
   );
 }
@@ -163,7 +160,7 @@ function AppContent({ Component, pageProps }) {
       playNotificationSound();
       toast.custom((t) => (
         <div
-          className={`${t.visible ? 'duration-0' : 'animate-out fade-out slide-out-to-top-full duration-300'} max-w-sm w-full bg-white/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active:scale-95 transition-all mb-4`}
+          className={`${t.visible ? '' : ' fade-out slide-out-to-top-full '} max-w-sm w-full bg-white/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active:  mb-4`}
           onClick={() => { router.push(`/chat/${data.conversationId}`); toast.dismiss(t.id); }}
         >
           <div className="flex-1 w-0">
@@ -205,8 +202,7 @@ function AppContent({ Component, pageProps }) {
           duration: 5000,
           style: { background: '#fff', color: '#1e293b', borderRadius: '20px', padding: '12px 20px', fontSize: '14px', fontWeight: '700', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.15)' },
           success: { iconTheme: { primary: '#4f46e5', secondary: '#fff' } },
-          error: { style: { background: '#1e293b', color: '#fff' }, iconTheme: { primary: '#ef4444', secondary: '#fff' } },
-        }}
+          error: { style: { background: '#1e293b', color: '#fff' }, iconTheme: { primary: '#ef4444', secondary: '#fff' } } }}
       />
       
       {isOffline && (
@@ -216,11 +212,11 @@ function AppContent({ Component, pageProps }) {
       )}
 
       {deferredPrompt && (
-        <div className="bg-primary-600 text-white text-center py-3 px-4 text-sm font-black sticky top-0 z-50 flex justify-center items-center gap-4 shadow-xl animate-fade-in-down">
+        <div className="bg-primary-600 text-white text-center py-3 px-4 text-sm font-black sticky top-0 z-50 flex justify-center items-center gap-4 shadow-xl -in-down">
           <span className="uppercase tracking-tight">Experience Campus Chat as an App</span>
           <button
             onClick={() => { deferredPrompt.prompt(); deferredPrompt.userChoice.then(res => res.outcome === 'accepted' && setDeferredPrompt(null)); }}
-            className="bg-white text-primary-600 px-6 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-md hover:bg-slate-50 transition-all"
+            className="bg-white text-primary-600 px-6 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-md hover:bg-slate-50"
           >
             Install Now
           </button>

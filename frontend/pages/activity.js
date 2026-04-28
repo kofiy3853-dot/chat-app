@@ -33,7 +33,7 @@ export default function Activity() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [dismissingIds, setDismissingIds] = useState(new Set());
+
 
   const fetchActivities = useCallback(async (pageNum = 1, shouldAppend = false) => {
     try {
@@ -89,13 +89,7 @@ export default function Activity() {
   const markAllRead = async () => {
     try {
       await userAPI.markNotificationsAsRead();
-      // Dismiss all — fade out then clear
-      const allIds = new Set(activities.map(a => a.id));
-      setDismissingIds(allIds);
-      setTimeout(() => {
-        setActivities([]);
-        setDismissingIds(new Set());
-      }, 400);
+      setActivities([]);
     } catch (err) {
       console.error(err);
     }
@@ -104,12 +98,7 @@ export default function Activity() {
   const handleActivityClick = async (activity) => {
     if (!activity.isRead) {
       userAPI.markNotificationsAsRead({ notificationIds: [activity.id] }).catch(console.error);
-      // Fade out then remove
-      setDismissingIds(prev => new Set([...prev, activity.id]));
-      setTimeout(() => {
-        setActivities(prev => prev.filter(a => a.id !== activity.id));
-        setDismissingIds(prev => { const s = new Set(prev); s.delete(activity.id); return s; });
-      }, 350);
+      setActivities(prev => prev.filter(a => a.id !== activity.id));
     }
 
     if (activity.actionUrl) {
@@ -169,7 +158,7 @@ export default function Activity() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin shadow-lg"></div>
+          <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full"></div>
           <p className="mt-4 text-slate-500 font-black uppercase tracking-widest text-[10px]">Syncing Activity...</p>
         </div>
       </div>
@@ -184,20 +173,20 @@ export default function Activity() {
 
       {/* Header - Fixed Unified Theme */}
       <header 
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-1.5 flex flex-col border-b h-16"
+        className="fixed top-0 left-1/2 -/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-1.5 flex flex-col border-b h-16"
         style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
       >
         <div className="flex items-center justify-between mb-1 px-2 flex-1">
           <div>
             <h1 className="text-xl font-black tracking-tight leading-tight" style={{ color: 'var(--text-navbar)' }}>Activity</h1>
             <div className="flex items-center space-x-1.5 mt-0.5">
-              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'color-mix(in srgb, var(--text-navbar), transparent 30%)' }}>Live Updates</p>
             </div>
           </div>
           <button 
             onClick={markAllRead}
-            className="w-9 h-9 flex items-center justify-center rounded-full transition-all"
+            className="w-9 h-9 flex items-center justify-center rounded-full"
             style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text-navbar)' }}
           >
             <CheckIcon className="w-4 h-4 stroke-[3px]" />
@@ -210,7 +199,7 @@ export default function Activity() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className="flex items-center space-x-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all text-[10px] font-black uppercase tracking-wider"
+                className="flex items-center space-x-2 px-4 py-2 rounded-xl whitespace-nowrap text-[10px] font-black uppercase tracking-wider"
                 style={{ 
                   backgroundColor: activeTab === tab.id ? 'var(--bg-page)' : 'rgba(0,0,0,0.05)', 
                   color: activeTab === tab.id ? 'var(--primary)' : 'color-mix(in srgb, var(--text-navbar), transparent 30%)'
@@ -227,12 +216,12 @@ export default function Activity() {
       {/* Activity List */}
       <div className="max-w-xl mx-auto p-4 space-y-6">
         {filteredActivities.length === 0 ? (
-          <div className="py-32 text-center animate-in fade-in zoom-in duration-500 overflow-hidden">
+          <div className="py-32 text-center overflow-hidden">
              <div className="relative inline-block">
-                <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200/50 rotate-6 border border-slate-50">
+                <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200/50 border border-slate-50">
                   <ArchiveBoxIcon className="w-10 h-10 text-slate-200" />
                 </div>
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center border-4 border-slate-50 animate-bounce">
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center border-4 border-slate-50">
                   <SparklesIcon className="w-4 h-4 text-primary-600" />
                 </div>
              </div>
@@ -255,17 +244,14 @@ export default function Activity() {
                     <div
                       key={activity.id}
                       onClick={() => handleActivityClick(activity)}
-                      className={`group relative p-4 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer active:scale-[0.98] ${!activity.isRead ? 'ring-1 ring-primary-100' : ''} ${
-                        dismissingIds.has(activity.id) ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100'
-                      }`}
-                      style={{ transition: 'opacity 0.35s ease, transform 0.35s ease' }}
+                      className={`group relative p-4 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md cursor-pointer active:] ${!activity.isRead ? 'ring-1 ring-primary-100' : ''}`}
                     >
                       {!activity.isRead && (
-                        <div className="absolute right-4 top-4 w-2 h-2 bg-primary-500 rounded-full  animate-pulse"></div>
+                        <div className="absolute right-4 top-4 w-2 h-2 bg-primary-500 rounded-full"></div>
                       )}
                       
                       <div className="flex items-start space-x-4">
-                        <div className={`p-3 rounded-2xl shrink-0 ${getColor(activity.type)} transition-transform group-hover:scale-110 shadow-sm`}>
+                        <div className={`p-3 rounded-2xl shrink-0 ${getColor(activity.type)}  group-hover: shadow-sm`}>
                           <Icon className="w-6 h-6 stroke-[2.5px]" />
                         </div>
                         <div className="flex-1 min-w-0 pr-4">
@@ -308,7 +294,7 @@ export default function Activity() {
           <button 
             onClick={loadMore}
             disabled={isFetchingMore}
-            className="w-full py-4 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-primary-600 transition-colors"
+            className="w-full py-4 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-primary-600"
           >
             {isFetchingMore ? 'Loading...' : 'Load older activity'}
           </button>

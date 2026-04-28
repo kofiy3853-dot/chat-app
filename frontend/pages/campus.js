@@ -8,9 +8,9 @@ import {
 import TabNavigation from '../components/campus/TabNavigation';
 import dynamic from 'next/dynamic';
 
-const EventTab = dynamic(() => import('../components/campus/EventTab'), { loading: () => <div className="p-20 text-center animate-pulse text-slate-400">Loading events...</div> });
-const AnnouncementTab = dynamic(() => import('../components/campus/AnnouncementTab'), { loading: () => <div className="p-20 text-center animate-pulse text-slate-400">Loading news...</div> });
-const AnonymousTab = dynamic(() => import('../components/campus/AnonymousTab'), { loading: () => <div className="p-20 text-center animate-pulse text-slate-400">Loading whispers...</div> });
+const EventTab = dynamic(() => import('../components/campus/EventTab'), { loading: () => <div className="p-20 text-center text-slate-400">Loading events...</div> });
+const AnnouncementTab = dynamic(() => import('../components/campus/AnnouncementTab'), { loading: () => <div className="p-20 text-center text-slate-400">Loading news...</div> });
+const AnonymousTab = dynamic(() => import('../components/campus/AnonymousTab'), { loading: () => <div className="p-20 text-center text-slate-400">Loading whispers...</div> });
 import { getCurrentUser } from '../utils/helpers';
 
 const CampusPage = () => {
@@ -47,7 +47,7 @@ const CampusPage = () => {
       <div className="bg-primary-600 z-30 shadow-md shrink-0 sticky top-0">
         <header className="px-6 pt-[max(env(safe-area-inset-top,0px),12px)] pb-5 flex items-center justify-between">
            <div className="flex items-center space-x-4">
-              <button onClick={() => router.push('/')} aria-label="Go to inbox" className="p-2 -ml-2 text-white/70 hover:text-white transition-colors">
+              <button onClick={() => router.push('/')} aria-label="Go to inbox" className="p-2 -ml-2 text-white/70 hover:text-white">
                  <ChevronLeftIcon className="w-5 h-5 stroke-[2.5px]" />
               </button>
               <h1 className="text-xl font-black text-white tracking-tight flex items-center space-x-2">

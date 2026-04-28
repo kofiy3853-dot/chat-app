@@ -67,7 +67,7 @@ export default function CourseRoom({ courseId }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
+          <div className="rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
           <p className="text-gray-500 font-medium">Loading classroom...</p>
         </div>
       </div>
@@ -85,7 +85,7 @@ export default function CourseRoom({ courseId }) {
           <p className="text-gray-500 mb-8">The course you are looking for might have been deleted or moved.</p>
           <button 
             onClick={() => router.push('/courses')}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
           >
             Back to Courses
           </button>
@@ -102,7 +102,7 @@ export default function CourseRoom({ courseId }) {
           <div className="flex items-center space-x-4">
             <button 
               onClick={() => router.push('/courses')}
-              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
             >
               <ArrowLeftIcon className="w-5 h-5" />
             </button>
@@ -126,7 +126,7 @@ export default function CourseRoom({ courseId }) {
             <button 
               onClick={() => setActiveTab('students')}
               title="Classmates"
-              className={`p-2.5 rounded-xl transition-all ${
+              className={`p-2.5 rounded-xl  ${
                 activeTab === 'students' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -135,7 +135,7 @@ export default function CourseRoom({ courseId }) {
             <button 
               onClick={() => setActiveTab('settings')}
               title="Settings"
-              className={`p-2.5 rounded-xl transition-all ${
+              className={`p-2.5 rounded-xl  ${
                 activeTab === 'settings' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -148,7 +148,7 @@ export default function CourseRoom({ courseId }) {
         <div className="flex mt-6 space-x-8 border-t border-gray-50 pt-2 -mb-4">
           <button
             onClick={() => setActiveTab('chat')}
-            className={`flex items-center space-x-2 pb-3 text-sm font-bold border-b-2 transition-all ${
+            className={`flex items-center space-x-2 pb-3 text-sm font-bold border-b-2  ${
               activeTab === 'chat'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-400 hover:text-gray-600'
@@ -159,7 +159,7 @@ export default function CourseRoom({ courseId }) {
           </button>
           <button
             onClick={() => setActiveTab('announcements')}
-            className={`flex items-center space-x-2 pb-3 text-sm font-bold border-b-2 transition-all ${
+            className={`flex items-center space-x-2 pb-3 text-sm font-bold border-b-2  ${
               activeTab === 'announcements'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-400 hover:text-gray-600'
@@ -210,7 +210,7 @@ export default function CourseRoom({ courseId }) {
                   <div>
                     <h4 className="font-bold text-gray-900 text-lg leading-tight">{course.instructor?.name}</h4>
                     <p className="text-sm text-blue-600 font-semibold mt-1 flex items-center space-x-1.5">
-                      <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></span>
+                      <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
                       <span>Verified Educator</span>
                     </p>
                   </div>
@@ -228,7 +228,7 @@ export default function CourseRoom({ courseId }) {
                 </div>
                 <div className="bg-white shadow-sm ring-1 ring-black ring-opacity-5 rounded-2xl overflow-hidden divide-y divide-gray-50">
                   {course.students?.length > 0 ? course.students?.map((student) => (
-                    <div key={student.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <div key={student.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 font-bold border border-gray-200">
                           {student.name?.charAt(0).toUpperCase()}
@@ -248,9 +248,9 @@ export default function CourseRoom({ courseId }) {
 
               <button
                 onClick={handleLeaveCourse}
-                className="w-full py-4 px-6 border border-red-100 text-red-500 font-bold rounded-2xl hover:bg-red-50 hover:border-red-200 transition-all flex items-center justify-center space-x-2 group"
+                className="w-full py-4 px-6 border border-red-100 text-red-500 font-bold rounded-2xl hover:bg-red-50 hover:border-red-200 flex items-center justify-center space-x-2 group"
               >
-                <span className="group-hover:translate-x-1 transition-transform">Leave Course Room</span>
+                <span className="group-hover:">Leave Course Room</span>
               </button>
             </div>
           </div>
@@ -267,8 +267,8 @@ export default function CourseRoom({ courseId }) {
                     <p className="font-bold text-gray-900 leading-tight">Student-to-Student Chat</p>
                     <p className="text-sm text-gray-500 mt-1">Allow students to message each other in the class room</p>
                   </div>
-                  <div className={`w-12 h-6 rounded-full ${course.settings?.allowStudentChat ? 'bg-blue-600' : 'bg-gray-200'} relative transition-all duration-300 cursor-pointer`}>
-                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${course.settings?.allowStudentChat ? 'left-7' : 'left-1'}`}></div>
+                  <div className={`w-12 h-6 rounded-full ${course.settings?.allowStudentChat ? 'bg-blue-600' : 'bg-gray-200'} relative   cursor-pointer`}>
+                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm   ${course.settings?.allowStudentChat ? 'left-7' : 'left-1'}`}></div>
                   </div>
                 </div>
 
@@ -277,8 +277,8 @@ export default function CourseRoom({ courseId }) {
                     <p className="font-bold text-gray-900 leading-tight">Collaborative File Sharing</p>
                     <p className="text-sm text-gray-500 mt-1">Permit students to upload documents and resources</p>
                   </div>
-                  <div className={`w-12 h-6 rounded-full ${course.settings?.allowFileSharing ? 'bg-blue-600' : 'bg-gray-200'} relative transition-all duration-300 cursor-pointer`}>
-                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${course.settings?.allowFileSharing ? 'left-7' : 'left-1'}`}></div>
+                  <div className={`w-12 h-6 rounded-full ${course.settings?.allowFileSharing ? 'bg-blue-600' : 'bg-gray-200'} relative   cursor-pointer`}>
+                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm   ${course.settings?.allowFileSharing ? 'left-7' : 'left-1'}`}></div>
                   </div>
                 </div>
               </div>

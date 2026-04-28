@@ -75,7 +75,7 @@ export default function NotificationList({ notifications = [], onMarkAsRead }) {
         return (
           <div
             key={notification._id}
-            className={`p-4 hover:bg-gray-50 transition-colors ${
+            className={`p-4 hover:bg-gray-50  ${
               !notification.isRead ? 'bg-blue-50' : ''
             }`}
           >
@@ -91,7 +91,7 @@ export default function NotificationList({ notifications = [], onMarkAsRead }) {
                   {!notification.isRead && (
                     <button
                       onClick={() => onMarkAsRead?.(notification._id)}
-                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      className="p-1 text-gray-400 hover:text-blue-600"
                       title="Mark as read"
                     >
                       <CheckIcon className="w-4 h-4" />

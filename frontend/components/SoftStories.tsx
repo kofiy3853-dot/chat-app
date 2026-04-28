@@ -126,7 +126,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
   };
 
   if (loading && groups.length === 0) return (
-     <div className="flex space-x-4 px-1 py-1 animate-pulse">
+     <div className="flex space-x-4 px-1 py-1">
         {[1,2,3,4].map(i => <div key={i} className="w-12 h-12 bg-gray-200 rounded-full flex-shrink-0" />)}
      </div>
   );
@@ -165,7 +165,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
               title={`View status from ${group.user.name}`}
               className="flex flex-col items-center flex-shrink-0 cursor-pointer w-16 group outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1"
             >
-              <div className={`relative p-[2px] rounded-full transition-all duration-300 border-2 ${group.hasUnseen ? 'border-primary-500' : 'border-app-light'}`}>
+              <div className={`relative p-[2px] rounded-full   border-2 ${group.hasUnseen ? 'border-primary-500' : 'border-app-light'}`}>
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-2 flex items-center justify-center">
                   {group.user.avatar ? (
                     <img src={getFullFileUrl(group.user.avatar)} loading="lazy" decoding="async" className="w-full h-full object-cover" alt={group.user.name} />

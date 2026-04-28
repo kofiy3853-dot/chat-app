@@ -8,7 +8,7 @@ const TabNavigation = ({ tabs, activeTab, onTabChange }) => {
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`flex-1 py-3 px-4 text-xs font-black uppercase tracking-widest transition-all relative overflow-hidden rounded-xl ${
+            className={`flex-1 py-3 px-4 text-xs font-black uppercase tracking-widest  relative overflow-hidden rounded-xl ${
               activeTab === tab.id 
               ? 'text-primary-600 bg-primary-50/50' 
               : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
@@ -16,7 +16,7 @@ const TabNavigation = ({ tabs, activeTab, onTabChange }) => {
           >
             {tab.label}
             {activeTab === tab.id && (
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary-500 rounded-full " />
+              <span className="absolute bottom-0 left-1/2 -/2 w-8 h-1 bg-primary-500 rounded-full" />
             )}
           </button>
         ))}

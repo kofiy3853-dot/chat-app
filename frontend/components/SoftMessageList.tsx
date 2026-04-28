@@ -66,12 +66,12 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
                 </div>
                 <div className="flex-1 space-y-1">
                    <div className="flex justify-between items-center px-1">
-                      <div className="h-1.5 w-1.5 rounded-full bg-white animate-bounce" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-white animate-bounce delay-75" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-white animate-bounce delay-150" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-white" />
                    </div>
                    <div className="h-1 bg-white/30 rounded-full overflow-hidden">
-                      <div className="w-[60%] h-full bg-white "></div>
+                      <div className="w-[60%] h-full bg-white"></div>
                    </div>
                 </div>
               </div>

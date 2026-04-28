@@ -72,10 +72,10 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
-      <div className="bg-surface w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[90vh] transition-transform">
+      <div className="bg-surface w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         <div className="p-6 border-b border-app-light flex items-center justify-between">
           <h3 className="text-xl font-black text-app-primary tracking-tight">Post Status</h3>
-          <button onClick={onClose} title="Close modal" aria-label="Close modal" className="p-2 hover:bg-surface-2 rounded-full transition-colors">
+          <button onClick={onClose} title="Close modal" aria-label="Close modal" className="p-2 hover:bg-surface-2 rounded-full">
             <XMarkIcon className="w-6 h-6 text-app-muted" />
           </button>
         </div>
@@ -85,14 +85,14 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
           <div className="flex p-4 space-x-2">
             <button 
               onClick={() => setType('TEXT')}
-              className={`flex-1 py-3 rounded-2xl font-bold transition-all flex items-center justify-center space-x-2 ${type === 'TEXT' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-slate-50 text-slate-400'}`}
+              className={`flex-1 py-3 rounded-2xl font-bold  flex items-center justify-center space-x-2 ${type === 'TEXT' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-slate-50 text-slate-400'}`}
             >
               <PencilIcon className="w-5 h-5" />
               <span>Text</span>
             </button>
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className={`flex-1 py-3 rounded-2xl font-bold transition-all flex items-center justify-center space-x-2 ${type === 'IMAGE' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-slate-50 text-slate-400'}`}
+              className={`flex-1 py-3 rounded-2xl font-bold  flex items-center justify-center space-x-2 ${type === 'IMAGE' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-slate-50 text-slate-400'}`}
             >
               <PhotoIcon className="w-5 h-5" />
               <span>Image</span>
@@ -112,7 +112,7 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
           <div className="px-6 pb-6">
               {type === 'TEXT' ? (
                 <div 
-                  className="rounded-3xl p-8 min-h-[240px] flex flex-col items-center justify-center transition-colors shadow-inner"
+                  className="rounded-3xl p-8 min-h-[240px] flex flex-col items-center justify-center shadow-inner"
                   style={{ backgroundColor: bgColor }}
                 >
                   <textarea
@@ -129,7 +129,7 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
                          onClick={() => setBgColor(color)}
                          title={`Select ${color} background`}
                          aria-label={`Select ${color} background`}
-                         className={`w-8 h-8 rounded-full border-2 transition-transform active:scale-90 ${bgColor === color ? 'border-white scale-110' : 'border-transparent opacity-50'}`}
+                         className={`w-8 h-8 rounded-full border-2  active: ${bgColor === color ? 'border-white ' : 'border-transparent opacity-50'}`}
                          style={{ backgroundColor: color }}
                        />
                     ))}
@@ -155,7 +155,7 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
                     aria-label="Status caption"
-                    className="w-full bg-slate-50 rounded-2xl px-5 py-4 text-slate-700 font-bold outline-none border border-transparent focus:border-primary-100 transition-all"
+                    className="w-full bg-slate-50 rounded-2xl px-5 py-4 text-slate-700 font-bold outline-none border border-transparent focus:border-primary-100"
                   />
                 </div>
               )}
@@ -166,10 +166,10 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
            <button
              disabled={loading || (type === 'TEXT' && !textContent) || (type === 'IMAGE' && !selectedFile)}
              onClick={handleUpload}
-             className="w-full py-4 rounded-2xl bg-primary-500 text-white font-black text-lg shadow-xl shadow-primary-500/30 disabled:opacity-50 disabled:shadow-none transition-all active:scale-[0.98] flex items-center justify-center space-x-2"
+             className="w-full py-4 rounded-2xl bg-primary-500 text-white font-black text-lg shadow-xl shadow-primary-500/30 disabled:opacity-50 disabled:shadow-none active:] flex items-center justify-center space-x-2"
            >
              {loading ? (
-               <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+               <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full" />
              ) : (
                <>
                  <SparklesIcon className="w-6 h-6" />

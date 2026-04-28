@@ -272,10 +272,10 @@ export default function ChatList() {
             className="fixed inset-0 z-[100] bg-black/5" 
             onClick={() => setLongPressedId(null)}
           />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] flex flex-col items-center">
+          <div className="absolute top-1/2 left-1/2 -/2 -/2 z-[101] flex flex-col items-center">
             <button 
               onClick={(e) => { handleDelete(e, conversation.id); setLongPressedId(null); }}
-              className="bg-red-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center space-x-2 active:scale-95 transition-transform"
+              className="bg-red-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center space-x-2 active:"
             >
               <TrashIcon className="w-5 h-5 text-white" />
               <span className="text-sm font-black uppercase tracking-wider">Delete Chat</span>
@@ -306,7 +306,7 @@ export default function ChatList() {
     <div className="flex flex-col h-full max-w-xl mx-auto border-x" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
       <div className="p-4 border-b flex flex-col space-y-3 backdrop-blur-xl sticky top-0 z-20" style={{ backgroundColor: 'color-mix(in srgb, var(--bg-surface), transparent 20%)', borderColor: 'var(--border)' }}>
         <div className="relative group">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -/2 w-5 h-5 text-gray-400 group-focus-within:text-primary-500" />
           <input 
             type="text" 
             placeholder="Search messages..." 
@@ -422,12 +422,11 @@ const ChatListItem = React.memo(({
     >
       <Link
         href={`/chat/${conversation.id}`}
-        className={`flex items-center p-4 space-x-3 group relative border-l-4 transition-colors ${
+        className={`flex items-center p-4 space-x-3 group relative border-l-4  ${
           (conversation.unreadCount > 0) ? 'border-primary-500' : 'border-transparent'
         }`}
         style={{ 
-          backgroundColor: (conversation.unreadCount > 0) ? 'color-mix(in srgb, var(--primary), transparent 90%)' : 'transparent',
-        }}
+          backgroundColor: (conversation.unreadCount > 0) ? 'color-mix(in srgb, var(--primary), transparent 90%)' : 'transparent' }}
       >
         <div className="relative flex-shrink-0">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-400 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-sm overflow-hidden">

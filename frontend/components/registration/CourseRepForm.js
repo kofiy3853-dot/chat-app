@@ -27,7 +27,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+    <form onSubmit={onSubmit} className="space-y-6">
       <div className="flex items-center space-x-4 mb-8">
         <button type="button" onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
@@ -38,7 +38,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
       {/* Avatar Selection */}
       <div className="flex flex-col items-center justify-center mb-4">
         <div onClick={() => fileInputRef.current?.click()} className="relative group cursor-pointer">
-          <div className={`w-24 h-24 rounded-full border-2 overflow-hidden bg-gray-50 flex items-center justify-center transition-colors ${
+          <div className={`w-24 h-24 rounded-full border-2 overflow-hidden bg-gray-50 flex items-center justify-center  ${
             avatarPreview ? 'border-primary-600' : 'border-dashed border-gray-300 hover:border-primary-400'
           }`}>
             {avatarPreview ? (
@@ -46,7 +46,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             ) : (
               <AcademicCapIcon className="w-10 h-10 text-gray-300" />
             )}
-            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-full">
+            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-full">
               <CameraIcon className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -71,7 +71,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
             placeholder="Your Full Name"
           />
         </div>
@@ -86,7 +86,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
             placeholder="your-name@stu.ktu.edu.gh"
           />
         </div>
@@ -101,7 +101,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="off"
             value={formData.studentId}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
             placeholder="e.g. 04201234"
           />
         </div>
@@ -115,7 +115,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="off"
             value={formData.level}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-bold"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-bold"
           >
             <option value="">Select Level</option>
             {LEVELS.map(l => <option key={l} value={l}>Level {l}</option>)}
@@ -131,7 +131,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="off"
             value={formData.faculty}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-bold uppercase"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-bold uppercase"
           >
             <option value="">Select Faculty</option>
             {FACULTIES.map(f => <option key={f} value={f}>{f}</option>)}
@@ -148,7 +148,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             value={formData.department}
             onChange={handleChange}
             disabled={!formData.faculty}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium disabled:opacity-50"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium disabled:opacity-50"
           >
             <option value="">{formData.faculty ? 'Select Department' : 'Select Faculty First'}</option>
             {departments.map(d => <option key={d} value={d}>{d}</option>)}
@@ -166,7 +166,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="new-password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
             placeholder="••••••••"
           />
         </div>
@@ -181,7 +181,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="new-password"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all text-sm font-medium"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
             placeholder="••••••••"
           />
         </div>
@@ -190,7 +190,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-primary-600 text-white py-4 rounded-2xl font-bold hover:bg-primary-700 disabled:opacity-50 transition-all shadow-lg shadow-primary-100 mt-6 active:scale-95 uppercase tracking-widest text-xs"
+        className="w-full bg-primary-600 text-white py-4 rounded-2xl font-bold hover:bg-primary-700 disabled:opacity-50 shadow-lg shadow-primary-100 mt-6 active: uppercase tracking-widest text-xs"
       >
         {loading ? 'Processing...' : 'Complete Registration'}
       </button>

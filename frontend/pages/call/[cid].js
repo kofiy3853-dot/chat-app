@@ -96,7 +96,7 @@ export default function GroupCallRoom() {
   if (!user || !cid) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        <div className="rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
       </div>
     );
   }
@@ -112,14 +112,14 @@ export default function GroupCallRoom() {
         <div className="h-16 flex items-center px-4 justify-between shrink-0 bg-slate-900 border-b border-slate-800">
           <button 
             onClick={() => router.back()}
-            className="flex items-center space-x-2 text-slate-300 hover:text-white transition-colors p-2"
+            className="flex items-center space-x-2 text-slate-300 hover:text-white p-2"
           >
             <ArrowLeftIcon className="w-5 h-5" />
             <span className="font-bold text-sm">Leave Call</span>
           </button>
           
           <div className="flex items-center space-x-2">
-             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+             <div className="w-2 h-2 rounded-full bg-red-500" />
              <span className="text-white text-xs font-black uppercase tracking-widest opacity-80 mt-0.5">Live Secure Session</span>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function GroupCallRoom() {
           {/* Fallback loading state while iframe mounts */}
           {!hasPermissions && (
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 text-white space-y-4">
-              <PhoneArrowDownLeftIcon className="w-12 h-12 text-primary-500 animate-pulse" />
+              <PhoneArrowDownLeftIcon className="w-12 h-12 text-primary-500" />
               <p className="font-bold text-sm tracking-wide text-slate-400">Requesting Permissions & Connecting...</p>
             </div>
           )}

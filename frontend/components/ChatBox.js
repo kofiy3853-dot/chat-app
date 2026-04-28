@@ -74,29 +74,11 @@ const MessageBubble = React.memo(({
     setHasImgError(false);
   }, [message.sender?.avatar]);
 
-  const [touchStart, setTouchStart] = useState(null);
-  const [swipeOffset, setSwipeOffset] = useState(0);
 
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    if (!touchStart || isMine) return;
-    const currentTouch = e.targetTouches[0].clientX;
-    const diff = currentTouch - touchStart;
-    if (diff > 0 && diff < 80) setSwipeOffset(diff);
-  };
-
-  const handleTouchEnd = () => {
-    if (swipeOffset > 50) onReply(message);
-    setSwipeOffset(0);
-    setTouchStart(null);
-  };
 
   const bubbleClasses = isNana 
-    ? `group relative p-5 rounded-[24px] shadow-sm border select-none animate-fade-in w-fit max-w-full bg-surface border-slate-200/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
-    : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} animate-fade-in select-none touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`;
+    ? `group relative p-5 rounded-[24px] shadow-sm border select-none w-fit max-w-full bg-surface border-slate-200/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
+    : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} select-none touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`;
 
   const nanaStyles = isNana ? {
     display: "block",
@@ -106,11 +88,7 @@ const MessageBubble = React.memo(({
 
   return (
     <div 
-      className={`flex w-full mb-5 px-2 ${isMine ? 'justify-end' : 'justify-start'} duration-0`}
-      style={{ transform: `translateX(${swipeOffset}px)` }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      className={`flex w-full mb-5 px-2 ${isMine ? 'justify-end' : 'justify-start'} `}
     >
       <div className={`flex w-full items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
         {!isNana && (
@@ -140,7 +118,7 @@ const MessageBubble = React.memo(({
           {showSender && !isMine && (
             <div className={`flex items-center space-x-1.5 mb-1 ${isNana ? 'ml-0' : 'ml-1'} uppercase`}>
               <span className="text-[10px] font-black text-primary-600 flex items-center gap-1">
-                {isNana && <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-pulse" />}
+                {isNana && <div className="w-1.5 h-1.5 bg-primary-500 rounded-full" />}
                 {message.sender?.name}
               </span>
               {message.sender?.role?.toUpperCase() === 'LECTURER' && (
@@ -151,7 +129,7 @@ const MessageBubble = React.memo(({
               )}
               {message.sender?.role?.toUpperCase() === 'COURSE_REP' && (
                 <span className="text-[8px] font-black px-1.5 py-0.5 bg-primary-50 text-primary-600 rounded-md border border-primary-100 flex items-center">
-                   <div className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-pulse mr-1" />
+                   <div className="w-1.5 h-1.5 bg-primary-400 rounded-full mr-1" />
                    COURSE REP
                 </span>
               )}
@@ -187,12 +165,12 @@ const MessageBubble = React.memo(({
                   e.stopPropagation();
                   const targetMsg = document.getElementById(`message-${message.replyTo.id}`);
                   if (targetMsg) {
-                    targetMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetMsg.scrollIntoView({ behavior: 'auto', block: 'center' });
                     targetMsg.classList.add('ring-2', 'ring-primary-500', 'drop-shadow-lg');
                     setTimeout(() => targetMsg.classList.remove('ring-2', 'ring-primary-500', 'drop-shadow-lg'), 1500);
                   }
                 }}
-                className={`mb-2 p-2 rounded-lg border-l-4 text-[10px] cursor-pointer hover:opacity-80 transition-all ${isMine ? 'bg-black/10 border-white/40' : 'bg-surface-2 border-primary-500'}`}
+                className={`mb-2 p-2 rounded-lg border-l-4 text-[10px] cursor-pointer hover:opacity-80  ${isMine ? 'bg-black/10 border-white/40' : 'bg-surface-2 border-primary-500'}`}
               >
                 <p className="font-black uppercase tracking-tight opacity-60">
                    Replying to {message.replyTo.sender?.name || 'User'}
@@ -242,7 +220,7 @@ const MessageBubble = React.memo(({
                         </div>
                         <button 
                           onClick={(e) => { e.stopPropagation(); const url = message.content.split('Join here: ')[1]; window.open(url, '_blank'); }}
-                          className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black shadow-md transition-colors flex items-center justify-center space-x-2"
+                          className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black shadow-md flex items-center justify-center space-x-2"
                         >
                           <span>Join Call</span>
                           <ArrowPathIcon className="w-3 h-3" />
@@ -260,7 +238,7 @@ const MessageBubble = React.memo(({
                           </div>
                         </div>
                         <p className="text-[11px] text-white/80 font-medium mb-3">{message.content.replace('🗓️ Scheduled a call for ', '')}</p>
-                        <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-black border border-white/10 transition-colors">Add to Calendar</button>
+                        <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-black border border-white/10">Add to Calendar</button>
                       </div>
                     ) : isNana ? (
                       <div className="markdown-body w-full">
@@ -292,19 +270,19 @@ const MessageBubble = React.memo(({
               <span className="text-[9px] font-bold italic">{timestamp}</span>
               {isMine && (
                 isTemp ? (
-                  <ArrowPathIcon className="w-2.5 h-2.5 animate-spin" />
+                  <ArrowPathIcon className="w-2.5 h-2.5" />
                 ) : (
                     message.readReceipts?.length > 0 ? (
-                      <div className="flex -space-x-1.5 translate-y-[1px]">
-                        <div className="animate-read-receipt-1">
+                      <div className="flex -space-x-1.5 ]">
+                        <div className="">
                           <CheckIcon className="w-3 h-3 stroke-[3px] text-sky-400 drop-shadow-sm" />
                         </div>
-                        <div className="animate-read-receipt-2">
+                        <div className="">
                           <CheckIcon className="w-3 h-3 stroke-[3px] text-sky-400 drop-shadow-sm" />
                         </div>
                       </div>
                     ) : (
-                      <div className="flex -space-x-1.5 translate-y-[1px]">
+                      <div className="flex -space-x-1.5 ]">
                         <CheckIcon className="w-3 h-3 stroke-[3px] text-white/50" />
                         <CheckIcon className="w-3 h-3 stroke-[3px] text-white/50" />
                       </div>
@@ -326,7 +304,7 @@ const MessageBubble = React.memo(({
                 >
                   <div className="flex justify-around p-2 bg-surface-2 border-b border-slate-200/50">
                     {['❤️', '👍', '🔥', '😂'].map(e => (
-                      <button key={e} onClick={() => { addReaction(message.id, e); setActiveMenuId(null); }} className="hover:scale-125 transition-transform">
+                      <button key={e} onClick={() => { addReaction(message.id, e); setActiveMenuId(null); }} className="">
                         {e}
                       </button>
                     ))}
@@ -641,12 +619,12 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
     }
   }, [conversationId, currentUser]);
 
-  const scrollToBottom = useCallback((behavior = 'smooth') => {
+  const scrollToBottom = useCallback((behavior = 'auto') => {
     if (virtuosoRef.current) {
       virtuosoRef.current.scrollToIndex({
         index: messages.length - 1,
         align: 'end',
-        behavior
+        behavior: 'auto'
       });
       return;
     }
@@ -698,7 +676,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
         isFirstLoad.current = false;
         if (scrollContainerRef.current) prevHeightRef.current = scrollContainerRef.current.scrollHeight;
       } else if (isNewMessageAtBottom) {
-        scrollToBottomIfNear('smooth');
+        scrollToBottomIfNear('auto');
       }
       
       prevMsgCount.current = messages.length;
@@ -715,7 +693,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       const currentHeight = scrollContainer.scrollHeight;
       // Only scroll if height increased (new content or finished loading)
       if (currentHeight > prevHeightRef.current) {
-        scrollToBottomIfNear('smooth');
+        scrollToBottomIfNear('auto');
       }
       prevHeightRef.current = currentHeight;
     });
@@ -733,7 +711,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   }, [conversationId]);
 
   const handleMessageLoad = useCallback(() => {
-    scrollToBottomIfNear('smooth');
+    scrollToBottomIfNear('auto');
   }, [scrollToBottomIfNear]);
 
   const handleSendMessage = async (e, overrideContent = null) => {
@@ -966,11 +944,11 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   const canSend = !isLocked || userRoleRef.current === 'LECTURER' || userRoleRef.current === 'COURSE_REP' || currentUser?.role === 'LECTURER' || currentUser?.role === 'ADMIN';
 
   return (
-    <div className={`flex-1 flex flex-col min-h-0 relative transition-colors duration-500 ${bgColor} overflow-hidden`}>
+    <div className={`flex-1 flex flex-col min-h-0 relative   ${bgColor} overflow-hidden`}>
       {loading ? (
         <div className="h-full flex items-center justify-center">
             <div className="flex flex-col items-center">
-                <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-600 rounded-full animate-spin"></div>
+                <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-600 rounded-full"></div>
                 <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Gathering messages...</p>
             </div>
         </div>
@@ -1078,15 +1056,14 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
             components={{
               Header: () => isLoadingMore ? (
                 <div className="flex justify-center p-4">
-                  <div className="w-6 h-6 border-2 border-slate-200 border-t-primary-500 rounded-full animate-spin"></div>
+                  <div className="w-6 h-6 border-2 border-slate-200 border-t-primary-500 rounded-full"></div>
                 </div>
-              ) : null,
-            }}
+              ) : null }}
           />
           {showScrollBottom && (
             <button
               onClick={() => scrollToBottom()}
-              className="absolute bottom-6 right-4 p-2.5 bg-surface border border-slate-200/50 text-app-primary rounded-full shadow-lg hover:brightness-95 transition-all z-30"
+              className="absolute bottom-6 right-4 p-2.5 bg-surface border border-slate-200/50 text-app-primary rounded-full shadow-lg hover:brightness-95 z-30"
             >
               <ChevronDownIcon className="w-5 h-5 stroke-[3px]" />
             </button>
@@ -1097,11 +1074,11 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       {/* Floating Typing Indicator - moved outside scroll for visibility */}
       {typingUsers.length > 0 && (
         <div className="absolute bottom-[80px] left-4 z-30 pointer-events-none">
-          <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200/50 shadow-lg animate-in slide-in-from-bottom-2 duration-300">
+          <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200/50 shadow-lg">
             <div className="flex space-x-1 items-center h-4 px-1">
-              <span className="w-1 h-1 bg-primary-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
-              <span className="w-1 h-1 bg-primary-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-              <span className="w-1 h-1 bg-primary-400 rounded-full animate-bounce" />
+              <span className="w-1 h-1 bg-primary-600 rounded-full [animation-delay:-0.3s]" />
+              <span className="w-1 h-1 bg-primary-500 rounded-full [animation-delay:-0.15s]" />
+              <span className="w-1 h-1 bg-primary-400 rounded-full" />
             </div>
             <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest whitespace-nowrap">
               {typingUsers.length === 1 ? `${typingUsers[0].name.split(' ')[0]} is typing` : 'Several people typing'}
@@ -1111,14 +1088,14 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       )}
 
       {/* Footer Input Area */}
-      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-surface border-t border-slate-200/50  shrink-0 relative">
+      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-surface border-t border-slate-200/50 shrink-0 relative">
         {isNanaSession && messages.length > 0 && (
           <div className="flex items-center space-x-2 px-1 mb-3 overflow-x-auto no-scrollbar pb-1">
             {QUICK_ACTIONS.map((action, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSendMessage(null, action.query)}
-                className="whitespace-nowrap px-4 py-2 bg-surface-2 border border-slate-200/50 rounded-full text-[10px] font-extrabold text-app-secondary hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 transition-all flex items-center gap-1.5 shadow-sm"
+                className="whitespace-nowrap px-4 py-2 bg-surface-2 border border-slate-200/50 rounded-full text-[10px] font-extrabold text-app-secondary hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 flex items-center gap-1.5 shadow-sm"
               >
                 <span>{action.label.split(' ')[0]}</span>
                 <span>{action.label.split(' ').slice(1).join(' ')}</span>
@@ -1127,7 +1104,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
           </div>
         )}
         {showEmojiPicker && (
-          <div className="absolute bottom-full right-4 mb-4 z-50 shadow-2xl animate-in slide-in-from-bottom-5">
+          <div className="absolute bottom-full right-4 mb-4 z-50 shadow-2xl">
             <EmojiPicker 
               onEmojiClick={(emojiData) => { setNewMessage(p => p + emojiData.emoji); setShowEmojiPicker(false); }}
               lazyLoadEmojis={true}
@@ -1136,7 +1113,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
           </div>
         )}
         {showMentionPicker && participants.length > 0 && (
-          <div className="absolute bottom-full left-4 mb-2 min-w-[220px] max-w-[80vw] max-h-48 overflow-y-auto bg-surface border border-slate-200/50 shadow-2xl rounded-xl z-50 animate-in slide-in-from-bottom-2 no-scrollbar">
+          <div className="absolute bottom-full left-4 mb-2 min-w-[220px] max-w-[80vw] max-h-48 overflow-y-auto bg-surface border border-slate-200/50 shadow-2xl rounded-xl z-50 no-scrollbar">
             {participants.filter(p => p.user?.id !== currentUser?.id && (!mentionQuery || (p.user && p.user.name.toLowerCase().includes(mentionQuery)))).length > 0 ? (
               participants.filter(p => p.user?.id !== currentUser?.id && (!mentionQuery || (p.user && p.user.name.toLowerCase().includes(mentionQuery)))).map(p => (
                 <button
@@ -1158,7 +1135,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                     setShowMentionPicker(false);
                     if (el) el.focus();
                   }}
-                  className="w-full flex items-center gap-3 p-2.5 hover:bg-surface-2 transition-colors text-left border-b border-slate-200/50 last:border-none"
+                  className="w-full flex items-center gap-3 p-2.5 hover:bg-surface-2 text-left border-b border-slate-200/50 last:border-none"
                 >
                   <div className="w-7 h-7 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
                     {p.user?.avatar ? <img src={getFullFileUrl(p.user.avatar)} className="w-full h-full object-cover" /> : getInitials(p.user?.name)}
@@ -1176,7 +1153,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
         )}
         <form onSubmit={handleSendMessage} className="flex flex-col space-y-2">
           {replyTo && (
-            <div className="flex items-center justify-between bg-surface-2 p-2 rounded-xl border-l-4 border-primary-500 mx-1 mb-1 animate-in slide-in-from-bottom-2">
+            <div className="flex items-center justify-between bg-surface-2 p-2 rounded-xl border-l-4 border-primary-500 mx-1 mb-1">
               <div className="flex-1 min-w-0 px-2">
                 <p className="text-[9px] font-black text-primary-600 uppercase tracking-widest">Replying to {replyTo.sender?.name}</p>
                 <p className="text-xs text-app-secondary truncate">{replyTo.content || 'Attachment'}</p>
@@ -1204,7 +1181,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                   type="button" 
                   disabled={!canSend}
                   onClick={() => fileInputRef.current?.click()} 
-                  className="p-2.5 text-app-secondary hover:bg-surface-2 rounded-2xl transition-all disabled:opacity-30 disabled:grayscale"
+                  className="p-2.5 text-app-secondary hover:bg-surface-2 rounded-2xl disabled:opacity-30 disabled:grayscale"
                 >
                   <PaperClipIcon className="w-5 h-5 stroke-[2.5px]" />
                   <input type="file" ref={fileInputRef} className="hidden" onChange={async (e) => {
@@ -1223,7 +1200,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                   <button 
                     type="button"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="p-2 text-app-secondary hover:text-primary-600 transition-colors"
+                    className="p-2 text-app-secondary hover:text-primary-600"
                   >
                     <FaceSmileIcon className="w-5 h-5 stroke-[2.2px]" />
                   </button>
@@ -1254,9 +1231,9 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                   <button 
                     type="submit" 
                     disabled={isSending || !canSend}
-                    className="p-3 bg-primary-600 text-white rounded-[18px] shadow-lg shadow-primary-600/30 active:scale-95 disabled:opacity-30 disabled:grayscale"
+                    className="p-3 bg-primary-600 text-white rounded-[18px] shadow-lg shadow-primary-600/30 active: disabled:opacity-30 disabled:grayscale"
                   >
-                    {isSending ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <PaperAirplaneIcon className="w-5 h-5 -rotate-45" />}
+                    {isSending ? <ArrowPathIcon className="w-5 h-5" /> : <PaperAirplaneIcon className="w-5 h-5 -" />}
                   </button>
                 ) : (
                   <button 
@@ -1272,7 +1249,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
             ) : (
               <div className="flex-1 flex items-center justify-between bg-red-50 p-2 rounded-2xl border border-red-100">
                 <div className="flex items-center space-x-3 px-2">
-                  <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-ping" />
+                  <div className="w-2.5 h-2.5 bg-red-500 rounded-full" />
                   <span className="text-xs font-black text-red-600 tracking-tighter uppercase">Recording Voice Note...</span>
                 </div>
                 <button 
