@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import ProfileCard from '../components/ProfileCard';
 import { authAPI } from '../services/api';
-import { disconnectSocket } from '../services/socket';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { 
   ArrowRightOnRectangleIcon,
@@ -26,6 +26,7 @@ import ThemeSwitcher from '../components/ThemeSwitcher';
 
 export default function Account() {
   const router = useRouter();
+  const { logout } = useAuth();
   const { theme, setTheme, availableThemes } = useTheme();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -86,10 +87,8 @@ export default function Account() {
   };
 
   const handleLogout = () => {
-    disconnectSocket();
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/login');
+    logout(); // Clears user state, localStorage, and socket in one atomic operation
+    router.replace('/login');
   };
 
   const handleUpdateProfile = (updatedUser) => {
