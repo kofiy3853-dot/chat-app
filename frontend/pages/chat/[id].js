@@ -369,7 +369,7 @@ export default function ChatPage() {
                     className="fixed inset-0 z-40" 
                     onClick={() => setShowMenu(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-56 bg-surface rounded-2xl shadow-2xl border border-[var(--divider)] z-50 overflow-hidden">
+                  <div className="absolute right-0 mt-2 w-56 bg-surface rounded-2xl border border-[var(--divider)] z-50 overflow-hidden">
                     <div className="p-2 border-b border-slate-50">
                       <div className="px-3 py-2 text-[10px] font-bold text-app-muted uppercase tracking-widest">
                         Conversation Options
@@ -413,7 +413,7 @@ export default function ChatPage() {
           </div>
         </div>
         {showSearch && (
-            <div className="w-full bg-page border-t border-[var(--border)]/50 px-4 py-2 flex items-center shadow-sm" style={{ background: 'var(--bg-page)', borderColor: 'var(--border)' }}>
+            <div className="w-full bg-page border-t border-[var(--border)]/50 px-4 py-2 flex items-center" style={{ background: 'var(--bg-page)', borderColor: 'var(--border)' }}>
                <input 
                  autoFocus 
                  value={searchQuery} 
@@ -444,10 +444,10 @@ export default function ChatPage() {
           {/* Dark Backdrop */}
           <div
             onClick={() => setShowProfile(false)}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998]"
+            className="fixed inset-0 bg-slate-900/40 z-[99998]"
           />
           {/* Sliding Drawer */}
-          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-surface shadow-2xl z-[99999] flex flex-col border-l border-[var(--divider)]">
+          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-surface z-[99999] flex flex-col border-l border-[var(--divider)]">
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-[var(--divider)] bg-app/50">
                 <h2 className="text-sm font-black text-app-primary uppercase tracking-widest">Contact Info</h2>
@@ -530,9 +530,9 @@ export default function ChatPage() {
         <>
           <div
             onClick={() => setShowMediaGallery(false)}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998]"
+            className="fixed inset-0 bg-slate-900/40 z-[99998]"
           />
-          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-surface shadow-2xl z-[99999] flex flex-col">
+          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-surface z-[99999] flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-[var(--divider)]">
               <h2 className="text-sm font-black text-app-primary uppercase tracking-widest">Shared Media</h2>
               <button onClick={() => setShowMediaGallery(false)} className="p-2 text-app-muted hover:text-slate-600">
