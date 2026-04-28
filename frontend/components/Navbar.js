@@ -119,7 +119,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -/2 w-full max-w-xl z-40 px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)] pointer-events-none">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-40 px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)] pointer-events-none">
       <div
         className="flex justify-between items-center rounded-2xl h-16 px-3 pointer-events-auto"
         style={{
@@ -136,7 +136,7 @@ export default function Navbar() {
           <div className="relative">
             <ChatBubbleLeftIcon className={`w-6 h-6 ${isActive('/') ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
             {chatUnreadCount > 0 && (
-              <span className="absolute -top-1 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-white text-[10px] font-bold shadow-sm px-1 border border-slate-100"
+              <span className="absolute -top-1 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-surface text-[10px] font-bold shadow-sm px-1 border border-[var(--divider)]"
                 style={{ color: 'var(--primary)' }}>
                 {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
               </span>

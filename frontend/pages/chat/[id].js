@@ -238,7 +238,7 @@ export default function ChatPage() {
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0f2ff' }}>
         <div className="flex flex-col items-center">
           <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-500 rounded-full"></div>
-          <p className="mt-4 text-slate-500 font-medium">Connecting to chat...</p>
+          <p className="mt-4 text-app-secondary font-medium">Connecting to chat...</p>
         </div>
       </div>
     );
@@ -310,7 +310,7 @@ export default function ChatPage() {
                 <h1 className="font-bold truncate text-[15px] leading-tight flex items-center" style={{ color: 'var(--text-navbar)' }}>
                   {name}
                   {conversation?.course?.announcementsOnly && (
-                    <span className="ml-2 px-1.5 py-0.5 bg-white/20 rounded text-[8px] font-black tracking-widest uppercase border border-white/10" style={{ color: 'var(--text-navbar)' }}>
+                    <span className="ml-2 px-1.5 py-0.5 bg-surface/20 rounded text-[8px] font-black tracking-widest uppercase border border-white/10" style={{ color: 'var(--text-navbar)' }}>
                       Announcements
                     </span>
                   )}
@@ -379,9 +379,9 @@ export default function ChatPage() {
                     className="fixed inset-0 z-40" 
                     onClick={() => setShowMenu(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
+                  <div className="absolute right-0 mt-2 w-56 bg-surface rounded-2xl shadow-2xl border border-[var(--divider)] z-50 overflow-hidden">
                     <div className="p-2 border-b border-slate-50">
-                      <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <div className="px-3 py-2 text-[10px] font-bold text-app-muted uppercase tracking-widest">
                         Conversation Options
                       </div>
                     </div>
@@ -407,7 +407,7 @@ export default function ChatPage() {
                         <CalendarDaysIcon className="w-4 h-4" />
                         <span>Schedule Call</span>
                       </button>
-                      <div className="h-px bg-slate-50 my-1 mx-2" />
+                      <div className="h-px bg-app my-1 mx-2" />
                       <button
                         onClick={handleClearChat}
                         className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl text-left"
@@ -423,7 +423,7 @@ export default function ChatPage() {
           </div>
         </div>
         {showSearch && (
-            <div className="w-full bg-page border-t border-slate-200/50 px-4 py-2 flex items-center shadow-sm" style={{ background: 'var(--bg-page)', borderColor: 'var(--border)' }}>
+            <div className="w-full bg-page border-t border-[var(--border)]/50 px-4 py-2 flex items-center shadow-sm" style={{ background: 'var(--bg-page)', borderColor: 'var(--border)' }}>
                <input 
                  autoFocus 
                  value={searchQuery} 
@@ -432,7 +432,7 @@ export default function ChatPage() {
                  className="w-full rounded-2xl py-2 px-4 text-sm outline-none border focus:ring-2 focus:ring-primary-500/20"
                  style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}
                />
-               <button onClick={() => { setShowSearch(false); setSearchQuery(''); }} className="ml-2 p-1.5 rounded-full hover:bg-black/5 text-slate-500 flex-shrink-0">
+               <button onClick={() => { setShowSearch(false); setSearchQuery(''); }} className="ml-2 p-1.5 rounded-full hover:bg-black/5 text-app-secondary flex-shrink-0">
                   <XMarkIcon className="w-5 h-5" />
                </button>
             </div>
@@ -457,11 +457,11 @@ export default function ChatPage() {
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998]"
           />
           {/* Sliding Drawer */}
-          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-[99999] flex flex-col border-l border-slate-100">
+          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-surface shadow-2xl z-[99999] flex flex-col border-l border-[var(--divider)]">
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
-                <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Contact Info</h2>
-                <button onClick={() => setShowProfile(false)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-600 shadow-sm border border-slate-100 hover:">
+              <div className="flex items-center justify-between p-6 border-b border-[var(--divider)] bg-app/50">
+                <h2 className="text-sm font-black text-app-primary uppercase tracking-widest">Contact Info</h2>
+                <button onClick={() => setShowProfile(false)} className="p-2 bg-surface rounded-full text-app-muted hover:text-slate-600 shadow-sm border border-[var(--divider)] hover:">
                   <XMarkIcon className="w-5 h-5 stroke-[3px]" />
                 </button>
               </div>
@@ -470,7 +470,7 @@ export default function ChatPage() {
               <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
                 {/* Giant Avatar */}
                 <div className="relative mb-6 group">
-                  <div className={`w-32 h-32 rounded-3xl flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden bg-slate-100 ${otherParticipant?.user?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600' : ''}`}>
+                  <div className={`w-32 h-32 rounded-3xl flex items-center justify-center text-white text-5xl font-black shadow-xl shadow-primary-500/20 ring-4 ring-white overflow-hidden bg-surface-2 ${otherParticipant?.user?.role === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600' : ''}`}>
                     {(() => {
                       if (otherParticipant?.user?.role === 'NANA') return <div className="text-white">N</div>;
                       const avatar = conversation?.avatar || otherParticipant?.user?.avatar;
@@ -495,38 +495,38 @@ export default function ChatPage() {
                   </div>
                   {isOnline && (
                     <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full shadow-lg flex items-center justify-center">
-                      <span className="w-2.5 h-2.5 bg-white rounded-full px-0"></span>
+                      <span className="w-2.5 h-2.5 bg-surface rounded-full px-0"></span>
                     </div>
                   )}
                 </div>
 
                 {/* Name & Status */}
-                <h1 className="text-2xl font-black text-slate-800 tracking-tight text-center">{name}</h1>
+                <h1 className="text-2xl font-black text-app-primary tracking-tight text-center">{name}</h1>
                 {otherParticipant?.user?.status && (
-                  <div className="mt-1 px-3 py-1 bg-slate-50 border border-slate-100 rounded-lg">
-                    <p className="text-[11px] font-black text-slate-500 italic uppercase">
+                  <div className="mt-1 px-3 py-1 bg-app border border-[var(--divider)] rounded-lg">
+                    <p className="text-[11px] font-black text-app-secondary italic uppercase">
                       "{otherParticipant.user.status}"
                     </p>
                   </div>
                 )}
-                <p className={`text-sm font-bold uppercase tracking-widest mt-3 ${isOnline ? 'text-green-500' : 'text-slate-400'}`}>
+                <p className={`text-sm font-bold uppercase tracking-widest mt-3 ${isOnline ? 'text-green-500' : 'text-app-muted'}`}>
                   {isOnline ? 'Active Now' : 'Offline'}
                 </p>
 
                 {/* Quick Actions Card */}
                 {otherParticipant?.user?.role !== 'NANA' && (
-                  <div className="w-full bg-slate-50 rounded-2xl p-4 mt-8 flex justify-around border border-slate-100">
+                  <div className="w-full bg-app rounded-2xl p-4 mt-8 flex justify-around border border-[var(--divider)]">
                     <button onClick={() => { setShowProfile(false); handleStartCall('VOICE'); }} className="flex flex-col items-center space-y-2 group">
-                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-primary-500 group-hover:bg-primary-50 group-hover:text-primary-600 border border-slate-100">
+                      <div className="w-12 h-12 rounded-2xl bg-surface flex items-center justify-center text-primary-500 group-hover:bg-primary-50 group-hover:text-primary-600 border border-[var(--divider)]">
                         <PhoneIcon className="w-5 h-5" />
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary-500">Audio</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-app-muted group-hover:text-primary-500">Audio</span>
                     </button>
                     <button onClick={() => { setShowProfile(false); handleStartCall('VIDEO'); }} className="flex flex-col items-center space-y-2 group">
-                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-emerald-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 border border-slate-100">
+                      <div className="w-12 h-12 rounded-2xl bg-surface flex items-center justify-center text-emerald-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 border border-[var(--divider)]">
                         <VideoCameraIcon className="w-5 h-5" />
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-emerald-500">Video</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-app-muted group-hover:text-emerald-500">Video</span>
                     </button>
                   </div>
                 )}
@@ -542,10 +542,10 @@ export default function ChatPage() {
             onClick={() => setShowMediaGallery(false)}
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998]"
           />
-          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-[99999] flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100">
-              <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Shared Media</h2>
-              <button onClick={() => setShowMediaGallery(false)} className="p-2 text-slate-400 hover:text-slate-600">
+          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-surface shadow-2xl z-[99999] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-[var(--divider)]">
+              <h2 className="text-sm font-black text-app-primary uppercase tracking-widest">Shared Media</h2>
+              <button onClick={() => setShowMediaGallery(false)} className="p-2 text-app-muted hover:text-slate-600">
                 <XMarkIcon className="w-5 h-5 stroke-[2px]" />
               </button>
             </div>

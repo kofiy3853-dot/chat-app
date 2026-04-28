@@ -39,12 +39,12 @@ export default function HealthCheck() {
         <title>Health Check | Campus Chat</title>
       </Head>
 
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-app p-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">System Health Check</h1>
 
           {loading ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center">
+            <div className="bg-surface rounded-lg shadow p-8 text-center">
               <div className="rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-gray-600">Checking system status...</p>
             </div>
@@ -55,7 +55,7 @@ export default function HealthCheck() {
                 <p className="text-green-700">All systems are functioning correctly.</p>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-surface rounded-lg shadow p-6">
                 <h3 className="text-lg font-bold mb-4">Environment Variables</h3>
                 <div className="space-y-2">
                   {Object.entries(status.data.env || {}).map(([key, value]) => (
@@ -71,7 +71,7 @@ export default function HealthCheck() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-surface rounded-lg shadow p-6">
                 <h3 className="text-lg font-bold mb-4">Database Status</h3>
                 <div className="flex justify-between items-center">
                   <span>Connection Status</span>
@@ -118,7 +118,7 @@ export default function HealthCheck() {
             </div>
           )}
 
-          <div className="mt-8 text-center text-gray-500 text-sm">
+          <div className="mt-8 text-center text-app-secondary text-sm">
             <p>Last checked: {status?.timestamp}</p>
             <p>
               <a href="/" className="text-blue-600 hover:underline">Back to home</a>

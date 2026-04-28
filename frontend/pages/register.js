@@ -218,12 +218,12 @@ export default function Register() {
             <Link href="/" className="inline-flex items-center justify-center w-20 h-20 bg-primary-600 rounded-[2rem] shadow-xl shadow-primary-200 hover: active: mb-6">
               <AcademicCapIcon className="w-12 h-12 text-white" />
             </Link>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tightest">CAMPUS HUB</h1>
-            <p className="text-sm font-medium text-gray-400 mt-2 uppercase tracking-widest italic">Koforidua Technical University</p>
+            <h1 className="text-3xl font-black text-app-primary tracking-tightest">CAMPUS HUB</h1>
+            <p className="text-sm font-medium text-app-muted mt-2 uppercase tracking-widest italic">Koforidua Technical University</p>
           </div>
 
           {/* Card Container */}
-          <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-white p-8 sm:p-12 relative overflow-hidden">
+          <div className="bg-surface rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-white p-8 sm:p-12 relative overflow-hidden">
             {/* Elegant Background Accent */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
             
@@ -241,7 +241,7 @@ export default function Register() {
             )}
 
             <div className="mt-10 text-center border-t border-gray-50 pt-8">
-              <p className="text-sm text-gray-400 font-medium">
+              <p className="text-sm text-app-muted font-medium">
                 Already part of the network?{' '}
                 <Link href="/login" className="text-primary-600 hover:text-primary-700 font-bold ml-1">
                   Sign In
@@ -251,7 +251,7 @@ export default function Register() {
           </div>
 
           <div className="mt-8 text-center opacity-30">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">© 2026 KU Connect • Secure Academic Portal</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-app-muted">© 2026 KU Connect • Secure Academic Portal</p>
           </div>
         </div>
       </div>

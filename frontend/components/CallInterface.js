@@ -97,15 +97,15 @@ export default function CallInterface() {
     <>
       {/* Outgoing call (Caller's 'Calling...' screen) */}
       {call.isCalling && !callAccepted && (
-        <div className="fixed top-10 left-1/2 -/2 z-[999999] w-[90%] max-w-sm pointer-events-auto">
-          <div className="bg-white border-2 border-emerald-500 p-5 rounded-[2.5rem] flex items-center justify-between">
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[999999] w-[90%] max-w-sm pointer-events-auto">
+          <div className="bg-surface border-2 border-emerald-500 p-5 rounded-[2.5rem] flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-emerald-500/30">
                 {call.to?.name?.charAt(0) || '?'}
               </div>
               <div>
                 <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">Calling...</p>
-                <h3 className="text-base font-black text-slate-900 leading-tight">{call.to?.name || 'Contact'}</h3>
+                <h3 className="text-base font-black text-app-primary leading-tight">{call.to?.name || 'Contact'}</h3>
               </div>
             </div>
             <button
@@ -121,11 +121,11 @@ export default function CallInterface() {
       {/* Incoming Call UI */}
       {call.isReceivingCall && !callAccepted && (
         <div className="fixed inset-0 z-[1000001] bg-slate-900/90 [backdrop-filter:blur(30px)] flex flex-col items-center justify-center p-6">
-          <div className="absolute top-1/2 left-1/2 -/2 -/2 w-[300px] h-[300px] bg-primary-600/30 rounded-full blur-[100px]"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-primary-600/30 rounded-full blur-[100px]"></div>
           
           <div className="flex flex-col items-center space-y-12 relative z-10 w-full max-w-sm">
             <div className="relative">
-              <div className="w-44 h-44 rounded-[4rem] bg-white/10 border-2 border-white/20 flex items-center justify-center shadow-2xl overflow-hidden">
+              <div className="w-44 h-44 rounded-[4rem] bg-surface/10 border-2 border-white/20 flex items-center justify-center shadow-2xl overflow-hidden">
                 <div className="w-40 h-40 rounded-[3.5rem] bg-gradient-to-tr from-primary-600 to-indigo-500 flex items-center justify-center text-white text-7xl font-black shadow-inner">
                   {call.from?.name?.charAt(0) || '?'}
                 </div>
@@ -214,10 +214,10 @@ export default function CallInterface() {
             </div>
           )}
 
-          <div className="absolute bottom-12 left-1/2 -/2 flex items-center space-x-6 p-6 px-10 bg-white/5 backdrop-blur-3xl rounded-[3rem] border border-white/10 shadow-2xl">
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center space-x-6 p-6 px-10 bg-surface/5 backdrop-blur-3xl rounded-[3rem] border border-white/10 shadow-2xl">
             <button 
               onClick={toggleMute}
-              className={`w-14 h-14 rounded-[2rem] flex items-center justify-center  ${isMuted ? 'bg-rose-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+              className={`w-14 h-14 rounded-[2rem] flex items-center justify-center  ${isMuted ? 'bg-rose-500 text-white' : 'bg-surface/10 text-white hover:bg-surface/20'}`}
             >
               {isMuted ? (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-7 h-7">
@@ -238,7 +238,7 @@ export default function CallInterface() {
             {call.type === 'VIDEO' && (
               <button 
                 onClick={toggleVideo}
-                className={`w-14 h-14 rounded-[2rem] flex items-center justify-center  ${isVideoOff ? 'bg-rose-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                className={`w-14 h-14 rounded-[2rem] flex items-center justify-center  ${isVideoOff ? 'bg-rose-500 text-white' : 'bg-surface/10 text-white hover:bg-surface/20'}`}
               >
                 {isVideoOff ? <VideoCameraSlashIcon className="w-7 h-7" /> : <VideoCameraIcon className="w-7 h-7" />}
               </button>

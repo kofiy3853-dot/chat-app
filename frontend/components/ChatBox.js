@@ -77,7 +77,7 @@ const MessageBubble = React.memo(({
 
 
   const bubbleClasses = isNana 
-    ? `group relative p-5 rounded-[24px] shadow-sm border select-none w-fit max-w-full bg-surface border-slate-200/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
+    ? `group relative p-5 rounded-[24px] shadow-sm border select-none w-fit max-w-full bg-surface border-[var(--border)]/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
     : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} select-none touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`;
 
   const nanaStyles = isNana ? {
@@ -93,7 +93,7 @@ const MessageBubble = React.memo(({
       <div className={`flex w-full items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
         {!isNana && (
           <div className="relative group shrink-0">
-            <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role?.toUpperCase() === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+            <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role?.toUpperCase() === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-surface-3 text-slate-600'}`}>
               {(() => {
                 const avatar = message.sender?.avatar;
                 const fullUrl = getFullFileUrl(avatar);
@@ -208,7 +208,7 @@ const MessageBubble = React.memo(({
                 {message.content && (
                   <>
                     {message.content.includes('Join here: https://') ? (
-                      <div className="min-w-[200px] sm:min-w-[240px] bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
+                      <div className="min-w-[200px] sm:min-w-[240px] bg-surface/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
                         <div className="flex items-center space-x-3 mb-3">
                           <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
                             <VideoCameraIcon className="w-6 h-6 text-emerald-400" />
@@ -227,7 +227,7 @@ const MessageBubble = React.memo(({
                         </button>
                       </div>
                     ) : message.content.includes('🗓️ Scheduled a call') ? (
-                      <div className="min-w-[200px] sm:min-w-[240px] bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
+                      <div className="min-w-[200px] sm:min-w-[240px] bg-surface/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
                         <div className="flex items-center space-x-3 mb-3">
                           <div className="w-10 h-10 rounded-full bg-primary-500/20 flex items-center justify-center">
                             <CalendarDaysIcon className="w-6 h-6 text-primary-300" />
@@ -238,7 +238,7 @@ const MessageBubble = React.memo(({
                           </div>
                         </div>
                         <p className="text-[11px] text-white/80 font-medium mb-3">{message.content.replace('🗓️ Scheduled a call for ', '')}</p>
-                        <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-black border border-white/10">Add to Calendar</button>
+                        <button className="w-full py-2 bg-surface/10 hover:bg-surface/20 text-white rounded-lg text-xs font-black border border-white/10">Add to Calendar</button>
                       </div>
                     ) : isNana ? (
                       <div className="markdown-body w-full">
@@ -246,7 +246,7 @@ const MessageBubble = React.memo(({
                           options={{
                             overrides: {
                               h2: { component: ({children}) => <h2 className="text-xl font-black text-primary-700 mb-3 mt-1 leading-tight">{children}</h2> },
-                              h3: { component: ({children}) => <h3 className="text-lg font-black text-slate-800 mb-2 mt-2">{children}</h3> },
+                              h3: { component: ({children}) => <h3 className="text-lg font-black text-app-primary mb-2 mt-2">{children}</h3> },
                               p: { component: ({children}) => <p className="mb-4 last:mb-0 leading-relaxed text-slate-700">{children}</p> },
                               ul: { component: ({children}) => <ul className="list-disc ml-5 space-y-2 mb-4 mt-2">{children}</ul> },
                               ol: { component: ({children}) => <ol className="list-decimal ml-5 space-y-2 mb-4 mt-2">{children}</ol> },
@@ -299,10 +299,10 @@ const MessageBubble = React.memo(({
                   onTouchStart={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
                 />
                 <div 
-                  className={`absolute z-[2000] bottom-full mb-2 bg-surface rounded-xl shadow-2xl border border-slate-200/50 min-w-[140px] overflow-hidden ${isMine ? 'right-0' : 'left-0'} backdrop-blur-md`}
+                  className={`absolute z-[2000] bottom-full mb-2 bg-surface rounded-xl shadow-2xl border border-[var(--border)]/50 min-w-[140px] overflow-hidden ${isMine ? 'right-0' : 'left-0'} backdrop-blur-md`}
                   onClick={e => e.stopPropagation()}
                 >
-                  <div className="flex justify-around p-2 bg-surface-2 border-b border-slate-200/50">
+                  <div className="flex justify-around p-2 bg-surface-2 border-b border-[var(--border)]/50">
                     {['❤️', '👍', '🔥', '😂'].map(e => (
                       <button key={e} onClick={() => { addReaction(message.id, e); setActiveMenuId(null); }} className="">
                         {e}
@@ -948,13 +948,13 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       {loading ? (
         <div className="h-full flex items-center justify-center">
             <div className="flex flex-col items-center">
-                <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-600 rounded-full"></div>
-                <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Gathering messages...</p>
+                <div className="w-10 h-10 border-4 border-[var(--divider)] border-t-primary-600 rounded-full"></div>
+                <p className="mt-4 text-[10px] font-black text-app-muted uppercase tracking-widest">Gathering messages...</p>
             </div>
         </div>
       ) : !conversationId ? (
           <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-surface-2/30">
-            <div className="w-20 h-20 rounded-3xl bg-surface flex items-center justify-center mb-6 border border-slate-200/50">
+            <div className="w-20 h-20 rounded-3xl bg-surface flex items-center justify-center mb-6 border border-[var(--border)]/50">
               <ChatBubbleLeftIcon className="w-10 h-10 text-primary-400" />
             </div>
             <h3 className="text-lg font-black text-app-primary tracking-tight">Select a conversation</h3>
@@ -962,7 +962,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
           </div>
       ) : messages.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-surface-2 flex items-center justify-center mb-3 border border-slate-200/50">
+          <div className="w-12 h-12 rounded-2xl bg-surface-2 flex items-center justify-center mb-3 border border-[var(--border)]/50">
             <SparklesIcon className="w-6 h-6 text-primary-600" />
           </div>
           <h3 className="text-sm font-black text-app-primary tracking-tight">
@@ -980,7 +980,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                 <button
                   key={idx}
                   onClick={() => handleSendMessage(null, action.query)}
-                  className="p-2 bg-surface border border-slate-200/50 rounded-xl text-[10px] font-black text-app-primary text-left flex items-center gap-2 group"
+                  className="p-2 bg-surface border border-[var(--border)]/50 rounded-xl text-[10px] font-black text-app-primary text-left flex items-center gap-2 group"
                 >
                   <span>{action.label.split(' ')[0]}</span>
                   <span>{action.label.split(' ').slice(1).join(' ')}</span>
@@ -996,7 +996,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
             groupCounts={groupedData.groupCounts}
             groupContent={(index) => (
               <div className="flex justify-center my-6">
-                <span className="bg-surface/90 backdrop-blur px-3 py-1 rounded-full border border-slate-200/50 text-[9px] font-black text-app-secondary uppercase tracking-widest">
+                <span className="bg-surface/90 backdrop-blur px-3 py-1 rounded-full border border-[var(--border)]/50 text-[9px] font-black text-app-secondary uppercase tracking-widest">
                   {formatMessageTime(groupedData.sortedDates[index])}
                 </span>
               </div>
@@ -1056,14 +1056,14 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
             components={{
               Header: () => isLoadingMore ? (
                 <div className="flex justify-center p-4">
-                  <div className="w-6 h-6 border-2 border-slate-200 border-t-primary-500 rounded-full"></div>
+                  <div className="w-6 h-6 border-2 border-[var(--border)] border-t-primary-500 rounded-full"></div>
                 </div>
               ) : null }}
           />
           {showScrollBottom && (
             <button
               onClick={() => scrollToBottom()}
-              className="absolute bottom-6 right-4 p-2.5 bg-surface border border-slate-200/50 text-app-primary rounded-full shadow-lg hover:brightness-95 z-30"
+              className="absolute bottom-6 right-4 p-2.5 bg-surface border border-[var(--border)]/50 text-app-primary rounded-full shadow-lg hover:brightness-95 z-30"
             >
               <ChevronDownIcon className="w-5 h-5 stroke-[3px]" />
             </button>
@@ -1074,7 +1074,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       {/* Floating Typing Indicator - moved outside scroll for visibility */}
       {typingUsers.length > 0 && (
         <div className="absolute bottom-[80px] left-4 z-30 pointer-events-none">
-          <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200/50 shadow-lg">
+          <div className="flex items-center space-x-2 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[var(--border)]/50 shadow-lg">
             <div className="flex space-x-1 items-center h-4 px-1">
               <span className="w-1 h-1 bg-primary-600 rounded-full [animation-delay:-0.3s]" />
               <span className="w-1 h-1 bg-primary-500 rounded-full [animation-delay:-0.15s]" />
@@ -1088,14 +1088,14 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       )}
 
       {/* Footer Input Area */}
-      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-surface border-t border-slate-200/50 shrink-0 relative">
+      <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-surface border-t border-[var(--border)]/50 shrink-0 relative">
         {isNanaSession && messages.length > 0 && (
           <div className="flex items-center space-x-2 px-1 mb-3 overflow-x-auto no-scrollbar pb-1">
             {QUICK_ACTIONS.map((action, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSendMessage(null, action.query)}
-                className="whitespace-nowrap px-4 py-2 bg-surface-2 border border-slate-200/50 rounded-full text-[10px] font-extrabold text-app-secondary hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 flex items-center gap-1.5 shadow-sm"
+                className="whitespace-nowrap px-4 py-2 bg-surface-2 border border-[var(--border)]/50 rounded-full text-[10px] font-extrabold text-app-secondary hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 flex items-center gap-1.5 shadow-sm"
               >
                 <span>{action.label.split(' ')[0]}</span>
                 <span>{action.label.split(' ').slice(1).join(' ')}</span>
@@ -1113,7 +1113,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
           </div>
         )}
         {showMentionPicker && participants.length > 0 && (
-          <div className="absolute bottom-full left-4 mb-2 min-w-[220px] max-w-[80vw] max-h-48 overflow-y-auto bg-surface border border-slate-200/50 shadow-2xl rounded-xl z-50 no-scrollbar">
+          <div className="absolute bottom-full left-4 mb-2 min-w-[220px] max-w-[80vw] max-h-48 overflow-y-auto bg-surface border border-[var(--border)]/50 shadow-2xl rounded-xl z-50 no-scrollbar">
             {participants.filter(p => p.user?.id !== currentUser?.id && (!mentionQuery || (p.user && p.user.name.toLowerCase().includes(mentionQuery)))).length > 0 ? (
               participants.filter(p => p.user?.id !== currentUser?.id && (!mentionQuery || (p.user && p.user.name.toLowerCase().includes(mentionQuery)))).map(p => (
                 <button
@@ -1135,7 +1135,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                     setShowMentionPicker(false);
                     if (el) el.focus();
                   }}
-                  className="w-full flex items-center gap-3 p-2.5 hover:bg-surface-2 text-left border-b border-slate-200/50 last:border-none"
+                  className="w-full flex items-center gap-3 p-2.5 hover:bg-surface-2 text-left border-b border-[var(--border)]/50 last:border-none"
                 >
                   <div className="w-7 h-7 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
                     {p.user?.avatar ? <img src={getFullFileUrl(p.user.avatar)} className="w-full h-full object-cover" /> : getInitials(p.user?.name)}

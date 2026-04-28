@@ -41,17 +41,17 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }) {
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm fade-in" 
         onClick={onClose} 
       />
-      <div className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-lg bg-surface rounded-[2.5rem] shadow-2xl overflow-hidden">
         
         {/* Header */}
-        <div className="bg-slate-50/80 px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+        <div className="bg-app/80 px-8 py-6 border-b border-[var(--divider)] flex items-center justify-between">
            <div>
-             <h2 className="text-2xl font-black text-slate-800 tracking-tight">Post Activity</h2>
-             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Let's build community</p>
+             <h2 className="text-2xl font-black text-app-primary tracking-tight">Post Activity</h2>
+             <p className="text-[10px] font-black text-app-muted uppercase tracking-widest mt-0.5">Let's build community</p>
            </div>
            <button 
              onClick={onClose}
-             className="p-2 bg-white rounded-xl text-slate-400 hover:text-slate-600 hover:shadow-sm border border-slate-100 active:"
+             className="p-2 bg-surface rounded-xl text-app-muted hover:text-slate-600 hover:shadow-sm border border-[var(--divider)] active:"
            >
              <XMarkIcon className="w-5 h-5 stroke-2" />
            </button>
@@ -59,60 +59,60 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }) {
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Event Title</label>
+            <label className="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Event Title</label>
             <div className="relative">
-              <TagIcon className="absolute left-4 top-1/2 -/2 w-4 h-4 text-slate-400" />
+              <TagIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-app-muted" />
               <input
                 required
                 type="text"
                 placeholder="What's happening?"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none"
+                className="w-full pl-11 pr-4 py-3.5 bg-app border border-[var(--divider)] rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-surface outline-none"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Context / Description</label>
+            <label className="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Context / Description</label>
             <div className="relative">
-              <DocumentTextIcon className="absolute left-4 top-4 w-4 h-4 text-slate-400" />
+              <DocumentTextIcon className="absolute left-4 top-4 w-4 h-4 text-app-muted" />
               <textarea
                 required
                 rows="3"
                 placeholder="Share the details..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none resize-none"
+                className="w-full pl-11 pr-4 py-3.5 bg-app border border-[var(--divider)] rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-surface outline-none resize-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Date & Time</label>
+              <label className="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Date & Time</label>
               <div className="relative">
-                <CalendarIcon className="absolute left-4 top-1/2 -/2 w-4 h-4 text-slate-400" />
+                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-app-muted" />
                 <input
                   required
                   type="datetime-local"
                   value={formData.dateTime}
                   onChange={(e) => setFormData({ ...formData, dateTime: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none appearance-none"
+                  className="w-full pl-11 pr-4 py-3.5 bg-app border border-[var(--divider)] rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-surface outline-none appearance-none"
                 />
               </div>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Location</label>
+              <label className="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Location</label>
               <div className="relative">
-                <MapPinIcon className="absolute left-4 top-1/2 -/2 w-4 h-4 text-slate-400" />
+                <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-app-muted" />
                 <input
                   required
                   type="text"
                   placeholder="Where at?"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white outline-none"
+                  className="w-full pl-11 pr-4 py-3.5 bg-app border border-[var(--divider)] rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-surface outline-none"
                 />
               </div>
             </div>

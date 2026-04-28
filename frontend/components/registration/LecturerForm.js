@@ -48,16 +48,16 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <div className="flex items-center space-x-4 mb-8">
-        <button type="button" onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
+        <button type="button" onClick={onBack} className="p-2 hover:bg-surface-2 rounded-full text-app-secondary">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
         </button>
-        <h2 className="text-xl font-bold text-gray-900 capitalize italic tracking-tight">Lecturer Profile</h2>
+        <h2 className="text-xl font-bold text-app-primary capitalize italic tracking-tight">Lecturer Profile</h2>
       </div>
 
       {/* Avatar Selection */}
       <div className="flex flex-col items-center justify-center mb-4">
         <div onClick={() => fileInputRef.current?.click()} className="relative group cursor-pointer">
-          <div className={`w-24 h-24 rounded-full border-2 overflow-hidden bg-gray-50 flex items-center justify-center  ${
+          <div className={`w-24 h-24 rounded-full border-2 overflow-hidden bg-app flex items-center justify-center  ${
             avatarPreview ? 'border-primary-600' : 'border-dashed border-gray-300 hover:border-primary-400'
           }`}>
             {avatarPreview ? (
@@ -76,12 +76,12 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
           )}
         </div>
         <input type="file" ref={fileInputRef} onChange={onFileChange} accept="image/*" className="hidden" />
-        <span className="text-xs font-medium text-gray-400 mt-3 uppercase tracking-tighter">Official Portrait Recommended*</span>
+        <span className="text-xs font-medium text-app-muted mt-3 uppercase tracking-tighter">Official Portrait Recommended*</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="sm:col-span-2">
-          <label htmlFor="lecturer-name" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Full Name (with Titles)</label>
+          <label htmlFor="lecturer-name" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Full Name (with Titles)</label>
           <input
             id="lecturer-name"
             name="name"
@@ -90,13 +90,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
             autoComplete="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
             placeholder="Dr. Jane Smith"
           />
         </div>
 
         <div className="sm:col-span-2">
-          <label htmlFor="lecturer-email" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">University Email (@staff.ktu.edu.gh)</label>
+          <label htmlFor="lecturer-email" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">University Email (@staff.ktu.edu.gh)</label>
           <input
             id="lecturer-email"
             name="email"
@@ -105,13 +105,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
             autoComplete="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
             placeholder="jsmith@staff.ktu.edu.gh"
           />
         </div>
 
         <div>
-          <label htmlFor="lecturer-staffId" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Staff ID</label>
+          <label htmlFor="lecturer-staffId" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Staff ID</label>
           <input
             id="lecturer-staffId"
             name="staffId"
@@ -120,13 +120,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
             autoComplete="off"
             value={formData.staffId}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
             placeholder="KTU-LECT-XXXX"
           />
         </div>
 
         <div>
-          <label htmlFor="lecturer-phone" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Phone Number</label>
+          <label htmlFor="lecturer-phone" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Phone Number</label>
           <input
             id="lecturer-phone"
             name="phone"
@@ -134,13 +134,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
             autoComplete="tel"
             value={formData.phone}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
             placeholder="+233 XXX XXX XXX"
           />
         </div>
 
         <div>
-          <label htmlFor="lecturer-faculty" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Faculty</label>
+          <label htmlFor="lecturer-faculty" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Faculty</label>
           <select
             id="lecturer-faculty"
             name="faculty"
@@ -148,7 +148,7 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
             autoComplete="off"
             value={formData.faculty}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-bold"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-bold"
           >
             <option value="">Select Faculty</option>
             {FACULTIES.map(f => <option key={f} value={f}>{f}</option>)}
@@ -156,7 +156,7 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
         </div>
 
         <div>
-          <label htmlFor="lecturer-department" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Department</label>
+          <label htmlFor="lecturer-department" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Department</label>
           <select
             id="lecturer-department"
             name="department"
@@ -165,7 +165,7 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
             value={formData.department}
             onChange={handleChange}
             disabled={!formData.faculty}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium disabled:opacity-50"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium disabled:opacity-50"
           >
             <option value="">{formData.faculty ? 'Select Department' : 'Select Faculty First'}</option>
             {departments.map(d => <option key={d} value={d}>{d}</option>)}
@@ -174,14 +174,14 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
 
         {/* Courses Multi-select */}
         <div className="sm:col-span-2">
-          <label htmlFor="lecturer-courses" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Courses Teaching <span className="text-gray-400 font-normal normal-case">(Optional)</span></label>
+          <label htmlFor="lecturer-courses" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Courses Teaching <span className="text-app-muted font-normal normal-case">(Optional)</span></label>
           <div className="flex space-x-2 mb-3">
             <input
               id="lecturer-courses"
               ref={courseInputRef}
               type="text"
               autoComplete="off"
-              className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+              className="flex-1 px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
               placeholder="e.g. CSC 301 — press Enter or click +"
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCourse())}
             />
@@ -198,7 +198,7 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
               <span className="text-xs text-gray-300 italic">No courses added yet</span>
             )}
             {formData.coursesTeaching.map(course => (
-              <span key={course} className="inline-flex items-center px-3 py-1 bg-white border border-primary-100 text-primary-700 text-xs font-bold rounded-lg group hover:border-primary-300">
+              <span key={course} className="inline-flex items-center px-3 py-1 bg-surface border border-primary-100 text-primary-700 text-xs font-bold rounded-lg group hover:border-primary-300">
                 {course}
                 <button type="button" onClick={() => removeCourse(course)} className="ml-2 text-primary-300 group-hover:text-red-500">
                   <XMarkIcon className="w-3.5 h-3.5" />
@@ -209,7 +209,7 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
         </div>
 
         <div>
-          <label htmlFor="lecturer-password" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Password</label>
+          <label htmlFor="lecturer-password" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Password</label>
           <input
             id="lecturer-password"
             name="password"
@@ -219,13 +219,13 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
             autoComplete="new-password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
             placeholder="••••••••"
           />
         </div>
 
         <div>
-          <label htmlFor="lecturer-confirmPassword" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Confirm Password</label>
+          <label htmlFor="lecturer-confirmPassword" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Confirm Password</label>
           <input
             id="lecturer-confirmPassword"
             name="confirmPassword"
@@ -234,7 +234,7 @@ export default function LecturerForm({ formData, setFormData, avatarPreview, onF
             autoComplete="new-password"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
             placeholder="••••••••"
           />
         </div>

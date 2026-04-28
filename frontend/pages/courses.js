@@ -90,10 +90,10 @@ export default function Courses() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-app">
         <div className="flex flex-col items-center">
           <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-600 rounded-full"></div>
-          <p className="mt-4 text-slate-500 font-black tracking-widest uppercase text-[10px]">Syncing academic data...</p>
+          <p className="mt-4 text-app-secondary font-black tracking-widest uppercase text-[10px]">Syncing academic data...</p>
         </div>
       </div>
     );
@@ -117,7 +117,7 @@ export default function Courses() {
             </div>
             <button 
               onClick={() => setShowModal(true)}
-              className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white/10 text-white hover:bg-white/20 active: shadow-lg"
+              className="w-10 h-10 flex items-center justify-center rounded-2xl bg-surface/10 text-white hover:bg-surface/20 active: shadow-lg"
             >
               <PlusIcon className="w-5 h-5 stroke-[3px]" />
             </button>
@@ -125,24 +125,24 @@ export default function Courses() {
 
           <div className="space-y-3 px-2">
             <div className="relative group">
-              <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -/2 w-4 h-4 text-white/50" />
+              <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
               <input
                 type="text"
                 placeholder="Search codes or names..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-white/10 backdrop-blur-md border border-white/10 px-10 py-2.5 rounded-xl text-sm font-medium text-white placeholder:text-white/40 outline-none focus:bg-white/20"
+                className="w-full bg-surface/10 backdrop-blur-md border border-white/10 px-10 py-2.5 rounded-xl text-sm font-medium text-white placeholder:text-white/40 outline-none focus:bg-surface/20"
               />
             </div>
 
-            <div className="flex bg-white/10 p-0.5 rounded-xl overflow-x-auto no-scrollbar">
+            <div className="flex bg-surface/10 p-0.5 rounded-xl overflow-x-auto no-scrollbar">
               {['ALL', 'ONGOING', 'COMPLETED'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setFilter(tab)}
                   className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-widest  ${
                     filter === tab 
-                      ? 'bg-white text-primary-600 shadow-sm' 
+                      ? 'bg-surface text-primary-600 shadow-sm' 
                       : 'text-white/60 hover:text-white'
                   }`}
                 >
@@ -175,13 +175,13 @@ export default function Courses() {
         {/* Unified Modal Overlay */}
         {showModal && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-6">
-            <div className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
+            <div className="bg-surface w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary-50 rounded-full -mr-16 -mt-16 z-0 opacity-50"></div>
                 
                 <div className="relative z-10">
                   <div className="flex justify-between items-start mb-8">
                     <div>
-                      <h2 className="text-2xl font-black text-slate-900 leading-none">
+                      <h2 className="text-2xl font-black text-app-primary leading-none">
                         {modalTab === 'CREATE' ? 'New Course' : 'Join Course'}
                       </h2>
                       <p className="text-[10px] font-bold text-primary-600 uppercase tracking-widest mt-2">
@@ -190,7 +190,7 @@ export default function Courses() {
                     </div>
                     <button 
                       onClick={() => setShowModal(false)}
-                      className="p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-50 rounded-xl"
+                      className="p-2 text-slate-300 hover:text-slate-600 hover:bg-app rounded-xl"
                     >
                       <XMarkIcon className="w-6 h-6 stroke-2" />
                     </button>
@@ -198,17 +198,17 @@ export default function Courses() {
 
                   {/* Tab Switcher if Instructor */}
                   {isEducator && (
-                    <div className="flex bg-slate-100 p-1 rounded-2xl mb-8">
+                    <div className="flex bg-surface-2 p-1 rounded-2xl mb-8">
                       <button 
                         onClick={() => setModalTab('CREATE')}
-                        className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest  ${modalTab === 'CREATE' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                        className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest  ${modalTab === 'CREATE' ? 'bg-surface text-app-primary shadow-sm' : 'text-app-muted'}`}
                       >
                         <SparklesIcon className="w-4 h-4" />
                         <span>Create</span>
                       </button>
                       <button 
                         onClick={() => setModalTab('JOIN')}
-                        className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest  ${modalTab === 'JOIN' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                        className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest  ${modalTab === 'JOIN' ? 'bg-surface text-app-primary shadow-sm' : 'text-app-muted'}`}
                       >
                         <UserPlusIcon className="w-4 h-4" />
                         <span>Join</span>
@@ -226,7 +226,7 @@ export default function Courses() {
                         placeholder="CS50-2024"
                         value={joinCode}
                         onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                        className="w-full bg-slate-50 border-2 border-slate-50 focus:border-primary-500/20 px-6 py-5 rounded-2xl text-center text-2xl font-black tracking-[0.2em] placeholder:text-slate-200 focus:ring-4 focus:ring-primary-500/10 font-mono"
+                        className="w-full bg-app border-2 border-slate-50 focus:border-primary-500/20 px-6 py-5 rounded-2xl text-center text-2xl font-black tracking-[0.2em] placeholder:text-slate-200 focus:ring-4 focus:ring-primary-500/10 font-mono"
                         autoFocus
                       />
                       <button

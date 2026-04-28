@@ -272,7 +272,7 @@ export default function ChatList() {
             className="fixed inset-0 z-[100] bg-black/5" 
             onClick={() => setLongPressedId(null)}
           />
-          <div className="absolute top-1/2 left-1/2 -/2 -/2 z-[101] flex flex-col items-center">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] flex flex-col items-center">
             <button 
               onClick={(e) => { handleDelete(e, conversation.id); setLongPressedId(null); }}
               className="bg-red-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center space-x-2 active:"
@@ -291,10 +291,10 @@ export default function ChatList() {
         <div className="p-4 space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex space-x-4">
-              <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+              <div className="rounded-full bg-surface-3 h-12 w-12"></div>
               <div className="flex-1 space-y-2 py-1">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-surface-3 rounded w-3/4"></div>
+                <div className="h-3 bg-surface-3 rounded w-1/2"></div>
               </div>
             </div>
           ))}
@@ -306,7 +306,7 @@ export default function ChatList() {
     <div className="flex flex-col h-full max-w-xl mx-auto border-x" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
       <div className="p-4 border-b flex flex-col space-y-3 backdrop-blur-xl sticky top-0 z-20" style={{ backgroundColor: 'color-mix(in srgb, var(--bg-surface), transparent 20%)', borderColor: 'var(--border)' }}>
         <div className="relative group">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -/2 w-5 h-5 text-gray-400 group-focus-within:text-primary-500" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-app-muted group-focus-within:text-primary-500" />
           <input 
             type="text" 
             placeholder="Search messages..." 
@@ -324,7 +324,7 @@ export default function ChatList() {
               className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
                 filter === tab 
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' 
-                  : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                  : 'bg-app text-app-secondary hover:bg-surface-2'
               }`}
             >
               {tab}
@@ -342,8 +342,8 @@ export default function ChatList() {
             <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6">
               <ArchiveBoxIcon className="w-10 h-10 text-blue-400" />
             </div>
-            <h3 className="text-lg font-black text-slate-800 tracking-tight">Your Inbox is Empty</h3>
-            <p className="text-xs text-slate-400 font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-widest">
+            <h3 className="text-lg font-black text-app-primary tracking-tight">Your Inbox is Empty</h3>
+            <p className="text-xs text-app-muted font-bold mt-2 max-w-xs leading-relaxed uppercase tracking-widest">
               You don't have any {filter.toLowerCase()} conversations yet. Start a new chat to keep the campus connected!
             </p>
           </div>
@@ -352,7 +352,7 @@ export default function ChatList() {
             {/* Academic Hubs */}
             {groupedConversations.hubs.length > 0 && (
               <div className="py-2">
-                <h3 className="px-6 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Academic Hubs</h3>
+                <h3 className="px-6 py-2 text-[10px] font-black text-app-muted uppercase tracking-widest">Academic Hubs</h3>
                 {groupedConversations.hubs.map((conversation) => renderConvRow(conversation))}
               </div>
             )}
@@ -360,7 +360,7 @@ export default function ChatList() {
             {/* Courses */}
             {groupedConversations.courses.length > 0 && (
               <div className="py-2">
-                <h3 className="px-6 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Courses</h3>
+                <h3 className="px-6 py-2 text-[10px] font-black text-app-muted uppercase tracking-widest">Active Courses</h3>
                 {groupedConversations.courses.map((conversation) => renderConvRow(conversation))}
               </div>
             )}
@@ -368,7 +368,7 @@ export default function ChatList() {
             {/* Direct Messages */}
             {groupedConversations.direct.length > 0 && (
               <div className="py-2">
-                <h3 className="px-6 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Direct Messages</h3>
+                <h3 className="px-6 py-2 text-[10px] font-black text-app-muted uppercase tracking-widest">Direct Messages</h3>
                 {groupedConversations.direct.map((conversation) => renderConvRow(conversation))}
               </div>
             )}
@@ -376,7 +376,7 @@ export default function ChatList() {
             {/* Others/Groups (not hubs) */}
             {groupedConversations.other.length > 0 && (
               <div className="py-2">
-                <h3 className="px-6 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Other Groups</h3>
+                <h3 className="px-6 py-2 text-[10px] font-black text-app-muted uppercase tracking-widest">Other Groups</h3>
                 {groupedConversations.other.map((conversation) => renderConvRow(conversation))}
               </div>
             )}
@@ -448,10 +448,10 @@ const ChatListItem = React.memo(({
 
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-baseline mb-1">
-            <h3 className={`text-sm truncate pr-2 ${conversation.unreadCount > 0 ? 'font-black text-slate-900' : 'font-bold text-slate-700'}`}>
+            <h3 className={`text-sm truncate pr-2 ${conversation.unreadCount > 0 ? 'font-black text-app-primary' : 'font-bold text-slate-700'}`}>
               {getConversationName(conversation)}
             </h3>
-            <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
+            <span className="text-[10px] text-app-muted font-medium whitespace-nowrap">
               {formatRelativeTime(conversation.lastMessageAt, { addSuffix: false })}
             </span>
           </div>
@@ -459,7 +459,7 @@ const ChatListItem = React.memo(({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1.5 min-w-0 flex-1">
               {getMessageStatus(conversation)}
-              <p className={`text-xs truncate ${conversation.unreadCount > 0 ? 'font-bold text-primary-900' : 'text-gray-500'}`}>
+              <p className={`text-xs truncate ${conversation.unreadCount > 0 ? 'font-bold text-primary-900' : 'text-app-secondary'}`}>
                 {getLastMessagePreview(conversation)}
               </p>
             </div>

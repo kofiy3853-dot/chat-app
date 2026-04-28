@@ -28,7 +28,7 @@ export default function Account() {
   const { theme, setTheme, availableThemes } = useTheme();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeBg, setActiveBg] = useState('bg-slate-50/50');
+  const [activeBg, setActiveBg] = useState('bg-app/50');
   const [activeModal, setActiveModal] = useState(null);
 
   // Settings states
@@ -119,7 +119,7 @@ export default function Account() {
       <div className="min-h-screen flex items-center justify-center font-black uppercase tracking-widest text-[10px]" style={{ backgroundColor: 'var(--bg-page)', color: 'var(--text-muted)' }}>
         <div className="flex flex-col items-center space-y-4">
           <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full"></div>
-          <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Loading Account...</p>
+          <p className="text-xs font-black text-app-muted uppercase tracking-widest">Loading Account...</p>
         </div>
       </div>
     );
@@ -173,18 +173,18 @@ export default function Account() {
               <div className="rounded-[2.5rem] p-6 shadow-2xl border" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
                 <div className="grid grid-cols-6 gap-3">
                   {[
-                    { id: 'bg-white', name: 'Original', color: '#ffffff' },
-                    { id: 'bg-slate-50/50', name: 'Dotted', color: '#f8fafc' },
+                    { id: 'bg-surface', name: 'Original', color: '#ffffff' },
+                    { id: 'bg-app/50', name: 'Dotted', color: '#f8fafc' },
                     { id: 'bg-[#fffbeb]', name: 'Parchment', color: '#fffbeb' },
                     { id: 'bg-[#0f172a]', name: 'Midnight', color: '#0f172a' },
                     { id: 'bg-sky-50', name: 'Cloud', color: '#f0f9ff' },
                     { id: 'bg-primary-500', name: 'Sea', color: '#2E8BC0' }
                   ].map((bg) => (
                     <button key={bg.id} onClick={() => setChatBg(bg.id)} className={`relative flex flex-col items-center space-y-2 `}>
-                      <div className={`w-full aspect-square rounded-xl border-2  shadow-sm flex items-center justify-center ${activeBg === bg.id ? 'border-primary-500  shadow-lg' : 'border-slate-100 hover:border-slate-300'}`} style={{ backgroundColor: bg.color }}>
+                      <div className={`w-full aspect-square rounded-xl border-2  shadow-sm flex items-center justify-center ${activeBg === bg.id ? 'border-primary-500  shadow-lg' : 'border-[var(--divider)] hover:border-slate-300'}`} style={{ backgroundColor: bg.color }}>
                         {activeBg === bg.id && <CheckCircleIcon className="w-4 h-4 text-primary-500" />}
                       </div>
-                      <span className="text-[7px] font-black uppercase tracking-tighter text-slate-400">{bg.name}</span>
+                      <span className="text-[7px] font-black uppercase tracking-tighter text-app-muted">{bg.name}</span>
                     </button>
                   ))}
                 </div>
@@ -204,12 +204,12 @@ export default function Account() {
                           </div>
                           <div className="text-left">
                             <span className="block text-sm font-black text-slate-700">{item.label}</span>
-                            {item.value && <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{item.value}</span>}
+                            {item.value && <span className="text-[10px] font-bold text-app-muted uppercase tracking-wider">{item.value}</span>}
                           </div>
                         </div>
                         <div className="flex items-center space-x-3">
                           {item.badge && <span className="px-2 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase rounded-md shadow-lg shadow-emerald-500/20">{item.badge}</span>}
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-3.5 h-3.5 text-slate-200 group-hover:text-slate-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-3.5 h-3.5 text-slate-200 group-hover:text-app-muted">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                           </svg>
                         </div>
@@ -228,8 +228,8 @@ export default function Account() {
                     <ArrowRightOnRectangleIcon className="w-6 h-6" />
                   </div>
                   <div className="text-left">
-                    <span className="block text-sm font-black text-slate-800">Sign out session</span>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">End active login</span>
+                    <span className="block text-sm font-black text-app-primary">Sign out session</span>
+                    <span className="text-[9px] font-black text-app-muted uppercase tracking-widest">End active login</span>
                   </div>
                 </div>
                 <div className="pr-2"><CheckIcon className="w-5 h-5 text-rose-300" /></div>
@@ -295,16 +295,16 @@ function SettingsModal({ type, onClose, states }) {
         return (
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Password</label>
-              <input type="password" required value={passwordData.current} onChange={e => setPasswordData({...passwordData, current: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 font-bold outline-none" placeholder="••••••••" />
+              <label className="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Current Password</label>
+              <input type="password" required value={passwordData.current} onChange={e => setPasswordData({...passwordData, current: e.target.value})} className="w-full px-4 py-3 bg-app border border-[var(--border)] rounded-xl focus:ring-2 focus:ring-amber-500 font-bold outline-none" placeholder="••••••••" />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Password</label>
-              <input type="password" required value={passwordData.new} onChange={e => setPasswordData({...passwordData, new: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 font-bold outline-none" placeholder="••••••••" />
+              <label className="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">New Password</label>
+              <input type="password" required value={passwordData.new} onChange={e => setPasswordData({...passwordData, new: e.target.value})} className="w-full px-4 py-3 bg-app border border-[var(--border)] rounded-xl focus:ring-2 focus:ring-amber-500 font-bold outline-none" placeholder="••••••••" />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm New Password</label>
-              <input type="password" required value={passwordData.confirm} onChange={e => setPasswordData({...passwordData, confirm: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 font-bold outline-none" placeholder="••••••••" />
+              <label className="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Confirm New Password</label>
+              <input type="password" required value={passwordData.confirm} onChange={e => setPasswordData({...passwordData, confirm: e.target.value})} className="w-full px-4 py-3 bg-app border border-[var(--border)] rounded-xl focus:ring-2 focus:ring-amber-500 font-bold outline-none" placeholder="••••••••" />
             </div>
             <button type="submit" disabled={loading} className="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-amber-500/20 active: mt-4">
               {loading ? 'Updating...' : 'Set New Password'}
@@ -314,12 +314,12 @@ function SettingsModal({ type, onClose, states }) {
       case '2fa':
         return (
           <div className="space-y-6 text-center">
-            <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center  ${states.tfaEnabled ? 'bg-emerald-500 shadow-emerald-200' : 'bg-slate-100 text-slate-400'} shadow-2xl`}>
+            <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center  ${states.tfaEnabled ? 'bg-emerald-500 shadow-emerald-200' : 'bg-surface-2 text-app-muted'} shadow-2xl`}>
               <ShieldCheckIcon className={`w-10 h-10 ${states.tfaEnabled ? 'text-white' : ''}`} />
             </div>
             <div>
-              <h4 className="text-xl font-black text-slate-800 tracking-tight">Two-Factor Authentication</h4>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-2 px-4 leading-relaxed">Add an extra layer of security to your academic account using a mobile Authenticator.</p>
+              <h4 className="text-xl font-black text-app-primary tracking-tight">Two-Factor Authentication</h4>
+              <p className="text-xs text-app-muted font-bold uppercase tracking-widest mt-2 px-4 leading-relaxed">Add an extra layer of security to your academic account using a mobile Authenticator.</p>
             </div>
             <button 
               onClick={() => { states.setTfaEnabled(!states.tfaEnabled); toast.success(`2FA ${!states.tfaEnabled ? 'Enabled' : 'Disabled'}`); }}
@@ -337,16 +337,16 @@ function SettingsModal({ type, onClose, states }) {
               { id: 'showReadReceipts', label: 'Read Receipts', desc: 'Sync message read status across devices' },
               { id: 'allowCourseDiscovery', label: 'Course Visibility', desc: 'Let faculty members find your profile' }
             ].map(setting => (
-              <div key={setting.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div key={setting.id} className="flex items-center justify-between p-4 bg-app rounded-2xl border border-[var(--divider)]">
                 <div className="flex-1 pr-4">
-                  <span className="block text-sm font-black text-slate-800">{setting.label}</span>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{setting.desc}</span>
+                  <span className="block text-sm font-black text-app-primary">{setting.label}</span>
+                  <span className="text-[9px] font-bold text-app-muted uppercase tracking-widest">{setting.desc}</span>
                 </div>
                 <button 
                   onClick={() => states.setPrivacySettings({...states.privacySettings, [setting.id]: !states.privacySettings[setting.id]})}
-                  className={`w-12 h-6 rounded-full  relative ${states.privacySettings[setting.id] ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                  className={`w-12 h-6 rounded-full  relative ${states.privacySettings[setting.id] ? 'bg-indigo-600' : 'bg-surface-3'}`}
                 >
-                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full  ${states.privacySettings[setting.id] ? 'right-1' : 'left-1'}`} />
+                  <div className={`absolute top-1 w-4 h-4 bg-surface rounded-full  ${states.privacySettings[setting.id] ? 'right-1' : 'left-1'}`} />
                 </button>
               </div>
             ))}
@@ -360,21 +360,21 @@ function SettingsModal({ type, onClose, states }) {
               { id: 'emailAlerts', label: 'Email Summaries', desc: 'Weekly roundup of academic activity' },
               { id: 'soundEnabled', label: 'Notification Sounds', desc: 'Play sounds for incoming events' }
             ].map(setting => (
-              <div key={setting.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div key={setting.id} className="flex items-center justify-between p-4 bg-app rounded-2xl border border-[var(--divider)]">
                 <div className="flex-1 pr-4">
-                  <span className="block text-sm font-black text-slate-800">{setting.label}</span>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{setting.desc}</span>
+                  <span className="block text-sm font-black text-app-primary">{setting.label}</span>
+                  <span className="text-[9px] font-bold text-app-muted uppercase tracking-widest">{setting.desc}</span>
                 </div>
                 <button 
                   onClick={() => states.setNotificationSettings({...states.notificationSettings, [setting.id]: !states.notificationSettings[setting.id]})}
-                  className={`w-12 h-6 rounded-full  relative ${states.notificationSettings[setting.id] ? 'bg-rose-500' : 'bg-slate-200'}`}
+                  className={`w-12 h-6 rounded-full  relative ${states.notificationSettings[setting.id] ? 'bg-rose-500' : 'bg-surface-3'}`}
                 >
-                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full  ${states.notificationSettings[setting.id] ? 'right-1' : 'left-1'}`} />
+                  <div className={`absolute top-1 w-4 h-4 bg-surface rounded-full  ${states.notificationSettings[setting.id] ? 'right-1' : 'left-1'}`} />
                 </button>
               </div>
             ))}
             
-            <div className="pt-4 mt-4 border-t border-slate-100">
+            <div className="pt-4 mt-4 border-t border-[var(--divider)]">
               <button 
                 onClick={handleTestPush}
                 disabled={testLoading}
@@ -385,7 +385,7 @@ function SettingsModal({ type, onClose, states }) {
                     <BellIcon className="w-5 h-5" />
                   </div>
                   <div className="text-left">
-                    <span className="block text-sm font-black text-slate-800">Test Configuration</span>
+                    <span className="block text-sm font-black text-app-primary">Test Configuration</span>
                     <span className="text-[9px] font-black text-primary-600 uppercase tracking-widest">Verify device registration</span>
                   </div>
                 </div>
@@ -405,10 +405,10 @@ function SettingsModal({ type, onClose, states }) {
               <button 
                 key={lang}
                 onClick={() => { states.setLanguage(lang); toast.success(`Language set to ${lang}`); onClose(); }}
-                className={`w-full p-4 rounded-2xl border  flex items-center justify-between ${states.language === lang ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-500' : 'bg-slate-50 border-slate-100'}`}
+                className={`w-full p-4 rounded-2xl border  flex items-center justify-between ${states.language === lang ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-500' : 'bg-app border-[var(--divider)]'}`}
               >
                 <div className="flex items-center space-x-3">
-                  <LanguageIcon className={`w-5 h-5 ${states.language === lang ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <LanguageIcon className={`w-5 h-5 ${states.language === lang ? 'text-blue-600' : 'text-app-muted'}`} />
                   <span className={`text-sm font-black ${states.language === lang ? 'text-blue-700' : 'text-slate-600'}`}>{lang}</span>
                 </div>
                 {states.language === lang && <CheckCircleIcon className="w-5 h-5 text-blue-600" />}
@@ -422,12 +422,12 @@ function SettingsModal({ type, onClose, states }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
-      <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-800">
+      <div className="relative w-full max-w-sm bg-surface rounded-[2.5rem] shadow-2xl overflow-hidden">
+        <div className="p-6 border-b border-[var(--divider)] flex items-center justify-between bg-app/50">
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-app-primary">
             {type.replace(/([A-Z])/g, ' $1').replace('_', ' ')} Settings
           </h3>
-          <button onClick={onClose} className="p-2 hover:bg-white rounded-full text-slate-400 hover:text-slate-600 border border-transparent hover:border-slate-100 shadow-sm">
+          <button onClick={onClose} className="p-2 hover:bg-surface rounded-full text-app-muted hover:text-slate-600 border border-transparent hover:border-[var(--divider)] shadow-sm">
             <XMarkIcon className="w-5 h-5 stroke-[2.5px]" />
           </button>
         </div>

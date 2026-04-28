@@ -107,7 +107,7 @@ const EventTab = () => {
   if (loading) {
     return (
       <div className="py-20 flex justify-center">
-        <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-500 rounded-full"></div>
+        <div className="w-10 h-10 border-4 border-[var(--divider)] border-t-primary-500 rounded-full"></div>
       </div>
     );
   }
@@ -118,7 +118,7 @@ const EventTab = () => {
       <div className="px-4 pt-4">
         <button 
           onClick={() => router.push('/events/create')}
-          className="w-full flex items-center justify-between p-5 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md active: shadow-slate-100/50"
+          className="w-full flex items-center justify-between p-5 bg-surface rounded-[2rem] border border-[var(--divider)] shadow-sm hover:shadow-md active: shadow-slate-100/50"
         >
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-primary-100/50 rounded-2xl flex items-center justify-center text-primary-600">
@@ -126,7 +126,7 @@ const EventTab = () => {
             </div>
             <div className="text-left">
               <p className="text-xs font-black uppercase tracking-widest text-primary-600 mb-0.5">Host an Activity</p>
-              <p className="text-[10px] font-bold text-slate-400">Share your event with the campus</p>
+              <p className="text-[10px] font-bold text-app-muted">Share your event with the campus</p>
             </div>
           </div>
           <p className="px-5 py-2 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest">Create</p>
@@ -136,8 +136,8 @@ const EventTab = () => {
       {events.length === 0 ? (
         <div className="py-20 text-center">
           <CalendarIcon className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-          <h3 className="text-base font-black text-slate-800 uppercase tracking-widest">No Events</h3>
-          <p className="text-xs text-slate-400 font-bold mt-2">Check back later or host one!</p>
+          <h3 className="text-base font-black text-app-primary uppercase tracking-widest">No Events</h3>
+          <p className="text-xs text-app-muted font-bold mt-2">Check back later or host one!</p>
         </div>
       ) : (
         <div className="grid gap-6 px-4 pb-12">
@@ -145,7 +145,7 @@ const EventTab = () => {
             <div 
               key={event.id} 
               onClick={() => setSelectedEvent(event)}
-              className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group shadow-slate-200/20 cursor-pointer hover:border-primary-200 active:]"
+              className="bg-surface rounded-[2.5rem] border border-[var(--divider)] shadow-sm overflow-hidden group shadow-slate-200/20 cursor-pointer hover:border-primary-200 active:]"
             >
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -155,10 +155,10 @@ const EventTab = () => {
                           {event.category || 'Event'}
                        </span>
                     </div>
-                    <h2 className="text-xl font-black text-slate-900 leading-tight tracking-tight mb-2 group-hover:text-primary-600 uppercase">
+                    <h2 className="text-xl font-black text-app-primary leading-tight tracking-tight mb-2 group-hover:text-primary-600 uppercase">
                       {event.title}
                     </h2>
-                    <p className="text-[11px] text-slate-500 font-bold line-clamp-2 leading-relaxed opacity-70">
+                    <p className="text-[11px] text-app-secondary font-bold line-clamp-2 leading-relaxed opacity-70">
                       {event.description}
                     </p>
                   </div>
@@ -173,7 +173,7 @@ const EventTab = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-6">
-                  <div className="flex items-center space-x-3 bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                  <div className="flex items-center space-x-3 bg-app p-3 rounded-2xl border border-[var(--divider)]/50">
                     <CalendarIcon className="w-4 h-4 text-primary-500" />
                     <p className="text-[10px] font-bold text-slate-700 truncate">{format(new Date(event.dateTime || event.startTime), 'p')}</p>
                   </div>
@@ -182,7 +182,7 @@ const EventTab = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="flex items-center space-x-3 bg-slate-50 p-3 rounded-2xl border border-slate-100/50 hover:bg-primary-50"
+                    className="flex items-center space-x-3 bg-app p-3 rounded-2xl border border-[var(--divider)]/50 hover:bg-primary-50"
                   >
                     <MapPinIcon className="w-4 h-4 text-emerald-500" />
                     <p className="text-[10px] font-bold text-slate-700 truncate">{event.location || event.locationValue}</p>
@@ -191,7 +191,7 @@ const EventTab = () => {
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                   <div className="flex items-center space-x-4">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <span className="text-[10px] font-black text-app-muted uppercase tracking-[0.2em]">
                       {event.attendeeCount || 0} Going
                     </span>
                     {(currentUser?.id === event.creatorId || currentUser?.role === 'ADMIN') && (
@@ -218,7 +218,7 @@ const EventTab = () => {
             </div>
           ))}
           {hasMore && (
-            <button onClick={loadMore} className="w-full py-6 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+            <button onClick={loadMore} className="w-full py-6 text-[9px] font-black text-app-muted uppercase tracking-widest">
               {isFetchingMore ? 'Loading...' : 'See More'}
             </button>
           )}
@@ -235,7 +235,7 @@ const EventTab = () => {
            />
            
            {/* Modal Body */}
-           <div className="relative w-full max-w-xl bg-white rounded-t-[3rem] sm:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+           <div className="relative w-full max-w-xl bg-surface rounded-t-[3rem] sm:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
               {/* Header/Banner Area */}
               <div className="h-48 bg-primary-600 relative shrink-0">
                  {selectedEvent.bannerUrl ? (
@@ -252,7 +252,7 @@ const EventTab = () => {
                     <XMarkIcon className="w-6 h-6" />
                  </button>
                  
-                 <div className="absolute -bottom-1 left-0 right-0 h-10 bg-white rounded-t-[3rem]" />
+                 <div className="absolute -bottom-1 left-0 right-0 h-10 bg-surface rounded-t-[3rem]" />
               </div>
 
               {/* Content Area */}
@@ -263,50 +263,50 @@ const EventTab = () => {
                     </span>
                  </div>
                  
-                 <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight leading-none mb-6">
+                 <h2 className="text-3xl font-black text-app-primary uppercase tracking-tight leading-none mb-6">
                     {selectedEvent.title}
                  </h2>
                  
                  <div className="grid grid-cols-1 gap-4 mb-8">
-                    <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-3xl border border-slate-100">
-                       <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary-500 shadow-sm">
+                    <div className="flex items-center space-x-4 p-4 bg-app rounded-3xl border border-[var(--divider)]">
+                       <div className="w-12 h-12 bg-surface rounded-2xl flex items-center justify-center text-primary-500 shadow-sm">
                           <ClockIcon className="w-6 h-6" />
                        </div>
                        <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Time & Date</p>
+                          <p className="text-[10px] font-black text-app-muted uppercase tracking-widest mb-0.5">Time & Date</p>
                           <p className="text-sm font-bold text-slate-700">
                              {format(new Date(selectedEvent.dateTime || selectedEvent.startTime), 'EEEE, MMMM do')} @ {format(new Date(selectedEvent.dateTime || selectedEvent.startTime), 'p')}
                           </p>
                        </div>
                     </div>
                     
-                    <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-3xl border border-slate-100">
-                       <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm">
+                    <div className="flex items-center space-x-4 p-4 bg-app rounded-3xl border border-[var(--divider)]">
+                       <div className="w-12 h-12 bg-surface rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm">
                           <MapPinIcon className="w-6 h-6" />
                        </div>
                        <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Location</p>
+                          <p className="text-[10px] font-black text-app-muted uppercase tracking-widest mb-0.5">Location</p>
                           <p className="text-sm font-bold text-slate-700">{selectedEvent.location || selectedEvent.locationValue}</p>
                        </div>
                     </div>
 
-                    <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-3xl border border-slate-100">
-                       <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-orange-500 shadow-sm">
+                    <div className="flex items-center space-x-4 p-4 bg-app rounded-3xl border border-[var(--divider)]">
+                       <div className="w-12 h-12 bg-surface rounded-2xl flex items-center justify-center text-orange-500 shadow-sm">
                           <UsersIcon className="w-6 h-6" />
                        </div>
                        <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Attendance</p>
+                          <p className="text-[10px] font-black text-app-muted uppercase tracking-widest mb-0.5">Attendance</p>
                           <p className="text-sm font-bold text-slate-700">{selectedEvent.attendeeCount || 0} People are going</p>
                        </div>
                     </div>
                  </div>
 
                  <div className="mb-8">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center space-x-2">
+                    <h3 className="text-xs font-black text-app-muted uppercase tracking-widest mb-3 flex items-center space-x-2">
                        <InformationCircleIcon className="w-4 h-4" />
                        <span>About this event</span>
                     </h3>
-                    <p className="text-base text-slate-600 font-medium leading-relaxed bg-slate-50/50 p-6 rounded-3xl border border-slate-100 italic">
+                    <p className="text-base text-slate-600 font-medium leading-relaxed bg-app/50 p-6 rounded-3xl border border-[var(--divider)] italic">
                        {selectedEvent.description}
                     </p>
                  </div>
@@ -314,7 +314,7 @@ const EventTab = () => {
                  {/* Host Info */}
                  <div className="flex items-center justify-between p-6 bg-slate-900 rounded-3xl">
                     <div className="flex items-center space-x-4">
-                       <div className={`w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white font-black overflow-hidden`}>
+                       <div className={`w-12 h-12 rounded-2xl bg-surface/10 flex items-center justify-center text-white font-black overflow-hidden`}>
                           {selectedEvent.creator?.avatar ? (
                             <img src={selectedEvent.creator.avatar} className="w-full h-full object-cover" alt="" />
                           ) : (
@@ -331,7 +331,7 @@ const EventTab = () => {
                       onClick={(e) => handleToggleJoin(e, selectedEvent.id)}
                       className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest  ${
                          selectedEvent.isJoined 
-                         ? 'bg-white/10 text-white border border-white/20' 
+                         ? 'bg-surface/10 text-white border border-white/20' 
                          : 'bg-primary-500 text-white shadow-xl shadow-primary-500/30'
                       }`}
                     >

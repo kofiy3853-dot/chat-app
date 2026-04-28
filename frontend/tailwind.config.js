@@ -54,8 +54,28 @@ module.exports = {
           red:   'var(--status-red)',
         },
         'accent': {
-          cyan:   'var(--accent-cyan)',
-          purple: 'var(--accent-purple)',
+          DEFAULT: 'var(--accent)',
+          dark:    'var(--accent-dark)',
+          light:   'var(--accent-light)',
+          cyan:    'var(--accent-cyan)',
+          purple:  'var(--accent-purple)',
+        },
+        'bg': {
+          base:    'var(--bg-base)',
+          surface: 'var(--bg-surface)',
+          'surface-2': 'var(--bg-surface-2)',
+          'surface-3': 'var(--bg-surface-3)',
+          input:   'var(--input-bg)',
+        },
+        'app': {
+          primary:   'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted:     'var(--text-muted)',
+          navbar:    'var(--icon-color)',
+        },
+        'bubble': {
+          sent:     'var(--bubble-sent)',
+          received: 'var(--bubble-received)',
         },
         'cloud-white': 'var(--bg-cloud-white)',
         'pure-white':  'var(--bg-pure-white)',
@@ -65,14 +85,14 @@ module.exports = {
           blue:   '#2E8BC0',
         },
         soft: {
-          bg:      '#ffffff',
-          card:    '#ffffff',
-          primary: '#2E8BC0',
+          bg:      'var(--bg-base)',
+          card:    'var(--bg-surface)',
+          primary: 'var(--accent)',
           secondary: '#E77917',
-          accent:  '#1a6a92',
+          accent:  'var(--accent-dark)',
           text: {
-            primary:   '#111827',
-            secondary: '#6b7280',
+            primary:   'var(--text-primary)',
+            secondary: 'var(--text-secondary)',
           }
         }
       },

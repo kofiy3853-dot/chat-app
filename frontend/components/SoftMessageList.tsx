@@ -61,17 +61,17 @@ const SoftMessageList: React.FC<SoftMessageListProps> = ({ messages, currentUser
           >
             {msg.type === 'VOICE' ? (
               <div className="flex items-center space-x-3 py-1 min-w-[140px]" aria-label="Voice message">
-                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-                  <div className="w-3.5 h-3.5 bg-white rounded-full"></div>
+                <div className="w-9 h-9 rounded-full bg-surface/20 flex items-center justify-center">
+                  <div className="w-3.5 h-3.5 bg-surface rounded-full"></div>
                 </div>
                 <div className="flex-1 space-y-1">
                    <div className="flex justify-between items-center px-1">
-                      <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-surface" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-surface" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-surface" />
                    </div>
-                   <div className="h-1 bg-white/30 rounded-full overflow-hidden">
-                      <div className="w-[60%] h-full bg-white"></div>
+                   <div className="h-1 bg-surface/30 rounded-full overflow-hidden">
+                      <div className="w-[60%] h-full bg-surface"></div>
                    </div>
                 </div>
               </div>

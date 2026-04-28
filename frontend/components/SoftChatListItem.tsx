@@ -113,7 +113,7 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
     >
       {/* Selection Checkmark */}
       {isSelected && (
-        <div className="absolute left-1.5 top-1/2 -/2 z-10">
+        <div className="absolute left-1.5 top-1/2 -translate-y-1/2 z-10">
           <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center shadow-sm">
             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -176,7 +176,7 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
           </h3>
           <span
             className={`text-[11px] flex-shrink-0 whitespace-nowrap ${
-              unread > 0 ? 'text-primary-500 font-bold' : 'text-gray-400 font-medium'
+              unread > 0 ? 'text-primary-500 font-bold' : 'text-app-muted font-medium'
             }`}
           >
             {time}
@@ -190,8 +190,8 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
               isSomeoneTyping
                 ? 'text-primary-500 font-semibold italic'
                 : unread > 0
-                ? 'text-gray-800 font-medium'
-                : 'text-gray-500 font-normal'
+                ? 'text-app-primary font-medium'
+                : 'text-app-secondary font-normal'
             }`}
           >
             {lastMsg?.senderId === currentUser?.id && unread === 0 && (

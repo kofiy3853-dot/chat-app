@@ -69,37 +69,37 @@ export default function NewChatModal({ isOpen, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div 
-        className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+        className="bg-surface w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
       >
         {/* Header */}
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">New Message</h2>
+        <div className="p-4 border-b border-[var(--divider)] flex items-center justify-between">
+          <h2 className="text-xl font-bold text-app-primary">New Message</h2>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-xl"
+            className="p-2 hover:bg-surface-2 rounded-xl"
           >
-            <XMarkIcon className="w-6 h-6 text-gray-500" />
+            <XMarkIcon className="w-6 h-6 text-app-secondary" />
           </button>
         </div>
 
         {/* Search Input */}
-        <div className="p-4 bg-gray-50/50">
+        <div className="p-4 bg-app/50">
           <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -/2 w-5 h-5 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-app-muted" />
             <input
               type="text"
               placeholder="Search by name, email or ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               autoFocus
-              className="w-full bg-white border border-gray-200 rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm text-sm"
+              className="w-full bg-surface border border-[var(--border)] rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm text-sm"
             />
           </div>
 
           {/* Academic Filters Chips */}
           <div className="mt-4 flex flex-col space-y-3">
             <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-1">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0 ml-1">Faculty</span>
+              <span className="text-[10px] font-black text-app-muted uppercase tracking-widest shrink-0 ml-1">Faculty</span>
               {['ALL', 'EBIS', 'FAST', 'FOE', 'FBME', 'FAS', 'FVAST'].map((f) => (
                 <button
                   key={f}
@@ -107,7 +107,7 @@ export default function NewChatModal({ isOpen, onClose }) {
                   className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight  border shrink-0 ${
                     (faculty === f || (f === 'ALL' && !faculty))
                       ? 'bg-primary-600 text-white border-primary-600 shadow-md shadow-primary-200'
-                      : 'bg-white text-slate-500 border-slate-200 hover:border-primary-200'
+                      : 'bg-surface text-app-secondary border-[var(--border)] hover:border-primary-200'
                   }`}
                 >
                   {f}
@@ -116,7 +116,7 @@ export default function NewChatModal({ isOpen, onClose }) {
             </div>
             
             <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0 ml-1">Level</span>
+              <span className="text-[10px] font-black text-app-muted uppercase tracking-widest shrink-0 ml-1">Level</span>
               {['ALL', '100', '200', '300', '400'].map((l) => (
                 <button
                   key={l}
@@ -124,7 +124,7 @@ export default function NewChatModal({ isOpen, onClose }) {
                   className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight  border shrink-0 ${
                     (level === l || (l === 'ALL' && !level))
                       ? 'bg-primary-600 text-white border-primary-600 shadow-md shadow-primary-200'
-                      : 'bg-white text-slate-500 border-slate-200 hover:border-primary-200'
+                      : 'bg-surface text-app-secondary border-[var(--border)] hover:border-primary-200'
                   }`}
                 >
                   {l === 'ALL' ? 'ALL YEARS' : `LVL ${l}`}
@@ -139,7 +139,7 @@ export default function NewChatModal({ isOpen, onClose }) {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-3">
               <div className="rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              <p className="text-sm text-gray-500 font-medium">Searching for classmates...</p>
+              <p className="text-sm text-app-secondary font-medium">Searching for classmates...</p>
             </div>
           ) : results.length > 0 ? (
             <div className="space-y-1">
@@ -161,8 +161,8 @@ export default function NewChatModal({ isOpen, onClose }) {
                     })()}
                   </div>
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">{user.name}</p>
-                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    <p className="text-sm font-bold text-app-primary truncate">{user.name}</p>
+                    <p className="text-xs text-app-secondary truncate">{user.email}</p>
                     {user.department && (
                       <p className="text-[10px] text-primary-600 font-bold uppercase tracking-wider mt-0.5">{user.department}</p>
                     )}
@@ -175,7 +175,7 @@ export default function NewChatModal({ isOpen, onClose }) {
             </div>
           ) : !search.trim() ? (
             <div className="p-2">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4 mb-3">Suggested</h3>
+              <h3 className="text-[10px] font-black text-app-muted uppercase tracking-widest px-4 mb-3">Suggested</h3>
               
               {JSON.parse(localStorage.getItem('user') || '{}')?.role !== 'NANA' && (
                 <button
@@ -183,12 +183,12 @@ export default function NewChatModal({ isOpen, onClose }) {
                   className="w-full flex items-center space-x-4 p-4 bg-primary-50/50 hover:bg-primary-50 rounded-2xl group border border-primary-100 shadow-sm"
                 >
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary-500 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary-500/20 overflow-hidden shrink-0">
-                    <div className="absolute inset-0 bg-white/20"></div>
+                    <div className="absolute inset-0 bg-surface/20"></div>
                     <span>N</span>
                   </div>
                   <div className="flex-1 text-left min-w-0">
                     <div className="flex items-center space-x-2">
-                      <p className="text-sm font-black text-gray-900 truncate">Nana AI Agent</p>
+                      <p className="text-sm font-black text-app-primary truncate">Nana AI Agent</p>
                       <span className="px-1.5 py-0.5 bg-indigo-600 text-[8px] font-black text-white rounded-md uppercase tracking-tighter">System Service</span>
                     </div>
                     <p className="text-xs text-indigo-600/70 font-bold uppercase tracking-tight truncate mt-0.5">KTU Virtual Campus Support</p>
@@ -201,16 +201,16 @@ export default function NewChatModal({ isOpen, onClose }) {
               )}
               
               <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-                <p className="text-gray-400 text-sm font-medium italic mt-4">Type to search for friends and classmates</p>
+                <p className="text-app-muted text-sm font-medium italic mt-4">Type to search for friends and classmates</p>
               </div>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-app rounded-full flex items-center justify-center mb-4">
                 <MagnifyingGlassIcon className="w-8 h-8 text-gray-300" />
               </div>
-              <p className="text-gray-900 font-bold text-lg">No results found</p>
-              <p className="text-gray-500 text-sm mt-1">We couldn't find anyone matching "{search}"</p>
+              <p className="text-app-primary font-bold text-lg">No results found</p>
+              <p className="text-app-secondary text-sm mt-1">We couldn't find anyone matching "{search}"</p>
             </div>
           )}
         </div>

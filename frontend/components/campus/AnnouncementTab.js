@@ -101,7 +101,7 @@ const AnnouncementTab = () => {
   if (loading) {
     return (
       <div className="py-20 flex justify-center">
-        <div className="w-10 h-10 border-4 border-slate-100 border-t-primary-500 rounded-full"></div>
+        <div className="w-10 h-10 border-4 border-[var(--divider)] border-t-primary-500 rounded-full"></div>
       </div>
     );
   }
@@ -109,42 +109,42 @@ const AnnouncementTab = () => {
   return (
     <div className="pb-20">
       {/* Search Header */}
-      <div className="bg-white/80 backdrop-blur-xl px-4 py-4 sticky top-[120px] z-10 border-b border-slate-100">
-        <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Public Announcements</h2>
+      <div className="bg-surface/80 backdrop-blur-xl px-4 py-4 sticky top-[120px] z-10 border-b border-[var(--divider)]">
+        <h2 className="text-xs font-black uppercase tracking-[0.2em] text-app-muted">Public Announcements</h2>
       </div>
 
       <div className="max-w-xl mx-auto p-4 space-y-6">
         {/* Create Card Inline */}
         <div className={`  overflow-hidden ${showCreate ? 'max-h-[600px] mb-8' : 'max-h-[0px]'}`}>
-          <div className="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-xl shadow-primary-500/5">
+          <div className="bg-surface rounded-[2rem] border border-[var(--divider)] p-6 shadow-xl shadow-primary-500/5">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">New Announcement</h3>
-              <button onClick={() => setShowCreate(false)} className="p-2 text-slate-400">
+              <h3 className="text-sm font-black uppercase tracking-widest text-app-primary">New Announcement</h3>
+              <button onClick={() => setShowCreate(false)} className="p-2 text-app-muted">
                 <XMarkIcon className="w-5 h-5 stroke-[3px]" />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <input 
                 placeholder="Subject Title"
-                className="w-full text-base font-bold bg-slate-50 border-transparent focus:border-primary-200 focus:bg-white rounded-2xl p-4 outline-none"
+                className="w-full text-base font-bold bg-app border-transparent focus:border-primary-200 focus:bg-surface rounded-2xl p-4 outline-none"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
               <textarea 
                 placeholder="What's happening on campus?"
                 rows={4}
-                className="w-full text-sm font-medium bg-slate-50 border-transparent focus:border-primary-200 focus:bg-white rounded-2xl p-4 outline-none resize-none"
+                className="w-full text-sm font-medium bg-app border-transparent focus:border-primary-200 focus:bg-surface rounded-2xl p-4 outline-none resize-none"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
               />
               <div className="flex items-center space-x-2">
                  <input 
                    placeholder="Optional Image URL"
-                   className="flex-1 text-xs font-bold bg-slate-50 border-transparent focus:border-primary-100 focus:bg-white rounded-xl p-3 outline-none"
+                   className="flex-1 text-xs font-bold bg-app border-transparent focus:border-primary-100 focus:bg-surface rounded-xl p-3 outline-none"
                    value={imageUrl}
                    onChange={(e) => setImageUrl(e.target.value)}
                  />
-                 <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
+                 <div className="w-10 h-10 bg-surface-2 rounded-xl flex items-center justify-center text-app-muted">
                    <PhotoIcon className="w-5 h-5" />
                  </div>
               </div>
@@ -163,13 +163,13 @@ const AnnouncementTab = () => {
         {!showCreate && (
           <button 
             onClick={() => setShowCreate(true)}
-            className="w-full flex items-center justify-between p-5 bg-white rounded-full border border-slate-100 shadow-sm hover:shadow-md active: mb-8"
+            className="w-full flex items-center justify-between p-5 bg-surface rounded-full border border-[var(--divider)] shadow-sm hover:shadow-md active: mb-8"
           >
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600">
                  <MegaphoneIcon className="w-5 h-5 stroke-[2.5px]" />
               </div>
-              <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Post an announcement...</span>
+              <span className="text-[11px] font-black uppercase tracking-widest text-app-secondary">Post an announcement...</span>
             </div>
             <PlusIcon className="w-5 h-5 text-slate-300 stroke-[3px]" />
           </button>
@@ -178,8 +178,8 @@ const AnnouncementTab = () => {
         {announcements.length === 0 ? (
           <div className="py-20 text-center">
             <MegaphoneIcon className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-            <h3 className="text-base font-black text-slate-800 uppercase tracking-widest">No Alerts</h3>
-            <p className="text-xs text-slate-400 font-bold mt-2">The campus is currently quiet.</p>
+            <h3 className="text-base font-black text-app-primary uppercase tracking-widest">No Alerts</h3>
+            <p className="text-xs text-app-muted font-bold mt-2">The campus is currently quiet.</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -187,7 +187,7 @@ const AnnouncementTab = () => {
               <div 
                 key={ann.id} 
                 onClick={() => setSelectedAnnouncement(ann)}
-                className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden shadow-slate-200/20 group cursor-pointer hover:border-primary-200 active:]"
+                className="bg-surface rounded-[2.5rem] border border-[var(--divider)] shadow-sm overflow-hidden shadow-slate-200/20 group cursor-pointer hover:border-primary-200 active:]"
               >
                 {ann.imageUrl && (
                   <div className="h-48 w-full overflow-hidden">
@@ -196,7 +196,7 @@ const AnnouncementTab = () => {
                 )}
                 <div className="p-6">
                   <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden border border-slate-100/50">
+                    <div className="w-10 h-10 rounded-full bg-surface-2 flex items-center justify-center text-app-muted overflow-hidden border border-[var(--divider)]/50">
                        {ann.user?.avatar ? (
                          <img src={ann.user.avatar} className="w-full h-full object-cover" alt="" />
                        ) : (
@@ -204,9 +204,9 @@ const AnnouncementTab = () => {
                        )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-black text-slate-800">{ann.user?.name || 'Academic Board'}</p>
+                      <p className="text-xs font-black text-app-primary">{ann.user?.name || 'Academic Board'}</p>
                       <div className="flex items-center space-x-3 mt-0.5">
-                        <div className="flex items-center space-x-1.5 text-slate-400">
+                        <div className="flex items-center space-x-1.5 text-app-muted">
                            <ClockIcon className="w-3 h-3" />
                            <span className="text-[10px] font-bold">{format(new Date(ann.createdAt), 'MMM dd, p')}</span>
                         </div>
@@ -214,12 +214,12 @@ const AnnouncementTab = () => {
                       </div>
                     </div>
                   </div>
-                  <h3 className="text-xl font-black text-slate-900 mb-2 leading-tight uppercase tracking-tight">{ann.title}</h3>
+                  <h3 className="text-xl font-black text-app-primary mb-2 leading-tight uppercase tracking-tight">{ann.title}</h3>
                   <p className="text-sm text-slate-600 font-medium leading-relaxed whitespace-pre-wrap line-clamp-3">{ann.content}</p>
                   
                   <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-50">
                     <div className="flex items-center space-x-2">
-                       <button className="flex items-center space-x-1.5 px-4 py-2 hover:bg-slate-50 rounded-xl text-slate-400">
+                       <button className="flex items-center space-x-1.5 px-4 py-2 hover:bg-app rounded-xl text-app-muted">
                           <ShareIcon className="w-4 h-4" />
                           <span className="text-[10px] font-black uppercase tracking-widest">Share</span>
                        </button>
@@ -227,7 +227,7 @@ const AnnouncementTab = () => {
                     {(currentUser?.id === ann.userId || currentUser?.role === 'ADMIN') && (
                       <button 
                          onClick={(e) => handleDeleteAnnouncement(e, ann.id)}
-                         className="p-2.5 bg-white text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl border border-transparent hover:border-red-100"
+                         className="p-2.5 bg-surface text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl border border-transparent hover:border-red-100"
                       >
                          <TrashIcon className="w-4.5 h-4.5" />
                       </button>
@@ -237,7 +237,7 @@ const AnnouncementTab = () => {
               </div>
             ))}
             {hasMore && (
-              <button onClick={loadMore} className="w-full py-6 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">
+              <button onClick={loadMore} className="w-full py-6 text-[9px] font-black text-app-muted uppercase tracking-widest text-center">
                 {isFetchingMore ? 'Unfolding more content...' : 'Load Older Posts'}
               </button>
             )}
@@ -255,9 +255,9 @@ const AnnouncementTab = () => {
             />
             
             {/* Modal Content */}
-            <div className="relative w-full max-w-xl bg-white rounded-t-[3rem] sm:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="relative w-full max-w-xl bg-surface rounded-t-[3rem] sm:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                {selectedAnnouncement.imageUrl ? (
-                  <div className="h-64 bg-slate-200 relative shrink-0">
+                  <div className="h-64 bg-surface-3 relative shrink-0">
                      <img src={selectedAnnouncement.imageUrl} className="w-full h-full object-cover" alt="" />
                      <button 
                        onClick={() => setSelectedAnnouncement(null)}
@@ -273,7 +273,7 @@ const AnnouncementTab = () => {
                      </div>
                      <button 
                        onClick={() => setSelectedAnnouncement(null)}
-                       className="p-2.5 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100"
+                       className="p-2.5 bg-app text-app-muted rounded-2xl hover:bg-surface-2"
                      >
                         <XMarkIcon className="w-6 h-6 stroke-[2.5px]" />
                      </button>
@@ -282,7 +282,7 @@ const AnnouncementTab = () => {
 
                <div className="flex-1 overflow-y-auto px-8 py-10 custom-scrollbar">
                   <div className="flex items-center space-x-3 mb-6">
-                     <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden border border-slate-100">
+                     <div className="w-12 h-12 rounded-2xl bg-surface-2 flex items-center justify-center text-app-muted overflow-hidden border border-[var(--divider)]">
                         {selectedAnnouncement.user?.avatar ? (
                           <img src={selectedAnnouncement.user.avatar} className="w-full h-full object-cover" alt="" />
                         ) : (
@@ -290,19 +290,19 @@ const AnnouncementTab = () => {
                         )}
                      </div>
                      <div>
-                        <p className="text-sm font-black text-slate-800">{selectedAnnouncement.user?.name || 'Board Member'}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">
+                        <p className="text-sm font-black text-app-primary">{selectedAnnouncement.user?.name || 'Board Member'}</p>
+                        <p className="text-[10px] font-bold text-app-muted uppercase tracking-widest leading-none mt-1">
                            Posted {format(new Date(selectedAnnouncement.createdAt), 'MMMM d, yyyy')}
                         </p>
                      </div>
                   </div>
 
-                  <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight leading-[1.1] mb-6">
+                  <h2 className="text-3xl font-black text-app-primary uppercase tracking-tight leading-[1.1] mb-6">
                      {selectedAnnouncement.title}
                   </h2>
 
-                  <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 mb-8">
-                     <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-4 flex items-center space-x-2">
+                  <div className="bg-app p-8 rounded-[2.5rem] border border-[var(--divider)] mb-8">
+                     <h3 className="text-xs font-black text-app-muted uppercase tracking-wider mb-4 flex items-center space-x-2">
                         <InformationCircleIcon className="w-4 h-4" />
                         <span>Official Message</span>
                      </h3>

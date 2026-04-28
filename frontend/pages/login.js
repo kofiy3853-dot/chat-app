@@ -84,19 +84,19 @@ export default function Login() {
         <title>Login | Campus Chat</title>
       </Head>
 
-      <div className="h-full w-full overflow-y-auto bg-gray-50 px-4 flex flex-col py-8">
+      <div className="h-full w-full overflow-y-auto bg-app px-4 flex flex-col py-8">
         <div className="max-w-md w-full mx-auto my-auto shrink-0">
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4 shadow-lg shadow-primary-200">
               <AcademicCapIcon className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Campus Chat</h1>
-            <p className="text-gray-500 mt-2">Sign in to continue</p>
+            <h1 className="text-2xl font-bold text-app-primary">Campus Chat</h1>
+            <p className="text-app-secondary mt-2">Sign in to continue</p>
           </div>
 
           {/* Login Form */}
-          <div className="bg-white rounded-2xl shadow-lg p-8">
+          <div className="bg-surface rounded-2xl shadow-lg p-8">
             {error && (
               <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
                 {error}
@@ -158,7 +158,7 @@ export default function Login() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-app-secondary">
                 Don't have an account?{' '}
                 <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium hover:underline">
                   Sign up

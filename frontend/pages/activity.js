@@ -134,7 +134,7 @@ export default function Activity() {
       case 'ANNOUNCEMENT': return 'bg-amber-100 text-amber-600';
       case 'MESSAGE': return 'bg-blue-100 text-blue-600';
       case 'SYSTEM': return 'bg-primary-100 text-primary-600';
-      default: return 'bg-slate-100 text-slate-600';
+      default: return 'bg-surface-2 text-slate-600';
     }
   };
 
@@ -156,10 +156,10 @@ export default function Activity() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-app">
         <div className="flex flex-col items-center">
           <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full"></div>
-          <p className="mt-4 text-slate-500 font-black uppercase tracking-widest text-[10px]">Syncing Activity...</p>
+          <p className="mt-4 text-app-secondary font-black uppercase tracking-widest text-[10px]">Syncing Activity...</p>
         </div>
       </div>
     );
@@ -173,7 +173,7 @@ export default function Activity() {
 
       {/* Header - Fixed Unified Theme */}
       <header 
-        className="fixed top-0 left-1/2 -/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-1.5 flex flex-col border-b h-16"
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-1.5 flex flex-col border-b h-16"
         style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
       >
         <div className="flex items-center justify-between mb-1 px-2 flex-1">
@@ -218,15 +218,15 @@ export default function Activity() {
         {filteredActivities.length === 0 ? (
           <div className="py-32 text-center overflow-hidden">
              <div className="relative inline-block">
-                <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200/50 border border-slate-50">
+                <div className="w-24 h-24 bg-surface rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200/50 border border-slate-50">
                   <ArchiveBoxIcon className="w-10 h-10 text-slate-200" />
                 </div>
                 <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center border-4 border-slate-50">
                   <SparklesIcon className="w-4 h-4 text-primary-600" />
                 </div>
              </div>
-             <h3 className="text-xl font-black text-slate-900 tracking-tight">Nothing to show</h3>
-             <p className="text-sm text-slate-400 mt-2 font-medium max-w-[240px] mx-auto leading-relaxed">
+             <h3 className="text-xl font-black text-app-primary tracking-tight">Nothing to show</h3>
+             <p className="text-sm text-app-muted mt-2 font-medium max-w-[240px] mx-auto leading-relaxed">
                All caught up! New activities will appear here in real-time.
              </p>
           </div>
@@ -235,7 +235,7 @@ export default function Activity() {
             <div key={title} className="space-y-3">
               <div className="flex items-center space-x-3 px-2">
                  <ClockIcon className="w-4 h-4 text-slate-300" />
-                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{title}</h4>
+                 <h4 className="text-[10px] font-black text-app-muted uppercase tracking-[0.3em]">{title}</h4>
               </div>
               <div className="space-y-2">
                 {items.map((activity) => {
@@ -244,7 +244,7 @@ export default function Activity() {
                     <div
                       key={activity.id}
                       onClick={() => handleActivityClick(activity)}
-                      className={`group relative p-4 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md cursor-pointer active:] ${!activity.isRead ? 'ring-1 ring-primary-100' : ''}`}
+                      className={`group relative p-4 bg-surface rounded-3xl border border-[var(--divider)] shadow-sm hover:shadow-md cursor-pointer active:] ${!activity.isRead ? 'ring-1 ring-primary-100' : ''}`}
                     >
                       {!activity.isRead && (
                         <div className="absolute right-4 top-4 w-2 h-2 bg-primary-500 rounded-full"></div>
@@ -255,14 +255,14 @@ export default function Activity() {
                           <Icon className="w-6 h-6 stroke-[2.5px]" />
                         </div>
                         <div className="flex-1 min-w-0 pr-4">
-                          <h5 className={`text-sm font-black text-slate-800 leading-tight tracking-tight mb-1 truncate ${!activity.isRead ? '' : 'opacity-70'}`}>
+                          <h5 className={`text-sm font-black text-app-primary leading-tight tracking-tight mb-1 truncate ${!activity.isRead ? '' : 'opacity-70'}`}>
                             {activity.title}
                           </h5>
-                          <p className="text-xs text-slate-500 line-clamp-2 font-medium leading-relaxed">
+                          <p className="text-xs text-app-secondary line-clamp-2 font-medium leading-relaxed">
                             {activity.content}
                           </p>
                           <div className="flex items-center space-x-3 mt-2.5">
-                            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">
+                            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest bg-app px-2 py-0.5 rounded-lg border border-[var(--divider)]">
                               {formatRelativeTime(activity.createdAt)}
                             </span>
                             {activity.sender && (
@@ -276,7 +276,7 @@ export default function Activity() {
                                     </span>
                                   </div>
                                 )}
-                                <span className="text-[10px] font-black text-slate-400 truncate">{activity.sender.name}</span>
+                                <span className="text-[10px] font-black text-app-muted truncate">{activity.sender.name}</span>
                               </div>
                             )}
                           </div>
@@ -294,7 +294,7 @@ export default function Activity() {
           <button 
             onClick={loadMore}
             disabled={isFetchingMore}
-            className="w-full py-4 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-primary-600"
+            className="w-full py-4 text-xs font-black text-app-muted uppercase tracking-widest hover:text-primary-600"
           >
             {isFetchingMore ? 'Loading...' : 'Load older activity'}
           </button>

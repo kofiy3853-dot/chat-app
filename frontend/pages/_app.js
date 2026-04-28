@@ -160,7 +160,7 @@ function AppContent({ Component, pageProps }) {
       playNotificationSound();
       toast.custom((t) => (
         <div
-          className={`${t.visible ? '' : ' fade-out slide-out-to-top-full '} max-w-sm w-full bg-white/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active:  mb-4`}
+          className={`${t.visible ? '' : ' fade-out slide-out-to-top-full '} max-w-sm w-full bg-surface/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active:  mb-4`}
           onClick={() => { router.push(`/chat/${data.conversationId}`); toast.dismiss(t.id); }}
         >
           <div className="flex-1 w-0">
@@ -171,8 +171,8 @@ function AppContent({ Component, pageProps }) {
                 </div>
               </div>
               <div className="ml-3 flex-1">
-                <p className="text-sm font-black text-slate-900 tracking-tight">{msg.sender?.name || 'New Message'}</p>
-                <p className="text-xs font-medium text-slate-500 truncate mt-0.5">{msg.content || 'Sent an attachment'}</p>
+                <p className="text-sm font-black text-app-primary tracking-tight">{msg.sender?.name || 'New Message'}</p>
+                <p className="text-xs font-medium text-app-secondary truncate mt-0.5">{msg.content || 'Sent an attachment'}</p>
               </div>
             </div>
           </div>
@@ -216,7 +216,7 @@ function AppContent({ Component, pageProps }) {
           <span className="uppercase tracking-tight">Experience Campus Chat as an App</span>
           <button
             onClick={() => { deferredPrompt.prompt(); deferredPrompt.userChoice.then(res => res.outcome === 'accepted' && setDeferredPrompt(null)); }}
-            className="bg-white text-primary-600 px-6 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-md hover:bg-slate-50"
+            className="bg-surface text-primary-600 px-6 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-md hover:bg-app"
           >
             Install Now
           </button>

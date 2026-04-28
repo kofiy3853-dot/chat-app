@@ -10,12 +10,12 @@ interface EmptyStateProps {
 
 const EmptyState: React.FC<EmptyStateProps> = ({ title, description, actionText, onAction, icon = '📚' }) => (
   <div className="flex flex-col items-center justify-center p-12 text-center space-y-6 -in">
-    <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center text-3xl shadow-sm border border-slate-200/50 dark:border-slate-700/50">
+    <div className="w-20 h-20 bg-surface-2 dark:bg-slate-800 rounded-3xl flex items-center justify-center text-3xl shadow-sm border border-[var(--border)]/50 dark:border-slate-700/50">
       {icon}
     </div>
     <div className="space-y-2">
-      <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{title}</h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">{description}</p>
+      <h3 className="text-xl font-black text-app-primary dark:text-slate-100 tracking-tight">{title}</h3>
+      <p className="text-sm text-app-secondary dark:text-app-muted max-w-xs mx-auto leading-relaxed">{description}</p>
     </div>
     {actionText && (
       <button 

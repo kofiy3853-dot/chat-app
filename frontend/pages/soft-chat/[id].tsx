@@ -105,12 +105,12 @@ const ChatConversationPage: React.FC = () => {
             <button 
               onClick={() => router.back()} 
               aria-label="Go back"
-              className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white active:"
+              className="w-10 h-10 rounded-2xl bg-surface/15 backdrop-blur-md flex items-center justify-center text-white active:"
             >
               <ArrowLeftIcon className="w-5 h-5 stroke-[3px]" />
             </button>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 overflow-hidden">
+              <div className="w-10 h-10 rounded-2xl bg-surface/20 backdrop-blur-md flex items-center justify-center border border-white/20 overflow-hidden">
                 {otherParticipant?.user?.avatar ? (
                   <img src={getFullFileUrl(otherParticipant.user.avatar)} className="w-full h-full object-cover" alt="" />
                 ) : (
@@ -120,7 +120,7 @@ const ChatConversationPage: React.FC = () => {
               <div>
                 <h1 className="font-black text-[15px] tracking-tight text-white leading-none mb-1">{name}</h1>
                 <div className="flex items-center space-x-1.5">
-                   <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-400 ' : 'bg-white/30'}`} />
+                   <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-400 ' : 'bg-surface/30'}`} />
                    <p className="text-[10px] font-black uppercase tracking-widest text-white/70">
                     {isOnline ? 'Online' : 'Offline'}
                    </p>
@@ -130,10 +130,10 @@ const ChatConversationPage: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <button aria-label="Audio call" className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white active:">
+            <button aria-label="Audio call" className="w-10 h-10 rounded-2xl bg-surface/15 backdrop-blur-md flex items-center justify-center text-white active:">
               <PhoneIcon className="w-5 h-5 fill-white/10" />
             </button>
-            <button aria-label="Video call" className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white active:">
+            <button aria-label="Video call" className="w-10 h-10 rounded-2xl bg-surface/15 backdrop-blur-md flex items-center justify-center text-white active:">
               <VideoCameraIcon className="w-5 h-5 fill-white/10" />
             </button>
           </div>
@@ -147,7 +147,7 @@ const ChatConversationPage: React.FC = () => {
 
       {/* ─── Premium Floating Input ─── */}
       <footer className="px-6 pb-10 pt-4 z-20">
-        <div className="bg-white rounded-[32px] p-2 flex items-center shadow-xl shadow-primary-900/5 hover:shadow-primary-900/10">
+        <div className="bg-surface rounded-[32px] p-2 flex items-center shadow-xl shadow-primary-900/5 hover:shadow-primary-900/10">
           <button aria-label="Media" className="w-11 h-11 flex items-center justify-center text-slate-300 hover:text-primary-500">
             <PaperClipIcon className="w-6 h-6" />
           </button>

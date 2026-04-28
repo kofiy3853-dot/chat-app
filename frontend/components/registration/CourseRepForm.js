@@ -29,16 +29,16 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <div className="flex items-center space-x-4 mb-8">
-        <button type="button" onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
+        <button type="button" onClick={onBack} className="p-2 hover:bg-surface-2 rounded-full text-app-secondary">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
         </button>
-        <h2 className="text-xl font-bold text-gray-900 capitalize italic tracking-tight">CR Registration</h2>
+        <h2 className="text-xl font-bold text-app-primary capitalize italic tracking-tight">CR Registration</h2>
       </div>
 
       {/* Avatar Selection */}
       <div className="flex flex-col items-center justify-center mb-4">
         <div onClick={() => fileInputRef.current?.click()} className="relative group cursor-pointer">
-          <div className={`w-24 h-24 rounded-full border-2 overflow-hidden bg-gray-50 flex items-center justify-center  ${
+          <div className={`w-24 h-24 rounded-full border-2 overflow-hidden bg-app flex items-center justify-center  ${
             avatarPreview ? 'border-primary-600' : 'border-dashed border-gray-300 hover:border-primary-400'
           }`}>
             {avatarPreview ? (
@@ -57,12 +57,12 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
           )}
         </div>
         <input type="file" ref={fileInputRef} onChange={onFileChange} accept="image/*" className="hidden" />
-        <span className="text-xs font-medium text-gray-400 mt-3 uppercase tracking-tighter">Upload Profile Photo*</span>
+        <span className="text-xs font-medium text-app-muted mt-3 uppercase tracking-tighter">Upload Profile Photo*</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="sm:col-span-2">
-          <label htmlFor="cr-name" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Full Name</label>
+          <label htmlFor="cr-name" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Full Name</label>
           <input
             id="cr-name"
             name="name"
@@ -71,13 +71,13 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
             placeholder="Your Full Name"
           />
         </div>
 
         <div className="sm:col-span-2">
-          <label htmlFor="cr-email" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">University Email</label>
+          <label htmlFor="cr-email" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">University Email</label>
           <input
             id="cr-email"
             name="email"
@@ -86,13 +86,13 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
             placeholder="your-name@stu.ktu.edu.gh"
           />
         </div>
 
         <div>
-          <label htmlFor="cr-studentId" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Student ID</label>
+          <label htmlFor="cr-studentId" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Student ID</label>
           <input
             id="cr-studentId"
             name="studentId"
@@ -101,13 +101,13 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="off"
             value={formData.studentId}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
             placeholder="e.g. 04201234"
           />
         </div>
 
         <div>
-          <label htmlFor="cr-level" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Level</label>
+          <label htmlFor="cr-level" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Level</label>
           <select
             id="cr-level"
             name="level"
@@ -115,7 +115,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="off"
             value={formData.level}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-bold"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-bold"
           >
             <option value="">Select Level</option>
             {LEVELS.map(l => <option key={l} value={l}>Level {l}</option>)}
@@ -123,7 +123,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
         </div>
 
         <div>
-          <label htmlFor="cr-faculty" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Faculty</label>
+          <label htmlFor="cr-faculty" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Faculty</label>
           <select
             id="cr-faculty"
             name="faculty"
@@ -131,7 +131,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="off"
             value={formData.faculty}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-bold uppercase"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-bold uppercase"
           >
             <option value="">Select Faculty</option>
             {FACULTIES.map(f => <option key={f} value={f}>{f}</option>)}
@@ -139,7 +139,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
         </div>
 
         <div>
-          <label htmlFor="cr-department" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Department</label>
+          <label htmlFor="cr-department" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Department</label>
           <select
             id="cr-department"
             name="department"
@@ -148,7 +148,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             value={formData.department}
             onChange={handleChange}
             disabled={!formData.faculty}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium disabled:opacity-50"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium disabled:opacity-50"
           >
             <option value="">{formData.faculty ? 'Select Department' : 'Select Faculty First'}</option>
             {departments.map(d => <option key={d} value={d}>{d}</option>)}
@@ -156,7 +156,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
         </div>
 
         <div>
-          <label htmlFor="cr-password" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Password</label>
+          <label htmlFor="cr-password" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Password</label>
           <input
             id="cr-password"
             name="password"
@@ -166,13 +166,13 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="new-password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
             placeholder="••••••••"
           />
         </div>
 
         <div>
-          <label htmlFor="cr-confirmPassword" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Confirm Password</label>
+          <label htmlFor="cr-confirmPassword" className="block text-xs font-bold text-app-secondary mb-1.5 uppercase">Confirm Password</label>
           <input
             id="cr-confirmPassword"
             name="confirmPassword"
@@ -181,7 +181,7 @@ export default function CourseRepForm({ formData, setFormData, avatarPreview, on
             autoComplete="new-password"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none text-sm font-medium"
+            className="w-full px-4 py-3 bg-app border border-[var(--divider)] rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-surface outline-none text-sm font-medium"
             placeholder="••••••••"
           />
         </div>

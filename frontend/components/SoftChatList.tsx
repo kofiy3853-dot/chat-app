@@ -31,10 +31,10 @@ const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onC
       <div className="px-2 py-4 space-y-5">
         {[1, 2, 3, 4, 5].map(i => (
           <div key={i} className="flex px-4 space-x-4 items-center">
-            <div className="w-[52px] h-[52px] bg-slate-200 rounded-full shrink-0"></div>
+            <div className="w-[52px] h-[52px] bg-surface-3 rounded-full shrink-0"></div>
             <div className="flex-1 space-y-2.5">
-              <div className="h-3.5 bg-slate-200 rounded-full w-1/3"></div>
-              <div className="h-3 bg-slate-200 rounded-full w-2/3"></div>
+              <div className="h-3.5 bg-surface-3 rounded-full w-1/3"></div>
+              <div className="h-3 bg-surface-3 rounded-full w-2/3"></div>
             </div>
           </div>
         ))}
@@ -77,7 +77,7 @@ const SoftChatList: React.FC<ChatListProps> = ({ conversations, currentUser, onC
                     className="fixed inset-0 z-[100] bg-black/5" 
                     onClick={(e) => { e.stopPropagation(); setLongPressedId(null); }}
                   />
-                  <div className="absolute top-1/2 left-1/2 -/2 -/2 z-[101] flex flex-col items-center">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] flex flex-col items-center">
                     <button 
                       onClick={(e) => { onDelete?.(conv.id, e); setLongPressedId(null); }}
                       className="bg-red-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-red-500/20 flex items-center space-x-2 active:"

@@ -94,7 +94,7 @@ const AnonymousTab = () => {
   if (loading) {
     return (
       <div className="py-20 flex justify-center">
-        <div className="w-10 h-10 border-4 border-slate-100 border-t-emerald-500 rounded-full"></div>
+        <div className="w-10 h-10 border-4 border-[var(--divider)] border-t-emerald-500 rounded-full"></div>
       </div>
     );
   }
@@ -113,10 +113,10 @@ const AnonymousTab = () => {
       </div>
 
       {/* Input Overlay */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 p-6 shadow-xl shadow-slate-200/20">
+      <div className="bg-surface rounded-[2.5rem] border border-[var(--divider)] p-6 shadow-xl shadow-slate-200/20">
          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex items-start space-x-4">
-               <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
+               <div className="w-10 h-10 rounded-full bg-surface-2 flex items-center justify-center text-slate-300">
                   <UserCircleIcon className="w-8 h-8" />
                </div>
                <div className="flex-1">
@@ -128,7 +128,7 @@ const AnonymousTab = () => {
                     className="w-full bg-transparent border-none p-0 text-sm font-medium focus:ring-0 resize-none placeholder-slate-300"
                   />
                   <div className="mt-4 flex items-center space-x-2">
-                     <HashtagIcon className="w-3.5 h-3.5 text-slate-400" />
+                     <HashtagIcon className="w-3.5 h-3.5 text-app-muted" />
                      <input 
                         value={tags}
                         onChange={(e) => setTags(e.target.value)}
@@ -162,14 +162,14 @@ const AnonymousTab = () => {
             <div 
               key={post.id} 
               onClick={() => setSelectedPost(post)}
-              className="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm shadow-slate-200/10 hover:border-emerald-200 cursor-pointer active:] group"
+              className="bg-surface rounded-[2rem] border border-[var(--divider)] p-6 shadow-sm shadow-slate-200/10 hover:border-emerald-200 cursor-pointer active:] group"
             >
                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-2.5">
-                     <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-200 border border-slate-100/50">
+                     <div className="w-8 h-8 rounded-full bg-app flex items-center justify-center text-slate-200 border border-[var(--divider)]/50">
                         <UserCircleIcon className="w-6 h-6" />
                      </div>
-                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter italic">Anonymous User</span>
+                     <span className="text-[10px] font-black text-app-muted uppercase tracking-tighter italic">Anonymous User</span>
                   </div>
                   <div className="flex items-center space-x-3">
                      <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">{format(new Date(post.createdAt), 'p')}</span>
@@ -187,7 +187,7 @@ const AnonymousTab = () => {
                {post.tags && (
                  <div className="mt-4 flex flex-wrap gap-2">
                     {post.tags.split(',').map((tag, i) => (
-                       <span key={i} className="px-2 py-0.5 bg-slate-50 text-slate-400 rounded-md text-[9px] font-black uppercase tracking-tighter">
+                       <span key={i} className="px-2 py-0.5 bg-app text-app-muted rounded-md text-[9px] font-black uppercase tracking-tighter">
                           {tag.trim().startsWith('#') ? tag.trim() : `#${tag.trim()}`}
                        </span>
                     ))}
@@ -210,12 +210,12 @@ const AnonymousTab = () => {
             
             <div className="relative w-full max-w-xl bg-slate-900 rounded-t-[3rem] sm:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                <div className="p-8 pb-4 flex justify-between items-start shrink-0">
-                  <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-emerald-400">
+                  <div className="w-12 h-12 bg-surface/10 rounded-2xl flex items-center justify-center text-emerald-400">
                       <ChatBubbleBottomCenterTextIcon className="w-6 h-6 stroke-[2.5px]" />
                   </div>
                   <button 
                     onClick={() => setSelectedPost(null)}
-                    className="p-2.5 bg-white/10 text-white/50 rounded-2xl hover:bg-white/20"
+                    className="p-2.5 bg-surface/10 text-white/50 rounded-2xl hover:bg-surface/20"
                   >
                      <XMarkIcon className="w-6 h-6 stroke-[2.5px]" />
                   </button>
@@ -224,10 +224,10 @@ const AnonymousTab = () => {
                <div className="flex-1 overflow-y-auto px-8 py-10 custom-scrollbar">
                   <div className="flex items-center space-x-3 mb-8">
                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">Confidential Whisper</span>
-                     <div className="h-px flex-1 bg-white/10" />
+                     <div className="h-px flex-1 bg-surface/10" />
                   </div>
 
-                  <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/10 mb-8 shadow-inner shadow-black/20">
+                  <div className="p-8 bg-surface/5 rounded-[2.5rem] border border-white/10 mb-8 shadow-inner shadow-black/20">
                      <p className="text-xl text-white font-medium leading-relaxed italic tracking-wide">
                         "{selectedPost.content}"
                      </p>
@@ -235,14 +235,14 @@ const AnonymousTab = () => {
 
                   <div className="flex flex-wrap gap-3 mb-10">
                      {selectedPost.tags?.split(',').map((tag, i) => (
-                        <div key={i} className="flex items-center space-x-2 px-4 py-2 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-white/50 uppercase tracking-widest">
+                        <div key={i} className="flex items-center space-x-2 px-4 py-2 bg-surface/5 border border-white/10 rounded-2xl text-[10px] font-black text-white/50 uppercase tracking-widest">
                            <TagIcon className="w-3.5 h-3.5" />
                            <span>{tag.trim().startsWith('#') ? tag.trim() : `#${tag.trim()}`}</span>
                         </div>
                      ))}
                   </div>
 
-                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/10 mt-auto">
+                  <div className="flex items-center justify-between p-6 bg-surface/5 rounded-3xl border border-white/10 mt-auto">
                      <div className="flex items-center space-x-4">
                         <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400">
                            <ClockIcon className="w-5 h-5" />

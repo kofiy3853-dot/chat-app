@@ -32,7 +32,7 @@ export default function CourseCard({ course }) {
 
   return (
     <div
-      className="group relative bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:shadow-primary-500/5"
+      className="group relative bg-surface border border-[var(--divider)] rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:shadow-primary-500/5"
     >
       <Link href={`/courses/${course.id}`} className="absolute inset-0 z-10 rounded-[2rem]"></Link>
       
@@ -42,22 +42,22 @@ export default function CourseCard({ course }) {
           <span className="px-3 py-1 bg-primary-50 text-primary-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-primary-100/50">
             {course.code}
           </span>
-          <span className="px-3 py-1 bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-100">
+          <span className="px-3 py-1 bg-app text-app-muted text-[10px] font-bold uppercase tracking-widest rounded-full border border-[var(--divider)]">
             {course.semester} {course.year}
           </span>
         </div>
-        <button className="relative z-20 p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-50 rounded-xl">
+        <button className="relative z-20 p-2 text-slate-300 hover:text-slate-600 hover:bg-app rounded-xl">
           <EllipsisHorizontalIcon className="w-5 h-5" />
         </button>
       </div>
 
       {/* Course Title */}
       <div className="mb-6">
-        <h3 className="text-xl font-black text-slate-900 group-hover:text-primary-600 leading-tight line-clamp-2">
+        <h3 className="text-xl font-black text-app-primary group-hover:text-primary-600 leading-tight line-clamp-2">
           {course.name}
         </h3>
         {course.description && (
-          <p className="mt-2 text-sm text-slate-500 line-clamp-2 font-medium leading-relaxed">
+          <p className="mt-2 text-sm text-app-secondary line-clamp-2 font-medium leading-relaxed">
             {course.description}
           </p>
         )}
@@ -70,14 +70,14 @@ export default function CourseCard({ course }) {
             {getInitials(instructorName)}
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Instructor</span>
-            <span className="text-sm font-black text-slate-800 tracking-tight">{instructorName}</span>
+            <span className="text-[10px] text-app-muted font-bold uppercase tracking-tight">Instructor</span>
+            <span className="text-sm font-black text-app-primary tracking-tight">{instructorName}</span>
           </div>
         </div>
 
         <div className="flex items-center space-x-4">
           <div className="flex flex-col items-end">
-            <div className="flex items-center space-x-1 text-slate-400">
+            <div className="flex items-center space-x-1 text-app-muted">
               <UsersIcon className="w-3.5 h-3.5" />
               <span className="text-xs font-black tracking-tight">{studentCount}</span>
             </div>

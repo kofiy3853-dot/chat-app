@@ -8,9 +8,9 @@ import {
 import TabNavigation from '../components/campus/TabNavigation';
 import dynamic from 'next/dynamic';
 
-const EventTab = dynamic(() => import('../components/campus/EventTab'), { loading: () => <div className="p-20 text-center text-slate-400">Loading events...</div> });
-const AnnouncementTab = dynamic(() => import('../components/campus/AnnouncementTab'), { loading: () => <div className="p-20 text-center text-slate-400">Loading news...</div> });
-const AnonymousTab = dynamic(() => import('../components/campus/AnonymousTab'), { loading: () => <div className="p-20 text-center text-slate-400">Loading whispers...</div> });
+const EventTab = dynamic(() => import('../components/campus/EventTab'), { loading: () => <div className="p-20 text-center text-app-muted">Loading events...</div> });
+const AnnouncementTab = dynamic(() => import('../components/campus/AnnouncementTab'), { loading: () => <div className="p-20 text-center text-app-muted">Loading news...</div> });
+const AnonymousTab = dynamic(() => import('../components/campus/AnonymousTab'), { loading: () => <div className="p-20 text-center text-app-muted">Loading whispers...</div> });
 import { getCurrentUser } from '../utils/helpers';
 
 const CampusPage = () => {
@@ -38,7 +38,7 @@ const CampusPage = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans max-w-xl mx-auto shadow-2xl relative">
+    <div className="min-h-screen bg-app flex flex-col font-sans max-w-xl mx-auto shadow-2xl relative">
       <Head>
         <title>Campus Center | Campus Chat</title>
       </Head>
@@ -57,7 +57,7 @@ const CampusPage = () => {
            </div>
            
            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white/50">
+              <div className="w-8 h-8 rounded-xl bg-surface/10 flex items-center justify-center text-white/50">
                  <BuildingLibraryIcon className="w-4 h-4" />
               </div>
            </div>
@@ -72,7 +72,7 @@ const CampusPage = () => {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 bg-slate-50/50 relative pb-[calc(env(safe-area-inset-bottom,0px)+90px)]">
+      <main className="flex-1 bg-app/50 relative pb-[calc(env(safe-area-inset-bottom,0px)+90px)]">
         <div className={activeTab === 'events' ? 'block' : 'hidden'}>
            {visitedTabs.has('events') && <EventTab />}
         </div>

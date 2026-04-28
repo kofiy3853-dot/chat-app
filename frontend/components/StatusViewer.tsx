@@ -140,9 +140,9 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
       {/* Progress Bars */}
       <div className="absolute top-10 left-4 right-4 flex space-x-1.5 z-20">
         {currentGroup.statuses.map((_, idx) => (
-          <div key={idx} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
+          <div key={idx} className="h-1 flex-1 bg-surface/20 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-white" 
+              className="h-full bg-surface" 
               style={{ 
                 width: idx < statusIndex ? '100%' : idx === statusIndex ? `${progress}%` : '0%' 
               }}
@@ -154,7 +154,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
       {/* Header Info */}
       <div className="absolute top-14 left-0 right-0 px-6 flex items-center justify-between z-20">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md overflow-hidden border border-white/20 p-0.5">
+          <div className="w-10 h-10 rounded-2xl bg-surface/20 backdrop-blur-md overflow-hidden border border-white/20 p-0.5">
              {currentGroup.user.avatar ? (
                 <img src={getFullFileUrl(currentGroup.user.avatar)} className="w-full h-full object-cover rounded-xl" alt="" />
              ) : (
@@ -183,7 +183,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
             onClick={(e) => { e.stopPropagation(); onClose(); }} 
             title="Close viewer"
             aria-label="Close viewer"
-            className="p-2 bg-white/10 hover:bg-white/20 rounded-full active:"
+            className="p-2 bg-surface/10 hover:bg-surface/20 rounded-full active:"
           >
             <XMarkIcon className="w-6 h-6 text-white" />
           </button>
@@ -222,7 +222,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
       {/* Footer: View Count or Reply Input */}
       <div className="absolute bottom-8 left-0 right-0 px-6 z-30 flex flex-col items-center">
         {isOwner ? (
-          <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-xl transiton-all">
+          <div className="flex items-center space-x-2 bg-surface/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-xl transiton-all">
             <EyeIcon className="w-4 h-4 text-white" />
             <span className="text-white text-xs font-black tracking-tight">
               {currentStatus.viewCount || 0} {(currentStatus.viewCount || 0) === 1 ? 'View' : 'Views'}
@@ -232,7 +232,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({
           <form 
             onSubmit={handleReplySubmit} 
             onClick={(e) => e.stopPropagation()} 
-            className="w-full max-w-sm flex items-center space-x-2 bg-white/10 backdrop-blur-xl p-1.5 pl-4 rounded-2xl border border-white/20 group focus-within:bg-white/20"
+            className="w-full max-w-sm flex items-center space-x-2 bg-surface/10 backdrop-blur-xl p-1.5 pl-4 rounded-2xl border border-white/20 group focus-within:bg-surface/20"
           >
             <input 
               type="text"

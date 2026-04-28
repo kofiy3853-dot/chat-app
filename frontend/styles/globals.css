@@ -3,219 +3,103 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════
-   SINGLE SOURCE OF TRUTH — KTU Campus Chat Design Tokens
-   Primary brand colour: #FF0000  (Pure Red)
+   3-THEME SYSTEM (Dark, White, Blue)
+   Zero animations, zero depth, pure performance.
    ═══════════════════════════════════════════════════════ */
+
 :root {
-  /* ── Brand (Anchor - consistent across themes) ── */
-  --primary:         #FF0000;           /* Pure Red */
-  --primary-hover:   #CC0000;
-  --primary-light:   rgba(255, 0, 0, 0.1);
-  --primary-shadow:  rgba(255, 0, 0, 0.2);
-
-  /* ── Newly Requested Tokens ── */
-  --sea-blue:        #FF0000;
-  --purple:          #a855f7;
-  --indigo:          #6366f1;
-  --deep-indigo:     #4338ca;
-  --soft-indigo:     #e0e7ff;
-  
-  --grad-indigo-pulse: #4338ca;
-  --grad-cyan-glow:    #06b6d4;
-
-  --bg-cloud-white:   #f8fafc;
-  --bg-pure-white:    #ffffff;
-  --bg-soft-mist:     #f1f5f9;
-
-  --text-jet-black:   #0f172a;
-  --text-slate-gray:  #475569;
-  --text-cool-gray:   #94a3b8;
-
-  --status-green:     #22c55e;
-  --status-amber:     #f59e0b;
-  --status-red:       #ef4444;
-
-  --accent-cyan:      #22d3ee;
-  --accent-purple:    #a855f7;
-
-  /* ── Default (Pure Black & Red PWA Theme) ── */
-  --bg-page:         #000000;   
-  --bg-surface:      #000000;
-  --bg-surface-2:    #111111;
-  --bg-input:        #111111;
-  --bg-navbar:       #000000; 
-
-  --text-primary:    #FFFFFF;   
-  --text-secondary:  #CCCCCC;
-  --text-muted:      #999999;
-  --text-navbar:     #FFFFFF;
-
-  --border:          #1A1A1A;
-  --border-light:    #111111;
-
-  --bubble-me-bg:    #8B0000; /* Dark Red */
-  --bubble-me-text:  #FFFFFF;
-  --bubble-other-bg: #1A1A1A; /* Received bubbles */
-  --bubble-other-text: #FFFFFF;
   --bubble-radius:   18px;
-  
-  color-scheme: dark;
-}
-
-[data-theme="dark"] {
-  --bg-page:         var(--text-jet-black);
-  --bg-surface:      #121212;
-  --bg-surface-2:    #1a1a1a;
-  --bg-input:        #1e1e1e;
-  --bg-navbar:       #121212;
-  --text-primary:    #ffffff;
-  --text-secondary:  var(--text-cool-gray);
-  --text-muted:      #606060;
-  --border:          #252525;
-  --bubble-me-bg:    var(--indigo);
-  --bubble-me-text:  #ffffff;
-  --bubble-other-bg: #1e1e1e;
-  --bubble-other-text:#ffffff;
-  color-scheme: dark;
-}
-
-[data-theme="indigo-pulse"] {
-  --primary:         #4338ca;
-  --bg-navbar:       #4338ca;
-  --status-bar:      #4338ca;
-  --bg-page:         var(--bg-pure-white);
-  --bg-surface:      var(--bg-pure-white);
-  --bg-surface-2:    var(--bg-cloud-white);
-  --text-primary:    var(--text-jet-black);
-  --bubble-me-bg:    #4338ca;
-  --bubble-me-text:  #ffffff;
-  --bubble-other-bg: var(--bg-soft-mist);
-  --bubble-other-text:var(--text-jet-black);
-}
-
-[data-theme="cyan-glow"] {
-  --primary:         var(--accent-cyan);
-  --bg-navbar:       var(--accent-cyan);
-  --status-bar:      #0891b2;
-  --bg-page:         var(--bg-pure-white);
-  --bg-surface:      var(--bg-pure-white);
-  --bg-surface-2:    #ecfeff;
-  --text-primary:    var(--text-jet-black);
-  --bubble-me-bg:    #0891b2;
-  --bubble-me-text:  #ffffff;
-  --bubble-other-bg: var(--bg-soft-mist);
-  --bubble-other-text:var(--text-jet-black);
-}
-
-[data-theme="deep-indigo"] {
-  --primary:         var(--indigo);
-  --bg-navbar:       var(--deep-indigo);
-  --bg-page:         #020617;
-  --bg-surface:      #0f172a;
-  --bg-surface-2:    #1e293b;
-  --text-primary:    #f1f5f9;
-  --text-secondary:  var(--text-cool-gray);
-  --border:          #1e293b;
-  --bubble-me-bg:    var(--deep-indigo);
-  --bubble-me-text:  #ffffff;
-  --bubble-other-bg: #1e293b;
-  --bubble-other-text:#f1f5f9;
-  color-scheme: dark;
-}
-
-[data-theme="red"] {
-  --primary:         var(--status-red); 
-  --bg-navbar:       var(--status-red);
-  --bg-page:         var(--bg-pure-white);
-  --bg-surface:      var(--bg-pure-white);
-  --bg-surface-2:    #fff5f5;
-  --text-primary:    var(--text-jet-black);
-  --bubble-me-bg:    var(--status-red);
-  --bubble-me-text:  #ffffff;
-  --bubble-other-bg: #fff5f5;
-  --bubble-other-text:var(--text-jet-black);
-}
-
-[data-theme="blue"] {
-  --primary:         var(--sea-blue); 
-  --bg-navbar:       var(--sea-blue);
-  --bg-page:         var(--bg-pure-white);
-  --bg-surface:      var(--bg-pure-white);
-  --bg-surface-2:    var(--bg-cloud-white);
-  --text-primary:    var(--text-jet-black);
-  --bubble-me-bg:    var(--sea-blue);
-  --bubble-me-text:  #ffffff;
-  --bubble-other-bg: var(--bg-soft-mist);
-  --bubble-other-text:var(--text-jet-black);
-}
-
-[data-theme="violet"] {
-  --primary:         var(--purple); 
-  --bg-navbar:       var(--purple);
-  --bg-page:         var(--bg-pure-white);
-  --bg-surface:      var(--bg-pure-white);
-  --bg-surface-2:    #f5f3ff;
-  --text-primary:    var(--text-jet-black);
-  --bubble-me-bg:    var(--purple);
-  --bubble-me-text:  #ffffff;
-  --bubble-other-bg: #f5f3ff;
-  --bubble-other-text:var(--text-jet-black);
-}
-
-[data-theme="matrix"] {
-  --primary:         var(--status-green);
-  --bg-navbar:       #000000;
-  --bg-page:         #000000;
-  --bg-surface:      #050505;
-  --bg-surface-2:    #0a0a0a;
-  --text-primary:    var(--status-green);
-  --text-secondary:  #008f11;
-  --border:          #003b00;
-  --bubble-me-bg:    #003b00;
-  --bubble-me-text:  var(--status-green);
-  --bubble-other-bg: #0f0f0f;
-  --bubble-other-text:var(--status-green);
-  color-scheme: dark;
-}
-
-[data-theme='white'] {
-  --primary: #475569;
-  --primary-shadow: rgba(0, 0, 0, 0.05);
-  --bg-page: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-surface-2: #f1f5f9;
-  --bg-navbar: #ffffff;
-  --text-navbar: var(--sea-blue);
-  --text-primary: var(--text-jet-black);
-  --text-secondary: var(--text-slate-gray);
-  --text-muted: var(--text-cool-gray);
-  --border: #e2e8f0;
-  
-  --bubble-me-bg: var(--sea-blue);
-  --bubble-me-text: #ffffff;
-  --bubble-other-bg: #ffffff;
-  --bubble-other-text: var(--text-jet-black);
-  --status-bar: #ffffff;
-}
-
-/* ═══════════════════════ Safe Area Support ══════════════════ */
-:root {
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --status-bar: var(--bg-navbar);
 }
 
-.safe-top {
-  padding-top: max(var(--safe-top), 16px);
+/* ─── DARK THEME (Default) ─── */
+[data-theme="dark"] {
+  --bg-base:         #000000;
+  --bg-surface:      #111111;
+  --bg-surface-2:    #1A1A1A;
+  --bg-surface-3:    #222222;
+  --text-primary:    #FFFFFF;
+  --text-secondary:  #CCCCCC;
+  --text-muted:      #999999;
+  --accent:          #FF0000;
+  --accent-dark:     #CC0000;
+  --accent-light:    #FF3333;
+  --border:          #1A1A1A;
+  --divider:         #222222;
+  --input-bg:        #111111;
+  --bubble-sent:     #330000;
+  --bubble-received: #111111;
+  --nav-bg:          #000000;
+  --header-bg:       #000000;
+  --icon-color:      #FFFFFF;
+  --status-online:   #00FF00;
+  color-scheme: dark;
 }
 
-.header-safe {
-  padding-top: var(--safe-top);
+/* ─── WHITE THEME ─── */
+[data-theme="white"] {
+  --bg-base:         #FFFFFF;
+  --bg-surface:      #F5F5F5;
+  --bg-surface-2:    #EEEEEE;
+  --bg-surface-3:    #E0E0E0;
+  --text-primary:    #000000;
+  --text-secondary:  #333333;
+  --text-muted:      #666666;
+  --accent:          #FF0000;
+  --accent-dark:     #CC0000;
+  --accent-light:    #FF3333;
+  --border:          #DDDDDD;
+  --divider:         #EEEEEE;
+  --input-bg:        #F5F5F5;
+  --bubble-sent:     #FFE5E5;
+  --bubble-received: #F5F5F5;
+  --nav-bg:          #FFFFFF;
+  --header-bg:       #FFFFFF;
+  --icon-color:      #000000;
+  --status-online:   #00AA00;
+  color-scheme: light;
 }
 
-body {
-  /* Match header background to status bar area */
-  background-color: var(--bg-page);
+/* ─── BLUE THEME ─── */
+[data-theme="blue"] {
+  --bg-base:         #001F3F;
+  --bg-surface:      #002D5A;
+  --bg-surface-2:    #003B75;
+  --bg-surface-3:    #004A90;
+  --text-primary:    #FFFFFF;
+  --text-secondary:  #B0C4DE;
+  --text-muted:      #7A9BBF;
+  --accent:          #FF0000;
+  --accent-dark:     #CC0000;
+  --accent-light:    #FF3333;
+  --border:          #003B75;
+  --divider:         #002D5A;
+  --input-bg:        #002D5A;
+  --bubble-sent:     #003B75;
+  --bubble-received: #002D5A;
+  --nav-bg:          #001F3F;
+  --header-bg:       #001F3F;
+  --icon-color:      #FFFFFF;
+  --status-online:   #00FF88;
+  color-scheme: dark;
+}
+
+/* Bridge legacy variables to new theme system */
+[data-theme] {
+  --primary:         var(--accent);
+  --bg-page:         var(--bg-base);
+  --bg-surface:      var(--bg-surface);
+  --bg-navbar:       var(--nav-bg);
+  --text-primary:    var(--text-primary);
+  --text-secondary:  var(--text-secondary);
+  --text-navbar:     var(--icon-color);
+  --bubble-me-bg:    var(--bubble-sent);
+  --bubble-me-text:  var(--text-primary);
+  --bubble-other-bg: var(--bubble-received);
+  --bubble-other-text: var(--text-primary);
+  --status-bar:      var(--header-bg);
+  --border-color:    var(--border);
 }
 
 /* ═══════════════════════ Base Reset ═══════════════════════ */
@@ -231,138 +115,68 @@ body {
                'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-page);
+  background-color: var(--bg-base);
   color: var(--text-primary);
-  color-scheme: light only;
   overflow-x: hidden;
+  height: 100%;
 }
 
 /* ═══════════════════════ Token Classes ═════════════════════ */
-.bg-app         { background-color: var(--bg-page); }
+.bg-app         { background-color: var(--bg-base); }
 .bg-surface     { background-color: var(--bg-surface); }
 .bg-surface-2   { background-color: var(--bg-surface-2); }
-.bg-navbar-bar  { background-color: var(--bg-navbar); }
+.bg-navbar-bar  { background-color: var(--nav-bg); }
 .text-app-primary   { color: var(--text-primary); }
 .text-app-secondary { color: var(--text-secondary); }
-.text-app-navbar    { color: var(--text-navbar); }
+.text-app-navbar    { color: var(--icon-color); }
 
-/* ═══════════════════════ Navbar ════════════════════════════ */
+/* ═══════════════════════ UI Elements ═══════════════════════ */
 .navbar,
-.app-header,
-header.sticky {
-  background: var(--bg-navbar) !important;
-  color: var(--text-navbar) !important;
+.app-header {
+  background-color: var(--header-bg) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border);
 }
 
-.navbar * {
-  color: inherit;
+.bottom-nav {
+  background-color: var(--nav-bg);
+  border-top: 1px solid var(--border);
 }
 
-/* ═══════════════════════ Chat Bubbles ══════════════════════ */
-/* 
- * Increased width for modern, comfortable reading experience.
- * Prevents excessive wrapping while maintaining layout balance.
- */
 .chat-bubble {
-  position: relative;
-  background-color: var(--bubble-bg);
-  color: var(--bubble-text);
+  background-color: var(--bg-surface-2);
+  color: var(--text-primary);
   padding: 10px 14px;
   border-radius: var(--bubble-radius);
-  max-width: 85%; 
-  width: fit-content;
-  transition: none; /* Remove transition — bubbles don't need animation */
-  contain: content; /* Prevent layout ripple from bubble changes */
-  
-  /* Flexible Word Wrapping */
-  word-break: normal;
-  overflow-wrap: break-word;
-  white-space: pre-wrap;
-  
-  font-size: 14px;
-  line-height: 1.5;
-  box-shadow: none;
+  max-width: 85%;
   border: 1px solid var(--border);
 }
 
 .chat-bubble-me {
-  border-bottom-right-radius: 4px;
-  background-color: var(--bubble-me-bg);
-  color: var(--bubble-me-text);
-  box-shadow: none;
-  border: none;
+  background-color: var(--bubble-sent);
+  border-color: var(--accent-dark);
 }
 
 .chat-bubble-other {
-  border-bottom-left-radius: 4px;
-  background-color: var(--bubble-other-bg);
-  color: var(--bubble-other-text);
+  background-color: var(--bubble-received);
 }
 
-/* ═══════════════════════ Typography ════════════════════════ */
-.break-word {
-  word-break: normal;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  hyphens: none;
-}
-
-/* ═══════════════════════ Animations ════════════════════════ */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out forwards; /* Shorter = snappier */
-  will-change: opacity, transform;
-}
-
-@keyframes readReceiptScale {
-  0%   { transform: scale(0.5); opacity: 0; }
-  70%  { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.animate-read-receipt-1 { animation: readReceiptScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-.animate-read-receipt-2 { animation: readReceiptScale 0.3s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-
-/* ═══════════════════════ Scrollbar ═════════════════════════ */
-::-webkit-scrollbar          { width: 4px; }
-::-webkit-scrollbar-track    { background: transparent; }
-::-webkit-scrollbar-thumb    { background: #e5e7eb; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
-
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* ═══════════════════════ Responsive ════════════════════════ */
-@media (max-width: 640px) {
-  .chat-bubble {
-    max-width: 92%; /* Allow messages to take up more horizontal space on mobile */
-    font-size: 14px;
-    padding: 10px 15px; /* Slightly more padding for the wider span */
-  }
-}
-
-/* ══════════════════════════════════════════════════════════
-   GLOBAL: Inputs & Textareas
-   Enforces dark #111111 bg, white text, and red focus ring
-   ══════════════════════════════════════════════════════════ */
 input, textarea {
-  background-color: #111111 !important;
-  color: #FFFFFF !important;
-  border-color: var(--border) !important;
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border) !important;
 }
 
 input:focus, textarea:focus {
-  outline: 2px solid #FF0000 !important;
-  outline-offset: 2px;
-  border-color: #FF0000 !important;
+  border-color: var(--accent) !important;
+  outline: none !important;
 }
 
+
+/* ══════════════════════════════════════════════════════════ */
+
 /* ══════════════════════════════════════════════════════════
-   GLOBAL: Disable all animations, transitions, blurs & shadows
+   KILL-SWITCH: Disable all animations, transitions, blurs & shadows
    ══════════════════════════════════════════════════════════ */
 *,
 *::before,
@@ -380,5 +194,3 @@ input:focus, textarea:focus {
   filter:                    drop-shadow(0) !important;
   scroll-behavior:           auto !important;
 }
-
-

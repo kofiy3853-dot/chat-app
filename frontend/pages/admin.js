@@ -64,7 +64,7 @@ export default function AdminDashboard() {
            </div>
            <div>
               <h1 className="text-xl font-bold tracking-tight">Admin<span className="text-indigo-400">Hub</span></h1>
-              <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest leading-none">System Oversight Alpha</p>
+              <p className="text-[10px] text-app-muted uppercase font-bold tracking-widest leading-none">System Oversight Alpha</p>
            </div>
         </div>
         
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
                  <div className={`w-10 h-10 rounded-xl mb-4 flex items-center justify-center bg-${stat.color}-500/10 border border-${stat.color}-500/20`}>
                     <stat.icon className={`w-6 h-6 text-${stat.color}-400`} />
                  </div>
-                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{stat.label}</p>
+                 <p className="text-app-muted text-xs font-bold uppercase tracking-widest">{stat.label}</p>
                  <h3 className="text-3xl font-black mt-1">{stat.value}</h3>
               </div>
             ))}
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
                        ></div>
                      ))}
                   </div>
-                 <div className="flex justify-between mt-4 text-[10px] text-slate-500 font-black uppercase px-1 tracking-tighter">
+                 <div className="flex justify-between mt-4 text-[10px] text-app-secondary font-black uppercase px-1 tracking-tighter">
                     <span>12:00</span><span>15:00</span><span>18:00</span><span>21:00</span><span>00:00</span>
                  </div>
               </div>
@@ -148,11 +148,11 @@ export default function AdminDashboard() {
                             </div>
                             <div>
                                <p className="text-sm font-bold">{item.name}</p>
-                               <p className="text-[10px] text-slate-500">{item.role} • {item.action}</p>
+                               <p className="text-[10px] text-app-secondary">{item.role} • {item.action}</p>
                             </div>
                          </div>
                          <div className="text-right">
-                            <p className="text-[10px] text-slate-500 font-bold uppercase">{item.time}</p>
+                            <p className="text-[10px] text-app-secondary font-bold uppercase">{item.time}</p>
                             {item.alert && <span className="text-[8px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-black uppercase mt-1 inline-block">Flagged</span>}
                          </div>
                       </div>
@@ -168,16 +168,16 @@ export default function AdminDashboard() {
                     <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                     <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="ml-2 text-slate-500 font-bold">System Log</span>
+                    <span className="ml-2 text-app-secondary font-bold">System Log</span>
                  </div>
                  <div className="space-y-2 opacity-80">
                     <p className="text-indigo-400">[info] Booting security module...</p>
                     <p className="text-emerald-400">[success] Firewall operational.</p>
-                    <p className="text-slate-400">[info] User session #8241 established.</p>
+                    <p className="text-app-muted">[info] User session #8241 established.</p>
                     <p className="text-yellow-400">[warn] High latency detected in API gateway.</p>
-                    <p className="text-slate-400">[info] Backup synchronized to AWS-S3.</p>
+                    <p className="text-app-muted">[info] Backup synchronized to AWS-S3.</p>
                     <p className="text-indigo-400">[info] Nana AI processing background tasks...</p>
-                    <p className="text-slate-400">[info] Cache cleared: 452 items.</p>
+                    <p className="text-app-muted">[info] Cache cleared: 452 items.</p>
                     <p className="text-emerald-400">[success] Database migrations complete.</p>
                     <div className="w-1 h-3 bg-indigo-500 inline-block"></div>
                  </div>

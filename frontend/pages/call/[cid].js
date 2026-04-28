@@ -129,7 +129,7 @@ export default function GroupCallRoom() {
           {!hasPermissions && (
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 text-white space-y-4">
               <PhoneArrowDownLeftIcon className="w-12 h-12 text-primary-500" />
-              <p className="font-bold text-sm tracking-wide text-slate-400">Requesting Permissions & Connecting...</p>
+              <p className="font-bold text-sm tracking-wide text-app-muted">Requesting Permissions & Connecting...</p>
             </div>
           )}
         </div>

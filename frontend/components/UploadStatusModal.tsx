@@ -85,14 +85,14 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
           <div className="flex p-4 space-x-2">
             <button 
               onClick={() => setType('TEXT')}
-              className={`flex-1 py-3 rounded-2xl font-bold  flex items-center justify-center space-x-2 ${type === 'TEXT' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-slate-50 text-slate-400'}`}
+              className={`flex-1 py-3 rounded-2xl font-bold  flex items-center justify-center space-x-2 ${type === 'TEXT' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-app text-app-muted'}`}
             >
               <PencilIcon className="w-5 h-5" />
               <span>Text</span>
             </button>
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className={`flex-1 py-3 rounded-2xl font-bold  flex items-center justify-center space-x-2 ${type === 'IMAGE' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-slate-50 text-slate-400'}`}
+              className={`flex-1 py-3 rounded-2xl font-bold  flex items-center justify-center space-x-2 ${type === 'IMAGE' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-app text-app-muted'}`}
             >
               <PhotoIcon className="w-5 h-5" />
               <span>Image</span>
@@ -139,7 +139,7 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
                 <div 
                   className="space-y-4"
                 >
-                  <div className="aspect-[4/3] rounded-3xl bg-slate-100 overflow-hidden relative group">
+                  <div className="aspect-[4/3] rounded-3xl bg-surface-2 overflow-hidden relative group">
                     <img src={previewUrl!} className="w-full h-full object-cover" alt="" />
                     <button 
                       onClick={() => { setSelectedFile(null); setPreviewUrl(null); setType('TEXT'); }}
@@ -155,14 +155,14 @@ const UploadStatusModal: React.FC<UploadStatusModalProps> = ({ onClose, onSucces
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
                     aria-label="Status caption"
-                    className="w-full bg-slate-50 rounded-2xl px-5 py-4 text-slate-700 font-bold outline-none border border-transparent focus:border-primary-100"
+                    className="w-full bg-app rounded-2xl px-5 py-4 text-slate-700 font-bold outline-none border border-transparent focus:border-primary-100"
                   />
                 </div>
               )}
           </div>
         </div>
 
-        <div className="p-6 bg-slate-50/50 border-t border-slate-100">
+        <div className="p-6 bg-app/50 border-t border-[var(--divider)]">
            <button
              disabled={loading || (type === 'TEXT' && !textContent) || (type === 'IMAGE' && !selectedFile)}
              onClick={handleUpload}

@@ -38,7 +38,7 @@ export default function NotificationList({ notifications = [], onMarkAsRead }) {
       case 'system':
         return 'bg-rose-100 text-rose-600';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-surface-2 text-gray-600';
     }
   };
 
@@ -60,7 +60,7 @@ export default function NotificationList({ notifications = [], onMarkAsRead }) {
 
   if (notifications.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">
+      <div className="p-8 text-center text-app-secondary">
         <BellIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
         <p>No notifications yet</p>
         <p className="text-sm mt-2">Check back later for updates</p>
@@ -75,7 +75,7 @@ export default function NotificationList({ notifications = [], onMarkAsRead }) {
         return (
           <div
             key={notification._id}
-            className={`p-4 hover:bg-gray-50  ${
+            className={`p-4 hover:bg-app  ${
               !notification.isRead ? 'bg-blue-50' : ''
             }`}
           >
@@ -85,13 +85,13 @@ export default function NotificationList({ notifications = [], onMarkAsRead }) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between">
-                  <h3 className="font-medium text-gray-900">
+                  <h3 className="font-medium text-app-primary">
                     {getNotificationTitle(notification)}
                   </h3>
                   {!notification.isRead && (
                     <button
                       onClick={() => onMarkAsRead?.(notification._id)}
-                      className="p-1 text-gray-400 hover:text-blue-600"
+                      className="p-1 text-app-muted hover:text-blue-600"
                       title="Mark as read"
                     >
                       <CheckIcon className="w-4 h-4" />
@@ -99,11 +99,11 @@ export default function NotificationList({ notifications = [], onMarkAsRead }) {
                   )}
                 </div>
                 {notification.content && (
-                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                  <p className="text-sm text-app-secondary mt-1 line-clamp-2">
                     {notification.content}
                   </p>
                 )}
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="text-xs text-app-muted mt-2">
                   {notification.createdAt && !isNaN(new Date(notification.createdAt).getTime())
                     ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
                     : ''}

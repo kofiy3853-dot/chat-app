@@ -127,7 +127,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
 
   if (loading && groups.length === 0) return (
      <div className="flex space-x-4 px-1 py-1">
-        {[1,2,3,4].map(i => <div key={i} className="w-12 h-12 bg-gray-200 rounded-full flex-shrink-0" />)}
+        {[1,2,3,4].map(i => <div key={i} className="w-12 h-12 bg-surface-3 rounded-full flex-shrink-0" />)}
      </div>
   );
 
@@ -176,7 +176,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
                   )}
                 </div>
               </div>
-            <p className={`text-xs mt-1 truncate w-full text-center ${group.hasUnseen ? 'font-semibold text-gray-900' : 'font-medium text-gray-500'}`}>
+            <p className={`text-xs mt-1 truncate w-full text-center ${group.hasUnseen ? 'font-semibold text-app-primary' : 'font-medium text-app-secondary'}`}>
               {group.user.name.split(' ')[0]}
             </p>
           </div>

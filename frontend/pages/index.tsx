@@ -22,11 +22,12 @@ import dynamic from 'next/dynamic';
 import { getFullFileUrl, getInitials, getAvatarColor } from '../utils/helpers';
 
 
-const SoftChatList = dynamic(() => import('../components/SoftChatList'), { ssr: false, loading: () => <div className="p-4 text-center text-sm text-gray-400">Loading chats...</div> });
+const SoftChatList = dynamic(() => import('../components/SoftChatList'), { ssr: false, loading: () => <div className="p-4 text-center text-sm text-app-muted">Loading chats...</div> });
 const SoftStories = dynamic(() => import('../components/SoftStories'), { ssr: false });
 const NewChatModal = dynamic(() => import('../components/NewChatModal'), { ssr: false });
 const UploadStatusModal = dynamic(() => import('../components/UploadStatusModal'), { ssr: false });
 import { toast } from 'react-hot-toast';
+import ThemeSwitcher from '../components/ThemeSwitcher';
 
 
 
@@ -301,7 +302,7 @@ const MessagesPage: React.FC = () => {
           <button
             onClick={() => router.push('/account')}
             aria-label="Profile"
-            className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active: bg-white"
+            className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/30 active: bg-surface"
           >
             {avatarUrl && !imgError ? (
               <img 
@@ -360,7 +361,7 @@ const MessagesPage: React.FC = () => {
                       setShowOverflow(false);
                     }}
                   >
-                    <CheckIcon className="w-4 h-4 text-gray-400" />
+                    <CheckIcon className="w-4 h-4 text-app-muted" />
                     <span>{selectedConversations.size === filteredConversations.length && filteredConversations.length > 0 ? 'Deselect All' : 'Select All'}</span>
                   </button>
                   <button
@@ -375,7 +376,7 @@ const MessagesPage: React.FC = () => {
                   </button>
                   {selectedConversations.size > 0 && (
                     <>
-                      <div className="h-px bg-gray-100 mx-3" />
+                      <div className="h-px bg-surface-2 mx-3" />
                       <button
                         className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50"
                         onClick={async () => {
@@ -423,6 +424,10 @@ const MessagesPage: React.FC = () => {
         </div>
       </div>
 
+      <div className="px-2 pt-2 pb-1 border-b bg-[var(--bg-surface)] border-[var(--border)]">
+        <ThemeSwitcher />
+      </div>
+
       {/* ─── Stories Section ─── */}
       <div className="px-2 pt-2 pb-1 border-b bg-[var(--bg-surface)] border-[var(--border)]">
         <SoftStories currentUser={user} />
@@ -432,12 +437,12 @@ const MessagesPage: React.FC = () => {
       {!search && user?.role !== 'NANA' && (
         <div className="px-4 pt-3 pb-1 bg-[var(--bg-page)]">
           <Link href="/nana">
-            <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 cursor-pointer active:]">
+            <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 cursor-pointer active:scale-95">
               <div className="absolute top-[-10px] right-[-10px] p-3 opacity-20 group-hover:">
                  <SparklesIcon className="w-20 h-20 text-white" />
               </div>
               <div className="flex items-center space-x-3.5 relative z-10">
-                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-white font-black text-xl border border-white/30">N</div>
+                <div className="w-11 h-11 rounded-xl bg-surface/20 flex items-center justify-center text-white font-black text-xl border border-white/30">N</div>
                 <div>
                   <h3 className="text-white font-black text-sm tracking-tight mb-0.5">Nana AI Hub</h3>
                   <p className="text-white/80 text-[11px] font-bold uppercase tracking-widest flex items-center">
@@ -472,7 +477,7 @@ const MessagesPage: React.FC = () => {
 
         {/* Unread Badge */}
         {totalUnread > 0 && (
-          <span className="text-[11px] font-semibold text-gray-400">
+          <span className="text-[11px] font-semibold text-app-muted">
             {totalUnread} unread
           </span>
         )}
@@ -520,10 +525,10 @@ const MessagesPage: React.FC = () => {
                   </div>
                   <span>✨ Ask Nana AI</span>
                 </button>
-                <div className="h-px bg-gray-100 mx-3" />
+                <div className="h-px bg-surface-2 mx-3" />
                 <button
                   onClick={() => { setIsModalOpen(true); setShowFAB(false); }}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-app"
                 >
                   <div className="w-8 h-8 rounded-xl bg-surface-2 flex items-center justify-center text-app-muted">
                     <ChatBubbleOvalLeftEllipsisIcon className="w-4 h-4" />
@@ -532,7 +537,7 @@ const MessagesPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => { setIsModalOpen(true); setShowFAB(false); }}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-app"
                 >
                   <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
                     <UserGroupIcon className="w-4 h-4" />
@@ -541,7 +546,7 @@ const MessagesPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => { setIsStatusModalOpen(true); setShowFAB(false); }}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-app"
                 >
                   <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
                     <CameraIcon className="w-4 h-4" />
@@ -554,7 +559,7 @@ const MessagesPage: React.FC = () => {
           <button
             aria-label="New message"
             onClick={() => setShowFAB(v => !v)}
-            className={`w-14 h-14 rounded-full flex items-center justify-center  active: ${showFAB ? 'bg-gray-800 ' : 'bg-primary-600'}`}
+            className={`w-14 h-14 rounded-full flex items-center justify-center active:scale-90 ${showFAB ? 'bg-gray-800' : 'bg-primary-600'}`}
           >
             <PlusIcon className="w-6 h-6 text-white stroke-[2.5px]" />
           </button>

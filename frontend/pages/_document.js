@@ -13,7 +13,6 @@ export default function Document() {
         <meta name="application-name" content="Connect" />
         <meta name="msapplication-TileColor" content="#000000" />
         <meta name="theme-color" content="#000000" />
-        <meta name="background-color" content="#000000" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -34,13 +33,6 @@ export default function Document() {
             flex-direction: column;
             align-items: center;
           }
-
-          .loader-ring {
-            position: absolute;
-            inset: -20px;
-            border-radius: 3rem;
-            border: 2px solid rgba(107, 115, 255, 0.2);
-          }
           .loader-logo {
             width: 6rem;
             height: 6rem;
@@ -49,13 +41,9 @@ export default function Document() {
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             position: relative;
             overflow: hidden;
             border: 4px solid white;
-          }
-          .loader-shimmer {
-            display: none;
           }
           .loading-dots {
             display: flex;
@@ -70,20 +58,18 @@ export default function Document() {
           }
         `}</style>
       </Head>
-      <body className="antialiased overflow-x-hidden w-full selection:bg-red-500/30 selection:text-red-200" style={{ backgroundColor: '#000000', color: '#FFFFFF' }}>
+      <body>
         <div id="initial-loader">
           <div className="loader-content">
             <div style={{ position: 'relative', marginBottom: '2.5rem' }}>
-              <div className="loader-ring"></div>
               <div className="loader-logo">
-                <div className="loader-shimmer"></div>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
               </div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <h2 id="loader-title" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#FFFFFF', margin: '0 0 0.5rem 0', letterSpacing: '-0.025em' }}>Connect</h2>
+              <h2 id="loader-title" style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)', margin: '0 0 0.5rem 0', letterSpacing: '-0.025em' }}>Connect</h2>
               <p style={{ fontSize: '10px', fontWeight: 700, color: '#FF0000', textTransform: 'uppercase', letterSpacing: '0.4em' }}>Professional Messaging</p>
               <div className="loading-dots">
                 <div className="dot"></div>
@@ -93,33 +79,23 @@ export default function Document() {
             </div>
           </div>
         </div>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-                (function() {
-                  try {
-                    var saved = localStorage.getItem('theme_v2') || 'white';
-                    document.documentElement.setAttribute('data-theme', saved);
-                    var bg = '#ffffff';
-                    if (saved === 'dark') bg = '#0f172a';
-                    if (saved === 'deep-indigo') bg = '#020617';
-                    if (saved === 'matrix') bg = '#000000';
-                    if (saved === 'indigo-pulse') bg = '#ffffff';
-                    if (saved === 'cyan-glow') bg = '#ffffff';
-                    if (saved === 'red') bg = '#ffffff';
-                    if (saved === 'blue') bg = '#ffffff';
-                    if (saved === 'violet') bg = '#ffffff';
-                    
-                    var loader = document.getElementById('initial-loader');
-                    var title = document.getElementById('loader-title');
-                    if (loader && bg !== '#ffffff') {
-                      loader.style.backgroundColor = bg;
-                      if (title) title.style.color = '#ffffff';
-                    }
-                  } catch (e) {}
-                })();
-            ` }}
-        />
+        {/* Inline script runs before React — prevents flash */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              var theme = localStorage.getItem('app-theme') || 'dark';
+              document.documentElement.setAttribute('data-theme', theme);
+              
+              // Dynamic loader background adjust based on theme
+              var bgColors = { dark: '#000000', white: '#FFFFFF', blue: '#001F3F' };
+              var textColors = { dark: '#FFFFFF', white: '#000000', blue: '#FFFFFF' };
+              var loader = document.getElementById('initial-loader');
+              var title = document.getElementById('loader-title');
+              if (loader) loader.style.backgroundColor = bgColors[theme] || '#000000';
+              if (title) title.style.color = textColors[theme] || '#FFFFFF';
+            })();
+          `
+        }} />
         <Main />
         <NextScript />
       </body>

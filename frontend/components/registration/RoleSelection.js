@@ -28,8 +28,8 @@ export default function RoleSelection({ onSelect }) {
   return (
     <div className="space-y-4 fade-in">
       <div className="text-center mb-8">
-        <h2 className="text-xl font-bold text-gray-900">Choose Your Role</h2>
-        <p className="text-sm text-gray-500 mt-1">Select how you will participate in the campus network</p>
+        <h2 className="text-xl font-bold text-app-primary">Choose Your Role</h2>
+        <p className="text-sm text-app-secondary mt-1">Select how you will participate in the campus network</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
@@ -37,14 +37,14 @@ export default function RoleSelection({ onSelect }) {
           <button
             key={role.id}
             onClick={() => onSelect(role.id)}
-            className={`flex items-center p-5 rounded-2xl border-2 border-transparent bg-white shadow-sm hover:border-primary-500 hover:shadow-md  text-left group active:] outline-none`}
+            className={`flex items-center p-5 rounded-2xl border-2 border-transparent bg-surface shadow-sm hover:border-primary-500 hover:shadow-md  text-left group active:] outline-none`}
           >
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${role.color} group-hover: `}>
               <role.icon className="w-6 h-6" />
             </div>
             <div className="ml-4">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">{role.title}</h3>
-              <p className="text-xs text-gray-500 leading-relaxed mt-0.5">{role.description}</p>
+              <h3 className="text-sm font-bold text-app-primary uppercase tracking-tight">{role.title}</h3>
+              <p className="text-xs text-app-secondary leading-relaxed mt-0.5">{role.description}</p>
             </div>
           </button>
         ))}

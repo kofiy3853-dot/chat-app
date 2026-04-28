@@ -65,10 +65,10 @@ export default function CourseRoom({ courseId }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-app">
         <div className="flex flex-col items-center">
           <div className="rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-gray-500 font-medium">Loading classroom...</p>
+          <p className="text-app-secondary font-medium">Loading classroom...</p>
         </div>
       </div>
     );
@@ -76,13 +76,13 @@ export default function CourseRoom({ courseId }) {
 
   if (!course) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="text-center px-6">
-          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-surface-2 rounded-full flex items-center justify-center mx-auto mb-6">
             <AcademicCapIcon className="w-10 h-10 text-gray-300" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Course Not Found</h2>
-          <p className="text-gray-500 mb-8">The course you are looking for might have been deleted or moved.</p>
+          <h2 className="text-2xl font-bold text-app-primary mb-2">Course Not Found</h2>
+          <p className="text-app-secondary mb-8">The course you are looking for might have been deleted or moved.</p>
           <button 
             onClick={() => router.push('/courses')}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
@@ -95,14 +95,14 @@ export default function CourseRoom({ courseId }) {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen bg-surface">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-4 py-4 lg:px-8 shadow-sm z-20">
+      <div className="bg-surface border-b border-[var(--divider)] px-4 py-4 lg:px-8 shadow-sm z-20">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button 
               onClick={() => router.push('/courses')}
-              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+              className="p-2 text-app-muted hover:text-blue-600 hover:bg-blue-50 rounded-lg"
             >
               <ArrowLeftIcon className="w-5 h-5" />
             </button>
@@ -112,11 +112,11 @@ export default function CourseRoom({ courseId }) {
                 <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded uppercase tracking-wider">
                   {course.code}
                 </span>
-                <span className="text-[10px] text-gray-400 font-medium uppercase truncate max-w-[100px] lg:max-w-none">
+                <span className="text-[10px] text-app-muted font-medium uppercase truncate max-w-[100px] lg:max-w-none">
                   {course.semester} {course.year}
                 </span>
               </div>
-              <h1 className="font-bold text-gray-900 text-base lg:text-lg truncate">
+              <h1 className="font-bold text-app-primary text-base lg:text-lg truncate">
                 {course.name}
               </h1>
             </div>
@@ -127,7 +127,7 @@ export default function CourseRoom({ courseId }) {
               onClick={() => setActiveTab('students')}
               title="Classmates"
               className={`p-2.5 rounded-xl  ${
-                activeTab === 'students' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                activeTab === 'students' ? 'bg-blue-600 text-white shadow-md' : 'text-app-muted hover:text-gray-600 hover:bg-surface-2'
               }`}
             >
               <UsersIcon className="w-5 h-5" />
@@ -136,7 +136,7 @@ export default function CourseRoom({ courseId }) {
               onClick={() => setActiveTab('settings')}
               title="Settings"
               className={`p-2.5 rounded-xl  ${
-                activeTab === 'settings' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                activeTab === 'settings' ? 'bg-blue-600 text-white shadow-md' : 'text-app-muted hover:text-gray-600 hover:bg-surface-2'
               }`}
             >
               <CogIcon className="w-5 h-5" />
@@ -151,7 +151,7 @@ export default function CourseRoom({ courseId }) {
             className={`flex items-center space-x-2 pb-3 text-sm font-bold border-b-2  ${
               activeTab === 'chat'
                 ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
+                : 'border-transparent text-app-muted hover:text-gray-600'
             }`}
           >
             <ChatBubbleLeftRightIcon className="w-4 h-4" />
@@ -162,7 +162,7 @@ export default function CourseRoom({ courseId }) {
             className={`flex items-center space-x-2 pb-3 text-sm font-bold border-b-2  ${
               activeTab === 'announcements'
                 ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
+                : 'border-transparent text-app-muted hover:text-gray-600'
             }`}
           >
             <MegaphoneIcon className="w-4 h-4" />
@@ -178,37 +178,37 @@ export default function CourseRoom({ courseId }) {
         )}
         
         {activeTab === 'announcements' && (
-          <div className="flex-1 overflow-y-auto p-6 lg:p-12 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-6 lg:p-12 bg-app">
             <div className="max-w-2xl mx-auto">
-              <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm">
+              <div className="bg-surface rounded-2xl p-12 text-center border border-[var(--divider)] shadow-sm">
                 <div className="w-20 h-20 bg-blue-50 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-6">
                   <MegaphoneIcon className="w-10 h-10" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">No Announcements Yet</h3>
-                <p className="text-gray-500">Your instructor hasn't posted any announcements for this course.</p>
+                <h3 className="text-xl font-bold text-app-primary mb-2">No Announcements Yet</h3>
+                <p className="text-app-secondary">Your instructor hasn't posted any announcements for this course.</p>
               </div>
             </div>
           </div>
         )}
 
         {Object.keys(course).length > 0 && activeTab === 'students' && (
-          <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-app">
             <div className="max-w-2xl mx-auto space-y-8">
               <section>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                  <h3 className="text-lg font-bold text-app-primary flex items-center space-x-2">
                     <span className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
                       <AcademicCapIcon className="w-5 h-5" />
                     </span>
                     <span>Instructor</span>
                   </h3>
                 </div>
-                <div className="bg-white shadow-sm ring-1 ring-black ring-opacity-5 rounded-2xl p-4 flex items-center space-x-4">
+                <div className="bg-surface shadow-sm ring-1 ring-black ring-opacity-5 rounded-2xl p-4 flex items-center space-x-4">
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-700 flex items-center justify-center text-white text-xl font-bold shadow-lg">
                     {course.instructor?.name?.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-lg leading-tight">{course.instructor?.name}</h4>
+                    <h4 className="font-bold text-app-primary text-lg leading-tight">{course.instructor?.name}</h4>
                     <p className="text-sm text-blue-600 font-semibold mt-1 flex items-center space-x-1.5">
                       <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
                       <span>Verified Educator</span>
@@ -219,29 +219,29 @@ export default function CourseRoom({ courseId }) {
 
               <section>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
-                    <span className="w-8 h-8 bg-gray-100 text-gray-600 rounded-lg flex items-center justify-center">
+                  <h3 className="text-lg font-bold text-app-primary flex items-center space-x-2">
+                    <span className="w-8 h-8 bg-surface-2 text-gray-600 rounded-lg flex items-center justify-center">
                       <UsersIcon className="w-5 h-5" />
                     </span>
                     <span>Classmates ({course.students?.length || 0})</span>
                   </h3>
                 </div>
-                <div className="bg-white shadow-sm ring-1 ring-black ring-opacity-5 rounded-2xl overflow-hidden divide-y divide-gray-50">
+                <div className="bg-surface shadow-sm ring-1 ring-black ring-opacity-5 rounded-2xl overflow-hidden divide-y divide-gray-50">
                   {course.students?.length > 0 ? course.students?.map((student) => (
-                    <div key={student.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                    <div key={student.id} className="p-4 flex items-center justify-between hover:bg-app">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 font-bold border border-gray-200">
+                        <div className="w-10 h-10 rounded-xl bg-surface-2 flex items-center justify-center text-gray-600 font-bold border border-[var(--border)]">
                           {student.name?.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900 text-sm leading-tight">{student.name}</p>
-                          <p className="text-xs text-gray-400 mt-0.5 tracking-wide uppercase font-medium">{student.studentId || 'N/A'}</p>
+                          <p className="font-bold text-app-primary text-sm leading-tight">{student.name}</p>
+                          <p className="text-xs text-app-muted mt-0.5 tracking-wide uppercase font-medium">{student.studentId || 'N/A'}</p>
                         </div>
                       </div>
                       <div className="w-2 h-2 bg-green-500 rounded-full" title="Online"></div>
                     </div>
                   )) : (
-                    <div className="p-8 text-center text-gray-400 italic text-sm">No students enrolled yet</div>
+                    <div className="p-8 text-center text-app-muted italic text-sm">No students enrolled yet</div>
                   )}
                 </div>
               </section>
@@ -257,28 +257,28 @@ export default function CourseRoom({ courseId }) {
         ) || null}
 
         {activeTab === 'settings' && (
-          <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-app">
             <div className="max-w-2xl mx-auto space-y-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Course Preferences</h3>
+              <h3 className="text-xl font-bold text-app-primary mb-6">Course Preferences</h3>
               
               <div className="space-y-4">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div className="bg-surface p-6 rounded-2xl shadow-sm border border-[var(--divider)] flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="font-bold text-gray-900 leading-tight">Student-to-Student Chat</p>
-                    <p className="text-sm text-gray-500 mt-1">Allow students to message each other in the class room</p>
+                    <p className="font-bold text-app-primary leading-tight">Student-to-Student Chat</p>
+                    <p className="text-sm text-app-secondary mt-1">Allow students to message each other in the class room</p>
                   </div>
-                  <div className={`w-12 h-6 rounded-full ${course.settings?.allowStudentChat ? 'bg-blue-600' : 'bg-gray-200'} relative   cursor-pointer`}>
-                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm   ${course.settings?.allowStudentChat ? 'left-7' : 'left-1'}`}></div>
+                  <div className={`w-12 h-6 rounded-full ${course.settings?.allowStudentChat ? 'bg-blue-600' : 'bg-surface-3'} relative   cursor-pointer`}>
+                    <div className={`absolute top-1 w-4 h-4 bg-surface rounded-full shadow-sm   ${course.settings?.allowStudentChat ? 'left-7' : 'left-1'}`}></div>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div className="bg-surface p-6 rounded-2xl shadow-sm border border-[var(--divider)] flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="font-bold text-gray-900 leading-tight">Collaborative File Sharing</p>
-                    <p className="text-sm text-gray-500 mt-1">Permit students to upload documents and resources</p>
+                    <p className="font-bold text-app-primary leading-tight">Collaborative File Sharing</p>
+                    <p className="text-sm text-app-secondary mt-1">Permit students to upload documents and resources</p>
                   </div>
-                  <div className={`w-12 h-6 rounded-full ${course.settings?.allowFileSharing ? 'bg-blue-600' : 'bg-gray-200'} relative   cursor-pointer`}>
-                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm   ${course.settings?.allowFileSharing ? 'left-7' : 'left-1'}`}></div>
+                  <div className={`w-12 h-6 rounded-full ${course.settings?.allowFileSharing ? 'bg-blue-600' : 'bg-surface-3'} relative   cursor-pointer`}>
+                    <div className={`absolute top-1 w-4 h-4 bg-surface rounded-full shadow-sm   ${course.settings?.allowFileSharing ? 'left-7' : 'left-1'}`}></div>
                   </div>
                 </div>
               </div>

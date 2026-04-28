@@ -79,7 +79,7 @@ export default function ProfileCard({ user, onUpdate }) {
   };
 
   return (
-    <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+    <div className="bg-surface w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
       {/* Cover Header */}
       <div className="h-32 bg-gradient-to-r from-primary-600 via-indigo-600 to-violet-600 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
@@ -87,7 +87,7 @@ export default function ProfileCard({ user, onUpdate }) {
           {!isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="p-2.5 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-xl shadow-lg active: group"
+              className="p-2.5 bg-surface/20 backdrop-blur-md hover:bg-surface/30 text-white rounded-xl shadow-lg active: group"
             >
               <PencilSquareIcon className="w-5 h-5" />
             </button>
@@ -100,7 +100,7 @@ export default function ProfileCard({ user, onUpdate }) {
         {/* Avatar Section */}
         <div className="relative -mt-14 mb-6 flex items-end justify-between">
           <div className="relative group">
-            <div className="w-28 h-28 rounded-[2rem] bg-white p-1.5 shadow-xl relative flex-shrink-0">
+            <div className="w-28 h-28 rounded-[2rem] bg-surface p-1.5 shadow-xl relative flex-shrink-0">
               <div className="w-full h-full rounded-[1.6rem] bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-black shadow-inner overflow-hidden">
                 {formData.avatar || user?.avatar ? (
                   <img src={getFullFileUrl(formData.avatar || user?.avatar)} decoding="async" alt="Profile" className="w-full h-full object-cover" />
@@ -109,7 +109,7 @@ export default function ProfileCard({ user, onUpdate }) {
                 )}
               </div>
               {uploadingAvatar && (
-                <div className="absolute inset-0 bg-white/60 rounded-[2rem] flex items-center justify-center backdrop-blur-sm z-10">
+                <div className="absolute inset-0 bg-surface/60 rounded-[2rem] flex items-center justify-center backdrop-blur-sm z-10">
                   <div className="w-6 h-6 border-4 border-primary-200 border-t-primary-600 rounded-full" />
                 </div>
               )}
@@ -117,7 +117,7 @@ export default function ProfileCard({ user, onUpdate }) {
             {isEditing && (
               <label 
                 htmlFor="avatar-upload"
-                className="absolute bottom-0 right-0 p-2 bg-white text-primary-600 rounded-lg shadow-lg border border-slate-100 hover: active: z-20 cursor-pointer"
+                className="absolute bottom-0 right-0 p-2 bg-surface text-primary-600 rounded-lg shadow-lg border border-[var(--divider)] hover: active: z-20 cursor-pointer"
               >
                 <CameraIcon className="w-4 h-4" />
                 <input 
@@ -136,7 +136,7 @@ export default function ProfileCard({ user, onUpdate }) {
           </div>
         </div>
 
-        <div className="flex-1 text-slate-900">
+        <div className="flex-1 text-app-primary">
           {isEditing ? (
             <form 
               onSubmit={handleSubmit} 
@@ -144,51 +144,51 @@ export default function ProfileCard({ user, onUpdate }) {
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Full Name</label>
+                  <label className="text-[11px] font-black text-app-muted uppercase tracking-wider ml-1">Full Name</label>
                   <div className="relative">
-                    <UserIcon className="absolute left-3 top-1/2 -/2 w-4 h-4 text-slate-400" />
+                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-app-muted" />
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 font-bold text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 bg-app border border-[var(--border)] rounded-xl focus:bg-surface focus:ring-2 focus:ring-primary-500 font-bold text-sm"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Faculty</label>
+                  <label className="text-[11px] font-black text-app-muted uppercase tracking-wider ml-1">Faculty</label>
                   <div className="relative">
-                    <BuildingLibraryIcon className="absolute left-3 top-1/2 -/2 w-4 h-4 text-slate-400" />
+                    <BuildingLibraryIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-app-muted" />
                     <input
                       type="text"
                       value={formData.faculty}
                       onChange={(e) => setFormData({ ...formData, faculty: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 font-bold text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 bg-app border border-[var(--border)] rounded-xl focus:bg-surface focus:ring-2 focus:ring-primary-500 font-bold text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Department</label>
+                  <label className="text-[11px] font-black text-app-muted uppercase tracking-wider ml-1">Department</label>
                   <div className="relative">
-                    <BuildingLibraryIcon className="absolute left-3 top-1/2 -/2 w-4 h-4 text-slate-400" />
+                    <BuildingLibraryIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-app-muted" />
                     <input
                       type="text"
                       value={formData.department}
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 font-bold text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 bg-app border border-[var(--border)] rounded-xl focus:bg-surface focus:ring-2 focus:ring-primary-500 font-bold text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Current Level</label>
+                  <label className="text-[11px] font-black text-app-muted uppercase tracking-wider ml-1">Current Level</label>
                   <select
                     value={formData.level}
                     onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 font-black text-sm text-slate-700 hover:bg-slate-100"
+                    className="w-full px-4 py-2.5 bg-app border border-[var(--border)] rounded-xl focus:bg-surface focus:ring-2 focus:ring-primary-500 font-black text-sm text-slate-700 hover:bg-surface-2"
                   >
                     <option value="">Select Level</option>
                     <option value="100">Level 100</option>
@@ -200,14 +200,14 @@ export default function ProfileCard({ user, onUpdate }) {
                 </div>
 
                 <div className="md:col-span-2 space-y-1">
-                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Status Message</label>
+                  <label className="text-[11px] font-black text-app-muted uppercase tracking-wider ml-1">Status Message</label>
                   <div className="relative">
-                    <ChatBubbleBottomCenterTextIcon className="absolute left-3 top-1/2 -/2 w-4 h-4 text-slate-400" />
+                    <ChatBubbleBottomCenterTextIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-app-muted" />
                     <input
                       type="text"
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 font-bold text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 bg-app border border-[var(--border)] rounded-xl focus:bg-surface focus:ring-2 focus:ring-primary-500 font-bold text-sm"
                     />
                   </div>
                 </div>
@@ -225,7 +225,7 @@ export default function ProfileCard({ user, onUpdate }) {
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="flex-1 bg-slate-100 text-slate-500 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 flex items-center justify-center space-x-2"
+                  className="flex-1 bg-surface-2 text-app-secondary py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-surface-3 flex items-center justify-center space-x-2"
                 >
                   <XMarkIcon className="w-4 h-4" />
                   <span>Dismiss</span>
@@ -238,18 +238,18 @@ export default function ProfileCard({ user, onUpdate }) {
             >
               {/* Identity Header */}
               <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">{user?.name}</h2>
+                <h2 className="text-2xl font-black text-app-primary tracking-tight">{user?.name}</h2>
                 <div className="flex items-center space-x-2 mt-1">
                    <span className="text-[10px] font-black text-primary-500 uppercase tracking-widest bg-primary-50 px-2 py-0.5 rounded-md border border-primary-100">
                     Level {user?.level || 'N/A'}
                   </span>
-                  <div className="px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-tight italic">
+                  <div className="px-2 py-0.5 bg-app border border-[var(--divider)] rounded-md">
+                    <span className="text-[10px] font-black text-app-secondary uppercase tracking-tight italic">
                       "{user?.status || 'Available'}"
                     </span>
                   </div>
                 </div>
-                <p className="text-sm font-bold text-slate-400 mt-2 flex items-center">
+                <p className="text-sm font-bold text-app-muted mt-2 flex items-center">
                   <EnvelopeIcon className="w-3.5 h-3.5 mr-2" />
                   {user?.email}
                 </p>
@@ -257,43 +257,43 @@ export default function ProfileCard({ user, onUpdate }) {
 
               {/* Data Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="p-4 bg-app rounded-2xl border border-[var(--divider)]">
                   <div className="flex items-center space-x-2 text-primary-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
                     <BuildingLibraryIcon className="w-3.5 h-3.5" />
                     <span>Faculty</span>
                   </div>
-                  <p className="text-sm font-bold text-slate-800 truncate">{user?.faculty || 'Not Specified'}</p>
+                  <p className="text-sm font-bold text-app-primary truncate">{user?.faculty || 'Not Specified'}</p>
                 </div>
 
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="p-4 bg-app rounded-2xl border border-[var(--divider)]">
                   <div className="flex items-center space-x-2 text-indigo-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
                     <BuildingLibraryIcon className="w-3.5 h-3.5" />
                     <span>Department</span>
                   </div>
-                  <p className="text-sm font-bold text-slate-800 truncate">{user?.department || 'Not Specified'}</p>
+                  <p className="text-sm font-bold text-app-primary truncate">{user?.department || 'Not Specified'}</p>
                 </div>
 
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 md:col-span-2">
+                <div className="p-4 bg-app rounded-2xl border border-[var(--divider)] md:col-span-2">
                   <div className="flex items-center space-x-2 text-amber-600 mb-1.5 uppercase font-black tracking-widest text-[9px]">
                     <IdentificationIcon className="w-3.5 h-3.5" />
                     <span>Identification</span>
                   </div>
-                  <p className="text-sm font-bold text-slate-800">{user?.studentId || user?.instructorId || 'N/A'}</p>
+                  <p className="text-sm font-bold text-app-primary">{user?.studentId || user?.instructorId || 'N/A'}</p>
                 </div>
               </div>
 
               {/* Status Section */}
               <div className="flex items-center space-x-4 pt-2 border-t border-slate-50 uppercase">
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-black text-slate-400 tracking-widest">Academic Status</span>
+                  <span className="text-[8px] font-black text-app-muted tracking-widest">Academic Status</span>
                   <div className="flex items-center mt-1 text-emerald-600 space-x-1.5">
                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
                     <span className="text-[10px] font-black">Active Member</span>
                   </div>
                 </div>
-                <div className="h-6 w-px bg-slate-100" />
+                <div className="h-6 w-px bg-surface-2" />
                 <div className="flex flex-col flex-1">
-                   <span className="text-[8px] font-black text-slate-400 tracking-widest">Innovation Hub</span>
+                   <span className="text-[8px] font-black text-app-muted tracking-widest">Innovation Hub</span>
                    <div className="flex items-center mt-1 text-primary-600 space-x-1.5">
                     <AcademicCapIcon className="w-3.5 h-3.5" />
                     <span className="text-[10px] font-black">KTU Student Network</span>
