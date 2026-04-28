@@ -592,6 +592,19 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       };
 
       if (socket) {
+        // 1. Initial Join
+        if (socket.connected) {
+          socket.emit('join-conversation', conversationId);
+          console.log('[DEBUG] Joined conversation:', conversationId);
+        }
+
+        // 2. Resilience: Re-join on (re)connect
+        const handleOnConnect = () => {
+          socket.emit('join-conversation', conversationId);
+          console.log('[DEBUG] Re-establishing room membership for:', conversationId);
+        };
+
+        socket.on('connect', handleOnConnect);
         socket.on('new-message', handleNewMessage);
         socket.on('user-typing', handleUserTyping);
         socket.on('messages-read', handleMessagesRead);
@@ -599,6 +612,9 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
         socket.on('chat-cleared', handleChatCleared);
         socket.on('message-sent', handleMessageSent);
         socket.on('chat-lock-updated', handleLockUpdated);
+
+        // Store reference for cleanup
+        socket.__manual_connect_handler = handleOnConnect;
       }
 
       syncQueue();
@@ -607,6 +623,10 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       return () => {
         if (socket) {
           socket.emit('leave-conversation', conversationId);
+          if (socket.__manual_connect_handler) {
+            socket.off('connect', socket.__manual_connect_handler);
+            delete socket.__manual_connect_handler;
+          }
           socket.off('new-message', handleNewMessage);
           socket.off('user-typing', handleUserTyping);
           socket.off('messages-read', handleMessagesRead);

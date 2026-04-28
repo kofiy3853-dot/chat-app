@@ -3,42 +3,49 @@ import { io } from 'socket.io-client';
 let socket = null;
 
 export const initSocket = () => {
-  if (socket) return socket;
+  if (socket && socket.connected) return socket;
+  if (socket) {
+    socket.connect();
+    return socket;
+  }
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  
-  // Don't connect without a token — user isn't authenticated
   if (!token) return null;
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 
+    (typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
+      ? 'https://veritas-uk6l.onrender.com/api' 
+      : 'http://localhost:5000/api');
+
   const socketUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
+
+  console.log('[SOCKET] Connecting to:', socketUrl);
 
   socket = io(socketUrl, {
     auth: { token },
-    transports: ['websocket', 'polling'],
+    transports: ['websocket', 'polling'], // Prioritizes websocket
     autoConnect: true,
     reconnection: true,
-    reconnectionAttempts: 10,
-    reconnectionDelay: 5000,
-    timeout: 45000
+    reconnectionAttempts: Infinity, // Keep trying
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    timeout: 20000,
+    forceNew: true
   });
 
   socket.on('connect', () => {
-    console.log('Socket connected');
+    console.log('[SOCKET] Connected! ID:', socket.id);
   });
 
   socket.on('disconnect', (reason) => {
-    console.log('Socket disconnected:', reason);
-    if (reason === 'io server disconnect' && socket) {
+    console.warn('[SOCKET] Disconnected:', reason);
+    if (reason === 'io server disconnect') {
       socket.connect();
     }
   });
 
   socket.on('connect_error', (error) => {
-    // Only log if it's not a simple auth error (expected on public pages)
-    if (!error.message?.includes('Authentication error')) {
-      console.error('Socket connection error:', error);
-    }
+    console.error('[SOCKET] Connection Error:', error.message);
   });
 
   return socket;
