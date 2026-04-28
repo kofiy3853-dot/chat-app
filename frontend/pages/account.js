@@ -22,6 +22,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { pushAPI } from '../services/api';
+import ThemeSwitcher from '../components/ThemeSwitcher';
 
 export default function Account() {
   const router = useRouter();
@@ -165,6 +166,15 @@ export default function Account() {
 
         <div className="max-w-2xl mx-auto p-4 space-y-8">
           <ProfileCard user={user} onUpdate={handleUpdateProfile} />
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-4">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>App Theme</h3>
+              </div>
+              <div className="rounded-[2.5rem] p-5 shadow-2xl border bg-app" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+                <ThemeSwitcher />
+              </div>
+            </div>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between px-4">

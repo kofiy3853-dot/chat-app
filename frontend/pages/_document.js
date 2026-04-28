@@ -83,7 +83,7 @@ export default function Document() {
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
-              var theme = localStorage.getItem('app-theme') || 'dark';
+              var theme = localStorage.getItem('app-theme') || 'white';
               document.documentElement.setAttribute('data-theme', theme);
               
               // Dynamic loader background adjust based on theme

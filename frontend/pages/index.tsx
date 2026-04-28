@@ -424,9 +424,6 @@ const MessagesPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="px-2 pt-2 pb-1 border-b bg-[var(--bg-surface)] border-[var(--border)]">
-        <ThemeSwitcher />
-      </div>
 
       {/* ─── Stories Section ─── */}
       <div className="px-2 pt-2 pb-1 border-b bg-[var(--bg-surface)] border-[var(--border)]">

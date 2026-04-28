@@ -15,12 +15,12 @@ const themeMetaColors = {
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(THEMES.DARK)
+  const [theme, setTheme] = useState(THEMES.WHITE)
   const [mounted, setMounted] = useState(false)
 
   // Load saved theme on mount
   useEffect(() => {
-    const saved = localStorage.getItem('app-theme') || THEMES.DARK
+    const saved = localStorage.getItem('app-theme') || THEMES.WHITE
     setTheme(saved)
     document.documentElement.setAttribute('data-theme', saved)
     setMounted(true)
