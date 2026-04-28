@@ -673,13 +673,24 @@ const setupChatSockets = (io) => {
     socket.on('delete-message', async (data) => {
       try {
         const { messageId } = data;
+        console.log(`[DELETE] User ${socket.user.id} (${socket.user.role}) attempting to delete message: ${messageId}`);
 
         const message = await prisma.message.findUnique({
           where: { id: messageId }
         });
 
-        if (!message || message.senderId !== socket.user.id) {
-          return socket.emit('error', { message: 'Unauthorized' });
+        if (!message) {
+          console.warn(`[DELETE] Message ${messageId} not found`);
+          return socket.emit('error', { message: 'Message not found' });
+        }
+
+        // Allow: own message, or ADMIN, or LECTURER (moderators)
+        const isOwner = message.senderId === socket.user.id;
+        const isModerator = socket.user.role === 'ADMIN' || socket.user.role === 'LECTURER';
+
+        if (!isOwner && !isModerator) {
+          console.warn(`[DELETE] Unauthorized delete attempt by ${socket.user.id} on message ${messageId}`);
+          return socket.emit('error', { message: 'Unauthorized: Cannot delete this message' });
         }
 
         const updatedMessage = await prisma.message.update({
@@ -690,10 +701,22 @@ const setupChatSockets = (io) => {
           }
         });
 
+        console.log(`[DELETE] Message ${messageId} soft-deleted. Broadcasting to conversation:${updatedMessage.conversationId}`);
+
+        // Broadcast to entire conversation room (including sender)
         io.to(`conversation:${updatedMessage.conversationId}`).emit('message-deleted', {
-          messageId: updatedMessage.id
+          messageId: updatedMessage.id,
+          conversationId: updatedMessage.conversationId
         });
+
+        // Also emit directly to sender's personal room in case they're not in the conv room
+        socket.emit('message-deleted', {
+          messageId: updatedMessage.id,
+          conversationId: updatedMessage.conversationId
+        });
+
       } catch (error) {
+        console.error('[DELETE ERROR]', error.message);
         socket.emit('error', { message: error.message });
       }
     });

@@ -905,9 +905,14 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   }, []);
 
   const handleDeleteMessage = useCallback((msgId) => {
-    if (msgId && !msgId.toString().startsWith('temp')) {
-      deleteMessage(msgId);
-    }
+    if (!msgId || msgId.toString().startsWith('temp')) return;
+    if (!window.confirm('Delete this message?')) return;
+    // Optimistic update — show deleted immediately without waiting for server
+    setMessages(prev => prev.map(m =>
+      m.id === msgId ? { ...m, isDeleted: true, content: 'This message was deleted' } : m
+    ));
+    // Emit to server for persistence
+    deleteMessage(msgId);
   }, []);
 
   const handleReplyTo = useCallback((msg) => {
