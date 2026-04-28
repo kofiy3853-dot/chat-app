@@ -3,14 +3,18 @@ import { io } from 'socket.io-client';
 let socket = null;
 
 export const initSocket = () => {
-  if (socket && socket.connected) return socket;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  if (!token) {
+    console.warn('[SOCKET] Initialization aborted: No token found in localStorage.');
+    return null;
+  }
+
   if (socket) {
+    console.log('[SOCKET] Refreshing token & re-connecting...', !!token);
+    socket.auth = { token };
     socket.connect();
     return socket;
   }
-
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  if (!token) return null;
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 
     (typeof window !== 'undefined' && window.location.hostname !== 'localhost' 

@@ -55,6 +55,7 @@ const ALLOWED_ORIGINS = [
   'https://chat-app-kappa-rose.vercel.app',
   'https://social-networking-mu.vercel.app',
   'https://chat-jdfqbgvhk-kofiy3853-dots-projects.vercel.app',
+  'https://chat-pkn4qz1mq-kofiy3853-dots-projects.vercel.app', // Added current Vercel deployment
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'http://192.168.23.126:3000',
@@ -62,46 +63,38 @@ const ALLOWED_ORIGINS = [
 
 // Request logging
 app.use((req, res, next) => {
-  console.log(`[REQUEST] ${req.method} ${req.path}`);
+  console.log(`[REQUEST] ${req.method} ${req.path} | Origin: ${req.headers.origin || 'none'}`);
   next();
 });
 
-// Manual CORS Middleware - Foolproof for all environments
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  
-  // Allow all origins with credentials support
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
-  
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Allow-Origin');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
-
+// Streamlined CORS Middleware
 const corsOptions = {
-  origin: (origin, callback) => callback(null, true),
+  origin: (origin, callback) => {
+    // Permit requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    if (ALLOWED_ORIGINS.includes(origin) || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS BLOCKED] ${origin}`);
+      callback(null, true); // Still allow during debugging/transition
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 };
+
+app.use(cors(corsOptions));
 
 const server = http.createServer(app);
 const io = new Server(server, { 
   cors: corsOptions,
-  transports: ['websocket', 'polling'], // 🔥 Priority: websocket first for Render sticky session stability
-  pingTimeout: 120000, 
-  pingInterval: 30000,
-  connectTimeout: 45000
+  transports: ['websocket', 'polling'], 
+  pingTimeout: 60000, 
+  pingInterval: 25000,
+  connectTimeout: 45000,
+  allowEIO3: true // Support older clients if needed
 });
 
 // Redis Adapter for Socket.io
