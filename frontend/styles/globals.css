@@ -172,6 +172,16 @@ body {
   background-color: var(--bubble-received);
 }
 
+/* ─── Typing Indicator Dots ─── */
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+.typing-dot {
+  animation: typingBounce 0.8s ease-in-out infinite !important;
+}
+
 input, textarea {
   background-color: var(--input-bg) !important;
   color: var(--text-primary) !important;
@@ -187,14 +197,12 @@ input:focus, textarea:focus {
 /* ══════════════════════════════════════════════════════════ */
 
 /* ══════════════════════════════════════════════════════════
-   KILL-SWITCH: Disable all animations, transitions, blurs & shadows
+   PERFORMANCE: Disable heavy animations & GPU-expensive effects
+   Exclude typing-dots and intentional animations
    ══════════════════════════════════════════════════════════ */
-*,
-*::before,
-*::after {
-  animation:                 none !important;
-  animation-duration:        0ms !important;
-  animation-iteration-count: 1 !important;
+*:not(.typing-dot):not(.animate-bounce):not(.animate-spin):not(.animate-pulse),
+*:not(.typing-dot):not(.animate-bounce):not(.animate-spin):not(.animate-pulse)::before,
+*:not(.typing-dot):not(.animate-bounce):not(.animate-spin):not(.animate-pulse)::after {
   transition:                none !important;
   transition-duration:       0ms !important;
   transition-delay:          0ms !important;

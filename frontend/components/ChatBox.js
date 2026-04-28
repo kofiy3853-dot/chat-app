@@ -362,6 +362,8 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   const [showMentionPicker, setShowMentionPicker] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const audioChunksRef = useRef([]);
+  // Stable ref for currentUser.id — avoids re-registering socket listeners on every profile update
+  const currentUserIdRef = useRef(getCurrentUser()?.id || null);
 
   // Nana Session Logic
   const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
@@ -487,6 +489,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   useEffect(() => {
     const user = getCurrentUser();
     setCurrentUser(user);
+    currentUserIdRef.current = user?.id || user?._id || null;
     
     // Load background preference
     const savedBg = localStorage.getItem('chat_bg_color');
@@ -494,150 +497,162 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   }, []);
 
   useEffect(() => {
-    if (conversationId) {
-      console.log(`[DEBUG] Loading conversation: ${conversationId}`);
-      
-      const loadCachedData = async () => {
-        try {
-          const cached = await getCachedMessages(conversationId);
-          const outboxRaw = await getOutboxMessages();
-          const outbox = outboxRaw.filter(m => m.conversationId === conversationId);
-          
-          if (cached && cached.length > 0) {
-            setMessages([...cached, ...outbox]);
-            setLoading(false);
-          } else if (outbox.length > 0) {
-            setMessages(outbox);
-            setLoading(false);
-          } else {
-            setLoading(true);
-          }
-        } catch (e) {
+    if (!conversationId) return;
+
+    console.log(`[DEBUG] Loading conversation: ${conversationId}`);
+    
+    const loadCachedData = async () => {
+      try {
+        const cached = await getCachedMessages(conversationId);
+        const outboxRaw = await getOutboxMessages();
+        const outbox = outboxRaw.filter(m => m.conversationId === conversationId);
+        
+        if (cached && cached.length > 0) {
+          setMessages([...cached, ...outbox]);
+          setLoading(false);
+        } else if (outbox.length > 0) {
+          setMessages(outbox);
+          setLoading(false);
+        } else {
           setLoading(true);
         }
-      };
-      
-      loadCachedData();
-      setError(null);
-      
-      const socket = getSocket();
-      if (socket) {
-        socket.emit('join-conversation', conversationId);
+      } catch (e) {
+        setLoading(true);
+      }
+    };
+    
+    loadCachedData();
+    setError(null);
+    
+    const socket = getSocket();
+    if (socket) {
+      socket.emit('join-conversation', conversationId);
+      markAsRead(conversationId);
+    }
+
+    fetchMessages();
+
+    // --- Named Listener Functions for Clean Cleanup ---
+    // Use string coercion (==) to handle ID type mismatches (string vs number)
+    const handleNewMessage = (msg) => {
+      // eslint-disable-next-line eqeqeq
+      if (msg.conversationId == conversationId) {
+        setMessages(prev => {
+          const newMsg = msg.message;
+          const exists = prev.findIndex(m => m.id === newMsg.id || (m.tempId && m.tempId === newMsg.tempId));
+          if (exists !== -1) {
+            const updated = [...prev];
+            updated[exists] = newMsg;
+            return updated;
+          }
+          return [...prev, newMsg];
+        });
         markAsRead(conversationId);
       }
+    };
 
-      fetchMessages();
+    const handleUserTyping = ({ userId, userName, isTyping, conversationId: cid }) => {
+      // eslint-disable-next-line eqeqeq
+      if (cid != conversationId) return;
+      if (userId === currentUserIdRef.current) return;
+      
+      console.log(`[DEBUG] Typing: ${userName} isTyping=${isTyping}`);
+      setTypingUsers(prev => isTyping 
+        ? [...prev.filter(u => u.id !== userId), { id: userId, name: userName }]
+        : prev.filter(u => u.id !== userId)
+      );
+    };
 
-      // --- Named Listener Functions for Clean Cleanup ---
-      const handleNewMessage = (msg) => {
-        if (msg.conversationId === conversationId) {
-          setMessages(prev => {
-            const newMsg = msg.message;
-            const exists = prev.findIndex(m => m.id === newMsg.id || (m.tempId && m.tempId === newMsg.tempId));
-            if (exists !== -1) {
-              const newMessages = [...prev];
-              newMessages[exists] = newMsg;
-              return newMessages;
-            }
-            return [...prev, newMsg];
-          });
-          markAsRead(conversationId);
-        }
-      };
+    const handleMessagesRead = ({ userId, conversationId: cid }) => {
+      // eslint-disable-next-line eqeqeq
+      if (cid == conversationId) {
+        setMessages(prev => prev.map(m => {
+          if (m.senderId !== userId && (!m.readReceipts || !m.readReceipts.some(r => r.userId === userId))) {
+            return { ...m, readReceipts: [...(m.readReceipts || []), { userId, readAt: new Date() }] };
+          }
+          return m;
+        }));
+      }
+    };
 
-      const handleUserTyping = ({ userId, userName, isTyping, conversationId: cid }) => {
-        if (cid !== conversationId) return; // Only show for current chat
-        if (userId === currentUser?.id) return;
-        
-        console.log(`[DEBUG] Typing received: ${userName} isTyping=${isTyping}`);
-        setTypingUsers(prev => isTyping 
-          ? [...prev.filter(u => u.id !== userId), { id: userId, name: userName }]
-          : prev.filter(u => u.id !== userId)
-        );
-      };
+    const handleMessageDeleted = ({ messageId }) => {
+      setMessages(prev => prev.map(m => 
+        m.id === messageId ? { ...m, isDeleted: true, content: 'This message was deleted' } : m
+      ));
+    };
 
-      const handleMessagesRead = ({ userId, conversationId: cid }) => {
-        if (cid === conversationId) {
-          setMessages(prev => prev.map(m => {
-            if (m.senderId !== userId && (!m.readReceipts || !m.readReceipts.some(r => r.userId === userId))) {
-              return {
-                ...m,
-                readReceipts: [...(m.readReceipts || []), { userId, readAt: new Date() }]
-              };
-            }
-            return m;
-          }));
-        }
-      };
+    const handleChatCleared = ({ conversationId: cid }) => {
+      // eslint-disable-next-line eqeqeq
+      if (cid == conversationId) setMessages([]);
+    };
 
-      const handleMessageDeleted = ({ messageId }) => {
-        setMessages(prev => prev.map(m => 
-          m.id === messageId ? { ...m, isDeleted: true, content: 'This message was deleted' } : m
-        ));
-      };
+    const handleMessageSent = (sent) => {
+      const sentMsg = sent.message || sent;
+      setMessages(prev => prev.map(m => (m.tempId && m.tempId === sentMsg.tempId) ? sentMsg : m));
+    };
 
-      const handleChatCleared = ({ conversationId: cid }) => {
-        if (cid === conversationId) setMessages([]);
-      };
+    const handleLockUpdated = ({ locked, courseId }) => {
+      if (convDataRef.current?.courseId === courseId || convDataRef.current?.course?.id === courseId) {
+        setIsLocked(locked);
+      }
+    };
 
-      const handleMessageSent = (sent) => {
-        const sentMsg = sent.message || sent;
-        setMessages(prev => prev.map(m => (m.tempId && m.tempId === sentMsg.tempId) ? sentMsg : m));
-      };
+    const handleReactionUpdated = ({ messageId, reactions }) => {
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
+    };
 
-      const handleLockUpdated = ({ locked, courseId }) => {
-        if (convDataRef.current?.courseId === courseId || convDataRef.current?.course?.id === courseId) {
-          setIsLocked(locked);
-        }
-      };
+    const handleMessageUpdated = ({ message: updatedMsg }) => {
+      setMessages(prev => prev.map(m => m.id === updatedMsg.id ? updatedMsg : m));
+    };
 
-      if (socket) {
-        // 1. Initial Join
-        if (socket.connected) {
-          socket.emit('join-conversation', conversationId);
-          console.log('[DEBUG] Joined conversation:', conversationId);
-        }
-
-        // 2. Resilience: Re-join on (re)connect
-        const handleOnConnect = () => {
-          socket.emit('join-conversation', conversationId);
-          console.log('[DEBUG] Re-establishing room membership for:', conversationId);
-        };
-
-        socket.on('connect', handleOnConnect);
-        socket.on('new-message', handleNewMessage);
-        socket.on('user-typing', handleUserTyping);
-        socket.on('messages-read', handleMessagesRead);
-        socket.on('message-deleted', handleMessageDeleted);
-        socket.on('chat-cleared', handleChatCleared);
-        socket.on('message-sent', handleMessageSent);
-        socket.on('chat-lock-updated', handleLockUpdated);
-
-        // Store reference for cleanup
-        socket.__manual_connect_handler = handleOnConnect;
+    if (socket) {
+      // Initial join (if already connected)
+      if (socket.connected) {
+        socket.emit('join-conversation', conversationId);
+        socket.emit('join-conversations'); // Ensure all rooms are joined
+        console.log('[DEBUG] Joined conversation:', conversationId);
       }
 
-      syncQueue();
-      setTypingUsers([]); // Clear indicators on chat switch
-
-      return () => {
-        if (socket) {
-          socket.emit('leave-conversation', conversationId);
-          if (socket.__manual_connect_handler) {
-            socket.off('connect', socket.__manual_connect_handler);
-            delete socket.__manual_connect_handler;
-          }
-          socket.off('new-message', handleNewMessage);
-          socket.off('user-typing', handleUserTyping);
-          socket.off('messages-read', handleMessagesRead);
-          socket.off('message-deleted', handleMessageDeleted);
-          socket.off('chat-cleared', handleChatCleared);
-          socket.off('message-sent', handleMessageSent);
-          socket.off('chat-lock-updated', handleLockUpdated);
-        }
+      // Resilience: Re-join on reconnect
+      const handleOnConnect = () => {
+        socket.emit('join-conversations'); // Re-join ALL conversation broadcast rooms
+        socket.emit('join-conversation', conversationId); // Re-join this specific viewing room
+        console.log('[DEBUG] Reconnected — re-joined room:', conversationId);
       };
+
+      socket.on('connect', handleOnConnect);
+      socket.on('new-message', handleNewMessage);
+      socket.on('user-typing', handleUserTyping);
+      socket.on('messages-read', handleMessagesRead);
+      socket.on('message-deleted', handleMessageDeleted);
+      socket.on('message-updated', handleMessageUpdated);
+      socket.on('reaction-updated', handleReactionUpdated);
+      socket.on('chat-cleared', handleChatCleared);
+      socket.on('message-sent', handleMessageSent);
+      socket.on('chat-lock-updated', handleLockUpdated);
     }
-  }, [conversationId, currentUser]);
+
+    syncQueue();
+    setTypingUsers([]); // Clear on chat switch
+
+    return () => {
+      if (socket) {
+        socket.emit('leave-conversation', conversationId);
+        socket.off('connect', handleOnConnect);
+        socket.off('new-message', handleNewMessage);
+        socket.off('user-typing', handleUserTyping);
+        socket.off('messages-read', handleMessagesRead);
+        socket.off('message-deleted', handleMessageDeleted);
+        socket.off('message-updated', handleMessageUpdated);
+        socket.off('reaction-updated', handleReactionUpdated);
+        socket.off('chat-cleared', handleChatCleared);
+        socket.off('message-sent', handleMessageSent);
+        socket.off('chat-lock-updated', handleLockUpdated);
+      }
+    };
+  // Only re-run this effect when the conversation changes — NOT when currentUser object changes
+  // Use the stable ref (currentUserIdRef) inside handlers instead
+  }, [conversationId]);
 
   const scrollToBottom = useCallback((behavior = 'auto') => {
     if (virtuosoRef.current) {
@@ -1096,9 +1111,9 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
         <div className="absolute bottom-[80px] left-4 z-30 pointer-events-none">
           <div className="flex items-center space-x-2 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[var(--border)]/50 shadow-lg">
             <div className="flex space-x-1 items-center h-4 px-1">
-              <span className="w-1 h-1 bg-primary-600 rounded-full [animation-delay:-0.3s]" />
-              <span className="w-1 h-1 bg-primary-500 rounded-full [animation-delay:-0.15s]" />
-              <span className="w-1 h-1 bg-primary-400 rounded-full" />
+              <span className="typing-dot w-1.5 h-1.5 bg-primary-600 rounded-full animate-bounce" style={{ animationDelay: '0ms', animationDuration: '0.8s' }} />
+              <span className="typing-dot w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms', animationDuration: '0.8s' }} />
+              <span className="typing-dot w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '300ms', animationDuration: '0.8s' }} />
             </div>
             <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest whitespace-nowrap">
               {typingUsers.length === 1 ? `${typingUsers[0].name.split(' ')[0]} is typing` : 'Several people typing'}
