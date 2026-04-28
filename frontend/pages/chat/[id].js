@@ -492,6 +492,7 @@ export default function ChatPage() {
 
                 {/* Name & Status */}
                 <h1 className="text-2xl font-black text-app-primary tracking-tight text-center">{name}</h1>
+                {/* Status hidden as requested
                 {otherParticipant?.user?.status && (
                   <div className="mt-1 px-3 py-1 bg-app border border-[var(--divider)] rounded-lg">
                     <p className="text-[11px] font-black text-app-secondary italic uppercase">
@@ -499,6 +500,7 @@ export default function ChatPage() {
                     </p>
                   </div>
                 )}
+                */}
                 <p className={`text-sm font-bold uppercase tracking-widest mt-3 ${isOnline ? 'text-green-500' : 'text-app-muted'}`}>
                   {isOnline ? 'Active Now' : 'Offline'}
                 </p>
