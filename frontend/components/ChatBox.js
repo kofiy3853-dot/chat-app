@@ -605,6 +605,13 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
       setMessages(prev => prev.map(m => m.id === updatedMsg.id ? updatedMsg : m));
     };
 
+    // Resilience: Re-join on reconnect — defined at outer scope so cleanup can reference it
+    const handleOnConnect = () => {
+      socket.emit('join-conversations'); // Re-join ALL conversation broadcast rooms
+      socket.emit('join-conversation', conversationId); // Re-join this specific viewing room
+      console.log('[DEBUG] Reconnected — re-joined room:', conversationId);
+    };
+
     if (socket) {
       // Initial join (if already connected)
       if (socket.connected) {
@@ -612,13 +619,6 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
         socket.emit('join-conversations'); // Ensure all rooms are joined
         console.log('[DEBUG] Joined conversation:', conversationId);
       }
-
-      // Resilience: Re-join on reconnect
-      const handleOnConnect = () => {
-        socket.emit('join-conversations'); // Re-join ALL conversation broadcast rooms
-        socket.emit('join-conversation', conversationId); // Re-join this specific viewing room
-        console.log('[DEBUG] Reconnected — re-joined room:', conversationId);
-      };
 
       socket.on('connect', handleOnConnect);
       socket.on('new-message', handleNewMessage);
@@ -650,8 +650,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
         socket.off('chat-lock-updated', handleLockUpdated);
       }
     };
-  // Only re-run this effect when the conversation changes — NOT when currentUser object changes
-  // Use the stable ref (currentUserIdRef) inside handlers instead
+  // Only re-run when conversation changes — use stable refs inside handlers
   }, [conversationId]);
 
   const scrollToBottom = useCallback((behavior = 'auto') => {
