@@ -235,10 +235,10 @@ export default function ChatPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0f2ff' }}>
+      <div className="min-h-screen flex items-center justify-center bg-app">
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-500 rounded-full"></div>
-          <p className="mt-4 text-app-secondary font-medium">Connecting to chat...</p>
+          <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-600 rounded-full"></div>
+          <p className="mt-4 text-app-secondary font-black uppercase tracking-widest text-[10px]">Connecting to chat...</p>
         </div>
       </div>
     );

@@ -11,6 +11,34 @@
   --bubble-radius:   18px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  
+  /* Fallbacks to prevent white screen before theme hydration */
+  --bg-base:         #000000;
+  --bg-surface:      #111111;
+  --bg-surface-2:    #1A1A1A;
+  --bg-surface-3:    #222222;
+  --text-primary:    #FFFFFF;
+  --text-secondary:  #CCCCCC;
+  --text-muted:      #999999;
+  --accent:          #FF0000;
+  --accent-dark:     #CC0000;
+  --accent-light:    #FF3333;
+  --border:          #1A1A1A;
+  --divider:         #222222;
+  --input-bg:        #111111;
+  --bubble-sent:     #330000;
+  --bubble-received: #111111;
+  --nav-bg:          #000000;
+  --header-bg:       #000000;
+  --icon-color:      #FFFFFF;
+  --status-online:   #00FF00;
+  
+  --primary:         var(--accent);
+  --bg-page:         var(--bg-base);
+  --bg-navbar:       var(--nav-bg);
+  --text-navbar:     var(--icon-color);
+  --status-bar:      var(--header-bg);
+  --border-color:    var(--border);
 }
 
 /* ─── DARK THEME (Default) ─── */
@@ -83,23 +111,6 @@
   --icon-color:      #FFFFFF;
   --status-online:   #00FF88;
   color-scheme: dark;
-}
-
-/* Bridge legacy variables to new theme system */
-[data-theme] {
-  --primary:         var(--accent);
-  --bg-page:         var(--bg-base);
-  --bg-surface:      var(--bg-surface);
-  --bg-navbar:       var(--nav-bg);
-  --text-primary:    var(--text-primary);
-  --text-secondary:  var(--text-secondary);
-  --text-navbar:     var(--icon-color);
-  --bubble-me-bg:    var(--bubble-sent);
-  --bubble-me-text:  var(--text-primary);
-  --bubble-other-bg: var(--bubble-received);
-  --bubble-other-text: var(--text-primary);
-  --status-bar:      var(--header-bg);
-  --border-color:    var(--border);
 }
 
 /* ═══════════════════════ Base Reset ═══════════════════════ */
