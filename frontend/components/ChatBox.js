@@ -58,6 +58,11 @@ const MessageBubble = React.memo(({
   onLoad,
   showTail = true
 }) => {
+  const touchStartX = React.useRef(null);
+  const touchStartY = React.useRef(null);
+  const swipeDelta = React.useRef(0);
+  const bubbleRef = React.useRef(null);
+
   const timestamp = formatMessageTime(message.createdAt);
   const isTemp = message.id?.toString().startsWith('temp');
   const isNana = message.sender?.role?.toUpperCase() === 'NANA';
@@ -137,6 +142,7 @@ const MessageBubble = React.memo(({
           )}
           
           <div 
+            ref={bubbleRef}
             onMouseDown={(e) => {
               const timer = setTimeout(() => {
                 if (!message.isDeleted && !isEditing) setActiveMenuId(message.id);
@@ -147,14 +153,55 @@ const MessageBubble = React.memo(({
             onMouseUp={(e) => clearTimeout(e.currentTarget.dataset.timer)}
             onMouseLeave={(e) => clearTimeout(e.currentTarget.dataset.timer)}
             onTouchStart={(e) => {
+              touchStartX.current = e.touches[0].clientX;
+              touchStartY.current = e.touches[0].clientY;
+              swipeDelta.current = 0;
+              if (bubbleRef.current) bubbleRef.current.style.transition = 'none';
+
               const timer = setTimeout(() => {
                 if (!message.isDeleted && !isEditing) setActiveMenuId(message.id);
                 if (navigator.vibrate) navigator.vibrate(50);
               }, 500);
               e.currentTarget.dataset.timer = timer;
             }}
-            onTouchEnd={(e) => clearTimeout(e.currentTarget.dataset.timer)}
-            onTouchMove={(e) => clearTimeout(e.currentTarget.dataset.timer)}
+            onTouchMove={(e) => {
+              if (touchStartX.current === null) return;
+              const currentX = e.touches[0].clientX;
+              const currentY = e.touches[0].clientY;
+              const diffX = currentX - touchStartX.current;
+              const diffY = currentY - touchStartY.current;
+              
+              if (Math.abs(diffY) > Math.abs(diffX)) {
+                clearTimeout(e.currentTarget.dataset.timer);
+                return;
+              }
+
+              if (diffX > 5) {
+                clearTimeout(e.currentTarget.dataset.timer);
+                const translateX = Math.min(diffX, 60);
+                swipeDelta.current = translateX;
+                if (bubbleRef.current) {
+                  bubbleRef.current.style.transform = `translateX(${translateX}px)`;
+                }
+              }
+            }}
+            onTouchEnd={(e) => {
+              clearTimeout(e.currentTarget.dataset.timer);
+              
+              if (swipeDelta.current > 40 && onReply && !message.isDeleted) {
+                if (navigator.vibrate) navigator.vibrate(50);
+                onReply(message);
+              }
+              
+              if (bubbleRef.current) {
+                bubbleRef.current.style.transition = 'transform 0.2s ease-out';
+                bubbleRef.current.style.transform = 'translateX(0px)';
+              }
+              
+              touchStartX.current = null;
+              touchStartY.current = null;
+              swipeDelta.current = 0;
+            }}
             id={`message-${message.id || message.tempId}`}
             className={bubbleClasses}
             style={nanaStyles}
