@@ -243,14 +243,33 @@ const MessagesPage: React.FC = () => {
     else if (chatFilter === 'groups') filtered = filtered.filter(c => c.type === 'GROUP');
     else if (chatFilter === 'courses') filtered = filtered.filter(c => c.type === 'COURSE');
     
-    return filtered.filter(conv => {
+    filtered = filtered.filter(conv => {
       const name = (conv.name || (conv.participants || []).find((p: any) => p.userId !== user?.id)?.user?.name || '').toLowerCase();
       const lastMsg = (conv.lastMessage?.content || '').toLowerCase();
       return name.includes(deferredSearch.toLowerCase()) || lastMsg.includes(deferredSearch.toLowerCase());
     });
+
+    // Pinned AI Chat injection
+    if (!deferredSearch && chatFilter === 'all' && user?.role !== 'NANA') {
+      const nanaPinned: any = {
+        id: 'nana-placeholder-id', 
+        type: 'ai',
+        unreadCount: 0,
+        participants: [
+          { userId: 'nana', user: { id: 'nana', name: 'Nana AI Hub', role: 'NANA', isOnline: true } }
+        ],
+        lastMessage: { content: '✨ Campus Assistant • Active Now', createdAt: new Date().toISOString() }
+      };
+      return [nanaPinned, ...filtered];
+    }
+
+    return filtered;
   }, [conversations, deferredSearch, user, chatFilter]);
 
   const handleChatClick = useCallback((id: string) => {
+    if (id === 'nana-placeholder-id') {
+      return router.push('/nana');
+    }
     const conv = conversations.find(c => c.id === id);
     const hasNana = conv?.participants?.some((p: any) => p.user?.role === 'NANA');
     const isDirect = conv?.type === 'DIRECT';
@@ -401,11 +420,37 @@ const MessagesPage: React.FC = () => {
         </div>
 
       </header>
-      
+      {/* ─── Segmented Filter + Count Row (MOVED DIRECTLY UNDER HEADER) ─── */}
+      <div className="sticky top-0 z-20 px-4 py-2.5 flex items-center justify-between shadow-sm bg-[var(--bg-surface)] border-[var(--border)]">
+        {/* Segmented Control */}
+        <div className="inline-flex items-center bg-[var(--bg-page)] rounded-xl p-0.5 space-x-0.5">
+          {(['all', 'courses', 'groups', 'unread'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setChatFilter(f)}
+              className={`px-4 py-1.5 rounded-[10px] text-xs capitalize ${
+                chatFilter === f
+                  ? 'bg-surface text-app-primary shadow-sm font-bold'
+                  : 'text-app-muted font-semibold hover:text-app-secondary'
+              }`}
+            >
+              {f === 'groups' ? 'Hubs' : f}
+            </button>
+          ))}
+        </div>
+
+        {/* Unread Badge */}
+        {totalUnread > 0 && (
+          <span className="text-[11px] font-semibold text-app-muted">
+            {totalUnread} unread
+          </span>
+        )}
+      </div>
+
       {/* ─── Search Bar (Collapsible) ─── */}
       <div 
-        className={`  -out border-b border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden ${
-          isSearchOpen ? 'max-h-20 opacity-100 py-3 px-4' : 'max-h-0 opacity-0 py-0 px-4 pointer-events-none'
+        className={`transition-all duration-200 ease-out border-b border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden ${
+          isSearchOpen ? 'max-h-20 opacity-100 py-3 px-4' : 'max-h-0 opacity-0 py-0 px-4 pointer-events-none border-b-0'
         }`}
       >
         <div className="relative group">
@@ -424,61 +469,14 @@ const MessagesPage: React.FC = () => {
         </div>
       </div>
 
-
-      {/* ─── Stories Section ─── */}
+      {/* ─── Stories Section (HIDDEN BY REQUEST) ─── */}
+      {/* 
       <div className="px-2 pt-2 pb-1 border-b bg-[var(--bg-surface)] border-[var(--border)]">
         <SoftStories currentUser={user} />
-      </div>
+      </div> 
+      */}
 
-      {/* ─── Nana AI Hub Link ─── */}
-      {!search && user?.role !== 'NANA' && (
-        <div className="px-4 pt-3 pb-1 bg-[var(--bg-page)]">
-          <Link href="/nana">
-            <div className="relative group overflow-hidden bg-primary-600 rounded-2xl p-4 cursor-pointer active:scale-95">
-              <div className="absolute top-[-10px] right-[-10px] p-3 opacity-20 group-hover:">
-                 <SparklesIcon className="w-20 h-20 text-white" />
-              </div>
-              <div className="flex items-center space-x-3.5 relative z-10">
-                <div className="w-11 h-11 rounded-xl bg-surface/20 flex items-center justify-center text-white font-black text-xl border border-white/30">N</div>
-                <div>
-                  <h3 className="text-white font-black text-sm tracking-tight mb-0.5">Nana AI Hub</h3>
-                  <p className="text-white/80 text-[11px] font-bold uppercase tracking-widest flex items-center">
-                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-2"></span>
-                    Campus Assistant • Active Now
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-      )}
-
-      {/* ─── Segmented Filter + Count Row ─── */}
-      <div className="sticky top-[130px] z-20 px-4 py-2.5 border-b flex items-center justify-between shadow-sm bg-[var(--bg-surface)] border-[var(--border)]">
-        {/* Segmented Control */}
-        <div className="inline-flex items-center rounded-xl p-0.5 space-x-0.5 bg-[var(--bg-page)]">
-          {(['all', 'courses', 'groups', 'unread'] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setChatFilter(f)}
-              className={`px-4 py-1.5 rounded-[10px] text-xs font-semibold capitalize  ${
-                chatFilter === f
-                  ? 'bg-surface text-app-primary shadow-sm font-bold'
-                  : 'text-app-muted hover:text-app-secondary'
-              }`}
-            >
-              {f === 'groups' ? 'Hubs' : f}
-            </button>
-          ))}
-        </div>
-
-        {/* Unread Badge */}
-        {totalUnread > 0 && (
-          <span className="text-[11px] font-semibold text-app-muted">
-            {totalUnread} unread
-          </span>
-        )}
-      </div>
+      {/* ─── Nana AI Hub Link (Replaced by pinned list item) ─── */}
 
       {/* ─── Chat List ─── */}
       <main className="flex-1 overflow-y-auto no-scrollbar pb-[max(env(safe-area-inset-bottom,0px),100px)] bg-[var(--bg-page)]">

@@ -99,6 +99,15 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
   // Only show image if URL resolves, no error occurred, and it's not the Nana bot
   const showImage = !!avatarUrl && !imgError && !isNana;
 
+  const isCourse = conversation.type === 'COURSE';
+  const isAi = conversation.type === 'ai';
+
+  const rowStyles = isSelected ? 'bg-primary-50' :
+    isAi ? 'bg-indigo-50/40 hover:bg-indigo-50/80 active:bg-indigo-100/80' :
+    isCourse ? 'hover:bg-amber-50/40 active:bg-amber-50/60' :
+    isGroup ? 'hover:bg-emerald-50/40 active:bg-emerald-50/60' :
+    'hover:bg-surface-2 active:bg-surface-2';
+
   return (
     <div
       onClick={() => onClick(conversation.id)}
@@ -107,9 +116,7 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
       onMouseLeave={endPress}
       onTouchStart={startPress}
       onTouchEnd={endPress}
-      className={`flex items-center px-4 py-3.5 cursor-pointer   relative select-none border-b border-app-light last:border-0 ${
-        isSelected ? 'bg-primary-50' : 'hover:bg-surface-2 active:bg-surface-2'
-      }`}
+      className={`flex items-center px-4 py-2.5 cursor-pointer relative select-none border-b border-app-light last:border-0 transition-colors ${rowStyles}`}
     >
       {/* Selection Checkmark */}
       {isSelected && (
@@ -168,11 +175,22 @@ const SoftChatListItem: React.FC<SoftChatListItemProps> = ({
         {/* Top Row: Name and Time */}
         <div className="flex items-center justify-between gap-2 mb-0.5">
           <h3
-            className={`text-[15px] truncate flex-grow ${
+            className={`text-[15px] truncate flex items-center flex-grow ${
               unread > 0 ? 'font-bold text-app-primary' : 'font-semibold text-app-primary'
             }`}
           >
             {name}
+            {isAi && (
+              <span className="ml-2 px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 text-[9px] font-black uppercase tracking-widest border border-indigo-200">
+                AI Agent
+              </span>
+            )}
+            {isCourse && (
+               <span className="ml-2 px-1 py-0.5 rounded text-amber-600 text-[10px]" title="Course Room">🎓</span>
+            )}
+            {isGroup && !isCourse && (
+               <span className="ml-2 px-1 py-0.5 rounded text-emerald-600 text-[10px]" title="Hub">🔥</span>
+            )}
           </h3>
           <span
             className={`text-[11px] flex-shrink-0 whitespace-nowrap ${
