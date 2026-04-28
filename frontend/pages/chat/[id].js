@@ -329,30 +329,13 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {/* Right: call buttons */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5">
             <button
               onClick={() => setShowSearch(!showSearch)}
               className={`w-9 h-9 rounded-full flex items-center justify-center  ${showSearch ? 'bg-black/10' : 'bg-black/5 hover:bg-black/10'}`}
               style={{ color: 'var(--text-navbar)' }}
             >
               <MagnifyingGlassIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px'}} />
-            </button>
-            <button
-              onClick={() => handleStartCall('VOICE')}
-              disabled={!otherParticipant}
-              className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-black/10 disabled:opacity-30"
-              style={{ color: 'var(--text-navbar)' }}
-            >
-              <PhoneIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px'}} />
-            </button>
-            <button
-              onClick={() => handleStartCall('VIDEO')}
-              disabled={!otherParticipant}
-              className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-black/10 disabled:opacity-30"
-              style={{ color: 'var(--text-navbar)' }}
-            >
-              <VideoCameraIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px'}} />
             </button>
             <div className="relative">
               <button
@@ -382,6 +365,22 @@ export default function ChatPage() {
                       >
                         <PhotoIcon className="w-4 h-4" />
                         <span>View Media & Files</span>
+                      </button>
+                      <button
+                        disabled={!otherParticipant}
+                        onClick={() => { handleStartCall('VOICE'); setShowMenu(false); }}
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl text-left disabled:opacity-30"
+                      >
+                        <PhoneIcon className="w-4 h-4" />
+                        <span>Voice Call</span>
+                      </button>
+                      <button
+                        disabled={!otherParticipant}
+                        onClick={() => { handleStartCall('VIDEO'); setShowMenu(false); }}
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl text-left disabled:opacity-30"
+                      >
+                        <VideoCameraIcon className="w-4 h-4" />
+                        <span>Video Call</span>
                       </button>
                       <button
                         onClick={handleSendCallLink}

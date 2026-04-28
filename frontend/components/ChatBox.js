@@ -81,23 +81,21 @@ const MessageBubble = React.memo(({
 
 
 
-  const bubbleClasses = isNana 
-    ? `group relative p-5 rounded-[24px] shadow-sm border w-fit max-w-full bg-surface border-[var(--border)]/50 dark:border-slate-800/50 text-app-primary leading-relaxed break-words`
-    : `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`;
+  // Standardize all messages to use the same chat bubble styling
+  const bubbleClasses = `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''} !max-w-[75%]`;
 
-  const nanaStyles = isNana ? {
-    display: "block",
-    wordBreak: "normal",
+  const inlineStyles = {
+    wordBreak: "break-word",
     overflowWrap: "anywhere"
-  } : {};
+  };
 
   return (
     <div 
       className={`flex w-full mb-5 px-2 ${isMine ? 'justify-end' : 'justify-start'} `}
     >
       <div className={`flex w-full items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
-        {!isNana && (
-          <div className="relative group shrink-0">
+        {/* Render Avatar for everyone, including AI */}
+        <div className="relative group shrink-0">
             <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[10px] font-black overflow-hidden ${showSender ? 'opacity-100' : 'opacity-0'} ${message.sender?.role?.toUpperCase() === 'NANA' ? 'bg-gradient-to-tr from-primary-500 to-indigo-600 text-white' : 'bg-surface-3 text-slate-600'}`}>
               {(() => {
                 const avatar = message.sender?.avatar;
@@ -117,14 +115,13 @@ const MessageBubble = React.memo(({
               })()}
             </div>
           </div>
-        )}
 
-        <div className={`flex flex-col min-w-0 ${isNana ? 'w-full' : isMine ? 'items-end' : 'items-start'}`}>
+        <div className={`flex flex-col min-w-0 ${isMine ? 'items-end' : 'items-start'}`}>
           {showSender && !isMine && (
-            <div className={`flex items-center space-x-1.5 mb-1 ${isNana ? 'ml-0' : 'ml-1'} uppercase`}>
-              <span className="text-[10px] font-black text-primary-600 flex items-center gap-1">
-                {isNana && <div className="w-1.5 h-1.5 bg-primary-500 rounded-full" />}
-                {message.sender?.name}
+            <div className={`flex items-center space-x-1.5 mb-1 ml-1 uppercase`}>
+              <span className="text-[10px] font-black text-app-secondary/80 flex items-center gap-1">
+                {isNana && <SparklesIcon className="w-3 h-3 text-indigo-500" />}
+                <span className={isNana ? 'text-indigo-600' : ''}>{message.sender?.name}</span>
               </span>
               {message.sender?.role?.toUpperCase() === 'LECTURER' && (
                 <span className="text-[8px] font-black px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-md border border-rose-100 flex items-center">
@@ -204,7 +201,7 @@ const MessageBubble = React.memo(({
             }}
             id={`message-${message.id || message.tempId}`}
             className={bubbleClasses}
-            style={nanaStyles}
+            style={inlineStyles}
           >
             {message.replyTo && !message.isDeleted && (
               <div 
@@ -408,6 +405,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   const [isSending, setIsSending] = useState(false);
   const [showMentionPicker, setShowMentionPicker] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const audioChunksRef = useRef([]);
   // Stable ref for currentUser.id — avoids re-registering socket listeners on every profile update
   const currentUserIdRef = useRef(getCurrentUser()?.id || null);
@@ -1187,8 +1185,8 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
 
       {/* Footer Input Area */}
       <div className="z-20 p-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] bg-surface border-t border-[var(--border)]/50 shrink-0 relative">
-        {isNanaSession && messages.length > 0 && (
-          <div className="flex items-center space-x-2 px-1 mb-3 overflow-x-auto no-scrollbar pb-1">
+        {isNanaSession && messages.length > 0 && !newMessage.trim() && !isInputFocused && (
+          <div className="flex items-center space-x-2 px-1 mb-3 overflow-x-auto no-scrollbar pb-1 transition-all duration-300">
             {QUICK_ACTIONS.map((action, idx) => (
               <button
                 key={idx}
@@ -1326,6 +1324,8 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                     style={{ outline: 'none', boxShadow: 'none' }}
                     className="flex-1 bg-transparent border-none text-sm py-2 px-1 max-h-32 resize-none focus:ring-0 focus:outline-none font-medium disabled:text-app-secondary"
                     rows={1}
+                    onFocus={() => setIsInputFocused(true)}
+                    onBlur={() => setIsInputFocused(false)}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                   />
                 </div>
