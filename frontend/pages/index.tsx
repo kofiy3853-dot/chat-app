@@ -295,7 +295,7 @@ const MessagesPage: React.FC = () => {
 
       {/* ─── Header ─── */}
       <header 
-        className="w-full z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),12px)] pb-2 border-b shrink-0 flex flex-col bg-[var(--bg-navbar)] text-[var(--text-navbar)] border-[var(--border)]"
+        className="w-full z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),4px)] pb-1 border-b shrink-0 flex flex-col bg-[var(--bg-navbar)] text-[var(--text-navbar)] border-[var(--border)]"
       >
         <div className="flex items-center justify-between">
           {/* Avatar */}

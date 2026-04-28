@@ -256,7 +256,7 @@ export default function ChatPage() {
           className="w-full z-[100] flex flex-col border-b shrink-0"
           style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
         >
-          <div className="flex items-center justify-between px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-1.5 min-h-[56px]">
+          <div className="flex items-center justify-between px-3 pt-[max(env(safe-area-inset-top,0px),4px)] pb-1 min-h-[48px]">
           {/* Left: back + avatar + name */}
           <div className="flex items-center space-x-3 min-w-0">
             <Link

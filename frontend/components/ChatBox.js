@@ -964,7 +964,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
   const canSend = !isLocked || userRoleRef.current === 'LECTURER' || userRoleRef.current === 'COURSE_REP' || currentUser?.role === 'LECTURER' || currentUser?.role === 'ADMIN';
 
   return (
-    <div className={`flex-1 flex flex-col min-h-0 relative   ${bgColor} overflow-hidden`}>
+    <div className={`flex-1 flex flex-col min-h-0 relative h-full w-full ${bgColor} overflow-hidden`}>
       {loading ? (
         <div className="h-full flex items-center justify-center">
             <div className="flex flex-col items-center">
@@ -1010,7 +1010,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
           )}
         </div>
       ) : (
-        <div className="flex-1 min-h-0 relative">
+        <div className="flex-1 min-h-0 relative h-full w-full">
           <GroupedVirtuoso
             ref={virtuosoRef}
             groupCounts={groupedData.groupCounts}
@@ -1062,7 +1062,7 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
               );
             }}
             followOutput="smooth"
-            initialTopMostItemIndex={groupedData.flattened.length - 1}
+            initialTopMostItemIndex={groupedData.flattened.length > 0 ? groupedData.flattened.length - 1 : 0}
             atBottomStateChange={(atBottom) => setShowScrollBottom(!atBottom)}
             startReached={() => {
               if (hasMore && !isLoadingMore && !searchQuery) {
@@ -1071,8 +1071,8 @@ export default function ChatBox({ conversationId, onMessagesUpdate, searchQuery,
                 fetchMessages(nextPage, true);
               }
             }}
-            className="h-full no-scrollbar"
-            style={{ paddingBottom: '20px' }}
+            className="h-full"
+            style={{ height: '100%', scrollbarWidth: 'thin' }}
             components={{
               Header: () => isLoadingMore ? (
                 <div className="flex justify-center p-4">

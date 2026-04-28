@@ -192,14 +192,14 @@ export default function NanaPage() {
 
   // --- 🎓 STUDENT CHAT VIEW ---
   return (
-    <div className="flex flex-col h-screen bg-app relative overflow-hidden pt-14">
+    <div className="flex flex-col h-screen bg-app relative overflow-hidden pt-12">
       <Head>
         <title>Nana AI | Campus Chat</title>
       </Head>
 
       {/* Header - Theme Aware */}
       <header 
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),8px)] pb-1.5 flex items-center justify-between border-b h-14"
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] px-3 pt-[max(env(safe-area-inset-top,0px),4px)] pb-1 flex items-center justify-between border-b h-12"
         style={{ background: 'var(--bg-navbar)', color: 'var(--text-navbar)', borderColor: 'var(--border)' }}
       >
         <div className="flex items-center space-x-4">
