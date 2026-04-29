@@ -86,27 +86,53 @@ function AppContent({ Component, pageProps }) {
   const notifiedIdsRef = useRef([]);
   const warmedRef = useRef(false);
 
-  // ── PWA / Offline / SW Setup ───────────────────────────────────────────────
+  // ── PWA / Offline / SW / Push Setup ─────────────────────────────────────────
   useEffect(() => {
     if (!warmedRef.current) {
       warmedRef.current = true;
       warmupServer();
     }
 
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      window.addEventListener('load', async () => {
-        try {
-          const reg = await navigator.serviceWorker.register('/sw.js');
+    const initPush = async () => {
+      if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+      
+      try {
+        // Register or get existing SW
+        let reg = await navigator.serviceWorker.getRegistration();
+        if (!reg) {
+          reg = await navigator.serviceWorker.register('/sw.js');
           console.log('[SW] Registered successfully');
+        }
 
-          if (localStorage.getItem('token')) {
-            const token = await requestFirebaseNotificationPermission();
-            if (token) {
-              await pushAPI.updateFcmToken(token).catch(() => {});
-            }
+        // Handle push token if authenticated
+        if (isAuthenticated) {
+          console.log('[FCM] Authentication detected, ensuring push registration...');
+          const token = await requestFirebaseNotificationPermission();
+          if (token) {
+            await pushAPI.updateFcmToken(token).catch(err => {
+              console.warn('[FCM] Async token sync failed (will retry next session):', err.message);
+            });
           }
-        } catch (err) {
-          console.warn('[SW] Registration failed:', err.message);
+        }
+      } catch (err) {
+        console.warn('[FCM] SW/Permission initialization failed:', err.message);
+      }
+    };
+
+    initPush();
+
+    // ── Foreground FCM Messages ──────────────────────────────────────────────
+    let unsubFCM = () => {};
+    if (isAuthenticated) {
+      unsubFCM = onMessageListener((payload) => {
+        console.log('[FCM] Foreground message received:', payload);
+        const { title, body } = payload.data || {};
+        if (title && body) {
+          toast(body, {
+            icon: '🔔',
+            duration: 6000,
+            style: { borderRadius: '16px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }
+          });
         }
       });
     }
@@ -135,12 +161,13 @@ function AppContent({ Component, pageProps }) {
     window.addEventListener('focus', clearBadge);
 
     return () => {
+      unsubFCM();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('focus', clearBadge);
     };
-  }, []);
+  }, [isAuthenticated]);
 
   // ── Global Socket Notifications ────────────────────────────────────────────
   useEffect(() => {
