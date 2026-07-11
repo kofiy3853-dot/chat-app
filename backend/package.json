@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "build": "prisma generate && prisma db push --accept-data-loss",
-    "build:render": "node -e \"const fs=require('fs');let s=fs.readFileSync('prisma/schema.prisma','utf8');s=s.replace('provider = \\\"sqlite\\\"','provider = \\\"postgresql\\\"');fs.writeFileSync('prisma/schema.prisma',s);\" && prisma generate && prisma db push --accept-data-loss",
+    "build:render": "node scripts/build-for-render.js",
     "test": "jest",
     "storage:setup": "node scripts/setup-storage.js",
     "db:init": "node scripts/init-db.js",

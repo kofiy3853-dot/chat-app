@@ -5,7 +5,7 @@ services:
     runtime: node
     plan: free
     region: ohio
-    buildCommand: cd backend && npm install && node -e "const fs=require('fs');let s=fs.readFileSync('prisma/schema.prisma','utf8');s=s.replace('provider = \"sqlite\"','provider = \"postgresql\"');fs.writeFileSync('prisma/schema.prisma',s)" && npx prisma generate && npx prisma db push --skip-generate
+    buildCommand: cd backend && npm install && npm run build:render
     startCommand: cd backend && npm start
     envVars:
       # Database (Supabase PostgreSQL)
