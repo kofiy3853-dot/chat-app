@@ -187,7 +187,7 @@ function AppContent({ Component, pageProps }) {
       playNotificationSound();
       toast.custom((t) => (
         <div
-          className={`${t.visible ? '' : ' fade-out slide-out-to-top-full '} max-w-sm w-full bg-surface/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active:  mb-4`}
+          className={`${t.visible ? '' : ' fade-out slide-out-to-top-full '} max-w-sm w-full bg-surface/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active: mb-4`}
           onClick={() => { router.push(`/chat/${data.conversationId}`); toast.dismiss(t.id); }}
         >
           <div className="flex-1 w-0">
@@ -207,8 +207,47 @@ function AppContent({ Component, pageProps }) {
       ), { duration: 4000, position: 'top-center' });
     };
 
+    const handleNewNotification = (data) => {
+      const notif = data.notification;
+      if (!notif) return;
+      
+      // Ignore MESSAGE notifications to prevent double-toasting (new-message handles them)
+      if (notif.type === 'MESSAGE' || notif.type === 'MENTION') return;
+      
+      playNotificationSound();
+      toast.custom((t) => (
+        <div
+          className={`${t.visible ? '' : ' fade-out slide-out-to-top-full '} max-w-sm w-full bg-surface/95 backdrop-blur-md shadow-2xl rounded-[24px] pointer-events-auto flex border border-primary-100 p-4 cursor-pointer active: mb-4`}
+          onClick={() => { 
+            if (notif.actionUrl) router.push(notif.actionUrl);
+            else router.push('/activity');
+            toast.dismiss(t.id); 
+          }}
+        >
+          <div className="flex-1 w-0">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 pt-0.5">
+                <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-bold shadow-lg shadow-primary-500/20 text-xl">
+                  🔔
+                </div>
+              </div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-black text-app-primary tracking-tight">{notif.title || 'New Notification'}</p>
+                <p className="text-xs font-medium text-app-secondary truncate mt-0.5">{notif.content}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ), { duration: 4000, position: 'top-center' });
+    };
+
     socket.on('new-message', handleNewMessage);
-    return () => { socket.off('new-message', handleNewMessage); };
+    socket.on('new-notification', handleNewNotification);
+    
+    return () => { 
+      socket.off('new-message', handleNewMessage); 
+      socket.off('new-notification', handleNewNotification);
+    };
   }, [isAuthenticated, router.pathname, router.query.id, user?.id]);
 
   const isPublicPage = ['/login', '/register'].includes(router.pathname);
