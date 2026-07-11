@@ -197,6 +197,24 @@ const { initializeNana } = require('./utils/nanaInitializer');
 
 async function startServer() {
   try {
+    // On production (PostgreSQL), push the schema to create/sync tables.
+    // We do this at runtime because Render's build containers can't reach
+    // Supabase's direct DB connection, but the running service can.
+    if (process.env.DATABASE_URL && !process.env.DATABASE_URL.startsWith('file:')) {
+      console.log('[DB] Running prisma db push to sync schema...');
+      const { execSync } = require('child_process');
+      try {
+        execSync('npx prisma db push --accept-data-loss', {
+          stdio: 'inherit',
+          cwd: __dirname
+        });
+        console.log('[DB] ✓ Schema sync complete.');
+      } catch (pushErr) {
+        console.error('[DB] ⚠ prisma db push failed (tables may already exist):', pushErr.message);
+        // Non-fatal — tables may already be in sync
+      }
+    }
+
     // Test Prisma connection (if configured)
     if (prisma && typeof prisma.$queryRaw === 'function') {
       await prisma.$queryRaw`SELECT 1 AS alive`;
@@ -207,7 +225,6 @@ async function startServer() {
       
       // Verify critical tables exist (non-blocking)
       try {
-        const isSQLite = process.env.DATABASE_URL?.startsWith('file:');
         const count = await prisma.message.count();
         console.log(`✓ Database connected (${count} messages)`);
       } catch (tableErr) {
