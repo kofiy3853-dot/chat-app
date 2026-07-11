@@ -1,6 +1,7 @@
 require('dotenv').config();
 const Database = require('better-sqlite3');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const path = require('path');
 
 const dbPath = path.join(__dirname, 'dev.db');
@@ -60,12 +61,16 @@ try {
     { name: 'Adwoa Serwaa', email: 'adwoa@student.campus.edu', role: 'STUDENT', faculty: 'FOE', dept: 'Computer Science', level: '400', studentId: 'CS/21/004' },
   ];
 
+  // Generate a proper bcrypt hash for test password
+  const testPasswordHash = bcrypt.hashSync('password123', 10);
+  console.log('  Using password hash for all test users: password123');
+
   for (let i = 0; i < users.length; i++) {
     const u = users[i];
     const id = uuid();
     userIds.push(id);
     insertUser.run(
-      id, u.email, '$2b$10$hashedpassword', u.name,
+      id, u.email, testPasswordHash, u.name,
       `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name.replace(/\s/g, '')}`,
       u.studentId || null, u.staffId || null, u.role,
       u.faculty, u.dept, u.level, null, '[]',
