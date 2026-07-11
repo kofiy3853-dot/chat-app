@@ -10,17 +10,16 @@ if (!process.env.DATABASE_URL) {
   console.log('[DB INFO] Using SQLite for local development');
   
   const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
-  const Database = require('better-sqlite3');
   
-  const db = new Database(process.env.DATABASE_URL.replace('file:', ''));
-  const adapter = new PrismaBetterSqlite3(db);
+  const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL });
 
   const prisma = new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
   });
 
-  prisma.$connect()
+  // With driver adapters, connection is managed by the adapter itself
+  prisma.$queryRaw`SELECT 1 AS alive`
     .then(() => console.log('[DB] SQLite connection successful'))
     .catch((err) => console.error('[DB] SQLite connection failed:', err.message));
 
@@ -105,8 +104,9 @@ if (!process.env.DATABASE_URL) {
         log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
       });
 
+      // With driver adapters, connection is managed by the adapter itself
       // Test connection on module load (async, don't block startup)
-      prisma.$connect()
+      prisma.$queryRaw`SELECT 1 AS alive`
         .then(() => console.log('[DB] Connection test successful'))
         .catch((err) => console.error('[DB] Initial connection test failed:', err.message));
 

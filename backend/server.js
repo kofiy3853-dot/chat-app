@@ -144,17 +144,10 @@ app.get('/health/detailed', async (req, res) => {
 
   try {
     // 1. Connectivity test
-    await prisma.$queryRawUnsafe('SELECT 1 AS alive');
+    await prisma.$queryRaw`SELECT 1 AS alive`;
     checks.database.status = 'connected';
 
-    // 2. Schema existence check
-    const columnCheck = await prisma.$queryRawUnsafe(`
-      SELECT column_name, data_type 
-      FROM information_schema.columns 
-      WHERE table_name = 'Message'
-    `);
-    checks.database.schema.messageColumns = columnCheck.map(c => c.column_name);
-    
+    // 2. Count messages
     const countCheck = await prisma.message.count().catch(e => -1);
     checks.database.schema.messageCount = countCheck;
   } catch (err) {
@@ -205,9 +198,9 @@ const { initializeNana } = require('./utils/nanaInitializer');
 async function startServer() {
   try {
     // Test Prisma connection (if configured)
-    if (prisma && typeof prisma.$connect === 'function') {
-      await prisma.$connect();
-      console.log('✓ Connected to Supabase PostgreSQL database');
+    if (prisma && typeof prisma.$queryRaw === 'function') {
+      await prisma.$queryRaw`SELECT 1 AS alive`;
+      console.log('✓ Connected to database');
       
       // Proactively initialize system accounts
       await initializeNana();
