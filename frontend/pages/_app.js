@@ -47,10 +47,10 @@ function AuthLoader() {
     >
       <div style={{
         width: 56, height: 56,
-        background: 'linear-gradient(to top right, #2E8BC0, #1a6a92)',
+        background: 'linear-gradient(to top right, #0284c7, #38bdf8)',
         borderRadius: '1.25rem',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 20px 40px -10px rgba(46,139,192,0.4)',
+        boxShadow: '0 20px 40px -10px rgba(14, 165, 233, 0.4)',
         marginBottom: '1.5rem'
       }}>
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -60,7 +60,7 @@ function AuthLoader() {
       <div style={{ display: 'flex', gap: 6 }}>
         {[0, 0.15, 0.3].map((delay, i) => (
           <div key={i} style={{
-            width: 8, height: 8, borderRadius: '50%', background: '#2E8BC0'
+            width: 8, height: 8, borderRadius: '50%', background: '#0ea5e9'
           }} />
         ))}
       </div>

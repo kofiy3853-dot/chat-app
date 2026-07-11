@@ -36,7 +36,7 @@ export default function Document() {
           .loader-logo {
             width: 6rem;
             height: 6rem;
-            background: linear-gradient(to top right, #8B0000, #FF0000);
+            background: linear-gradient(to top right, #0284c7, #38bdf8);
             border-radius: 2.5rem;
             display: flex;
             align-items: center;
@@ -54,7 +54,7 @@ export default function Document() {
             width: 0.375rem;
             height: 0.375rem;
             border-radius: 50%;
-            background: #FF0000;
+            background: #0ea5e9;
           }
         `}</style>
       </Head>
@@ -70,7 +70,7 @@ export default function Document() {
             </div>
             <div style={{ textAlign: 'center' }}>
               <h2 id="loader-title" style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)', margin: '0 0 0.5rem 0', letterSpacing: '-0.025em' }}>Connect</h2>
-              <p style={{ fontSize: '10px', fontWeight: 700, color: '#FF0000', textTransform: 'uppercase', letterSpacing: '0.4em' }}>Professional Messaging</p>
+              <p style={{ fontSize: '10px', fontWeight: 700, color: '#0ea5e9', textTransform: 'uppercase', letterSpacing: '0.4em' }}>Professional Messaging</p>
               <div className="loading-dots">
                 <div className="dot"></div>
                 <div className="dot"></div>
