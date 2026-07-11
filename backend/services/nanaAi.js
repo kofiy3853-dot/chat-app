@@ -96,16 +96,20 @@ const getNanaAiResponse = async (userMessage, history = [], user = null, convers
     // Add conversation history
     recentHistory.forEach(m => {
       const isNana = m.sender?.role === 'NANA' || m.senderId === NANA_USER_ID;
+      const senderName = isNana ? "Nana" : (m.sender?.name || "Student");
       messages.push({
         role: isNana ? "assistant" : "user",
-        name: isNana ? "Nana" : (m.sender?.name || "Student").replace(/[^a-zA-Z0-9_-]/g, '_'),
-        content: m.content || ""
+        content: `[${senderName}]: ${m.content || ""}`
       });
     });
 
     // Add current message if not already in history
     if (userMessage && userMessage.trim() && !recentHistory.find(h => h.content === userMessage)) {
-       messages.push({ role: "user", name: (user?.name || "Student").replace(/[^a-zA-Z0-9_-]/g, '_'), content: userMessage });
+       const senderName = user?.name || "Student";
+       messages.push({ 
+         role: "user", 
+         content: `[${senderName}]: ${userMessage}` 
+       });
     }
 
     if (messages.length === 1 && (!userMessage || !userMessage.trim())) {
@@ -128,9 +132,9 @@ const getNanaAiResponse = async (userMessage, history = [], user = null, convers
        return "I've talked a bit too much today and reached my limit! Try asking me again later.";
     }
     if (error.status === 401 || error.status === 403) {
-      return "I'm having a little trouble connecting to my brain right now (API Auth Error). Could you try again in a bit?";
+      return `I'm having a little trouble connecting to my brain right now. (API Auth Error: ${error.message})`;
     }
-    return "I'm having a little trouble thinking straight right now. Could you try asking me that again?";
+    return `I'm having a little trouble thinking straight right now. Could you try asking me that again? (Debug: ${error.message})`;
   }
 };
 
