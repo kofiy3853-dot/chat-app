@@ -203,7 +203,7 @@ exports.register = async (req, res) => {
       faculty,
       level: upperRole !== 'LECTURER' ? level : null,
       phone: phone || null,
-      coursesTeaching: processedCourses,
+      coursesTeaching: JSON.stringify(processedCourses), // Must be stored as JSON string
       avatar: avatarUrl,
       role: upperRole
     };
