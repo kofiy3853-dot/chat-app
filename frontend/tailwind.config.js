@@ -28,17 +28,17 @@ module.exports = {
       },
       colors: {
         primary: {
-          50:  'var(--primary-50,  #FFF5F5)',
-          100: 'var(--primary-100, #FFE3E3)',
-          200: 'var(--primary-200, #FFC9C9)',
-          300: 'var(--primary-300, #FFA8A8)',
-          400: 'var(--primary-400, #FF8282)',
-          500: 'var(--primary-500, #FF3B3B)',
-          600: 'var(--primary-600, #FF0000)',   // Pure Red
-          700: 'var(--primary-700, #E60000)',
-          800: 'var(--primary-800, #C90000)',
-          900: 'var(--primary-900, #A60000)',
-          950: 'var(--primary-950, #8B0000)',   // Dark Red
+          50:  'var(--primary-50,  #f0f9ff)',
+          100: 'var(--primary-100, #e0f2fe)',
+          200: 'var(--primary-200, #bae6fd)',
+          300: 'var(--primary-300, #7dd3fc)',
+          400: 'var(--primary-400, #38bdf8)',
+          500: 'var(--primary-500, #0ea5e9)',
+          600: 'var(--primary-600, #0284c7)',   // Light Blue
+          700: 'var(--primary-700, #0369a1)',
+          800: 'var(--primary-800, #075985)',
+          900: 'var(--primary-900, #0c4a6e)',
+          950: 'var(--primary-950, #082f49)',   // Dark Blue
         },
         'sea-blue':    'var(--sea-blue)',
         'purple':      'var(--purple)',
