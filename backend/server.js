@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 
 
 const express = require('express');
@@ -207,20 +207,9 @@ async function startServer() {
       
       // Verify critical tables exist (non-blocking)
       try {
-        const tables = await Promise.race([
-          prisma.$queryRaw`
-            SELECT table_name FROM information_schema.tables 
-            WHERE table_schema = 'public' AND table_name IN ('User', 'Conversation', 'Message')
-            ORDER BY table_name;
-          `,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 5000))
-        ]);
-        
-        if (tables && tables.length >= 3) {
-          console.log('✓ All critical database tables exist');
-        } else {
-          console.warn('⚠ Some database tables may be missing. Run: npm run db:init');
-        }
+        const isSQLite = process.env.DATABASE_URL?.startsWith('file:');
+        const count = await prisma.message.count();
+        console.log(`✓ Database connected (${count} messages)`);
       } catch (tableErr) {
         console.warn('⚠ Could not verify tables:', tableErr.message);
       }

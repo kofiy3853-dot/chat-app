@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const { PrismaClient } = require('@prisma/client');
 
 const isSQLite = process.env.DATABASE_URL?.startsWith('file:');
@@ -11,7 +11,10 @@ if (!process.env.DATABASE_URL) {
   
   const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
   
-  const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL });
+  // Always resolve to an absolute path to avoid CWD-dependent file:./dev.db resolution
+  const resolvedUrl = 'file:' + require('path').resolve(__dirname, '..', process.env.DATABASE_URL.replace('file:', ''));
+  
+  const adapter = new PrismaBetterSqlite3({ url: resolvedUrl });
 
   const prisma = new PrismaClient({
     adapter,
