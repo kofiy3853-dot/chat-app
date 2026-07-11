@@ -5,8 +5,8 @@ services:
     runtime: node
     plan: free
     region: ohio
-    buildCommand: cd backend && npm install && npm run build:render
-    startCommand: cd backend && npx prisma db push --accept-data-loss && npm start
+    buildCommand: npm install && npm run build:render
+    startCommand: npx prisma db push --accept-data-loss && npm start
     envVars:
       # Database (Supabase PostgreSQL)
       - key: DATABASE_URL
