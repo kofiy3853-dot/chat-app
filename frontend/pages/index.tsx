@@ -249,18 +249,24 @@ const MessagesPage: React.FC = () => {
       return name.includes(deferredSearch.toLowerCase()) || lastMsg.includes(deferredSearch.toLowerCase());
     });
 
-    // Pinned AI Chat injection
+    // Pinned AI Chat injection: Only show if Nana is not already in the conversation list
     if (!deferredSearch && chatFilter === 'all' && user?.role !== 'NANA') {
-      const nanaPinned: any = {
-        id: 'nana-placeholder-id', 
-        type: 'ai',
-        unreadCount: 0,
-        participants: [
-          { userId: 'nana', user: { id: 'nana', name: 'Nana AI Hub', role: 'NANA', isOnline: true } }
-        ],
-        lastMessage: { content: '✨ Campus Assistant • Active Now', createdAt: new Date().toISOString() }
-      };
-      return [nanaPinned, ...filtered];
+      const hasExistingNana = filtered.some(conv => 
+        conv.participants?.some((p: any) => p.user?.role === 'NANA')
+      );
+
+      if (!hasExistingNana) {
+        const nanaPinned: any = {
+          id: 'nana-placeholder-id', 
+          type: 'ai',
+          unreadCount: 0,
+          participants: [
+            { userId: 'nana', user: { id: 'nana', name: 'Nana AI Hub', role: 'NANA', isOnline: true } }
+          ],
+          lastMessage: { content: '✨ Campus Assistant • Active Now', createdAt: new Date().toISOString() }
+        };
+        return [nanaPinned, ...filtered];
+      }
     }
 
     return filtered;

@@ -227,14 +227,7 @@ const setupChatSockets = (io) => {
           return m;
         });
 
-        // Broadcast to conversation room 
-        console.log(`[NOTIF DEBUG] Message ${message.id} created. Broadcasting new-message.`);
-        io.to(`conversation:${conversationId}`).emit('new-message', {
-          message: { ...message, tempId: data.tempId },
-          conversationId
-        });
-
-        // Handle notifications for participants not in the room in parallel (non-blocking)
+        // Pre-fetch participants and conversation info for broadcasting
         const [chatParticipants, convInfo] = await Promise.all([
           prisma.conversationParticipant.findMany({
             where: { conversationId },
@@ -247,17 +240,22 @@ const setupChatSockets = (io) => {
         ]);
 
         const recipients = chatParticipants.filter(p => p.userId !== socket.user.id);
-        
-        // personal personal PERSONAL: Also emit direct to recipients' personal rooms 
-        // to ensure they get the 'new-message' toast (even without joining room yet).
+
+        // Broadcast to conversation room + all recipients' personal rooms in one go 
+        // Socket.io handles deduplication automatically when chaining .to()
+        let broadcast = io.to(`conversation:${conversationId}`);
         recipients.forEach(r => {
-          io.to(`user:${r.userId}`).emit('new-message', {
-            message,
-            conversationId
-          });
+          broadcast = broadcast.to(`user:${r.userId}`);
+        });
+
+        console.log(`[NOTIF DEBUG] Message ${message.id} created. Broadcasting new-message.`);
+        broadcast.emit('new-message', {
+          message: { ...message, tempId: data.tempId },
+          conversationId
         });
 
         // NOTE: FCM push is sent below inside the notification creation block.
+
         // Sending push here AND there was causing double notifications + rate limiting.
 
 

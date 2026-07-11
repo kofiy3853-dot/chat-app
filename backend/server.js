@@ -204,28 +204,35 @@ const { initializeNana } = require('./utils/nanaInitializer');
 
 async function startServer() {
   try {
-    // Test Prisma connection
-    await prisma.$connect();
-    console.log('✓ Connected to Supabase PostgreSQL database');
-    
-    // Proactively initialize system accounts
-    await initializeNana();
-    
-    // Verify critical tables exist
-    try {
-      const tables = await prisma.$queryRaw`
-        SELECT table_name FROM information_schema.tables 
-        WHERE table_schema = 'public' AND table_name IN ('User', 'Conversation', 'Message')
-        ORDER BY table_name;
-      `;
+    // Test Prisma connection (if configured)
+    if (prisma && typeof prisma.$connect === 'function') {
+      await prisma.$connect();
+      console.log('✓ Connected to Supabase PostgreSQL database');
       
-      if (tables.length >= 3) {
-        console.log('✓ All critical database tables exist');
-      } else {
-        console.warn('⚠ Some database tables may be missing. Run: npm run db:init');
+      // Proactively initialize system accounts
+      await initializeNana();
+      
+      // Verify critical tables exist (non-blocking)
+      try {
+        const tables = await Promise.race([
+          prisma.$queryRaw`
+            SELECT table_name FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_name IN ('User', 'Conversation', 'Message')
+            ORDER BY table_name;
+          `,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 5000))
+        ]);
+        
+        if (tables && tables.length >= 3) {
+          console.log('✓ All critical database tables exist');
+        } else {
+          console.warn('⚠ Some database tables may be missing. Run: npm run db:init');
+        }
+      } catch (tableErr) {
+        console.warn('⚠ Could not verify tables:', tableErr.message);
       }
-    } catch (tableErr) {
-      console.warn('⚠ Could not verify tables:', tableErr.message);
+    } else {
+      console.warn('⚠ Database not configured. Server will start for health checks only.');
     }
     
     server.listen(PORT, () => {
@@ -234,9 +241,13 @@ async function startServer() {
       console.log(`✓ Detailed health: http://localhost:${PORT}/health/detailed`);
     });
   } catch (err) {
-    console.error('✗ Failed to connect to database:', err.message);
-    console.error('✗ Please check your DATABASE_URL and DIRECT_URL environment variables');
-    process.exit(1);
+    console.error('✗ Database connection error:', err.message);
+    console.warn('⚠ Starting server anyway for health checks.');
+    
+    server.listen(PORT, () => {
+      console.log(`✓ Server running on port ${PORT} (database unavailable)`);
+      console.log(`✓ Health check: http://localhost:${PORT}/health`);
+    });
   }
 }
 

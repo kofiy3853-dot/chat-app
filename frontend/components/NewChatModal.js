@@ -36,7 +36,16 @@ export default function NewChatModal({ isOpen, onClose }) {
     setLoading(true);
     try {
       const response = await userAPI.searchUsers(search, faculty, level, { signal });
-      setResults(response.data.users);
+      
+      // Deduplicate results by ID just in case
+      const rawUsers = response.data.users || [];
+      const uniqueUsers = Array.from(new Map(rawUsers.map(u => [u.id, u])).values());
+      
+      // Double check current user is not in results
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const filteredUsers = uniqueUsers.filter(u => u.id !== currentUser.id);
+
+      setResults(filteredUsers);
       setLoading(false);
     } catch (error) {
       if (error.name === 'CanceledError') {

@@ -8,7 +8,7 @@ const prisma = require('../prisma/client'); // REQUIREMENT 5: Enable token clean
  */
 async function sendPushNotification(fcmTokens, payload) {
   try {
-    if (!admin) {
+    if (!admin || !admin.initialized) {
       console.warn('[FCM] Firebase not initialized. Notification skipped.');
       return;
     }
