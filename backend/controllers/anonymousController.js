@@ -1,4 +1,5 @@
 const prisma = require('../prisma/client');
+const { moderateContent } = require('../middleware/contentModeration');
 
 // Get anonymous posts
 exports.getAnonymousPosts = async (req, res) => {
@@ -33,6 +34,12 @@ exports.getAnonymousPosts = async (req, res) => {
 exports.createAnonymousPost = async (req, res) => {
   try {
     const { content, tags } = req.body;
+
+    // Content moderation
+    const mod = await moderateContent(content);
+    if (!mod.allowed) {
+      return res.status(400).json({ message: 'Post blocked by content policy.' });
+    }
 
     const post = await prisma.anonymousPost.create({
       data: {

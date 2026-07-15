@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client';
+import { toast } from 'react-hot-toast';
 
 let socket = null;
 
@@ -16,9 +17,9 @@ export const initSocket = () => {
     return socket;
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 
-    (typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
-      ? 'https://veritas-uk6l.onrender.com/api' 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ||
+    (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+      ? 'https://campus-chat-backend-m7wy.onrender.com/api'
       : 'http://localhost:5000/api');
 
   const socketUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
@@ -50,6 +51,14 @@ export const initSocket = () => {
 
   socket.on('connect_error', (error) => {
     console.error('[SOCKET] Connection Error:', error.message);
+  });
+
+  // Handle server-side errors (e.g., content moderation blocks)
+  socket.on('error', (data) => {
+    console.warn('[SOCKET] Server error:', data?.message);
+    if (data?.message) {
+      toast.error(data.message, { id: 'socket-error' });
+    }
   });
 
   return socket;

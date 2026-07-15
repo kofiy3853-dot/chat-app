@@ -1,4 +1,5 @@
 const prisma = require('../prisma/client');
+const { moderateContent } = require('../middleware/contentModeration');
 
 const setupCourseSockets = (io) => {
   io.on('connection', (socket) => {
@@ -41,6 +42,12 @@ const setupCourseSockets = (io) => {
         const userId = socket.user.id;
 
         if (!courseId || !content) return;
+
+        // Content moderation
+        const mod = await moderateContent(content);
+        if (!mod.allowed) {
+          return socket.emit('error', { message: 'Message blocked by content policy.' });
+        }
 
         // 1. Resolve the course and its linked conversation
         const course = await prisma.course.findUnique({
