@@ -33,8 +33,8 @@ export default function useAuthRedirect() {
       return;
     }
 
-    // ── GUARD 2: Authenticated + auth pages (login/register) ────────────────
-    if (isAuthenticated && (path === '/login' || path === '/register')) {
+    // ── GUARD 2: Authenticated + auth pages ────────────────────────────────
+    if (isAuthenticated && path === '/login') {
       const homeByRole = { NANA: '/nana', ADMIN: '/admin' };
       const roleKey = user?.role?.toUpperCase();
       const target = homeByRole[roleKey] || '/';
@@ -43,6 +43,7 @@ export default function useAuthRedirect() {
       }
       return;
     }
+    // Allow /register even when authenticated (for creating new accounts)
 
     // ── GUARD 3: Role-based access control (RBAC) ───────────────────────────
     if (isAuthenticated && user?.role) {
