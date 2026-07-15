@@ -2,6 +2,7 @@ const prisma = require('../prisma/client');
 const { socketAuthMiddleware } = require('../middleware/authMiddleware');
 const { getNanaAiResponse } = require('../services/nanaAi');
 const { sendPushNotification } = require('../utils/firebasePush');
+const { moderateContent } = require('../middleware/contentModeration');
 const setupChatSockets = (io) => {
   // Apply auth middleware to socket connections
   io.use(socketAuthMiddleware);
@@ -190,6 +191,14 @@ const setupChatSockets = (io) => {
           }
         }
 
+        // Content moderation (Morph Reflexes)
+        if (type === 'TEXT' && content) {
+          const mod = await moderateContent(content);
+          if (!mod.allowed) {
+            return socket.emit('error', { message: 'Message blocked by content policy.' });
+          }
+        }
+
         // Create message and update conversation in a transaction
         const message = await prisma.$transaction(async (tx) => {
           const m = await tx.message.create({
@@ -260,7 +269,7 @@ const setupChatSockets = (io) => {
 
 
         const mentionRegex = /@\[([^\]]+)\]\(([^)]+)\)/g;
-        const mentions = [...content.matchAll(mentionRegex)];
+        const mentions = content ? [...content.matchAll(mentionRegex)] : [];
 
         await Promise.all(mentions.map(async (mention) => {
           const mentionedUserId = mention[2];
@@ -646,6 +655,12 @@ const setupChatSockets = (io) => {
           return socket.emit('error', { message: 'Unauthorized' });
         }
 
+        // Content moderation on edit
+        const modEdit = await moderateContent(content);
+        if (!modEdit.allowed) {
+          return socket.emit('error', { message: 'Edit blocked by content policy.' });
+        }
+
         const updatedMessage = await prisma.message.update({
           where: { id: messageId },
           data: {
@@ -772,59 +787,49 @@ const setupChatSockets = (io) => {
 
     // Handle disconnect
     socket.on('disconnect', async () => {
-      console.log(`User disconnected: ${socket.user.name} (${socket.user.id})`);
+      try {
+        console.log(`User disconnected: ${socket.user.name} (${socket.user.id})`);
 
-      // If this user was in a call, notify all sockets in their personal room
-      // and broadcast call-ended to any connected peer waiting on them
-      // We can't know who the peer is server-side without state tracking,
-      // so emit to the disconnected user's room \u2014 this covers multi-device scenarios
-      // The peer's call-ended is handled via the 'end-call' flow; if the socket dies,
-      // we send call-ended broadly to the user's room to unblock any pending UI
-      console.log(`[CALL] ${socket.user.name} disconnected — broadcasting call-ended to their room`);
-      socket.to(`user:${socket.user.id}`).emit('call-ended');
+        // Notify user's room about call ended
+        console.log(`[CALL] ${socket.user.name} disconnected — broadcasting call-ended to their room`);
+        socket.to(`user:${socket.user.id}`).emit('call-ended');
 
-      // Clear any 'typing' state for this user by broadcasting isTyping: false
-      // Since we don't track active typing rooms per-socket, we rely on the 
-      // client's 'typingUsers' state filtering by userId.
-      // Broadcast broadly to ALL rooms is expensive, so we just emit to the user's personal room
-      // or we can just leave it to the frontend's cleanup/timeout. 
-      // ACTUALLY: The best way is to let the socket leave rooms on disconnect, 
-      // which it does automatically. 
-      // However, we should explicitly emit a "stop typing" to the conversations they were in.
-      // For now, let's just log and rely on the 2s frontend timeout + explicit emits.
-      // But wait! If we want to be proactive:
-      const userConvs = await prisma.conversationParticipant.findMany({
-        where: { userId: socket.user.id, isDeleted: false },
-        select: { conversationId: true }
-      });
-      userConvs.forEach(c => {
-         socket.to(`conversation:${c.conversationId}`).emit('user-typing', {
-           userId: socket.user.id,
-           userName: socket.user.name,
-           conversationId: c.conversationId,
-           isTyping: false
-         });
-      });
+        // Clear typing state for this user across their conversations
+        const userConvs = await prisma.conversationParticipant.findMany({
+          where: { userId: socket.user.id, isDeleted: false },
+          select: { conversationId: true }
+        });
+        userConvs.forEach(c => {
+           socket.to(`conversation:${c.conversationId}`).emit('user-typing', {
+             userId: socket.user.id,
+             userName: socket.user.name,
+             conversationId: c.conversationId,
+             isTyping: false
+           });
+        });
 
-      // Multi-device: Only mark as offline if no sockets remain in the user's personal room
-      const userRoom = `user:${socket.user.id}`;
-      const remainingSockets = io.sockets.adapter.rooms.get(userRoom);
-      
-      if (!remainingSockets || remainingSockets.size === 0) {
-        await prisma.user.update({
-          where: { id: socket.user.id },
-          data: {
-            isOnline: false,
-            socketId: null,
-            lastSeen: new Date()
-          }
-        }).then(user => {
-          io.emit('user-status-changed', {
-            userId: user.id,
-            isOnline: false,
-            lastSeen: user.lastSeen
-          });
-        }).catch(err => console.error('Error updating status on disconnect:', err));
+        // Multi-device: Only mark as offline if no sockets remain in the user's personal room
+        const userRoom = `user:${socket.user.id}`;
+        const remainingSockets = io.sockets.adapter.rooms.get(userRoom);
+
+        if (!remainingSockets || remainingSockets.size === 0) {
+          await prisma.user.update({
+            where: { id: socket.user.id },
+            data: {
+              isOnline: false,
+              socketId: null,
+              lastSeen: new Date()
+            }
+          }).then(user => {
+            io.emit('user-status-changed', {
+              userId: user.id,
+              isOnline: false,
+              lastSeen: user.lastSeen
+            });
+          }).catch(err => console.error('Error updating status on disconnect:', err));
+        }
+      } catch (err) {
+        console.error('[DISCONNECT ERROR]', err.message);
       }
     });
   });

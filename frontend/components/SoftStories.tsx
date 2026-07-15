@@ -106,7 +106,7 @@ const SoftStories: React.FC<SoftStoriesProps> = ({ currentUser }) => {
   const handleReplyStatus = async (status: Status, message: string, userId: string) => {
     try {
       const convRes = await chatAPI.getOrCreateDirectConversation(userId);
-      const conversationId = convRes.data.id;
+      const conversationId = convRes.data.conversation.id;
 
       const statusRef = status.type === 'TEXT' 
         ? `"${status.textContent}"` 

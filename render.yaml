@@ -15,11 +15,11 @@ services:
         sync: false # Set manually in Render Dashboard
       # Supabase Storage
       - key: SUPABASE_URL
-        value: https://pkfysnbnfjjybxrsxsiu.supabase.co
+        sync: false # Set manually in Render Dashboard
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false # Set manually in Render Dashboard
       - key: SUPABASE_ANON_KEY
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrZnlzbmJuZmpqeWJ4cnN4c2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTYyOTMsImV4cCI6MjA5MDA3MjI5M30.dlI3uZ2GpXewXLOKEG8MypvPnHFNCscE0wVuaN_pIu4
+        sync: false # Set manually in Render Dashboard
       # Server
       - key: PORT
         value: 10000
@@ -34,23 +34,28 @@ services:
         value: 7d
       # TURN Server (WebRTC)
       - key: TURN_SERVER_URL
-        value: turn:free.expressturn.com:3478
+        sync: false # Set manually in Render Dashboard
       - key: TURN_USERNAME
-        value: "000000002090062923"
+        sync: false # Set manually in Render Dashboard
       - key: TURN_CREDENTIAL
-        value: XLfSTEOdOfNnsXLLOba9GkCmHW8=
+        sync: false # Set manually in Render Dashboard
       # Firebase (Push Notifications)
       - key: FIREBASE_PROJECT_ID
-        value: acoustic-arch-373523
+        sync: false # Set manually in Render Dashboard
       - key: FIREBASE_CLIENT_EMAIL
-        value: firebase-adminsdk-y04ds@acoustic-arch-373523.iam.gserviceaccount.com
+        sync: false # Set manually in Render Dashboard
       - key: FIREBASE_PRIVATE_KEY
         sync: false # Set manually - contains newlines
       # OneSignal (Push Notifications)
       - key: ONESIGNAL_APP_ID
-        value: 9844a8d0-4dbb-40a7-aa57-2a0de509b4e1
+        sync: false # Set manually in Render Dashboard
       - key: ONESIGNAL_REST_API_KEY
         sync: false # Set manually in Render Dashboard
       # AI (Nana)
       - key: OPENAI_API_KEY
         sync: false # Set manually in Render Dashboard
+      # Morph AI (Fast Models, Router, Compact, Reflexes)
+      - key: MORPH_API_KEY
+        sync: false # Set manually in Render Dashboard
+      - key: MODERATION_DISABLED
+        value: "false"

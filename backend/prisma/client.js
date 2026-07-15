@@ -1,32 +1,50 @@
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const { PrismaClient } = require('@prisma/client');
 
+// Null-safe proxy: every property access throws a clear error instead of "Cannot read properties of null"
+const nullHandler = {
+  get(_, prop) {
+    if (prop === Symbol.toPrimitive || prop === 'then' || prop === '$queryRaw' || prop === Symbol.toStringTag) {
+      return undefined;
+    }
+    throw new Error(
+      `[DB] Prisma client is unavailable (DATABASE_URL is not set or connection failed). ` +
+      `Attempted access: ${String(prop)}`
+    );
+  }
+};
+
 const isSQLite = process.env.DATABASE_URL?.startsWith('file:');
 
 if (!process.env.DATABASE_URL) {
   console.error('[DB ERROR] DATABASE_URL is not set!');
-  module.exports = null;
+  module.exports = new Proxy({}, nullHandler);
 } else if (isSQLite) {
   console.log('[DB INFO] Using SQLite for local development');
-  
-  const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
-  
-  // Always resolve to an absolute path to avoid CWD-dependent file:./dev.db resolution
-  const resolvedUrl = 'file:' + require('path').resolve(__dirname, '..', process.env.DATABASE_URL.replace('file:', ''));
-  
-  const adapter = new PrismaBetterSqlite3({ url: resolvedUrl });
 
-  const prisma = new PrismaClient({
-    adapter,
-    log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
-  });
+  try {
+    const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
 
-  // With driver adapters, connection is managed by the adapter itself
-  prisma.$queryRaw`SELECT 1 AS alive`
-    .then(() => console.log('[DB] SQLite connection successful'))
-    .catch((err) => console.error('[DB] SQLite connection failed:', err.message));
+    // Always resolve to an absolute path to avoid CWD-dependent file:./dev.db resolution
+    const resolvedUrl = 'file:' + require('path').resolve(__dirname, '..', process.env.DATABASE_URL.replace('file:', ''));
 
-  module.exports = prisma;
+    const adapter = new PrismaBetterSqlite3({ url: resolvedUrl });
+
+    const prisma = new PrismaClient({
+      adapter,
+      log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+    });
+
+    // With driver adapters, connection is managed by the adapter itself
+    prisma.$queryRaw`SELECT 1 AS alive`
+      .then(() => console.log('[DB] SQLite connection successful'))
+      .catch((err) => console.error('[DB] SQLite connection failed:', err.message));
+
+    module.exports = prisma;
+  } catch (err) {
+    console.error('[DB ERROR] SQLite init failed:', err.message);
+    module.exports = new Proxy({}, nullHandler);
+  }
 } else {
   const { PrismaPg } = require('@prisma/adapter-pg');
   const { Pool } = require('pg');
@@ -81,20 +99,24 @@ if (!process.env.DATABASE_URL) {
   if (!connectionString) {
     console.error('[DB ERROR] Neither DIRECT_URL nor DATABASE_URL is set! Cannot connect to database.');
     console.log('[DB INFO] Please set DATABASE_URL environment variable.');
-    // Return null so server can start but database operations will fail gracefully
-    module.exports = null;
+    module.exports = new Proxy({}, nullHandler);
   } else {
     console.log('[DB OVERRIDE] Applied SSL configuration to database connection string.');
     console.log('[DB INFO] Connection string (first 50 chars):', connectionString.substring(0, 50) + '...');
     
     try {
-      const pool = new Pool({
+      // Local PostgreSQL (Docker) doesn't use SSL; Supabase/cloud does
+      const isLocal = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+      const poolConfig = {
         connectionString,
-        ssl: { rejectUnauthorized: false },
         max: 10,
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: 10000,
-      });
+      };
+      if (!isLocal) {
+        poolConfig.ssl = { rejectUnauthorized: false };
+      }
+      const pool = new Pool(poolConfig);
 
       pool.on('error', (err) => {
         console.error('[PG POOL ERROR]', err.message);
@@ -116,8 +138,7 @@ if (!process.env.DATABASE_URL) {
       module.exports = prisma;
     } catch (err) {
       console.error('[DB ERROR] Failed to initialize Prisma client:', err.message);
-      // Return null instead of crashing to allow health checks
-      module.exports = null;
+      module.exports = new Proxy({}, nullHandler);
     }
   }
 }

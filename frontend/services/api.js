@@ -2,9 +2,9 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import Router from 'next/router';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
-    ? 'https://veritas-uk6l.onrender.com/api' 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? 'https://campus-chat-backend-m7wy.onrender.com/api'
     : 'http://localhost:5000/api');
 
 // Create axios instance
@@ -171,8 +171,12 @@ export const courseAPI = {
   leaveCourse: (id) => api.put(`/courses/${id}/leave`),
   updateCourseSettings: (id, settings) => 
     api.put(`/courses/${id}/settings`, { settings }),
-  removeStudent: (id, studentId) => 
+  removeStudent: (id, studentId) =>
     api.delete(`/courses/${id}/students/${studentId}`),
+  lockChat: (id, locked) =>
+    api.put(`/courses/${id}/settings`, { settings: { announcementsOnly: locked } }),
+  assignRep: (id, studentId, remove = false) =>
+    api.post(`/courses/${id}/assign-rep`, { studentId, remove }),
   
   // Materials
   getMaterials: (id) => api.get(`/courses/${id}/materials`),

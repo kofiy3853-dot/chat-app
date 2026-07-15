@@ -1,4 +1,5 @@
 const prisma = require('../prisma/client');
+const { moderateContent } = require('../middleware/contentModeration');
 
 // Get all announcements
 exports.getAnnouncements = async (req, res) => {
@@ -31,6 +32,12 @@ exports.createAnnouncement = async (req, res) => {
     const { title, content, imageUrl, targetCourseId, targetDepartment, targetAll = true } = req.body;
     const userId = req.user.id;
 
+    // Content moderation
+    const mod = await moderateContent(`${title}\n${content}`);
+    if (!mod.allowed) {
+      return res.status(400).json({ message: 'Announcement blocked by content policy.' });
+    }
+
     const announcement = await prisma.announcement.create({
       data: {
         title,
@@ -50,7 +57,7 @@ exports.createAnnouncement = async (req, res) => {
     const targetFilter = {};
     if (!targetAll) {
       if (targetCourseId) {
-        targetFilter.courses = { some: { id: targetCourseId } };
+        targetFilter.memberships = { some: { courseId: targetCourseId } };
       } else if (targetDepartment) {
         targetFilter.department = targetDepartment;
       }

@@ -11,6 +11,7 @@ import {
   TrashIcon 
 } from '@heroicons/react/24/outline';
 import { chatAPI } from '../services/api';
+import { initSocket } from '../services/socket';
 import ChatBox from '../components/ChatBox';
 
 export default function NanaPage() {
@@ -64,7 +65,7 @@ export default function NanaPage() {
     if (!conversationId || !window.confirm('Clear all messages with Nana?')) return;
     try {
       setLoading(true);
-      await chatAPI.deleteConversation(conversationId);
+      await chatAPI.clearChat(conversationId);
       window.location.reload();
     } catch (err) {
       console.error('Clear error:', err);
@@ -101,7 +102,13 @@ export default function NanaPage() {
                 Access Inbox
               </button>
               <button 
-                onClick={() => { localStorage.clear(); window.location.href = '/login'; }}
+                onClick={() => {
+                  const socket = initSocket?.();
+                  if (socket) socket.disconnect();
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('user');
+                  router.push('/login');
+                }}
                 className="px-4 py-1 bg-red-600/20 text-red-400 border border-red-500/30 rounded text-[10px] font-black uppercase hover:bg-red-600/30"
               >
                 Terminate Session

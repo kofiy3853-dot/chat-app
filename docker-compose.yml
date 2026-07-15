@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: campus-chat-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: campus_chat
+      POSTGRES_PASSWORD: campus_chat_dev
+      POSTGRES_DB: campus_chat
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/prisma/schema.prisma:/schema.prisma
+
+  redis:
+    image: redis:7-alpine
+    container_name: campus-chat-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:

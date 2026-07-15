@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { courseAPI } from '../services/api';
-import { joinCourse, leaveCourse } from '../services/socket';
+import { getSocket, joinCourse, leaveCourse } from '../services/socket';
 import ChatBox from './ChatBox';
 import { 
   ArrowLeftIcon,

@@ -3,6 +3,7 @@ const uploadToSupabase = require('../utils/uploadToSupabase');
 const fs = require('fs');
 const path = require('path');
 const { sendPushNotification } = require('../utils/firebasePush');
+const { moderateContent } = require('../middleware/contentModeration');
 
 const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
 const NANA_SESSION_MARKER = '__nana__';
@@ -355,6 +356,10 @@ exports.createGroupConversation = async (req, res) => {
     const { name, participantIds } = req.body;
     const currentUserId = req.user.id;
 
+    if (!participantIds || !Array.isArray(participantIds) || participantIds.length === 0) {
+      return res.status(400).json({ message: 'participantIds must be a non-empty array' });
+    }
+
     const conversation = await prisma.conversation.create({
       data: {
         type: 'GROUP',
@@ -531,6 +536,14 @@ exports.sendMessage = async (req, res) => {
 
     if (!participant) {
       return res.status(403).json({ message: 'Access denied' });
+    }
+
+    // Content moderation
+    if (type === 'TEXT' && content) {
+      const mod = await moderateContent(content);
+      if (!mod.allowed) {
+        return res.status(400).json({ message: 'Message blocked by content policy.' });
+      }
     }
 
     const message = await prisma.message.create({

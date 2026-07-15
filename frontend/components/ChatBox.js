@@ -26,13 +26,11 @@ import {
 import { getCurrentUser, groupMessagesByDate, getInitials, getAvatarColor, formatMessageTime, getFullFileUrl, compressImage } from '../utils/helpers';
 import dynamic from 'next/dynamic';
 import { AttachmentBubble, VoiceBubble } from './ChatMedia';
-import { 
-  initDB, 
-  cacheMessages, 
-  cacheConversation,
+import {
+  initDB,
+  cacheMessages,
   getCachedMessages,
-  getOutboxMessages,
-  getCachedConversation
+  getOutboxMessages
 } from '../utils/indexedDB';
 import useOfflineChat from '../hooks/useOfflineChat';
 import Markdown from 'markdown-to-jsx';

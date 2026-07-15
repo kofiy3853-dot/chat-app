@@ -12,6 +12,7 @@ import {
   GlobeAltIcon
 } from '@heroicons/react/24/outline';
 import { userAPI, chatAPI } from '../services/api';
+import { initSocket } from '../services/socket';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -44,8 +45,11 @@ export default function AdminDashboard() {
   }, []);
 
   const logout = () => {
-    localStorage.clear();
-    window.location.href = '/login';
+    const socket = initSocket?.();
+    if (socket) socket.disconnect();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/login');
   };
 
   if (!currentUser) return null;
