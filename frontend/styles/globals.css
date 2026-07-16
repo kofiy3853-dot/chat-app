@@ -159,7 +159,7 @@ body {
   color: var(--text-primary);
   padding: 10px 14px;
   border-radius: var(--bubble-radius);
-  max-width: 85%;
+  max-width: 75%;
   border: 1px solid var(--border);
 }
 

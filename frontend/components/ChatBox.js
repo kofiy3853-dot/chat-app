@@ -80,7 +80,7 @@ const MessageBubble = React.memo(({
 
 
   // Standardize all messages to use the same chat bubble styling
-  const bubbleClasses = `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''} !max-w-[75%]`;
+  const bubbleClasses = `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`;
 
   const inlineStyles = {
     wordBreak: "break-word",
@@ -315,7 +315,7 @@ const MessageBubble = React.memo(({
                   <ArrowPathIcon className="w-2.5 h-2.5" />
                 ) : (
                     message.readReceipts?.length > 0 ? (
-                      <div className="flex -space-x-1.5 ]">
+                      <div className="flex -space-x-1.5">
                         <div className="">
                           <CheckIcon className="w-3 h-3 stroke-[3px] text-sky-400 drop-shadow-sm" />
                         </div>
@@ -324,7 +324,7 @@ const MessageBubble = React.memo(({
                         </div>
                       </div>
                     ) : (
-                      <div className="flex -space-x-1.5 ]">
+                      <div className="flex -space-x-1.5">
                         <CheckIcon className="w-3 h-3 stroke-[3px] text-white/50" />
                         <CheckIcon className="w-3 h-3 stroke-[3px] text-white/50" />
                       </div>
