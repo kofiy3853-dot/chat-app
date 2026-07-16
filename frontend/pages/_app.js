@@ -289,7 +289,7 @@ function AppContent({ Component, pageProps }) {
         </div>
       )}
 
-      <main className={shouldHideNavbar || isPublicPage ? 'relative h-[100dvh] overflow-hidden flex flex-col' : 'pb-[calc(env(safe-area-inset-bottom)+90px)] relative'}>
+      <main className={shouldHideNavbar ? 'relative h-[100dvh] overflow-hidden flex flex-col' : 'pb-[calc(env(safe-area-inset-bottom)+90px)] relative'}>
         <PageWrapper>
           <Component {...pageProps} />
         </PageWrapper>
