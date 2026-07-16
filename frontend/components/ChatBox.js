@@ -250,7 +250,7 @@ const MessageBubble = React.memo(({
                 {message.content && (
                   <>
                     {message.content.includes('Join here: https://') ? (
-                      <div className="min-w-[200px] sm:min-w-[240px] bg-surface/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
+                      <div className="min-w-[160px] max-w-full bg-surface/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
                         <div className="flex items-center space-x-3 mb-3">
                           <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
                             <VideoCameraIcon className="w-6 h-6 text-emerald-400" />
@@ -269,7 +269,7 @@ const MessageBubble = React.memo(({
                         </button>
                       </div>
                     ) : message.content.includes('🗓️ Scheduled a call') ? (
-                      <div className="min-w-[200px] sm:min-w-[240px] bg-surface/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
+                      <div className="min-w-[160px] max-w-full bg-surface/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-inner">
                         <div className="flex items-center space-x-3 mb-3">
                           <div className="w-10 h-10 rounded-full bg-primary-500/20 flex items-center justify-center">
                             <CalendarDaysIcon className="w-6 h-6 text-primary-300" />
