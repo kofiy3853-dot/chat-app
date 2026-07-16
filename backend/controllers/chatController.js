@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { sendPushNotification } = require('../utils/firebasePush');
 const { moderateContent } = require('../middleware/contentModeration');
+const { batchNotify } = require('../utils/batchNotify');
 
 const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
 const NANA_SESSION_MARKER = '__nana__';
@@ -576,11 +577,10 @@ exports.sendMessage = async (req, res) => {
         conversationId
       });
 
-      // Send notifications to each recipient in parallel
-      await Promise.all(recipients.map(async (recipient) => {
+      // Batch create notifications for all recipients (single DB query)
+      const notificationData = recipients.map(recipient => {
         const recipientUser = recipient.user;
         let isMentioned = false;
-        
         if (content && typeof content === 'string' && recipientUser?.name) {
           const recName = recipientUser.name;
           const recFirstName = recName.split(' ')[0];
@@ -588,61 +588,35 @@ exports.sendMessage = async (req, res) => {
             isMentioned = true;
           }
         }
+        return {
+          type: isMentioned ? 'MENTION' : 'MESSAGE',
+          title: isMentioned ? `🔔 ${message.sender.name} mentioned you!` : `New message from ${message.sender.name}`,
+          content: content && content.length > 50 ? content.substring(0, 50) + '...' : content,
+          recipientId: recipient.userId,
+          senderId: req.user.id,
+          messageId: message.id,
+          _fcmToken: recipientUser?.fcmToken,
+          _isMentioned: isMentioned
+        };
+      });
 
-        const notificationTitle = isMentioned 
-          ? `🔔 ${message.sender.name} mentioned you!` 
-          : `New message from ${message.sender.name}`;
+      const unreadMap = await batchNotify(prisma, req.io, notificationData);
 
-        // Create DB Notification
-        const notification = await prisma.notification.create({
-          data: {
-            type: isMentioned ? 'MENTION' : 'MESSAGE',
-            title: notificationTitle,
-            content: content && content.length > 50 ? content.substring(0, 50) + '...' : content,
-            recipientId: recipient.userId,
-            senderId: req.user.id,
-            messageId: message.id
-          }
-        });
-
-        const unreadCount = await prisma.notification.count({
-          where: { recipientId: recipient.userId, isRead: false }
-        });
-
-        // Emit new-notification
-        req.io.to(`user:${recipient.userId}`).emit('new-notification', {
-          notification,
-          unreadCount
-        });
-
-        // FCM: Send push to the recipient's registered device
-        try {
-          if (recipientUser?.fcmToken) {
-            const msgPreview = content
-              ? (content.length > 80 ? content.substring(0, 80) + '…' : content)
-              : 'Sent an attachment';
-
-            const pushTitle = isMentioned 
-              ? `🔔 ${message.sender.name} mentioned you!` 
-              : `💬 ${message.sender.name}`;
-
-            await sendPushNotification([recipientUser.fcmToken], {
-              title: pushTitle,
-              message: msgPreview,
-              url: `/chat/${conversationId}`,
-              badgeCount: unreadCount, // Pass latest unread count to set app icon badge
-              messageId: message.id, // For deduplication
-              extraData: {
-                type: isMentioned ? 'MENTION' : 'MESSAGE',
-                chatId: String(conversationId),
-                senderName: message.sender.name
-              }
-            });
-          }
-        } catch (fcmErr) {
-          console.error('[FCM] Error in sendMessage push:', fcmErr.message);
+      // FCM pushes (non-blocking, uses unread counts from batchNotify)
+      for (const n of notificationData) {
+        if (n._fcmToken) {
+          const msgPreview = content ? (content.length > 80 ? content.substring(0, 80) + '…' : content) : 'Sent an attachment';
+          const pushTitle = n._isMentioned ? `🔔 ${message.sender.name} mentioned you!` : `💬 ${message.sender.name}`;
+          sendPushNotification([n._fcmToken], {
+            title: pushTitle,
+            message: msgPreview,
+            url: `/chat/${conversationId}`,
+            badgeCount: unreadMap.get(n.recipientId) || 0,
+            messageId: message.id,
+            extraData: { type: n.type, chatId: String(conversationId), senderName: message.sender.name }
+          }).catch(fcmErr => console.error('[FCM] Error in sendMessage push:', fcmErr.message));
         }
-      }));
+      }
     }
 
     res.status(201).json({ message });
@@ -842,46 +816,33 @@ exports.uploadAttachment = async (req, res) => {
     const recipients = chatParticipants.filter(p => p.userId !== userId);
     const notificationContent = message.content || 'Sent an attachment';
 
-    for (const recipient of recipients) {
-      const notification = await prisma.notification.create({
-        data: {
-          type: 'MESSAGE',
-          title: `New message from ${message.sender.name}`,
-          content: notificationContent.length > 50 ? notificationContent.substring(0, 50) + '...' : notificationContent,
-          recipientId: recipient.userId,
-          senderId: userId,
-          messageId: message.id
-        }
-      });
+    // Batch create notifications (single DB query)
+    const notificationData = recipients.map(r => ({
+      type: 'MESSAGE',
+      title: `New message from ${message.sender.name}`,
+      content: notificationContent.length > 50 ? notificationContent.substring(0, 50) + '...' : notificationContent,
+      recipientId: r.userId,
+      senderId: userId,
+      messageId: message.id
+    }));
 
-      // Emit new-notification if io is available
-      if (req.io) {
-        req.io.to(`user:${recipient.userId}`).emit('new-notification', {
-          notification,
-          unreadCount: await prisma.notification.count({ where: { recipientId: recipient.userId, isRead: false } })
-        });
-      }
+    const unreadMap = await batchNotify(prisma, req.io, notificationData);
 
-      // 6. Send FCM Push Notification
+    // FCM pushes (non-blocking)
+    for (const n of notificationData) {
       try {
         const recipientUser = await prisma.user.findUnique({
-          where: { id: recipient.userId },
+          where: { id: n.recipientId },
           select: { fcmToken: true }
         });
-        
         if (recipientUser?.fcmToken) {
-          const unreadCount = await prisma.notification.count({ where: { recipientId: recipient.userId, isRead: false } });
-          await sendPushNotification([recipientUser.fcmToken], {
+          sendPushNotification([recipientUser.fcmToken], {
             title: `📎 New File: ${message.sender.name}`,
-            message: notification.content,
+            message: n.content,
             url: `/chat/${conversationId}`,
-            badgeCount: unreadCount, // Pass latest unread count for app icon badge
-            extraData: { 
-              type: 'MESSAGE',
-              chatId: conversationId.toString(),
-              senderName: message.sender.name
-            }
-          });
+            badgeCount: unreadMap.get(n.recipientId) || 0,
+            extraData: { type: 'MESSAGE', chatId: conversationId.toString(), senderName: message.sender.name }
+          }).catch(fcmErr => console.error('[FCM] Error in attachment push:', fcmErr.message));
         }
       } catch (fcmErr) {
         console.error('[FCM] Error in attachment push:', fcmErr.message);

@@ -3,6 +3,7 @@ const { socketAuthMiddleware } = require('../middleware/authMiddleware');
 const { getNanaAiResponse } = require('../services/nanaAi');
 const { sendPushNotification } = require('../utils/firebasePush');
 const { moderateContent } = require('../middleware/contentModeration');
+const { batchNotify } = require('../utils/batchNotify');
 const setupChatSockets = (io) => {
   // Apply auth middleware to socket connections
   io.use(socketAuthMiddleware);
@@ -271,100 +272,87 @@ const setupChatSockets = (io) => {
         const mentionRegex = /@\[([^\]]+)\]\(([^)]+)\)/g;
         const mentions = content ? [...content.matchAll(mentionRegex)] : [];
 
-        await Promise.all(mentions.map(async (mention) => {
+        // Batch create mention notifications (single DB query)
+        const mentionNotifs = [];
+        for (const mention of mentions) {
           const mentionedUserId = mention[2];
-          if (mentionedUserId === socket.user.id) return;
-
-          const notification = await prisma.notification.create({
-            data: {
-              type: 'MENTION',
-              title: `${socket.user.name} mentioned you`,
-              content: content.replace(mentionRegex, '$1').substring(0, 50),
-              recipientId: mentionedUserId,
-              senderId: socket.user.id,
-              messageId: message.id,
-              actionUrl: `/chat/${conversationId}`
-            }
+          if (mentionedUserId === socket.user.id) continue;
+          mentionNotifs.push({
+            type: 'MENTION',
+            title: `${socket.user.name} mentioned you`,
+            content: content.replace(mentionRegex, '$1').substring(0, 50),
+            recipientId: mentionedUserId,
+            senderId: socket.user.id,
+            messageId: message.id,
+            actionUrl: `/chat/${conversationId}`
           });
+        }
 
-          const count = await prisma.notification.count({ where: { recipientId: mentionedUserId, isRead: false } });
-          io.to(`user:${mentionedUserId}`).emit('new-notification', { notification, unreadCount: count });
+        if (mentionNotifs.length > 0) {
+          await batchNotify(prisma, io, mentionNotifs);
 
-          // REQUIREMENT 3: Trigger FCM for MENTION
-          const mentionedUser = await prisma.user.findUnique({
-            where: { id: mentionedUserId },
-            select: { fcmToken: true }
-          });
-          if (mentionedUser?.fcmToken) {
-            const { sendPushNotification } = require('../utils/firebasePush');
-            sendPushNotification(mentionedUser.fcmToken, {
-              title: notification.title,
-              message: notification.content,
-              url: notification.actionUrl,
-              // FCM requires all data values to be strings
-              extraData: { mention: 'true', conversationId: String(conversationId) }
-            });
-          }
-        }));
-
-        await Promise.all(recipients.map(async (recipient) => {
-          // Check if recipient was already notified via mention to avoid double notifying
-          if (mentions.some(m => m[2] === recipient.userId)) return;
-
-          console.log(`[NOTIF DEBUG] Checking recipient user:${recipient.userId}`);
-          const viewingRoom = io.sockets.adapter.rooms.get(`viewing:${conversationId}`);
-          let isRecipientActiveInRoom = false;
-
-          if (viewingRoom) {
-            for (const socketId of viewingRoom) {
-              const activeSocket = io.sockets.sockets.get(socketId);
-              if (activeSocket?.user?.id === recipient.userId) {
-                isRecipientActiveInRoom = true;
-                break;
-              }
-            }
-          }
-          if (!isRecipientActiveInRoom) {
-            const isReply = !!replyToId;
-            const notificationContent = content || (type === 'VOICE' ? 'Voice memo' : 'File attachment');
-
-            const notification = await prisma.notification.create({
-              data: {
-                type: isReply ? 'MESSAGE' : 'MESSAGE',
-                title: isReply ? `${socket.user.name} replied to your message` : `New message from ${socket.user.name}`,
-                content: notificationContent.length > 50 ? notificationContent.substring(0, 50) + '...' : notificationContent,
-                recipientId: recipient.userId,
-                senderId: socket.user.id,
-                messageId: message.id
-              }
-            });
-
-            const totalUnreadCount = await prisma.notification.count({ 
-              where: { recipientId: recipient.userId, isRead: false } 
-            });
-
-            const recipientUser = await prisma.user.findUnique({
-              where: { id: recipient.userId },
+          // FCM for mentions
+          for (const n of mentionNotifs) {
+            const mentionedUser = await prisma.user.findUnique({
+              where: { id: n.recipientId },
               select: { fcmToken: true }
             });
-
-            if (recipientUser?.fcmToken) {
-              sendPushNotification(recipientUser.fcmToken, {
-                title: notification.title,
-                message: notification.content,
-                url: `/chat/${conversationId}`,
-                badgeCount: totalUnreadCount,
-                messageId: message.id,
-                extraData: { conversationId: String(conversationId), messageId: String(message.id) }
+            if (mentionedUser?.fcmToken) {
+              const { sendPushNotification: sendPush } = require('../utils/firebasePush');
+              sendPush(mentionedUser.fcmToken, {
+                title: n.title,
+                message: n.content,
+                url: n.actionUrl,
+                extraData: { mention: 'true', conversationId: String(conversationId) }
               });
             }
+          }
+        }
 
-            io.to(`user:${recipient.userId}`).emit('new-notification', {
-              notification,
-              unreadCount: totalUnreadCount
+        // Batch create notifications for non-active, non-mentioned recipients
+        const viewingRoom = io.sockets.adapter.rooms.get(`viewing:${conversationId}`);
+        const activeUserIds = new Set();
+        if (viewingRoom) {
+          for (const socketId of viewingRoom) {
+            const activeSocket = io.sockets.sockets.get(socketId);
+            if (activeSocket?.user?.id) activeUserIds.add(activeSocket.user.id);
+          }
+        }
+
+        const isReply = !!replyToId;
+        const notificationContent = content || (type === 'VOICE' ? 'Voice memo' : 'File attachment');
+        const mentionUserIds = new Set(mentions.map(m => m[2]));
+
+        const messageNotifs = recipients
+          .filter(r => !mentionUserIds.has(r.userId) && !activeUserIds.has(r.userId))
+          .map(r => ({
+            type: 'MESSAGE',
+            title: isReply ? `${socket.user.name} replied to your message` : `New message from ${socket.user.name}`,
+            content: notificationContent.length > 50 ? notificationContent.substring(0, 50) + '...' : notificationContent,
+            recipientId: r.userId,
+            senderId: socket.user.id,
+            messageId: message.id
+          }));
+
+        const unreadMap = await batchNotify(prisma, io, messageNotifs);
+
+        // FCM pushes (non-blocking)
+        for (const n of messageNotifs) {
+          const recipientUser = await prisma.user.findUnique({
+            where: { id: n.recipientId },
+            select: { fcmToken: true }
+          });
+          if (recipientUser?.fcmToken) {
+            sendPushNotification(recipientUser.fcmToken, {
+              title: n.title,
+              message: n.content,
+              url: `/chat/${conversationId}`,
+              badgeCount: unreadMap.get(n.recipientId) || 0,
+              messageId: message.id,
+              extraData: { conversationId: String(conversationId), messageId: String(message.id) }
             });
           }
-        }));
+        }
 
         // Send confirmation to sender with their original tempId
         socket.emit('message-sent', { 
@@ -451,34 +439,28 @@ const setupChatSockets = (io) => {
                   });
                 });
                 
-                // 7. Handle notification for the student (parallel)
-                await Promise.all(recipients.map(async (recipient) => {
-                  // Only notify if recipient is NOT viewing the conversation actively
-                  const viewingRoom = io.sockets.adapter.rooms.get(`viewing:${conversationId}`);
-                  let isActive = false;
-                  if (viewingRoom) {
-                    for (const sid of viewingRoom) {
-                      const s = io.sockets.sockets.get(sid);
-                      if (s?.user?.id === recipient.userId) { isActive = true; break; }
-                    }
+                // Batch notify non-active recipients (single DB query)
+                const viewingRoom = io.sockets.adapter.rooms.get(`viewing:${conversationId}`);
+                const activeUserIds = new Set();
+                if (viewingRoom) {
+                  for (const sid of viewingRoom) {
+                    const s = io.sockets.sockets.get(sid);
+                    if (s?.user?.id) activeUserIds.add(s.user.id);
                   }
+                }
 
-                  if (!isActive) {
-                    const notification = await prisma.notification.create({
-                      data: {
-                        type: 'MESSAGE',
-                        title: `New message from Nana AI`,
-                        content: aiResponse.length > 50 ? aiResponse.substring(0, 50) + '...' : aiResponse,
-                        recipientId: recipient.userId,
-                        senderId: realNanaId,
-                        messageId: nanaMessage.id
-                      }
-                    });
+                const nanaNotifs = recipients
+                  .filter(r => !activeUserIds.has(r.userId))
+                  .map(r => ({
+                    type: 'MESSAGE',
+                    title: `New message from Nana AI`,
+                    content: aiResponse.length > 50 ? aiResponse.substring(0, 50) + '...' : aiResponse,
+                    recipientId: r.userId,
+                    senderId: realNanaId,
+                    messageId: nanaMessage.id
+                  }));
 
-                    const count = await prisma.notification.count({ where: { recipientId: recipient.userId, isRead: false } });
-                    io.to(`user:${recipient.userId}`).emit('new-notification', { notification, unreadCount: count });
-                  }
-                }));
+                await batchNotify(prisma, io, nanaNotifs);
 
                 console.log(`[Nana AI Trigger] Response sent successfully with notifications.`);
 

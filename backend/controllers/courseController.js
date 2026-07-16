@@ -1,6 +1,7 @@
 const prisma = require('../prisma/client');
 const uploadToSupabase = require('../utils/uploadToSupabase');
 const fs = require('fs');
+const { batchNotify } = require('../utils/batchNotify');
 
 /** Prisma uses CourseMembership; frontend expects a `students` user array. */
 function withStudentsFromMemberships(course) {
@@ -390,19 +391,13 @@ exports.addMaterial = async (req, res) => {
       req.io.to(`course:${id}`).emit('new-material', { material, courseId: id });
 
       const studentIds = course.memberships.map((m) => m.userId);
-      await Promise.all(studentIds.map(async (sId) => {
-        const notification = await prisma.notification.create({
-          data: {
-            type: 'SYSTEM',
-            title: 'New Material',
-            content: `New material: ${material.title} in ${course.code}`,
-            recipientId: sId,
-            actionUrl: `/courses/${id}`
-          }
-        });
-        const unreadCount = await prisma.notification.count({ where: { recipientId: sId, isRead: false } });
-        req.io.to(`user:${sId}`).emit('new-notification', { notification, unreadCount });
-      }));
+      await batchNotify(prisma, req.io, studentIds.map(sId => ({
+        type: 'SYSTEM',
+        title: 'New Material',
+        content: `New material: ${material.title} in ${course.code}`,
+        recipientId: sId,
+        actionUrl: `/courses/${id}`
+      })));
     }
 
     res.status(201).json({ material });
@@ -478,19 +473,13 @@ exports.createAssignment = async (req, res) => {
       });
 
       const studentIds = courseWithStudents.memberships.map((m) => m.userId);
-      await Promise.all(studentIds.map(async (sId) => {
-        const notification = await prisma.notification.create({
-          data: {
-            type: 'ANNOUNCEMENT',
-            title: 'New Assignment',
-            content: `New assignment: ${assignment.title} for ${course.code}`,
-            recipientId: sId,
-            actionUrl: `/courses/${id}`
-          }
-        });
-        const unreadCount = await prisma.notification.count({ where: { recipientId: sId, isRead: false } });
-        req.io.to(`user:${sId}`).emit('new-notification', { notification, unreadCount });
-      }));
+      await batchNotify(prisma, req.io, studentIds.map(sId => ({
+        type: 'ANNOUNCEMENT',
+        title: 'New Assignment',
+        content: `New assignment: ${assignment.title} for ${course.code}`,
+        recipientId: sId,
+        actionUrl: `/courses/${id}`
+      })));
     }
 
     res.status(201).json({ assignment });
@@ -612,19 +601,13 @@ exports.postAnnouncement = async (req, res) => {
       });
 
       const studentIds = courseWithStudents.memberships.map((m) => m.userId);
-      await Promise.all(studentIds.map(async (sId) => {
-        const notification = await prisma.notification.create({
-          data: {
-            type: 'ANNOUNCEMENT',
-            title: `Announcement in ${course.code}`,
-            content: content.substring(0, 50),
-            recipientId: sId,
-            actionUrl: `/courses/${id}`
-          }
-        });
-        const unreadCount = await prisma.notification.count({ where: { recipientId: sId, isRead: false } });
-        req.io.to(`user:${sId}`).emit('new-notification', { notification, unreadCount });
-      }));
+      await batchNotify(prisma, req.io, studentIds.map(sId => ({
+        type: 'ANNOUNCEMENT',
+        title: `Announcement in ${course.code}`,
+        content: content.substring(0, 50),
+        recipientId: sId,
+        actionUrl: `/courses/${id}`
+      })));
     }
 
     res.status(201).json({ message: announcement });
