@@ -145,22 +145,22 @@ exports.getOrCreateNanaSession = async (req, res) => {
       }
     };
 
-    // Look for an existing Nana session for this student
-    let conversation = await prisma.conversation.findFirst({
-      where: {
-        name: NANA_SESSION_MARKER,
-        type: 'DIRECT',
-        isActive: true,
-        participants: { some: { userId } }
-      },
-      include
-    });
-
-    // Fetch the authentic Nana Profile from the DB
-    let nanaProfile = await prisma.user.findFirst({
-      where: { role: 'NANA' },
-      select: { id: true, name: true, avatar: true }
-    });
+    // Look for existing Nana session and Nana profile in parallel
+    let [conversation, nanaProfile] = await Promise.all([
+      prisma.conversation.findFirst({
+        where: {
+          name: NANA_SESSION_MARKER,
+          type: 'DIRECT',
+          isActive: true,
+          participants: { some: { userId } }
+        },
+        include
+      }),
+      prisma.user.findFirst({
+        where: { role: 'NANA' },
+        select: { id: true, name: true, avatar: true }
+      })
+    ]);
 
     // If Nana is missing, create the system character automatically
     if (!nanaProfile) {
@@ -453,49 +453,32 @@ exports.getMessages = async (req, res) => {
       return res.status(403).json({ message: 'Access denied: Conversation deleted or hidden.' });
     }
 
-    // 2. Bare-Bones Message Fetch (Simplifying to identify 500 cause)
-    // REMOVED isDeleted filter temporarily to rule out missing column
-    const messages = await prisma.message.findMany({
-      where: {
-        conversationId: conversationId,
-        isDeleted: false,
-        createdAt: {
-          gt: participant.clearedAt || new Date(0)
-        }
-      },
-      include: {
-        sender: {
-          select: { id: true, name: true, avatar: true, role: true }
+    // 2. Fetch messages and conversation metadata in parallel
+    const [messages, conversation] = await Promise.all([
+      prisma.message.findMany({
+        where: {
+          conversationId,
+          isDeleted: false,
+          createdAt: { gt: participant.clearedAt || new Date(0) }
         },
-        replyTo: {
-          include: {
-            sender: { select: { id: true, name: true } }
-          }
+        include: {
+          sender: { select: { id: true, name: true, avatar: true, role: true } },
+          replyTo: { include: { sender: { select: { id: true, name: true } } } },
+          reactions: { include: { user: { select: { id: true, name: true } } } }
         },
-        reactions: {
-          include: {
-            user: { select: { id: true, name: true } }
+        orderBy: { createdAt: 'desc' },
+        skip: (parseInt(page) - 1) * parseInt(limit),
+        take: parseInt(limit)
+      }),
+      prisma.conversation.findUnique({
+        where: { id: conversationId },
+        include: {
+          participants: {
+            include: { user: { select: { id: true, name: true, avatar: true, role: true } } }
           }
         }
-        // DEFERRED: readReceipts (Managed via real-time logic for performance)
-      },
-      orderBy: { createdAt: 'desc' },
-      skip: (parseInt(page) - 1) * parseInt(limit),
-      take: parseInt(limit)
-    });
-
-    // 3. Simplified Conversation Metadata fetch
-    const conversation = await prisma.conversation.findUnique({
-      where: { id: conversationId },
-      include: {
-        participants: {
-          include: {
-            user: { select: { id: true, name: true, avatar: true, role: true } }
-          }
-        }
-        // DEFERRED: course (Potential heavy join with nested membership check)
-      }
-    });
+      })
+    ]);
 
     res.json({ 
       messages: messages.reverse(),
@@ -674,67 +657,49 @@ exports.markAsRead = async (req, res) => {
     const { conversationId } = req.params;
     const userId = req.user.id;
 
-    // In Prisma, we'd typically have a ReadReceipt model
-    // This part depends on how you want to handle "unread" messages
-    // For now, let's create read receipts for messages in this conversation
-    const messagesToMark = await prisma.message.findMany({
+    // Batch insert read receipts with raw SQL — avoids loading all messages into memory
+    await prisma.$executeRaw`
+      INSERT INTO "ReadReceipt" ("id", "userId", "messageId", "readAt")
+      SELECT gen_random_uuid()::text, ${userId}, "Message"."id", NOW()
+      FROM "Message"
+      WHERE "Message"."conversationId" = ${conversationId}
+        AND "Message"."senderId" != ${userId}
+        AND NOT EXISTS (
+          SELECT 1 FROM "ReadReceipt"
+          WHERE "ReadReceipt"."messageId" = "Message"."id"
+            AND "ReadReceipt"."userId" = ${userId}
+        )
+      ON CONFLICT DO NOTHING
+    `;
+
+    // Mark related notifications as read
+    await prisma.notification.updateMany({
       where: {
-        conversationId,
-        senderId: { not: userId },
-        readReceipts: {
-          none: {
-            userId: userId
-          }
-        }
-      }
+        recipientId: userId,
+        type: 'MESSAGE',
+        isRead: false,
+        message: { conversationId }
+      },
+      data: { isRead: true, readAt: new Date() }
     });
 
-    if (messagesToMark.length > 0) {
-      await prisma.readReceipt.createMany({
-        data: messagesToMark.map(m => ({
-          userId: userId,
-          messageId: m.id
-        })),
-        skipDuplicates: true
-      });
-      
-      // 2. ALSO mark related notifications as read so the unread badge count decrements correctly
-      await prisma.notification.updateMany({
-        where: {
-          recipientId: userId,
-          type: 'MESSAGE',
-          isRead: false,
-          message: {
-            conversationId: conversationId
-          }
-        },
-        data: {
-          isRead: true,
-          readAt: new Date()
-        }
-      });
-      
-      // Update the user's unread count via socket
-      if (req.io) {
-        // Refetch total unread notifications for the badge
-        const totalUnreadCount = await prisma.notification.count({
-          where: { recipientId: userId, isRead: false }
-        });
-
-        // Refetch unread messages specifically (if needed for some UI)
-        const unreadMessagesCount = await prisma.message.count({
+    // Update unread counts in parallel
+    if (req.io) {
+      const [totalUnreadCount, unreadMessagesCount] = await Promise.all([
+        prisma.notification.count({ where: { recipientId: userId, isRead: false } }),
+        prisma.message.count({
           where: {
             senderId: { not: userId },
-            readReceipts: { none: { userId: userId } },
-            conversation: { participants: { some: { userId: userId, isDeleted: false } }, isActive: true }
+            readReceipts: { none: { userId } },
+            conversation: { participants: { some: { userId, isDeleted: false } }, isActive: true }
           }
-        });
+        })
+      ]);
 
-        req.io.to(`user:${userId}`).emit('total-unread-chat-count', { 
-          count: unreadMessagesCount,
-          totalNotifications: totalUnreadCount
-        });
-      }
+      req.io.to(`user:${userId}`).emit('total-unread-chat-count', {
+        count: unreadMessagesCount,
+        totalNotifications: totalUnreadCount
+      });
     }
 
     res.json({ message: 'Messages marked as read' });
@@ -1109,40 +1074,31 @@ exports.markAllAsRead = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Find all conversations where user is a participant
-    const participantIn = await prisma.conversationParticipant.findMany({
-      where: { userId, isDeleted: false },
-      select: { conversationId: true }
+    // Batch insert read receipts for ALL unread messages — raw SQL avoids loading rows into memory
+    await prisma.$executeRaw`
+      INSERT INTO "ReadReceipt" ("id", "userId", "messageId", "readAt")
+      SELECT gen_random_uuid()::text, ${userId}, "Message"."id", NOW()
+      FROM "Message"
+      INNER JOIN "ConversationParticipant" CP ON CP."conversationId" = "Message"."conversationId"
+      WHERE CP."userId" = ${userId}
+        AND CP."isDeleted" = false
+        AND "Message"."senderId" != ${userId}
+        AND NOT EXISTS (
+          SELECT 1 FROM "ReadReceipt"
+          WHERE "ReadReceipt"."messageId" = "Message"."id"
+            AND "ReadReceipt"."userId" = ${userId}
+        )
+      ON CONFLICT DO NOTHING
+    `;
+
+    // Mark all related notifications as read
+    await prisma.notification.updateMany({
+      where: { recipientId: userId, type: 'MESSAGE', isRead: false },
+      data: { isRead: true, readAt: new Date() }
     });
 
-    const conversationIds = participantIn.map(p => p.conversationId);
-
-    // Find all unread messages in those conversations
-    const messagesToMark = await prisma.message.findMany({
-      where: {
-        conversationId: { in: conversationIds },
-        senderId: { not: userId },
-        readReceipts: {
-          none: {
-            userId: userId
-          }
-        }
-      }
-    });
-
-    if (messagesToMark.length > 0) {
-      await prisma.readReceipt.createMany({
-        data: messagesToMark.map(m => ({
-          userId: userId,
-          messageId: m.id
-        })),
-        skipDuplicates: true
-      });
-
-      // Update the user's unread count via socket
-      if (req.io) {
-        req.io.to(`user:${userId}`).emit('total-unread-chat-count', { count: 0 });
-      }
+    if (req.io) {
+      req.io.to(`user:${userId}`).emit('total-unread-chat-count', { count: 0 });
     }
 
     res.json({ message: 'All messages marked as read' });

@@ -389,11 +389,7 @@ const setupChatSockets = (io) => {
           
           (async () => {
              try {
-                // 1. Get recipients early to avoid ReferenceError
-                const chatParticipants = await prisma.conversationParticipant.findMany({
-                  where: { conversationId },
-                  select: { userId: true }
-                });
+                // Reuse chatParticipants already fetched at line 240
                 const recipients = chatParticipants.filter(p => p.userId !== realNanaId);
 
                 if (!recipients || recipients.length === 0) {
@@ -524,48 +520,36 @@ const setupChatSockets = (io) => {
     socket.on('mark-read', async (data) => {
       try {
         const { conversationId } = data;
-        console.log(`[NOTIF DEBUG] mark-read received for conv:${conversationId} by user:${socket.user.id}`);
 
-        const messagesToMark = await prisma.message.findMany({
-          where: {
-            conversationId,
-            senderId: { not: socket.user.id },
-            readReceipts: {
-              none: {
-                userId: socket.user.id
-              }
-            }
-          }
-        });
+        // Batch insert read receipts with raw SQL — avoids loading all messages
+        await prisma.$executeRaw`
+          INSERT INTO "ReadReceipt" ("id", "userId", "messageId", "readAt")
+          SELECT gen_random_uuid()::text, ${socket.user.id}, "Message"."id", NOW()
+          FROM "Message"
+          WHERE "Message"."conversationId" = ${conversationId}
+            AND "Message"."senderId" != ${socket.user.id}
+            AND NOT EXISTS (
+              SELECT 1 FROM "ReadReceipt"
+              WHERE "ReadReceipt"."messageId" = "Message"."id"
+                AND "ReadReceipt"."userId" = ${socket.user.id}
+            )
+          ON CONFLICT DO NOTHING
+        `;
 
-        console.log(`[NOTIF DEBUG] Marking ${messagesToMark.length} message(s) as read for user:${socket.user.id}`);
-        if (messagesToMark.length > 0) {
-          await prisma.readReceipt.createMany({
-            data: messagesToMark.map(m => ({
-              userId: socket.user.id,
-              messageId: m.id
-            })),
-            skipDuplicates: true
-          });
-        }
-
-        // Also mark related UI notifications as read for this user
-        const updatedNotifications = await prisma.notification.updateMany({
+        // Mark related notifications as read
+        await prisma.notification.updateMany({
           where: {
             recipientId: socket.user.id,
             isRead: false,
-            message: { conversationId: conversationId }
+            message: { conversationId }
           },
           data: { isRead: true, readAt: new Date() }
         });
 
-        console.log(`[NOTIF DEBUG] Marked ${updatedNotifications.count} notification(s) as read for user:${socket.user.id}`);
-        
-        // Always fetch and send updated count to the user's navbar badge to ensure perfect sync
+        // Send updated unread count
         const newCount = await prisma.notification.count({
           where: { recipientId: socket.user.id, isRead: false }
         });
-        console.log(`[NOTIF DEBUG] Emitting unread-count=${newCount} to room user:${socket.user.id}`);
         io.to(`user:${socket.user.id}`).emit('unread-count', { count: newCount });
 
         // Notify all participants in the conversation (including the sender's other devices)
