@@ -18,15 +18,7 @@ exports.getConversations = async (req, res) => {
     }
     console.log(`[getConversations] START for user: ${userId}`);
 
-    // Phase 1: Test DB connectivity with a lightweight ping
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-    } catch (dbErr) {
-      console.error('[getConversations] DB CONNECTIVITY FAILURE:', dbErr.message);
-      return res.status(503).json({ message: 'Database unavailable, please retry shortly.', error: dbErr.message });
-    }
-
-    // Phase 2: Fetch conversations
+    // Fetch conversations
     console.log('[getConversations] Fetching conversations from DB...');
     let conversations;
     try {
@@ -96,25 +88,30 @@ exports.getConversations = async (req, res) => {
       return conv;
     });
 
-    // Phase 4: Attach unread counts
+    // Phase 4: Attach unread counts (single query instead of N+1)
     console.log('[getConversations] Computing unread counts...');
     let conversationsWithUnread;
     try {
-      conversationsWithUnread = await Promise.all(conversations.map(async (conv) => {
-        const unreadCount = await prisma.message.count({
-          where: {
-            conversationId: conv.id,
-            senderId: { not: userId },
-            readReceipts: {
-              none: { userId: userId }
-            }
-          }
-        });
-        return { ...conv, unreadCount };
+      const convIds = conversations.map(c => c.id);
+      const unreadRows = convIds.length > 0 ? await prisma.$queryRaw`
+        SELECT "conversationId", COUNT(*)::int AS "unreadCount"
+        FROM "Message"
+        WHERE "conversationId" IN (${prisma.$join(convIds.map(id => prisma.$literal(id)))})
+          AND "senderId" != ${userId}
+          AND NOT EXISTS (
+            SELECT 1 FROM "ReadReceipt"
+            WHERE "ReadReceipt"."messageId" = "Message"."id"
+              AND "ReadReceipt"."userId" = ${userId}
+          )
+        GROUP BY "conversationId"
+      ` : [];
+      const unreadMap = Object.fromEntries(unreadRows.map(r => [r.conversationId, r.unreadCount]));
+      conversationsWithUnread = conversations.map(conv => ({
+        ...conv,
+        unreadCount: unreadMap[conv.id] || 0
       }));
     } catch (unreadErr) {
       console.error('[getConversations] PHASE 4 (unread counts) FAILED:', unreadErr.message);
-      // Gracefully degrade — return conversations without unread counts
       conversationsWithUnread = conversations.map(conv => ({ ...conv, unreadCount: 0 }));
     }
 

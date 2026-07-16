@@ -7,7 +7,6 @@ import { getSocket } from '../services/socket';
 import { CallProvider } from '../context/CallContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import { requestFirebaseNotificationPermission, onMessageListener } from '../config/firebase';
 import { pushAPI, warmupServer } from '../services/api';
 import { Toaster, toast } from 'react-hot-toast';
 import useAuthRedirect from '../hooks/useAuthRedirect';
@@ -107,6 +106,7 @@ function AppContent({ Component, pageProps }) {
         // Handle push token if authenticated
         if (isAuthenticated) {
           console.log('[FCM] Authentication detected, ensuring push registration...');
+          const { requestFirebaseNotificationPermission } = await import('../config/firebase');
           const token = await requestFirebaseNotificationPermission();
           if (token) {
             await pushAPI.updateFcmToken(token).catch(err => {
@@ -124,16 +124,18 @@ function AppContent({ Component, pageProps }) {
     // ── Foreground FCM Messages ──────────────────────────────────────────────
     let unsubFCM = () => {};
     if (isAuthenticated) {
-      unsubFCM = onMessageListener((payload) => {
-        console.log('[FCM] Foreground message received:', payload);
-        const { title, body } = payload.data || {};
-        if (title && body) {
-          toast(body, {
-            icon: '🔔',
-            duration: 6000,
-            style: { borderRadius: '16px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }
-          });
-        }
+      import('../config/firebase').then(({ onMessageListener }) => {
+        unsubFCM = onMessageListener((payload) => {
+          console.log('[FCM] Foreground message received:', payload);
+          const { title, body } = payload.data || {};
+          if (title && body) {
+            toast(body, {
+              icon: '🔔',
+              duration: 6000,
+              style: { borderRadius: '16px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }
+            });
+          }
+        });
       });
     }
 

@@ -20,7 +20,6 @@
     "@capacitor/push-notifications": "^8.0.3",
     "@capacitor/status-bar": "^8.0.2",
     "@heroicons/react": "^2.0.0",
-    "@types/react-window": "^1.8.8",
     "axios": "^1.15.0",
     "date-fns": "^2.30.0",
     "emoji-picker-react": "^4.18.0",
@@ -34,7 +33,6 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.0",
     "react-virtuoso": "^4.18.4",
-    "react-window": "^2.2.7",
     "socket.io-client": "^4.7.0"
   },
   "devDependencies": {

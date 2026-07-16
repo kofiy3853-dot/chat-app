@@ -6,7 +6,6 @@ import { authAPI, pushAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 import { initSocket } from '../services/socket';
-import { requestFirebaseNotificationPermission } from '../config/firebase';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { compressImage } from '../utils/helpers';
@@ -166,6 +165,7 @@ export default function Register() {
       login(user, token);
       
       try {
+        const { requestFirebaseNotificationPermission } = await import('../config/firebase');
         const fcmToken = await requestFirebaseNotificationPermission();
         if(fcmToken) {
          await pushAPI.updateFcmToken(fcmToken).catch(() => {});

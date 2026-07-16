@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { authAPI, pushAPI, warmupServer } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { requestFirebaseNotificationPermission } from '../config/firebase';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -58,11 +57,13 @@ export default function Login() {
       toast.success('Signed in successfully!');
 
       // Initialize FCM in background — completely non-blocking
-      requestFirebaseNotificationPermission()
-        .then(fcmToken => {
-          if (fcmToken) pushAPI.updateFcmToken(fcmToken).catch(() => {});
-        })
-        .catch(() => {});
+      import('../config/firebase').then(({ requestFirebaseNotificationPermission }) =>
+        requestFirebaseNotificationPermission()
+          .then(fcmToken => {
+            if (fcmToken) pushAPI.updateFcmToken(fcmToken).catch(() => {});
+          })
+          .catch(() => {})
+      );
 
     } catch (err) {
       console.error("LOGIN FRONTEND ERROR:", err.message);
