@@ -25,3 +25,4 @@ frontend/android/app/openJdk-25/
 *.db
 .mimocode/
 scratch/
+backend/tests/
