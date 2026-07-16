@@ -222,19 +222,17 @@ textarea[class*="border-none"]:focus {
 /* ══════════════════════════════════════════════════════════ */
 
 /* ══════════════════════════════════════════════════════════
-   PERFORMANCE: Disable heavy animations & GPU-expensive effects
-   Exclude typing-dots and intentional animations
+   PERFORMANCE: Reduce GPU-heavy effects on low-end devices
+   Only disable transitions; keep backdrop-filter and shadows intact
    ══════════════════════════════════════════════════════════ */
-*:not(.typing-dot):not(.animate-bounce):not(.animate-spin):not(.animate-pulse),
-*:not(.typing-dot):not(.animate-bounce):not(.animate-spin):not(.animate-pulse)::before,
-*:not(.typing-dot):not(.animate-bounce):not(.animate-spin):not(.animate-pulse)::after {
-  transition:                none !important;
-  transition-duration:       0ms !important;
-  transition-delay:          0ms !important;
-  backdrop-filter:           none !important;
-  box-shadow:                none !important;
-  -webkit-box-shadow:        none !important;
-  text-shadow:               none !important;
-  filter:                    drop-shadow(0) !important;
-  scroll-behavior:           auto !important;
+@media (prefers-reduced-motion: reduce) {
+  *:not(.typing-dot):not(.animate-bounce):not(.animate-spin):not(.animate-pulse),
+  *:not(.typing-dot):not(.animate-bounce):not(.animate-spin):not(.animate-pulse)::before,
+  *:not(.typing-dot):not(.animate-bounce):not(.animate-spin):not(.animate-pulse)::after {
+    transition:                none !important;
+    transition-duration:       0ms !important;
+    transition-delay:          0ms !important;
+    animation:                 none !important;
+    scroll-behavior:           auto !important;
+  }
 }
