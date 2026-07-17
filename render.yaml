@@ -31,7 +31,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRE
-        value: 7d
+        value: 24h
       # TURN Server (WebRTC)
       - key: TURN_SERVER_URL
         sync: false # Set manually in Render Dashboard
