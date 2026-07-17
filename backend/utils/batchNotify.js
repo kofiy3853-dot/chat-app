@@ -27,8 +27,34 @@ async function batchNotify(prisma, io, notifications) {
     skipDuplicates: false
   });
 
-  // 2. Batch fetch unread counts for all recipients in one grouped query
+  // 2. Fetch the just-created notifications with real IDs
   const recipientIds = [...new Set(notifications.map(n => n.recipientId))];
+  let createdNotifications = [];
+  try {
+    createdNotifications = await prisma.notification.findMany({
+      where: {
+        recipientId: { in: recipientIds },
+        createdAt: { gte: new Date(Date.now() - 5000) }
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        content: true,
+        recipientId: true,
+        senderId: true,
+        messageId: true,
+        actionUrl: true,
+        isRead: true,
+        createdAt: true
+      }
+    });
+  } catch (err) {
+    console.error('[batchNotify] Failed to fetch created notifications:', err.message);
+  }
+
+  // 3. Batch fetch unread counts for all recipients in one grouped query
   let unreadMap = new Map();
 
   try {
@@ -44,17 +70,24 @@ async function batchNotify(prisma, io, notifications) {
     }
   } catch (err) {
     console.error('[batchNotify] Unread count query failed:', err.message);
-    // Graceful degradation — emit with count 0
     for (const id of recipientIds) {
       unreadMap.set(id, 0);
     }
   }
 
-  // 3. Emit socket events per recipient (fire-and-forget, non-blocking)
+  // 4. Emit socket events per recipient with real DB IDs
   if (io) {
+    // Group created notifications by recipient for efficient lookup
+    const byRecipient = new Map();
+    for (const n of createdNotifications) {
+      if (!byRecipient.has(n.recipientId)) byRecipient.set(n.recipientId, []);
+      byRecipient.get(n.recipientId).push(n);
+    }
+
     for (const n of notifications) {
+      const created = byRecipient.get(n.recipientId)?.shift();
       io.to(`user:${n.recipientId}`).emit('new-notification', {
-        notification: {
+        notification: created || {
           id: `batch-${Date.now()}-${n.recipientId}`,
           type: n.type || 'MESSAGE',
           title: n.title,
