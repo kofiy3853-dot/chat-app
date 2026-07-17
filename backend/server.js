@@ -65,6 +65,10 @@ const ALLOWED_ORIGINS = [
   process.env.NODE_ENV !== 'production' && 'http://127.0.0.1:3000',
 ].filter(Boolean);
 
+if (ALLOWED_ORIGINS.length === 0) {
+  console.warn('[SECURITY] No FRONTEND_URL configured. CORS will block all cross-origin requests.');
+}
+
 // Global rate limiter: 100 requests per minute per IP
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
