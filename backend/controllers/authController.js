@@ -11,16 +11,16 @@ if (!process.env.DIRECT_URL && !process.env.DATABASE_URL) {
   console.error('[AUTH FATAL] No database URL configured! DB queries will fail.');
 }
 
-// Generate JWT token
+// Generate JWT token (default 24h, configurable via JWT_EXPIRE env)
 const generateToken = (user) => {
   if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET environment variable is not configured on this server.');
   }
-  return jwt.sign({ 
+  return jwt.sign({
     userId: user.id,
-    role: user.role 
+    role: user.role
   }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '7d'
+    expiresIn: process.env.JWT_EXPIRE || '24h'
   });
 };
 
@@ -89,63 +89,49 @@ const uploadToSupabase = require('../utils/uploadToSupabase');
 // Register new user
 exports.register = async (req, res) => {
   try {
-    console.log('[DEBUG] Incoming registration body:', JSON.stringify(req.body, null, 2));
-    console.log('[DEBUG] Incoming file:', req.file ? { name: req.file.originalname, size: req.file.size } : 'NONE');
-
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       const errorMsg = errors.array()[0].msg || 'Validation failed';
-      console.log(`[REGISTER DEBUG] Validation failed: ${errorMsg}`);
       return res.status(400).json({ message: errorMsg, errors: errors.array() });
     }
 
     let { email, password, name, studentId, staffId, department, role, faculty, level, phone, coursesTeaching } = req.body;
-    
+
     // Convert comma-separated string to array if needed (sent from frontend FormData)
     if (typeof coursesTeaching === 'string') {
       coursesTeaching = coursesTeaching.split(',').map(c => c.trim()).filter(c => c !== "");
     }
 
     const upperRole = role ? role.toUpperCase() : 'STUDENT';
-    
+
     // NANA Role Protection: Prevent spoofing the system agent
     if (upperRole === 'NANA') {
-      return res.status(403).json({ 
-        message: 'Access Denied. The NANA identity is a protected system agent and cannot be manually assigned.' 
+      return res.status(403).json({
+        message: 'Access Denied. The NANA identity is a protected system agent and cannot be manually assigned.'
       });
     }
 
     // Email domain restriction: ktu.edu.gh only (case insensitive)
     const normalizedEmail = email?.trim().toLowerCase();
     if (!normalizedEmail || !normalizedEmail.endsWith('@stu.ktu.edu.gh') && !normalizedEmail.endsWith('@staff.ktu.edu.gh') && !normalizedEmail.endsWith('@ktu.edu.gh')) {
-      return res.status(400).json({ 
-        message: 'Access Denied. Registration is restricted to KTU university emails (@stu.ktu.edu.gh, @staff.ktu.edu.gh, or @ktu.edu.gh).' 
+      return res.status(400).json({
+        message: 'Access Denied. Registration is restricted to KTU university emails (@stu.ktu.edu.gh, @staff.ktu.edu.gh, or @ktu.edu.gh).'
       });
     }
 
     // Role-specific validation
     if (!name?.trim() || !normalizedEmail || !password?.trim() || !department?.trim()) {
-      console.log('[REGISTER DEBUG] Core failure:', { 
-        name: !!name, 
-        email: !!normalizedEmail, 
-        password: !!password, 
-        department: !!department 
-      });
       return res.status(400).json({ message: 'Core profile details are mandatory. Please fill in all information.' });
     }
 
     if (upperRole === 'LECTURER') {
-      console.log('[REGISTER DEBUG] Lecturer check - staffId:', staffId, 'faculty:', faculty);
       if (!staffId?.trim()) return res.status(400).json({ message: 'Staff ID is required for lecturers.' });
       if (!faculty) return res.status(400).json({ message: 'Faculty is required.' });
     } else {
-      console.log('[REGISTER DEBUG] Student check - studentId:', studentId, 'faculty:', faculty, 'level:', level);
       if (!studentId?.trim()) return res.status(400).json({ message: 'Student ID is required.' });
       if (!faculty || !level) return res.status(400).json({ message: 'Faculty and Level are mandatory.' });
     }
 
-    // Profile picture check
-    console.log('[REGISTER DEBUG] File check:', req.file ? 'FILE PRESENT' : 'NO FILE');
     if (!req.file) {
       return res.status(400).json({ message: 'Profile picture is mandatory. Please upload an image.' });
     }
@@ -176,13 +162,11 @@ exports.register = async (req, res) => {
     }
 
     // Parallelize tasks
-    console.log('[REGISTER DEBUG] Starting upload and hash...');
     const [avatarUrl, hashedPassword] = await Promise.all([
       uploadToSupabase(req.file, 'upload'),
       bcrypt.hash(password, 10)
     ]);
-    console.log('[REGISTER DEBUG] Upload complete. avatarUrl:', avatarUrl ? 'OK' : 'FAILED');
-    
+
     if (!avatarUrl) {
       return res.status(500).json({ message: 'Failed to upload profile picture' });
     }
@@ -288,35 +272,31 @@ exports.login = async (req, res) => {
     });
 
     if (!user) {
-      console.log(`[LOGIN] User not found: ${normalizedEmail}`);
       // 400 = bad credentials (not a missing Bearer token — avoids client "session expired" handling)
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // REQUIREMENT 4: Password check
+    // Password check
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      console.log(`[LOGIN] Invalid password for: ${normalizedEmail}`);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // FEATURE: Fail-safe FCM token update (From Requirement 2 of previous task)
+    // Fail-safe FCM token update
     if (fcmToken) {
       try {
         await prisma.user.update({
           where: { id: user.id },
           data: { fcmToken: fcmToken }
         });
-        console.log(`[FCM] Token updated during login for user ${user.id}`);
       } catch (fcmError) {
-        console.warn(`[FCM] Could not update token: ${fcmError.message} (Likely missing DB column)`);
+        // Silent fail — FCM token is non-critical
       }
     }
 
     const token = generateToken(user);
     const { password: _, ...userWithoutPassword } = user;
 
-    console.log(`[LOGIN] Success: ${normalizedEmail}`);
     res.json({
       message: 'Login successful',
       token,
@@ -324,10 +304,7 @@ exports.login = async (req, res) => {
     });
 
   } catch (err) {
-    // REQUIREMENT 6: Log exact error in backend console
-    console.error('LOGIN ERROR:', err);
-
-    // REQUIREMENT 7: Mask internal error from the client
+    console.error('[AUTH] Login error');
     res.status(500).json({ message: 'Server error: An unexpected error occurred during login.' });
   }
 };

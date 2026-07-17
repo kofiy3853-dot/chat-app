@@ -9,6 +9,8 @@ const { Server } = require('socket.io');
 const { createAdapter } = require('@socket.io/redis-adapter');
 const { redisClient, connectRedis } = require('./utils/redis');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 // GLOBAL ERROR RECOVERY: Prevent silent crashes on Render
 process.on('unhandledRejection', (reason, promise) => {
@@ -45,38 +47,65 @@ const announcementRoutes = require('./routes/announcementRoutes');
 const anonymousRoutes = require('./routes/anonymousRoutes');
 
 const errorHandler = require('./middleware/errorHandler');
+const { authMiddleware, requireRole } = require('./middleware/authMiddleware');
 
 const app = express();
 
 
-// Allowed origin patterns
+// Warn if NODE_ENV is not set in production
+if (!process.env.NODE_ENV) {
+  console.warn('[SECURITY] NODE_ENV is not set. CORS restrictions may not apply. Set NODE_ENV=production for deployed environments.');
+}
+
+// Allowed origin patterns — only explicit origins from env, no hardcoded URLs
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL,
-  'https://chat-app-kappa-rose.vercel.app',
-  'https://social-networking-mu.vercel.app',
-  'https://chat-jdfqbgvhk-kofiy3853-dots-projects.vercel.app',
-  'https://chat-pkn4qz1mq-kofiy3853-dots-projects.vercel.app', // Added current Vercel deployment
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'http://192.168.23.126:3000',
+  process.env.ADDITIONAL_ORIGIN,
+  process.env.NODE_ENV !== 'production' && 'http://localhost:3000',
+  process.env.NODE_ENV !== 'production' && 'http://127.0.0.1:3000',
 ].filter(Boolean);
 
-// Request logging
+// Global rate limiter: 100 requests per minute per IP
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests, please try again later.' }
+});
+
+// Stricter limiter for auth endpoints: 10 requests per minute per IP
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many authentication attempts, please try again later.' }
+});
+
+// Request logging with response time tracking
 app.use((req, res, next) => {
-  console.log(`[REQUEST] ${req.method} ${req.path} | Origin: ${req.headers.origin || 'none'}`);
+  const start = Date.now();
+  const originalEnd = res.end;
+  res.end = function (...args) {
+    const duration = Date.now() - start;
+    const status = res.statusCode;
+    const level = status >= 500 ? 'ERROR' : status >= 400 ? 'WARN' : duration > 1000 ? 'SLOW' : 'INFO';
+    console.log(`[${level}] ${req.method} ${req.path} ${status} ${duration}ms`);
+    originalEnd.apply(this, args);
+  };
   next();
 });
 
-// Streamlined CORS Middleware
+// Streamlined CORS Middleware — only explicit origins, no environment bypass
 const corsOptions = {
   origin: (origin, callback) => {
-    // Permit requests with no origin (like mobile apps or curl)
+    // Permit requests with no origin (server-to-server, health checks)
     if (!origin) return callback(null, true);
-    
-    if (ALLOWED_ORIGINS.includes(origin) || process.env.NODE_ENV !== 'production') {
+
+    if (ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(`[CORS BLOCKED] ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -85,6 +114,8 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 };
 
+app.use(helmet());
+app.use(globalLimiter);
 app.use(cors(corsOptions));
 
 const server = http.createServer(app);
@@ -129,8 +160,8 @@ app.use((req, res, next) => {
 // Basic health check
 app.get('/health', (req, res) => res.status(200).json({ status: 'ok', timestamp: new Date(), version: '1.0.5-diagnostics' }));
 
-// Detailed diagnostic health check — exposes env var presence and live DB connectivity
-app.get('/health/detailed', async (req, res) => {
+// Detailed diagnostic health check — admin-only, exposes env var presence and live DB connectivity
+app.get('/health/detailed', authMiddleware, requireRole('ADMIN'), async (req, res) => {
   const checks = {
     timestamp: new Date(),
     env: {
@@ -152,7 +183,7 @@ app.get('/health/detailed', async (req, res) => {
     checks.database.schema.messageCount = countCheck;
   } catch (err) {
     checks.database.status = 'FAILED';
-    checks.database.error = err.message;
+    checks.database.error = process.env.NODE_ENV === 'production' ? 'Connection failed' : err.message;
     console.error('[DIAGNOSTIC FAILED]', err);
   }
 
@@ -162,8 +193,7 @@ app.get('/health/detailed', async (req, res) => {
 });
 
 // Routes
-console.log('Registering routes...');
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/courses', courseRoutes);
@@ -173,7 +203,6 @@ app.use('/api/status', statusRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/anonymous', anonymousRoutes);
-console.log('All routes registered successfully');
 
 // Socket.IO setup
 setupSockets(io);
@@ -181,8 +210,7 @@ setupSockets(io);
 // Catch-all API 404s
 app.use((req, res, next) => {
   if (req.originalUrl.startsWith('/api')) {
-    console.log(`[API 404] ${req.method} ${req.originalUrl}`);
-    return res.status(404).json({ message: `API route not found: ${req.originalUrl}` });
+    return res.status(404).json({ message: 'API route not found' });
   }
   next();
 });
@@ -194,6 +222,7 @@ const PORT = process.env.PORT || 5000;
 
 // Test database connection
 const { initializeNana } = require('./utils/nanaInitializer');
+const { startNotificationCleanup } = require('./utils/cleanupNotifications');
 
 async function startServer() {
   try {
@@ -204,6 +233,9 @@ async function startServer() {
       
       // Proactively initialize system accounts
       await initializeNana();
+
+      // Start periodic notification cleanup (old notifications > 30 days)
+      startNotificationCleanup();
       
       // Verify critical tables exist (non-blocking)
       try {
