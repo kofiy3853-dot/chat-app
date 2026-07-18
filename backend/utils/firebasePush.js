@@ -28,15 +28,16 @@ async function sendPushNotification(fcmTokens, payload) {
     console.log(`[FCM] Starting broadcast to ${validTokens.length} token(s) in ${tokenChunks.length} chunk(s).`);
 
     for (const chunk of tokenChunks) {
+      const badgeCount = payload.badgeCount || 0;
       const messagePayload = {
         // DATA-ONLY payload: This is the gold standard for reliable PWA notifications.
-        // It ensures the Service Worker 'onBackgroundMessage' ALWAYS fires, 
+        // It ensures the Service Worker 'onBackgroundMessage' ALWAYS fires,
         // giving us full control over notification display, grouping, and deep-linking.
         data: {
           title: payload.title || 'Campus Hub',
           body: payload.message || 'New notification',
           url: payload.url || '/',
-          unreadCount: String(payload.badgeCount || 0),
+          unreadCount: String(badgeCount),
           ...(payload.messageId ? { messageId: String(payload.messageId) } : {}),
           ...(payload.extraData
             ? Object.fromEntries(
@@ -49,12 +50,15 @@ async function sendPushNotification(fcmTokens, payload) {
         tokens: chunk,
         android: {
           priority: 'high',
-          // Note: When using data-only, 'android.notification' is ignored, 
-          // but priority helps delivery.
         },
         webpush: {
           headers: {
             Urgency: 'high'
+          },
+          notification: {
+            badge: badgeCount > 0 ? badgeCount : undefined,
+            tag: payload.url || '/',
+            renotify: true
           },
           fcmOptions: {
             link: payload.url || '/'
