@@ -1,6 +1,6 @@
 // Firebase Cloud Messaging Service Worker (compat SDK)
-// This is Firebase's default SW path — handles background push only.
-// The app's main SW (sw.js) handles caching and offline separately.
+// Handles background push notifications with sound and vibration.
+// Data-only payloads force this handler to fire, giving us full control.
 
 importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-compat.js');
@@ -16,13 +16,9 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background messages — FCM shows the notification natively (with sound).
-// This handler only runs for data-only messages (no notification field in payload).
+// Handle background messages — showNotification() plays default browser sound automatically.
 messaging.onBackgroundMessage((payload) => {
   console.log('[FCM-SW] Background message received:', payload);
-
-  // If the payload has a notification field, FCM already showed it — skip duplicate
-  if (payload.notification) return;
 
   const title = payload.data?.title || 'Campus Hub';
   const body = payload.data?.body || 'New message received!';
@@ -36,7 +32,6 @@ messaging.onBackgroundMessage((payload) => {
     tag: url,
     renotify: true,
     requireInteraction: true,
-    silent: false,
     data: { url },
     actions: [
       { action: 'open', title: 'Open' },
@@ -44,6 +39,8 @@ messaging.onBackgroundMessage((payload) => {
     ]
   };
 
+  // showNotification() plays the browser/OS default notification sound.
+  // Do NOT set silent:true — that would suppress the sound.
   return self.registration.showNotification(title, options);
 });
 

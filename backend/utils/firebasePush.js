@@ -34,17 +34,8 @@ async function sendPushNotification(fcmTokens, payload) {
       const url = payload.url || '/';
 
       const messagePayload = {
-        // Combined notification+data: notification field gives native sound/vibration,
-        // data field ensures SW onBackgroundMessage still fires for custom handling.
-        notification: {
-          title,
-          body,
-          icon: '/icons/icon-192.png',
-          badge: '/icons/icon-192.png',
-          click_action: url,
-          tag: url,
-          renotify: true
-        },
+        // DATA-ONLY: no notification field — forces SW onBackgroundMessage to fire,
+        // which uses showNotification() to play the browser's default sound.
         data: {
           title,
           body,
@@ -62,26 +53,11 @@ async function sendPushNotification(fcmTokens, payload) {
         tokens: chunk,
         android: {
           priority: 'high',
-          notification: {
-            channelId: 'campus-chat-messages',
-            sound: 'default',
-            vibrateTimingsMillis: [0, 250, 250, 250],
-            defaultVibrateTimings: false,
-            clickAction: { action: 'OPEN', intentAction: 'android.intent.action.VIEW' }
-          }
+          ttl: 0
         },
         webpush: {
           headers: {
             Urgency: 'high'
-          },
-          notification: {
-            title,
-            body,
-            badge: badgeCount > 0 ? badgeCount : undefined,
-            icon: '/icons/icon-192.png',
-            tag: url,
-            renotify: true,
-            requireInteraction: true
           },
           fcmOptions: {
             link: url
