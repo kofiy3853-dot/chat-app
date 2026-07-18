@@ -34,8 +34,16 @@ async function sendPushNotification(fcmTokens, payload) {
       const url = payload.url || '/';
 
       const messagePayload = {
-        // DATA-ONLY: no notification field — forces SW onBackgroundMessage to fire,
-        // which uses showNotification() to play the browser's default sound.
+        // notification field: makes Android/iOS wake screen + play sound natively
+        // data field: passes URL and metadata for deep linking on click
+        notification: {
+          title,
+          body,
+          icon: '/icons/icon-192.png',
+          click_action: url,
+          tag: url,
+          renotify: true
+        },
         data: {
           title,
           body,
@@ -53,11 +61,28 @@ async function sendPushNotification(fcmTokens, payload) {
         tokens: chunk,
         android: {
           priority: 'high',
-          ttl: 0
+          ttl: 0,
+          notification: {
+            sound: 'default',
+            clickAction: { action: 'OPEN', intentAction: 'android.intent.action.VIEW' }
+          }
         },
         webpush: {
           headers: {
             Urgency: 'high'
+          },
+          notification: {
+            title,
+            body,
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png',
+            tag: url,
+            renotify: true,
+            requireInteraction: true,
+            actions: [
+              { action: 'open', title: 'Open' },
+              { action: 'dismiss', title: 'Dismiss' }
+            ]
           },
           fcmOptions: {
             link: url

@@ -15,30 +15,12 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ─── FIREBASE PUSH NOTIFICATIONS ──────────────────────────────────────────────
-messaging.onBackgroundMessage((payload) => {
-  console.log('[SW] Background push received:', payload);
+// ─── FIREBASE PUSH: notification field in FCM payload handles display natively ─
+// FCM shows the notification with sound, vibration, and screen wake.
+// The SW only needs to handle notificationclick for deep linking.
+// onBackgroundMessage is NOT used — FCM handles display via the notification field.
 
-  const title = payload.data?.title || 'Campus Hub';
-  const body = payload.data?.body || 'New message received!';
-  const url = payload.data?.url || '/';
-
-  return self.registration.showNotification(title, {
-    body,
-    icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
-    vibrate: [0, 300, 200, 300, 200, 300],
-    tag: url,
-    renotify: true,
-    requireInteraction: true,
-    data: { url },
-    actions: [
-      { action: 'open', title: 'Open' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ]
-  });
-});
-
+// ─── NOTIFICATION CLICK ───────────────────────────────────────────────────────
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   if (event.action === 'dismiss') return;
@@ -57,7 +39,7 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 // ─── CACHING ──────────────────────────────────────────────────────────────────
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const APP_CACHE = `app-cache-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-cache-${CACHE_VERSION}`;
 const PAGE_CACHE = `page-cache-${CACHE_VERSION}`;
@@ -73,7 +55,6 @@ const PRECACHE_URLS = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(APP_CACHE).then(cache => {
-      console.log("[SW] Pre-caching core assets");
       return cache.addAll(PRECACHE_URLS).catch(err => {
         console.warn("[SW] Pre-cache partial failure:", err);
       });
@@ -102,7 +83,6 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
 
-  // 1. Navigation: Network-first, fall back to cache
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -112,16 +92,12 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => {
-          return caches.match(event.request).then(cached => {
-            if (cached) return cached;
-            return caches.match("/");
-          });
+          return caches.match(event.request).then(cached => cached || caches.match("/"));
         })
     );
     return;
   }
 
-  // 2. Next.js static chunks: Cache-first
   if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
       caches.match(event.request).then(cached => {
@@ -138,7 +114,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3. Static assets: Cache-first
   if (url.origin === self.origin && (
     url.pathname.includes('/icons/') ||
     url.pathname.includes('/sounds/') ||
@@ -159,16 +134,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 4. API & Socket: Network-only
   if (url.pathname.includes('/api/') || url.pathname.includes('/socket.io/')) return;
-
-  // 5. HMR: Skip
   if (url.pathname.includes('/_next/webpack-hmr')) return;
-
-  // 6. Range requests: Skip
   if (event.request.headers.has('range')) return;
 
-  // 7. Everything else: Stale-while-revalidate
   event.respondWith(
     caches.match(event.request).then(cached => {
       const fetchPromise = fetch(event.request).then(response => {
