@@ -151,12 +151,15 @@ function AppContent({ Component, pageProps }) {
       setTimeout(() => { loader.style.display = 'none'; loader.remove?.(); }, 500);
     }
 
-    const clearBadge = () => {
-      if ('clearAppBadge' in navigator) {
-        navigator.clearAppBadge().catch(() => {});
-      }
+    const setBadge = (count) => {
+      try {
+        if ('setAppBadge' in navigator) {
+          if (count > 0) navigator.setAppBadge(count).catch(() => {});
+          else navigator.clearAppBadge().catch(() => {});
+        }
+      } catch {}
     };
-    clearBadge();
+    const clearBadge = () => setBadge(0);
     window.addEventListener('focus', clearBadge);
 
     return () => {
@@ -182,6 +185,9 @@ function AppContent({ Component, pageProps }) {
       const msgId = msg.id || msg.tempId;
       if (msgId && notifiedIdsRef.current.includes(msgId)) return;
       if (msgId) notifiedIdsRef.current = [msgId, ...notifiedIdsRef.current].slice(0, 50);
+
+      // Set app badge for new messages
+      try { if ('setAppBadge' in navigator) navigator.setAppBadge(1).catch(() => {}); } catch {}
 
       playNotificationSound();
       toast.custom((t) => (

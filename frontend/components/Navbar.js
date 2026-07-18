@@ -53,10 +53,14 @@ export default function Navbar() {
         // Live updates from socket
         socket.on('new-notification', (data) => {
           setUnreadCount(data.unreadCount);
+          // Set app badge
+          try { if ('setAppBadge' in navigator) { if (data.unreadCount > 0) navigator.setAppBadge(data.unreadCount).catch(() => {}); else navigator.clearAppBadge().catch(() => {}); } } catch {}
         });
 
         socket.on('unread-count', (data) => {
           setUnreadCount(data.count);
+          // Set app badge
+          try { if ('setAppBadge' in navigator) { if (data.count > 0) navigator.setAppBadge(data.count).catch(() => {}); else navigator.clearAppBadge().catch(() => {}); } } catch {}
         });
 
         // Add handler for new messages across any conversation

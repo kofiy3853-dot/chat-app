@@ -184,10 +184,11 @@ messaging.onBackgroundMessage((payload) => {
     }
 
     // Update app badge if supported (iOS/Android/Desktop Chrome)
-    if ('setAppBadge' in navigator && unreadCount > 0) {
-      tasks.push(navigator.setAppBadge(unreadCount).catch(() => {}));
-    } else if ('clearAppBadge' in navigator && unreadCount === 0) {
-      tasks.push(navigator.clearAppBadge().catch(() => {}));
+    const reg = self.registration;
+    if (reg && 'setAppBadge' in reg && unreadCount > 0) {
+      tasks.push(reg.setAppBadge(unreadCount).catch(() => {}));
+    } else if (reg && 'clearAppBadge' in reg && unreadCount === 0) {
+      tasks.push(reg.clearAppBadge().catch(() => {}));
     }
     
     return Promise.all(tasks);
