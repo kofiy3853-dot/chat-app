@@ -10,7 +10,6 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Check if Firebase config is properly set
 const isFirebaseConfigured = Object.values(firebaseConfig).every(val => val);
 
 let app;
@@ -24,22 +23,12 @@ if (isFirebaseConfigured) {
   }
 }
 
-/** FCM needs its own SW — we register firebase-messaging-sw.js for messaging. */
 async function getFirebaseMessagingServiceWorkerRegistration() {
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return undefined;
   try {
-    // Our single sw.js handles both caching AND Firebase messaging
     const reg = await navigator.serviceWorker.getRegistration('/sw.js');
     if (reg) return reg;
     return await navigator.serviceWorker.register('/sw.js');
-  } catch {
-    return undefined;
-  }
-});
-    if (fcmSw) return fcmSw;
-
-    // Fallback: register it
-    return await navigator.serviceWorker.register('/firebase-messaging-sw.js');
   } catch {
     return undefined;
   }
@@ -71,9 +60,7 @@ export const requestFirebaseNotificationPermission = async () => {
 
     const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY?.trim();
     if (!vapidKey) {
-      console.warn(
-        '[FCM] NEXT_PUBLIC_FIREBASE_VAPID_KEY is missing. Add it in .env.local (Firebase Console → Project settings → Cloud Messaging → Web Push certificates).'
-      );
+      console.warn('[FCM] NEXT_PUBLIC_FIREBASE_VAPID_KEY is missing.');
       return null;
     }
 
@@ -105,12 +92,9 @@ export const requestFirebaseNotificationPermission = async () => {
     return token || null;
   } catch (error) {
     if (isExpectedFcmFailure(error)) {
-      console.warn(
-        '[FCM] Push token unavailable (browser/OS may block push, another service worker may own the page, or notifications are off). App works without push.',
-        error?.message || error
-      );
+      console.warn('[FCM] Push token unavailable:', error?.message || error);
     } else {
-      console.warn('[FCM] Unexpected error while getting token:', error?.message || error);
+      console.warn('[FCM] Unexpected error:', error?.message || error);
     }
     return null;
   }
@@ -119,10 +103,8 @@ export const requestFirebaseNotificationPermission = async () => {
 export const onMessageListener = (callback) => {
   try {
     if (!isFirebaseConfigured || !app) {
-      console.warn('Firebase not configured for message listening.');
       return () => {};
     }
-
     if (messaging) {
       return onMessage(messaging, callback);
     }
