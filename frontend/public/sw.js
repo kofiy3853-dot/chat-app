@@ -1,15 +1,18 @@
 importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-compat.js');
 
-firebase.initializeApp({
+// Firebase config is injected at build time via __FIREBASE_CONFIG__
+// Falls back to hardcoded values for service worker context
+const FIREBASE_CONFIG = self.__FIREBASE_CONFIG__ || {
   apiKey: "AIzaSyAOtUMkW1zGB1OJKpfUqU2QzHrcqJWxGZg",
   authDomain: "acoustic-arch-373523.firebaseapp.com",
   projectId: "acoustic-arch-373523",
   storageBucket: "acoustic-arch-373523.firebasestorage.app",
   messagingSenderId: "165706271744",
   appId: "1:165706271744:web:4d1f86939d13ddb2479ce5"
-});
+};
 
+firebase.initializeApp(FIREBASE_CONFIG);
 
 const messaging = firebase.messaging();
 

@@ -1,6 +1,7 @@
 node_modules/
 .env
 .env.local
+.env*.local
 .next/
 dist/
 build/
@@ -26,3 +27,5 @@ frontend/android/app/openJdk-25/
 .mimocode/
 scratch/
 backend/tests/
+RENDER_SETUP_QUICK.txt
+RENDER_ENV_SETUP.md
