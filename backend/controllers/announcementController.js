@@ -53,51 +53,39 @@ exports.createAnnouncement = async (req, res) => {
       }
     });
 
-    // Create notifications for subscribers/targets
-    const targetFilter = {};
-    if (!targetAll) {
-      if (targetCourseId) {
-        targetFilter.memberships = { some: { courseId: targetCourseId } };
-      } else if (targetDepartment) {
-        targetFilter.department = targetDepartment;
-      }
-    }
+    // Create a SINGLE broadcast notification (recipientId = null)
+    if (targetAll) {
+      // Campus-wide: single broadcast notification
+      await prisma.notification.create({
+        data: {
+          type: 'ANNOUNCEMENT',
+          title: `Campus Announcement: ${title}`,
+          content: content.substring(0, 150),
+          senderId: userId
+        }
+      });
 
-    const usersToNotify = await prisma.user.findMany({
-      where: targetFilter,
-      select: { id: true, fcmToken: true }
-    });
-
-    if (usersToNotify.length > 0) {
-      const notifsData = usersToNotify.map(u => ({
-        recipientId: u.id,
-        type: 'ANNOUNCEMENT',
-        title: `Campus Announcement: ${title}`,
-        content: content.substring(0, 150),
-        senderId: userId
-      }));
-
-      await prisma.notification.createMany({ data: notifsData });
-
-      // 1. Socket Emits
+      // Broadcast to all connected users
       if (req.io) {
-        usersToNotify.forEach(u => {
-          req.io.to(`user:${u.id}`).emit('new-notification', {
-            notification: {
-              type: 'ANNOUNCEMENT',
-              title: `Campus Announcement: ${title}`,
-              content: content.substring(0, 150),
-              createdAt: new Date(),
-              sender: { name: announcement.user.name, avatar: announcement.user.avatar }
-            }
-          });
+        req.io.to('broadcast').emit('new-notification', {
+          notification: {
+            type: 'ANNOUNCEMENT',
+            title: `Campus Announcement: ${title}`,
+            content: content.substring(0, 150),
+            createdAt: new Date(),
+            sender: { name: announcement.user.name, avatar: announcement.user.avatar }
+          }
         });
       }
 
-      // FCM Push
+      // FCM Push to all users with tokens
       try {
         const { sendPushNotification } = require('../utils/firebasePush');
-        const tokens = usersToNotify.map(u => u.fcmToken).filter(token => !!token);
+        const allUsers = await prisma.user.findMany({
+          where: { id: { not: userId } },
+          select: { fcmToken: true }
+        });
+        const tokens = allUsers.map(u => u.fcmToken).filter(token => !!token);
         if (tokens.length > 0) {
           await sendPushNotification(tokens, {
             title: `📢 KTU Announcement`,
@@ -108,6 +96,62 @@ exports.createAnnouncement = async (req, res) => {
         }
       } catch (fcmErr) {
         console.error('[FCM] Announcement error:', fcmErr);
+      }
+    } else {
+      // Targeted: per-user notifications for specific course/department
+      const targetFilter = {};
+      if (targetCourseId) {
+        targetFilter.memberships = { some: { courseId: targetCourseId } };
+      } else if (targetDepartment) {
+        targetFilter.department = targetDepartment;
+      }
+
+      const usersToNotify = await prisma.user.findMany({
+        where: targetFilter,
+        select: { id: true, fcmToken: true }
+      });
+
+      if (usersToNotify.length > 0) {
+        await prisma.notification.createMany({
+          data: usersToNotify.map(u => ({
+            recipientId: u.id,
+            type: 'ANNOUNCEMENT',
+            title: `Campus Announcement: ${title}`,
+            content: content.substring(0, 150),
+            senderId: userId
+          }))
+        });
+
+        // Emit to each targeted user
+        if (req.io) {
+          for (const u of usersToNotify) {
+            req.io.to(`user:${u.id}`).emit('new-notification', {
+              notification: {
+                type: 'ANNOUNCEMENT',
+                title: `Campus Announcement: ${title}`,
+                content: content.substring(0, 150),
+                createdAt: new Date(),
+                sender: { name: announcement.user.name, avatar: announcement.user.avatar }
+              }
+            });
+          }
+        }
+
+        // FCM Push
+        try {
+          const { sendPushNotification } = require('../utils/firebasePush');
+          const tokens = usersToNotify.map(u => u.fcmToken).filter(token => !!token);
+          if (tokens.length > 0) {
+            await sendPushNotification(tokens, {
+              title: `📢 KTU Announcement`,
+              message: title,
+              url: '/activity',
+              extraData: { type: 'ANNOUNCEMENT' }
+            });
+          }
+        } catch (fcmErr) {
+          console.error('[FCM] Announcement error:', fcmErr);
+        }
       }
     }
 

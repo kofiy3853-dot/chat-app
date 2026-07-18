@@ -158,7 +158,7 @@ exports.getNotifications = async (req, res) => {
     console.log(`[NOTIF] Raw SQL fetch for user: ${userId}, Page: ${p}, Offset: ${offset}, Limit: ${l}`);
 
     // Use raw SQL to completely bypass Prisma schema mapping.
-    // This is immune to column mismatches, missing migrations, and broken relations in production.
+    // Includes both user-specific notifications AND broadcast notifications (recipientId = null).
     const notifications = await prisma.$queryRawUnsafe(`
       SELECT
         n.id,
@@ -181,7 +181,7 @@ exports.getNotifications = async (req, res) => {
       FROM "Notification" n
       LEFT JOIN "User" u ON u.id = n."senderId"
       LEFT JOIN "Message" m ON m.id = n."messageId"
-      WHERE n."recipientId" = $1
+      WHERE n."recipientId" = $1 OR n."recipientId" IS NULL
       ORDER BY n."createdAt" DESC
       LIMIT $2 OFFSET $3
     `, userId, l, offset);
@@ -224,32 +224,48 @@ exports.getNotifications = async (req, res) => {
   }
 };
 
-// Get unread notification count
+// Get unread notification count (user-specific + broadcast)
 exports.getUnreadCount = async (req, res) => {
   try {
-    const count = await prisma.notification.count({
+    const userId = req.user.id;
+
+    // Count user-specific unread notifications
+    const userUnread = await prisma.notification.count({
       where: {
-        recipientId: req.user.id,
+        recipientId: userId,
         isRead: false
       }
     });
 
-    res.json({ count });
+    // Count broadcast notifications (recipientId = null)
+    const broadcastUnread = await prisma.notification.count({
+      where: {
+        recipientId: null,
+        isRead: false
+      }
+    });
+
+    res.json({ count: userUnread + broadcastUnread });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-// Mark notifications as read
+// Mark notifications as read (user-specific + broadcast)
 exports.markNotificationsAsRead = async (req, res) => {
   try {
     const { notificationIds } = req.body;
+    const userId = req.user.id;
 
     if (notificationIds && Array.isArray(notificationIds)) {
+      // Mark specific notifications as read
       await prisma.notification.updateMany({
         where: {
           id: { in: notificationIds },
-          recipientId: req.user.id
+          OR: [
+            { recipientId: userId },
+            { recipientId: null }
+          ]
         },
         data: {
           isRead: true,
@@ -257,11 +273,13 @@ exports.markNotificationsAsRead = async (req, res) => {
         }
       });
     } else {
-      // Mark all as read
+      // Mark all as read — both user-specific and broadcast
       await prisma.notification.updateMany({
         where: {
-          recipientId: req.user.id,
-          isRead: false
+          OR: [
+            { recipientId: userId, isRead: false },
+            { recipientId: null, isRead: false }
+          ]
         },
         data: {
           isRead: true,
@@ -272,10 +290,13 @@ exports.markNotificationsAsRead = async (req, res) => {
 
     // Grab the new count and notify the Navbar badge!
     if (req.io) {
-      const newCount = await prisma.notification.count({
-        where: { recipientId: req.user.id, isRead: false }
+      const userUnread = await prisma.notification.count({
+        where: { recipientId: userId, isRead: false }
       });
-      req.io.to(`user:${req.user.id}`).emit('unread-count', { count: newCount });
+      const broadcastUnread = await prisma.notification.count({
+        where: { recipientId: null, isRead: false }
+      });
+      req.io.to(`user:${userId}`).emit('unread-count', { count: userUnread + broadcastUnread });
     }
 
     res.json({ message: 'Notifications marked as read' });

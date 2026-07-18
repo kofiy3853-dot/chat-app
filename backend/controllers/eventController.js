@@ -79,52 +79,48 @@ exports.createEvent = async (req, res) => {
       }
     });
 
-    // 5. Notify all users via high-performance batch creation
-    const allUsers = await prisma.user.findMany({
-      where: { id: { not: req.user.id } },
-      select: { id: true, fcmToken: true }
+    // 5. Create a SINGLE broadcast notification (recipientId = null)
+    const broadcastNotification = await prisma.notification.create({
+      data: {
+        type: 'SYSTEM',
+        title: `New ${category.toLowerCase()} event`,
+        content: `${req.user.name} created: ${title}`,
+        actionUrl: '/events'
+      }
     });
 
-    if (allUsers.length > 0) {
-      await prisma.notification.createMany({
-        data: allUsers.map(u => ({
-          type: 'SYSTEM',
-          title: `New ${category.toLowerCase()} event`,
-          content: `${req.user.name} created: ${title}`,
-          recipientId: u.id,
-          actionUrl: `/events`
-        })),
-        skipDuplicates: true
+    // Broadcast to all connected users via single room emit
+    if (req.io) {
+      req.io.to('broadcast').emit('new-notification', {
+        notification: {
+          ...broadcastNotification,
+          sender: { id: req.user.id, name: req.user.name }
+        },
+        unreadCount: 'refresh'
       });
+    }
 
-      // Emit sockets in background
-      if (req.io) {
-        allUsers.forEach(u => {
-          req.io.to(`user:${u.id}`).emit('new-notification', { 
-            notification: { title: `New ${category} event`, content: title },
-            unreadCount: 'refresh'
-          });
+    // 6. Send FCM Push Notifications to users with tokens
+    try {
+      const { sendPushNotification } = require('../utils/firebasePush');
+      const allUsers = await prisma.user.findMany({
+        where: { id: { not: req.user.id } },
+        select: { fcmToken: true }
+      });
+      const tokens = allUsers
+        .map(u => u.fcmToken)
+        .filter(token => !!token);
+
+      if (tokens.length > 0) {
+        await sendPushNotification(tokens, {
+          title: `🗓️ New Event: ${title}`,
+          message: `${req.user.name} posted a new ${category.toLowerCase()} event.`,
+          url: '/events',
+          extraData: { type: 'EVENT', eventId: event.id }
         });
       }
-
-      // 6. Send FCM Push Notifications
-      try {
-        const { sendPushNotification } = require('../utils/firebasePush');
-        const tokens = allUsers
-          .map(u => u.fcmToken)
-          .filter(token => !!token);
-
-        if (tokens.length > 0) {
-          await sendPushNotification(tokens, {
-            title: `🗓️ New Event: ${title}`,
-            message: `${req.user.name} posted a new ${category.toLowerCase()} event.`,
-            url: '/events',
-            extraData: { type: 'EVENT', eventId: event.id }
-          });
-        }
-      } catch (fcmErr) {
-        console.error('[FCM] Event creation push error:', fcmErr);
-      }
+    } catch (fcmErr) {
+      console.error('[FCM] Event creation push error:', fcmErr);
     }
 
     res.status(201).json(event);
@@ -134,27 +130,31 @@ exports.createEvent = async (req, res) => {
   }
 };
 
-// Join/Leave event
+// Join/Leave event (transactional to prevent race conditions)
 exports.toggleJoinEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
     const userId = req.user.id;
 
-    const existingParticipant = await prisma.eventParticipant.findUnique({
-      where: { eventId_userId: { eventId, userId } }
-    });
-
-    if (existingParticipant) {
-      await prisma.eventParticipant.delete({
+    const result = await prisma.$transaction(async (tx) => {
+      const existingParticipant = await tx.eventParticipant.findUnique({
         where: { eventId_userId: { eventId, userId } }
       });
-      res.json({ message: 'Left event', isJoined: false });
-    } else {
-      await prisma.eventParticipant.create({
-        data: { eventId, userId }
-      });
-      res.json({ message: 'Joined event', isJoined: true });
-    }
+
+      if (existingParticipant) {
+        await tx.eventParticipant.delete({
+          where: { eventId_userId: { eventId, userId } }
+        });
+        return { message: 'Left event', isJoined: false };
+      } else {
+        await tx.eventParticipant.create({
+          data: { eventId, userId }
+        });
+        return { message: 'Joined event', isJoined: true };
+      }
+    });
+
+    res.json(result);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

@@ -62,10 +62,10 @@ const setupChatSockets = (io) => {
     // Join broadcast room for platform-wide announcements/events
     socket.join('broadcast');
     
-    // Send initial notification count (user-specific + broadcast)
+    // Send initial notification count (user-specific + broadcast via recipientId: null)
     Promise.all([
       prisma.notification.count({ where: { recipientId: socket.user.id, isRead: false } }),
-      prisma.notification.count({ where: { isBroadcast: true, isRead: false } })
+      prisma.notification.count({ where: { recipientId: null, isRead: false } })
     ]).then(([userUnread, broadcastUnread]) => {
       const count = userUnread + broadcastUnread;
       console.log(`[NOTIF DEBUG] Sending initial unread-count=${count} to user:${socket.user.id}`);
@@ -549,10 +549,10 @@ const setupChatSockets = (io) => {
           data: { isRead: true, readAt: new Date() }
         });
 
-        // Send updated unread count (user-specific + broadcast)
+        // Send updated unread count (user-specific + broadcast via recipientId: null)
         const [newUserCount, newBroadcastCount] = await Promise.all([
           prisma.notification.count({ where: { recipientId: socket.user.id, isRead: false } }),
-          prisma.notification.count({ where: { isBroadcast: true, isRead: false } })
+          prisma.notification.count({ where: { recipientId: null, isRead: false } })
         ]);
         io.to(`user:${socket.user.id}`).emit('unread-count', { count: newUserCount + newBroadcastCount });
 
