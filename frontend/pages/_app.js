@@ -123,17 +123,9 @@ function AppContent({ Component, pageProps }) {
             });
           }
 
-          // Set up foreground FCM listener AFTER messaging is initialized
+          // Set up foreground FCM listener — log only, no toast (socket handles that)
           unsubFCM = onMessageListener((payload) => {
             console.log('[FCM] Foreground message received:', payload);
-            const { title, body } = payload.data || {};
-            if (title && body) {
-              toast(body, {
-                icon: '🔔',
-                duration: 6000,
-                style: { borderRadius: '16px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }
-              });
-            }
           });
         }
       } catch (err) {
