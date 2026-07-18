@@ -158,15 +158,12 @@ function AppContent({ Component, pageProps }) {
         }
       } catch {}
     };
-    const clearBadge = () => setBadge(0);
-    window.addEventListener('focus', clearBadge);
 
     return () => {
       unsubFCM();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('focus', clearBadge);
     };
   }, [isAuthenticated]);
 
@@ -185,7 +182,7 @@ function AppContent({ Component, pageProps }) {
       if (msgId && notifiedIdsRef.current.includes(msgId)) return;
       if (msgId) notifiedIdsRef.current = [msgId, ...notifiedIdsRef.current].slice(0, 50);
 
-      // Set app badge for new messages
+      // Set app badge immediately (Navbar corrects to actual count shortly after)
       try { if ('setAppBadge' in navigator) navigator.setAppBadge(1).catch(() => {}); } catch {}
 
       playNotificationSound();
