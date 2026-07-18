@@ -29,14 +29,26 @@ async function sendPushNotification(fcmTokens, payload) {
 
     for (const chunk of tokenChunks) {
       const badgeCount = payload.badgeCount || 0;
+      const title = payload.title || 'Campus Hub';
+      const body = payload.message || 'New notification';
+      const url = payload.url || '/';
+
       const messagePayload = {
-        // DATA-ONLY payload: This is the gold standard for reliable PWA notifications.
-        // It ensures the Service Worker 'onBackgroundMessage' ALWAYS fires,
-        // giving us full control over notification display, grouping, and deep-linking.
+        // Combined notification+data: notification field gives native sound/vibration,
+        // data field ensures SW onBackgroundMessage still fires for custom handling.
+        notification: {
+          title,
+          body,
+          icon: '/icons/icon-192.png',
+          badge: '/icons/icon-192.png',
+          click_action: url,
+          tag: url,
+          renotify: true
+        },
         data: {
-          title: payload.title || 'Campus Hub',
-          body: payload.message || 'New notification',
-          url: payload.url || '/',
+          title,
+          body,
+          url,
           unreadCount: String(badgeCount),
           ...(payload.messageId ? { messageId: String(payload.messageId) } : {}),
           ...(payload.extraData
@@ -52,9 +64,9 @@ async function sendPushNotification(fcmTokens, payload) {
           priority: 'high',
           notification: {
             channelId: 'campus-chat-messages',
+            sound: 'default',
             vibrateTimingsMillis: [0, 250, 250, 250],
             defaultVibrateTimings: false,
-            defaultSound: true,
             clickAction: { action: 'OPEN', intentAction: 'android.intent.action.VIEW' }
           }
         },
@@ -63,14 +75,16 @@ async function sendPushNotification(fcmTokens, payload) {
             Urgency: 'high'
           },
           notification: {
+            title,
+            body,
             badge: badgeCount > 0 ? badgeCount : undefined,
-            tag: payload.url || '/',
+            icon: '/icons/icon-192.png',
+            tag: url,
             renotify: true,
-            vibrate: [0, 250, 250, 250],
             requireInteraction: true
           },
           fcmOptions: {
-            link: payload.url || '/'
+            link: url
           }
         }
       };

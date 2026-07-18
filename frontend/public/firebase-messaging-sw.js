@@ -16,14 +16,17 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background messages (app is closed or in background)
+// Handle background messages — FCM shows the notification natively (with sound).
+// This handler only runs for data-only messages (no notification field in payload).
 messaging.onBackgroundMessage((payload) => {
   console.log('[FCM-SW] Background message received:', payload);
+
+  // If the payload has a notification field, FCM already showed it — skip duplicate
+  if (payload.notification) return;
 
   const title = payload.data?.title || 'Campus Hub';
   const body = payload.data?.body || 'New message received!';
   const url = payload.data?.url || '/';
-  const unreadCount = parseInt(payload.data?.unreadCount || '0');
 
   const options = {
     body,
