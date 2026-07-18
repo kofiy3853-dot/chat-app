@@ -64,7 +64,7 @@ const MessageBubble = React.memo(({
 
   return (
     <div
-      className={`flex w-full mb-5 px-2 ${isMine ? 'justify-end' : 'justify-start'} `}
+      className={`flex w-full mb-3 px-3 ${isMine ? 'justify-end' : 'justify-start'} `}
     >
       <div className={`flex w-full items-end space-x-2 ${isMine ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
         {/* Avatar */}
@@ -276,7 +276,7 @@ const MessageBubble = React.memo(({
                         </Markdown>
                       </div>
                     ) : (
-                      <p className={`font-medium leading-relaxed whitespace-pre-wrap break-words text-sm`}>{message.content}</p>
+                      <p className={`font-medium leading-relaxed whitespace-pre-wrap break-words text-[15px]`}>{message.content}</p>
                     )}
                   </>
                 )}
