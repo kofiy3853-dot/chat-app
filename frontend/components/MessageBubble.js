@@ -60,7 +60,7 @@ const MessageBubble = React.memo(({
 
   const inlineStyles = {
     wordBreak: "break-word",
-    overflowWrap: "anywhere"
+    overflowWrap: "break-word"
   };
 
   return (

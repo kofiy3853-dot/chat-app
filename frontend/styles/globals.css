@@ -26,8 +26,8 @@
   --border:          #1A1A1A;
   --divider:         #222222;
   --input-bg:        #111111;
-  --bubble-sent:     #330000;
-  --bubble-received: #111111;
+  --bubble-sent:     #0c4a6e;
+  --bubble-received: #1e293b;
   --nav-bg:          #000000;
   --header-bg:       #000000;
   --icon-color:      #FFFFFF;
@@ -56,8 +56,8 @@
   --border:          #1A1A1A;
   --divider:         #222222;
   --input-bg:        #111111;
-  --bubble-sent:     #082f49;
-  --bubble-received: #111111;
+  --bubble-sent:     #0c4a6e;
+  --bubble-received: #1e293b;
   --nav-bg:          #000000;
   --header-bg:       #000000;
   --icon-color:      #FFFFFF;
@@ -80,8 +80,8 @@
   --border:          #DDDDDD;
   --divider:         #EEEEEE;
   --input-bg:        #F5F5F5;
-  --bubble-sent:     #e0f2fe;
-  --bubble-received: #F5F5F5;
+  --bubble-sent:     #0ea5e9;
+  --bubble-received: #f1f5f9;
   --nav-bg:          #FFFFFF;
   --header-bg:       #FFFFFF;
   --icon-color:      #000000;
@@ -104,8 +104,8 @@
   --border:          #003B75;
   --divider:         #002D5A;
   --input-bg:        #002D5A;
-  --bubble-sent:     #003B75;
-  --bubble-received: #002D5A;
+  --bubble-sent:     #0284c7;
+  --bubble-received: #0f172a;
   --nav-bg:          #001F3F;
   --header-bg:       #001F3F;
   --icon-color:      #FFFFFF;
@@ -163,6 +163,7 @@ body {
   border: 1px solid var(--border);
   overflow: hidden;
   word-wrap: break-word;
+  overflow-wrap: break-word;
   box-sizing: border-box;
 }
 
@@ -175,6 +176,7 @@ body {
 .chat-bubble-me {
   background-color: var(--bubble-sent);
   border-color: var(--accent-dark);
+  color: #ffffff;
 }
 
 .chat-bubble-other {
