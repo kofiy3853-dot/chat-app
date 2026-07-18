@@ -92,9 +92,11 @@ function AppContent({ Component, pageProps }) {
       warmupServer();
     }
 
+    let unsubFCM = () => {};
+
     const initPush = async () => {
       if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
-      
+
       try {
         // Register or get existing SW
         let reg = await navigator.serviceWorker.getRegistration();
@@ -106,13 +108,26 @@ function AppContent({ Component, pageProps }) {
         // Handle push token if authenticated
         if (isAuthenticated) {
           console.log('[FCM] Authentication detected, ensuring push registration...');
-          const { requestFirebaseNotificationPermission } = await import('../config/firebase');
+          const { requestFirebaseNotificationPermission, onMessageListener } = await import('../config/firebase');
           const token = await requestFirebaseNotificationPermission();
           if (token) {
             await pushAPI.updateFcmToken(token).catch(err => {
               console.warn('[FCM] Async token sync failed (will retry next session):', err.message);
             });
           }
+
+          // Set up foreground FCM listener AFTER messaging is initialized
+          unsubFCM = onMessageListener((payload) => {
+            console.log('[FCM] Foreground message received:', payload);
+            const { title, body } = payload.data || {};
+            if (title && body) {
+              toast(body, {
+                icon: '🔔',
+                duration: 6000,
+                style: { borderRadius: '16px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }
+              });
+            }
+          });
         }
       } catch (err) {
         console.warn('[FCM] SW/Permission initialization failed:', err.message);
@@ -120,24 +135,6 @@ function AppContent({ Component, pageProps }) {
     };
 
     initPush();
-
-    // ── Foreground FCM Messages ──────────────────────────────────────────────
-    let unsubFCM = () => {};
-    if (isAuthenticated) {
-      import('../config/firebase').then(({ onMessageListener }) => {
-        unsubFCM = onMessageListener((payload) => {
-          console.log('[FCM] Foreground message received:', payload);
-          const { title, body } = payload.data || {};
-          if (title && body) {
-            toast(body, {
-              icon: '🔔',
-              duration: 6000,
-              style: { borderRadius: '16px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }
-            });
-          }
-        });
-      });
-    }
 
     const handleOnline  = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
