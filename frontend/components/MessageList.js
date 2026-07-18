@@ -86,21 +86,25 @@ export default function MessageList({
     if (groupedData.flattened.length === 0) return;
 
     const isNewMessage = groupedData.flattened.length > prevMsgCount.current;
+    const lastMsg = groupedData.flattened[groupedData.flattened.length - 1];
+    const isMyMessage = lastMsg?.senderId === currentUser?.id;
 
     if (isFirstLoad.current) {
       scrollToBottom('auto');
       isFirstLoad.current = false;
-    } else if (isNewMessage && isAtBottomRef.current) {
-      // Only auto-scroll if user is already at the bottom
-      scrollToBottom('auto');
-    } else if (isNewMessage && !isAtBottomRef.current) {
-      // User scrolled up — queue scroll for when they return to bottom
-      pendingScrollRef.current = true;
+    } else if (isNewMessage) {
+      // Always scroll to bottom for YOUR messages (like WhatsApp)
+      // For others' messages, only scroll if already at bottom
+      if (isMyMessage || isAtBottomRef.current) {
+        scrollToBottom('auto');
+      } else {
+        pendingScrollRef.current = true;
+      }
     }
 
     prevMsgCount.current = groupedData.flattened.length;
     prevFirstMsgId.current = groupedData.flattened[0]?.id;
-  }, [groupedData.flattened.length, conversationId, scrollToBottom]);
+  }, [groupedData.flattened.length, conversationId, scrollToBottom, currentUser?.id]);
 
   // Reset flags when switching conversations
   useEffect(() => {
