@@ -58,7 +58,7 @@ const authorize = (action) => {
       }
 
       // 4. Default STUDENT permissions
-      const studentActions = ['send_message', 'view_announcements', 'view_events', 'join_course'];
+      const studentActions = ['send_message', 'view_announcements', 'view_events', 'view_materials', 'view_assignments', 'join_course'];
       if (studentActions.includes(action)) {
         if (membership || action === 'join_course') {
           return next();

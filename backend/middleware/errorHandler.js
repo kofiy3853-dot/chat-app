@@ -7,7 +7,7 @@ const errorHandler = (err, req, res, next) => {
   // Prisma unique constraint error
   if (err.code === 'P2002') {
     statusCode = 400;
-    message = `Duplicate field value: ${err.meta?.target || 'Resource already exists'}`;
+    message = 'Resource already exists';
   }
 
   // Prisma record not found error
@@ -33,8 +33,13 @@ const errorHandler = (err, req, res, next) => {
     message = 'Authentication token expired';
   }
 
+  // In production, never expose internal error details
+  const responseMessage = process.env.NODE_ENV === 'production' && statusCode === 500
+    ? 'Internal server error'
+    : message;
+
   res.status(statusCode).json({
-    message,
+    message: responseMessage,
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack, code: err.code })
   });
 };

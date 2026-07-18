@@ -1,6 +1,27 @@
 // App Service Worker — handles caching, offline support, background sync, AND Firebase push.
 // Single SW to avoid conflicts between multiple service workers.
 
+// ─── NOTIFICATION CLICK (Registered FIRST to prevent Firebase default) ────────
+self.addEventListener("notificationclick", (event) => {
+  event.stopImmediatePropagation(); // Prevent Firebase from opening a duplicate new tab
+  event.notification.close();
+  if (event.action === 'dismiss') return;
+
+  const fcmData = event.notification.data?.FCM_MSG?.data;
+  const urlToOpen = event.notification.data?.url || fcmData?.url || '/';
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      for (const client of windowClients) {
+        if ('navigate' in client) {
+          return client.navigate(urlToOpen).then(c => c && c.focus());
+        }
+      }
+      return clients.openWindow(urlToOpen);
+    })
+  );
+});
+
 importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-compat.js');
 
@@ -15,56 +36,23 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ─── FIREBASE PUSH: onBackgroundMessage handles display for PWA + browser ─
-// PWA on Android needs showNotification() to trigger sound and popup.
-// Desktop browser uses the notification field in FCM payload, but this
-// handler ensures PWA gets the same behavior.
+// ─── FIREBASE PUSH: onBackgroundMessage ───────────────────────────────────────
 messaging.onBackgroundMessage((payload) => {
   console.log('[SW] Background push received:', payload);
 
-  const title = payload.data?.title || payload.notification?.title || 'Campus Hub';
-  const body = payload.data?.body || payload.notification?.body || 'New message received!';
-  const url = payload.data?.url || payload.notification?.click_action || '/';
-
-  // showNotification() triggers default OS notification sound and screen wake.
-  // iOS PWA does NOT support vibrate, requireInteraction, or actions.
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const options = {
-    body,
-    icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
-    tag: url,
-    renotify: true,
-    data: { url }
-  };
-  // Android/Chrome supports these, iOS ignores them (but don't include to be safe)
-  if (!isIOS) {
-    options.vibrate = [0, 300, 200, 300, 200, 300];
-    options.requireInteraction = true;
-    options.actions = [
-      { action: 'open', title: 'Open' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ];
+  // 1. Update App Badge (iOS/Android PWA)
+  if (payload.data?.unreadCount && 'setAppBadge' in navigator) {
+    const count = parseInt(payload.data.unreadCount, 10);
+    if (!isNaN(count) && count > 0) {
+      navigator.setAppBadge(count).catch(err => console.warn('Badge error:', err));
+    } else {
+      navigator.clearAppBadge().catch(() => {});
+    }
   }
-  return self.registration.showNotification(title, options);
-});
 
-// ─── NOTIFICATION CLICK ───────────────────────────────────────────────────────
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  if (event.action === 'dismiss') return;
-
-  const urlToOpen = event.notification.data?.url || '/';
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      for (const client of windowClients) {
-        if ('navigate' in client) {
-          return client.navigate(urlToOpen).then(c => c && c.focus());
-        }
-      }
-      return clients.openWindow(urlToOpen);
-    })
-  );
+  // 2. We let FCM's native SDK automatically handle displaying the notification.
+  // If we manually call showNotification() here while FCM also shows one,
+  // it instantly overwrites it, which cuts off the notification sound!
 });
 
 // ─── CACHING ──────────────────────────────────────────────────────────────────

@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+*.log
+package-lock.json
+frontend/out/
+backend/node_modules/
+frontend/node_modules/

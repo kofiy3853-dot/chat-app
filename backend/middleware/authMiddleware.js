@@ -1,6 +1,28 @@
 const jwt = require('jsonwebtoken');
 const prisma = require('../prisma/client');
 
+// Short-lived user cache (30s TTL) — avoids DB round-trip on every request
+const userCache = new Map();
+const CACHE_TTL_MS = 30_000;
+
+function getCachedUser(userId) {
+  const entry = userCache.get(userId);
+  if (entry && Date.now() - entry.ts < CACHE_TTL_MS) return entry.user;
+  userCache.delete(userId);
+  return null;
+}
+
+function setCachedUser(userId, user) {
+  userCache.set(userId, { user, ts: Date.now() });
+  // Evict stale entries periodically
+  if (userCache.size > 500) {
+    const now = Date.now();
+    for (const [key, val] of userCache) {
+      if (now - val.ts > CACHE_TTL_MS) userCache.delete(key);
+    }
+  }
+}
+
 const authMiddleware = async (req, res, next) => {
   try {
     // Get token from header
@@ -15,16 +37,20 @@ const authMiddleware = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Find user
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true // Keep role for RBAC
-      }
-    });
+    // Check cache first, then DB
+    let user = getCachedUser(decoded.userId);
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true
+        }
+      });
+      if (user) setCachedUser(decoded.userId, user);
+    }
     
     if (!user) {
       return res.status(401).json({ message: 'Token is not valid' });
@@ -65,7 +91,7 @@ const socketAuthMiddleware = async (socket, next) => {
     socket.user = user;
     next();
   } catch (error) {
-    next(new Error('Authentication error: ' + error.message));
+    next(new Error('Authentication error'));
   }
 };
 
