@@ -58,13 +58,15 @@ async function batchNotify(prisma, io, notifications) {
   let unreadMap = new Map();
 
   try {
-    const rows = await prisma.$queryRaw`
-      SELECT "recipientId", COUNT(*)::int AS "unreadCount"
-      FROM "Notification"
-      WHERE "recipientId" IN (${prisma.$join(recipientIds.map(id => prisma.$literal(id)))})
-        AND "isRead" = false
-      GROUP BY "recipientId"
-    `;
+    const placeholders = recipientIds.map((_, i) => `$${i + 1}`).join(',');
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT "recipientId", COUNT(*)::int AS "unreadCount"
+       FROM "Notification"
+       WHERE "recipientId" IN (${placeholders})
+         AND "isRead" = false
+       GROUP BY "recipientId"`,
+      ...recipientIds
+    );
     for (const row of rows) {
       unreadMap.set(row.recipientId, row.unreadCount);
     }

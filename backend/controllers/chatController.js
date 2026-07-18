@@ -9,18 +9,32 @@ const { batchNotify } = require('../utils/batchNotify');
 const NANA_USER_ID = '7951b52c-b14e-486a-a802-8e0a9fa2495b';
 const NANA_SESSION_MARKER = '__nana__';
 
-// Get user's conversations
+// Get user's conversations (cursor-based pagination)
 exports.getConversations = async (req, res) => {
   const userId = req.user?.id;
   try {
     if (!userId) {
-      console.error('[getConversations] ERROR: No user ID on request');
       return res.status(401).json({ message: 'Unauthorized' });
     }
-    console.log(`[getConversations] START for user: ${userId}`);
+
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const cursor = req.query.cursor; // conversation ID to paginate after
+
+    // If cursor provided, look up its timestamp for keyset pagination
+    let cursorTimestamp = null;
+    if (cursor) {
+      const cursorConv = await prisma.conversation.findUnique({
+        where: { id: cursor },
+        select: { lastMessageAt: true }
+      });
+      cursorTimestamp = cursorConv?.lastMessageAt;
+      if (!cursorTimestamp) {
+        // Invalid cursor, start from beginning
+        return res.json({ conversations: [], nextCursor: null });
+      }
+    }
 
     // Fetch conversations
-    console.log('[getConversations] Fetching conversations from DB...');
     let conversations;
     try {
       conversations = await prisma.conversation.findMany({
@@ -31,7 +45,8 @@ exports.getConversations = async (req, res) => {
               isDeleted: false
             }
           },
-          isActive: true
+          isActive: true,
+          ...(cursorTimestamp ? { lastMessageAt: { lt: cursorTimestamp } } : {})
         },
         include: {
           participants: {
@@ -71,12 +86,17 @@ exports.getConversations = async (req, res) => {
         },
         orderBy: {
           lastMessageAt: 'desc'
-        }
+        },
+        take: limit + 1 // Fetch one extra to determine if there are more
       });
     } catch (findErr) {
-      console.error('[getConversations] PHASE 2 (findMany) FAILED:', findErr.message, findErr.stack);
-      return res.status(500).json({ message: 'Failed to fetch conversations', error: findErr.message });
+      console.error('[getConversations] findMany failed:', findErr.message);
+      return res.status(500).json({ message: 'Failed to fetch conversations' });
     }
+
+    const hasMore = conversations.length > limit;
+    if (hasMore) conversations.pop(); // Remove the extra item
+    const nextCursor = hasMore ? conversations[conversations.length - 1].id : null;
 
     console.log(`[getConversations] Found ${conversations.length} conversations`);
 
@@ -94,18 +114,23 @@ exports.getConversations = async (req, res) => {
     let conversationsWithUnread;
     try {
       const convIds = conversations.map(c => c.id);
-      const unreadRows = convIds.length > 0 ? await prisma.$queryRaw`
-        SELECT "conversationId", COUNT(*)::int AS "unreadCount"
-        FROM "Message"
-        WHERE "conversationId" IN (${prisma.$join(convIds.map(id => prisma.$literal(id)))})
-          AND "senderId" != ${userId}
-          AND NOT EXISTS (
-            SELECT 1 FROM "ReadReceipt"
-            WHERE "ReadReceipt"."messageId" = "Message"."id"
-              AND "ReadReceipt"."userId" = ${userId}
-          )
-        GROUP BY "conversationId"
-      ` : [];
+      let unreadRows = [];
+      if (convIds.length > 0) {
+        const placeholders = convIds.map((_, i) => `$${i + 2}`).join(',');
+        unreadRows = await prisma.$queryRawUnsafe(
+          `SELECT "conversationId", COUNT(*)::int AS "unreadCount"
+           FROM "Message"
+           WHERE "conversationId" IN (${placeholders})
+             AND "senderId" != $1
+             AND NOT EXISTS (
+               SELECT 1 FROM "ReadReceipt"
+               WHERE "ReadReceipt"."messageId" = "Message"."id"
+                 AND "ReadReceipt"."userId" = $1
+             )
+           GROUP BY "conversationId"`,
+          userId, ...convIds
+        );
+      }
       const unreadMap = Object.fromEntries(unreadRows.map(r => [r.conversationId, r.unreadCount]));
       conversationsWithUnread = conversations.map(conv => ({
         ...conv,
@@ -117,7 +142,7 @@ exports.getConversations = async (req, res) => {
     }
 
     console.log('[getConversations] SUCCESS — returning response');
-    res.json({ conversations: conversationsWithUnread });
+    res.json({ conversations: conversationsWithUnread, nextCursor });
   } catch (error) {
     console.error(`[getConversations] UNHANDLED ERROR for user ${userId}:`, error.message, error.stack);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -546,7 +571,7 @@ exports.sendMessage = async (req, res) => {
       }
     });
 
-    // Update conversation and RESET isDeleted = false for all participants
+    // Update conversation and RESET isDeleted only for the sender
     await Promise.all([
       prisma.conversation.update({
         where: { id: conversationId },
@@ -555,9 +580,10 @@ exports.sendMessage = async (req, res) => {
           lastMessageAt: new Date()
         }
       }),
-      // Re-enable for everyone so they see the new message even if they deleted the chat previously
+      // Only re-enable for the sender so they see their own message
+      // Other participants' soft-delete preference is preserved
       prisma.conversationParticipant.updateMany({
-        where: { conversationId },
+        where: { conversationId, userId: req.user.id },
         data: { isDeleted: false }
       })
     ]);
@@ -807,11 +833,19 @@ exports.uploadAttachment = async (req, res) => {
       }
     });
 
-    // Notify participants
+    // Notify participants (batch-fetch FCM tokens to avoid N+1)
     const chatParticipants = await prisma.conversationParticipant.findMany({
       where: { conversationId },
-      select: { userId: true }
+      select: { userId: true, user: { select: { fcmToken: true } } }
     });
+
+    // Build FCM token lookup map
+    const fcmTokenMap = new Map();
+    for (const p of chatParticipants) {
+      if (p.user?.fcmToken) {
+        fcmTokenMap.set(p.userId, p.user.fcmToken);
+      }
+    }
 
     const recipients = chatParticipants.filter(p => p.userId !== userId);
     const notificationContent = message.content || 'Sent an attachment';
@@ -828,24 +862,17 @@ exports.uploadAttachment = async (req, res) => {
 
     const unreadMap = await batchNotify(prisma, req.io, notificationData);
 
-    // FCM pushes (non-blocking)
+    // FCM pushes (batch lookup from pre-fetched map, non-blocking)
     for (const n of notificationData) {
-      try {
-        const recipientUser = await prisma.user.findUnique({
-          where: { id: n.recipientId },
-          select: { fcmToken: true }
-        });
-        if (recipientUser?.fcmToken) {
-          sendPushNotification([recipientUser.fcmToken], {
-            title: `📎 New File: ${message.sender.name}`,
-            message: n.content,
-            url: `/chat/${conversationId}`,
-            badgeCount: unreadMap.get(n.recipientId) || 0,
-            extraData: { type: 'MESSAGE', chatId: conversationId.toString(), senderName: message.sender.name }
-          }).catch(fcmErr => console.error('[FCM] Error in attachment push:', fcmErr.message));
-        }
-      } catch (fcmErr) {
-        console.error('[FCM] Error in attachment push:', fcmErr.message);
+      const fcmToken = fcmTokenMap.get(n.recipientId);
+      if (fcmToken) {
+        sendPushNotification([fcmToken], {
+          title: `📎 New File: ${message.sender.name}`,
+          message: n.content,
+          url: `/chat/${conversationId}`,
+          badgeCount: unreadMap.get(n.recipientId) || 0,
+          extraData: { type: 'MESSAGE', chatId: conversationId.toString(), senderName: message.sender.name }
+        }).catch(fcmErr => console.error('[FCM] Error in attachment push:', fcmErr.message));
       }
     }
 
@@ -1103,7 +1130,7 @@ exports.getTotalUnreadMessages = async (req, res) => {
 exports.clearChat = async (req, res) => {
   try {
     const { id } = req.params;
-    const { global = false } = req.query; // Support optional global clear for owners
+    const globalClear = req.query.global === 'true'; // Parse string query param to boolean
     const userId = req.user.id;
 
     const participant = await prisma.conversationParticipant.findFirst({
@@ -1113,7 +1140,7 @@ exports.clearChat = async (req, res) => {
     if (!participant) return res.status(404).json({ message: 'Chat not found' });
 
     // 1. GLOBAL CLEAR (Owner/Admin Only)
-    if (global && (participant.role === 'OWNER' || participant.role === 'ADMIN' || req.user.role === 'ADMIN')) {
+    if (globalClear && (participant.role === 'OWNER' || participant.role === 'ADMIN' || req.user.role === 'ADMIN')) {
       await prisma.$transaction(async (tx) => {
         await tx.conversation.update({ where: { id }, data: { lastMessageId: null, lastMessageAt: new Date() } });
         const msgs = await tx.message.findMany({ where: { conversationId: id }, select: { id: true } });
