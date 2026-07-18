@@ -159,9 +159,9 @@ body {
   color: var(--text-primary);
   padding: 10px 14px;
   border-radius: var(--bubble-radius);
-  max-width: 75%;
+  max-width: 85%;
+  min-width: 60px;
   border: 1px solid var(--border);
-  overflow: hidden;
   word-wrap: break-word;
   overflow-wrap: break-word;
   box-sizing: border-box;
@@ -169,7 +169,7 @@ body {
 
 @media (max-width: 480px) {
   .chat-bubble {
-    max-width: 85%;
+    max-width: 90%;
   }
 }
 

@@ -59,8 +59,7 @@ const MessageBubble = React.memo(({
   const bubbleClasses = `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`;
 
   const inlineStyles = {
-    wordBreak: "break-word",
-    overflowWrap: "break-word"
+    wordBreak: "break-word"
   };
 
   return (
@@ -284,8 +283,8 @@ const MessageBubble = React.memo(({
               </div>
             )}
 
-            <div className={`flex items-center mt-1.5 space-x-1 justify-end ${isMine ? 'text-white/80' : 'text-slate-400'}`}>
-              <span className="text-[10px] font-semibold">{timestamp}</span>
+            <div className={`flex items-center mt-1.5 space-x-1.5 justify-end whitespace-nowrap ${isMine ? 'text-white/80' : 'text-slate-400'}`}>
+              <span className="text-[10px] font-semibold whitespace-nowrap">{timestamp}</span>
               {isMine && (
                 isTemp ? (
                   <ArrowPathIcon className="w-2.5 h-2.5" />
