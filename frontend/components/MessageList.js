@@ -32,6 +32,8 @@ export default function MessageList({
 }) {
   const virtuosoRef = useRef(null);
   const [showScrollBottom, setShowScrollBottom] = React.useState(false);
+  const isAtBottomRef = useRef(true);
+  const pendingScrollRef = useRef(false);
 
   // Scroll management refs
   const isFirstLoad = useRef(true);
@@ -79,17 +81,7 @@ export default function MessageList({
     }
   }, [groupedData.flattened.length]);
 
-  const scrollToBottomIfNear = useCallback((behavior = 'smooth') => {
-    const lastMessage = messages[messages.length - 1];
-    const isMyMessage = lastMessage?.senderId === currentUser?.id || lastMessage?.sender?.id === currentUser?.id;
-    if (isMyMessage) {
-      scrollToBottom(behavior);
-      return;
-    }
-    scrollToBottom(behavior);
-  }, [messages, currentUser?.id, scrollToBottom]);
-
-  // Main scroll effect
+  // Main scroll effect — always stay at bottom like WhatsApp
   useEffect(() => {
     if (groupedData.flattened.length === 0) return;
 
@@ -98,13 +90,17 @@ export default function MessageList({
     if (isFirstLoad.current) {
       scrollToBottom('auto');
       isFirstLoad.current = false;
-    } else if (isNewMessage) {
-      scrollToBottomIfNear('auto');
+    } else if (isNewMessage && isAtBottomRef.current) {
+      // Only auto-scroll if user is already at the bottom
+      scrollToBottom('auto');
+    } else if (isNewMessage && !isAtBottomRef.current) {
+      // User scrolled up — queue scroll for when they return to bottom
+      pendingScrollRef.current = true;
     }
 
     prevMsgCount.current = groupedData.flattened.length;
     prevFirstMsgId.current = groupedData.flattened[0]?.id;
-  }, [groupedData.flattened.length, conversationId, scrollToBottom, scrollToBottomIfNear]);
+  }, [groupedData.flattened.length, conversationId, scrollToBottom]);
 
   // Reset flags when switching conversations
   useEffect(() => {
@@ -209,7 +205,15 @@ export default function MessageList({
           );
         }}
         initialTopMostItemIndex={groupedData.flattened.length > 0 ? groupedData.flattened.length - 1 : 0}
-        atBottomStateChange={(atBottom) => setShowScrollBottom(!atBottom)}
+        atBottomStateChange={(atBottom) => {
+          isAtBottomRef.current = atBottom;
+          setShowScrollBottom(!atBottom);
+          // If user scrolled back to bottom and there are pending scrolls, execute them
+          if (atBottom && pendingScrollRef.current) {
+            pendingScrollRef.current = false;
+            scrollToBottom('auto');
+          }
+        }}
         startReached={() => {
           if (hasMore && !isLoadingMore && !searchQuery) {
             const nextPage = page + 1;
@@ -229,7 +233,10 @@ export default function MessageList({
       />
       {showScrollBottom && (
         <button
-          onClick={() => scrollToBottom()}
+          onClick={() => {
+            pendingScrollRef.current = false;
+            scrollToBottom('smooth');
+          }}
           className="absolute bottom-6 right-4 p-2.5 bg-surface border border-[var(--border)]/50 text-app-primary rounded-full shadow-lg hover:brightness-95 z-30"
         >
           <ChevronDownIcon className="w-5 h-5 stroke-[3px]" />
