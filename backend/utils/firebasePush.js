@@ -77,12 +77,7 @@ async function sendPushNotification(fcmTokens, payload) {
             icon: '/icons/icon-192.png',
             badge: '/icons/icon-192.png',
             tag: url,
-            renotify: true,
-            requireInteraction: true,
-            actions: [
-              { action: 'open', title: 'Open' },
-              { action: 'dismiss', title: 'Dismiss' }
-            ]
+            renotify: true
           },
           fcmOptions: {
             link: url

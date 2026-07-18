@@ -105,6 +105,14 @@ function AppContent({ Component, pageProps }) {
           console.log('[SW] App SW registered');
         }
 
+        // iOS PWA: notification permission must be requested explicitly in standalone mode
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        if (isIOS && isStandalone && 'Notification' in window && Notification.permission === 'default') {
+          console.log('[iOS PWA] Requesting notification permission in standalone mode...');
+          await Notification.requestPermission();
+        }
+
         // Handle push token if authenticated
         if (isAuthenticated) {
           console.log('[FCM] Authentication detected, ensuring push registration...');

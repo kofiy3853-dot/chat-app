@@ -26,21 +26,27 @@ messaging.onBackgroundMessage((payload) => {
   const body = payload.data?.body || payload.notification?.body || 'New message received!';
   const url = payload.data?.url || payload.notification?.click_action || '/';
 
-  // showNotification() triggers default OS notification sound and screen wake
-  return self.registration.showNotification(title, {
+  // showNotification() triggers default OS notification sound and screen wake.
+  // iOS PWA does NOT support vibrate, requireInteraction, or actions.
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const options = {
     body,
     icon: "/icons/icon-192.png",
     badge: "/icons/icon-192.png",
-    vibrate: [0, 300, 200, 300, 200, 300],
     tag: url,
     renotify: true,
-    requireInteraction: true,
-    data: { url },
-    actions: [
+    data: { url }
+  };
+  // Android/Chrome supports these, iOS ignores them (but don't include to be safe)
+  if (!isIOS) {
+    options.vibrate = [0, 300, 200, 300, 200, 300];
+    options.requireInteraction = true;
+    options.actions = [
       { action: 'open', title: 'Open' },
       { action: 'dismiss', title: 'Dismiss' }
-    ]
-  });
+    ];
+  }
+  return self.registration.showNotification(title, options);
 });
 
 // ─── NOTIFICATION CLICK ───────────────────────────────────────────────────────

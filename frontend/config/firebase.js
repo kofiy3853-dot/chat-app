@@ -77,6 +77,15 @@ export const requestFirebaseNotificationPermission = async () => {
 
     messaging = getMessaging(app);
 
+    // On iOS PWA, check if we're in standalone mode before requesting
+    const isStandalone = typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone);
+    const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (isIOS && !isStandalone) {
+      console.warn('[FCM] iOS requires PWA to be installed to home screen for push notifications.');
+      return null;
+    }
+    
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
       console.warn('Notification permission denied.');
