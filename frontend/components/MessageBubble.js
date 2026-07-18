@@ -56,7 +56,7 @@ const MessageBubble = React.memo(({
     setHasImgError(false);
   }, [message.sender?.avatar]);
 
-  const bubbleClasses = `chat-bubble ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`;
+  const bubbleClasses = `chat-bubble relative ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'} touch-pan-y ${showTail ? (isMine ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`;
 
   const inlineStyles = {
     wordBreak: "break-word"
