@@ -15,10 +15,33 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ─── FIREBASE PUSH: notification field in FCM payload handles display natively ─
-// FCM shows the notification with sound, vibration, and screen wake.
-// The SW only needs to handle notificationclick for deep linking.
-// onBackgroundMessage is NOT used — FCM handles display via the notification field.
+// ─── FIREBASE PUSH: onBackgroundMessage handles display for PWA + browser ─
+// PWA on Android needs showNotification() to trigger sound and popup.
+// Desktop browser uses the notification field in FCM payload, but this
+// handler ensures PWA gets the same behavior.
+messaging.onBackgroundMessage((payload) => {
+  console.log('[SW] Background push received:', payload);
+
+  const title = payload.data?.title || payload.notification?.title || 'Campus Hub';
+  const body = payload.data?.body || payload.notification?.body || 'New message received!';
+  const url = payload.data?.url || payload.notification?.click_action || '/';
+
+  // showNotification() triggers default OS notification sound and screen wake
+  return self.registration.showNotification(title, {
+    body,
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    vibrate: [0, 300, 200, 300, 200, 300],
+    tag: url,
+    renotify: true,
+    requireInteraction: true,
+    data: { url },
+    actions: [
+      { action: 'open', title: 'Open' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ]
+  });
+});
 
 // ─── NOTIFICATION CLICK ───────────────────────────────────────────────────────
 self.addEventListener("notificationclick", (event) => {
