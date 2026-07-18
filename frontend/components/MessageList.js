@@ -93,10 +93,8 @@ export default function MessageList({
       scrollToBottom('auto');
       isFirstLoad.current = false;
     } else if (isNewMessage) {
-      // Always scroll to bottom for YOUR messages (like WhatsApp)
-      // For others' messages, only scroll if already at bottom
       if (isMyMessage || isAtBottomRef.current) {
-        scrollToBottom('auto');
+        scrollToBottom('smooth');
       } else {
         pendingScrollRef.current = true;
       }
