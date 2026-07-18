@@ -4,6 +4,22 @@ const { getNanaAiResponse } = require('../services/nanaAi');
 const { sendPushNotification } = require('../utils/firebasePush');
 const { moderateContent } = require('../middleware/contentModeration');
 const { batchNotify } = require('../utils/batchNotify');
+
+// Cached Nana profile — avoids DB query on every message
+let _nanaProfileCache = null;
+async function getNanaProfile() {
+  if (_nanaProfileCache) return _nanaProfileCache;
+  try {
+    _nanaProfileCache = await prisma.user.findFirst({ where: { role: 'NANA' }, select: { id: true, name: true } });
+  } catch (err) {
+    console.error('[Nana] Failed to cache Nana profile:', err.message);
+  }
+  return _nanaProfileCache;
+}
+
+// Invalidate cache if Nana account is updated (e.g., renamed)
+function invalidateNanaCache() { _nanaProfileCache = null; }
+
 const setupChatSockets = (io) => {
   // Apply auth middleware to socket connections
   io.use(socketAuthMiddleware);
@@ -43,12 +59,15 @@ const setupChatSockets = (io) => {
 
     // Join personal room for notifications
     socket.join(`user:${socket.user.id}`);
-    console.log(`[NOTIF DEBUG] Socket ${socket.id} joined personal room: user:${socket.user.id}`);
+    // Join broadcast room for platform-wide announcements/events
+    socket.join('broadcast');
     
-    // Send initial notification count
-    prisma.notification.count({
-      where: { recipientId: socket.user.id, isRead: false }
-    }).then(count => {
+    // Send initial notification count (user-specific + broadcast)
+    Promise.all([
+      prisma.notification.count({ where: { recipientId: socket.user.id, isRead: false } }),
+      prisma.notification.count({ where: { isBroadcast: true, isRead: false } })
+    ]).then(([userUnread, broadcastUnread]) => {
+      const count = userUnread + broadcastUnread;
       console.log(`[NOTIF DEBUG] Sending initial unread-count=${count} to user:${socket.user.id}`);
       socket.emit('unread-count', { count });
     }).catch(err => console.error('[NOTIF ERROR] Failed to get initial unread count:', err));
@@ -241,13 +260,21 @@ const setupChatSockets = (io) => {
         const [chatParticipants, convInfo] = await Promise.all([
           prisma.conversationParticipant.findMany({
             where: { conversationId },
-            select: { userId: true }
+            select: { userId: true, user: { select: { fcmToken: true } } }
           }),
           prisma.conversation.findUnique({
             where: { id: conversationId },
             select: { id: true, name: true, type: true }
           })
         ]);
+
+        // Build FCM token lookup map (avoids N+1 queries)
+        const fcmTokenMap = new Map();
+        for (const p of chatParticipants) {
+          if (p.user?.fcmToken) {
+            fcmTokenMap.set(p.userId, p.user.fcmToken);
+          }
+        }
 
         const recipients = chatParticipants.filter(p => p.userId !== socket.user.id);
 
@@ -291,20 +318,17 @@ const setupChatSockets = (io) => {
         if (mentionNotifs.length > 0) {
           await batchNotify(prisma, io, mentionNotifs);
 
-          // FCM for mentions
+          // FCM for mentions (batch lookup from pre-fetched map)
           for (const n of mentionNotifs) {
-            const mentionedUser = await prisma.user.findUnique({
-              where: { id: n.recipientId },
-              select: { fcmToken: true }
-            });
-            if (mentionedUser?.fcmToken) {
+            const fcmToken = fcmTokenMap.get(n.recipientId);
+            if (fcmToken) {
               const { sendPushNotification: sendPush } = require('../utils/firebasePush');
-              sendPush(mentionedUser.fcmToken, {
+              sendPush(fcmToken, {
                 title: n.title,
                 message: n.content,
                 url: n.actionUrl,
                 extraData: { mention: 'true', conversationId: String(conversationId) }
-              });
+              }).catch(err => console.error('[FCM] Mention push error:', err.message));
             }
           }
         }
@@ -336,21 +360,18 @@ const setupChatSockets = (io) => {
 
         const unreadMap = await batchNotify(prisma, io, messageNotifs);
 
-        // FCM pushes (non-blocking)
+        // FCM pushes (batch lookup from pre-fetched map, non-blocking)
         for (const n of messageNotifs) {
-          const recipientUser = await prisma.user.findUnique({
-            where: { id: n.recipientId },
-            select: { fcmToken: true }
-          });
-          if (recipientUser?.fcmToken) {
-            sendPushNotification(recipientUser.fcmToken, {
+          const fcmToken = fcmTokenMap.get(n.recipientId);
+          if (fcmToken) {
+            sendPushNotification(fcmToken, {
               title: n.title,
               message: n.content,
               url: `/chat/${conversationId}`,
               badgeCount: unreadMap.get(n.recipientId) || 0,
               messageId: message.id,
               extraData: { conversationId: String(conversationId), messageId: String(message.id) }
-            });
+            }).catch(err => console.error('[FCM] Message push error:', err.message));
           }
         }
 
@@ -360,7 +381,7 @@ const setupChatSockets = (io) => {
         });
 
         // --- 🤖 Nana AI Trigger Logic ---
-        const nanaProfile = await prisma.user.findFirst({ where: { role: 'NANA' }, select: { id: true, name: true } });
+        const nanaProfile = await getNanaProfile();
         const realNanaId = nanaProfile ? nanaProfile.id : 'sys-nana-id';
         const realNanaName = nanaProfile ? nanaProfile.name : 'Nana';
 
@@ -466,8 +487,8 @@ const setupChatSockets = (io) => {
 
              } catch (aiErr) {
                 console.error('[Nana AI Handler Error]:', aiErr);
-                const nanaProfile = await prisma.user.findFirst({ where: { role: 'NANA' }, select: { id: true } });
-                const realId = nanaProfile ? nanaProfile.id : 'nana-system';
+                const cachedNana = await getNanaProfile();
+                const realId = cachedNana ? cachedNana.id : 'nana-system';
                 io.to(`conversation:${conversationId}`).emit('user-typing', {
                   userId: realId,
                   userName: 'Nana',
@@ -528,11 +549,12 @@ const setupChatSockets = (io) => {
           data: { isRead: true, readAt: new Date() }
         });
 
-        // Send updated unread count
-        const newCount = await prisma.notification.count({
-          where: { recipientId: socket.user.id, isRead: false }
-        });
-        io.to(`user:${socket.user.id}`).emit('unread-count', { count: newCount });
+        // Send updated unread count (user-specific + broadcast)
+        const [newUserCount, newBroadcastCount] = await Promise.all([
+          prisma.notification.count({ where: { recipientId: socket.user.id, isRead: false } }),
+          prisma.notification.count({ where: { isBroadcast: true, isRead: false } })
+        ]);
+        io.to(`user:${socket.user.id}`).emit('unread-count', { count: newUserCount + newBroadcastCount });
 
         // Notify all participants in the conversation (including the sender's other devices)
         io.to(`conversation:${conversationId}`).emit('messages-read', {

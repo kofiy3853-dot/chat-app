@@ -61,10 +61,14 @@ export default function Navbar() {
 
         // Add handler for new messages across any conversation
         socket.on('new-message', (data) => {
-          // If the message is from someone else, refresh the total unread count
+          // If the message is from someone else, refresh both unread counts
           if (currentUserId && data.message.senderId !== currentUserId) {
             chatAPI.getUnreadChatCount()
               .then(r => { if (r?.data?.count !== undefined) setChatUnreadCount(r.data.count); })
+              .catch(() => {});
+            // Also refresh notification badge since a notification will be created
+            userAPI.getUnreadCount()
+              .then(r => { if (r?.data?.count !== undefined) setUnreadCount(r.data.count); })
               .catch(() => {});
           }
         });
