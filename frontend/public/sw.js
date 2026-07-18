@@ -1,76 +1,84 @@
 // App Service Worker — handles caching, offline support, and background sync.
 // Firebase Cloud Messaging is handled separately by firebase-messaging-sw.js.
 
+const CACHE_VERSION = 'v2';
+const APP_CACHE = `app-cache-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `dynamic-cache-${CACHE_VERSION}`;
+const PAGE_CACHE = `page-cache-${CACHE_VERSION}`;
+
+// Core assets to pre-cache on install
+const PRECACHE_URLS = [
+  '/',
+  '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/favicon.ico'
+];
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open("app-cache").then(cache => {
-      console.log("[SW] Pre-caching core assets with credentials...");
-      const assets = [
-        "/",
-        "/manifest.json",
-        "/icons/icon-192.png",
-        "/favicon.ico"
-      ];
-      
-      return Promise.all(
-        assets.map(url => 
-          fetch(url, { credentials: 'include' })
-            .then(response => {
-              if (response.ok) return cache.put(url, response);
-              throw new Error(`Failed to fetch ${url}: ${response.status}`);
-            })
-            .catch(err => console.warn(`[SW] Pre-cache error for ${url}:`, err))
-        )
-      );
+    caches.open(APP_CACHE).then(cache => {
+      console.log("[SW] Pre-caching core assets");
+      return cache.addAll(PRECACHE_URLS).catch(err => {
+        console.warn("[SW] Pre-cache partial failure:", err);
+      });
     })
   );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  const cacheWhitelist = ["app-cache", "dynamic-cache"];
+  const validCaches = [APP_CACHE, DYNAMIC_CACHE, PAGE_CACHE];
   event.waitUntil(
     Promise.all([
       self.clients.claim(),
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (!cacheWhitelist.includes(cacheName)) {
-              console.log("[SW] Deleting stale cache:", cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
+      caches.keys().then(keys =>
+        Promise.all(
+          keys.filter(k => !validCaches.includes(k)).map(k => caches.delete(k))
+        )
+      )
     ])
   );
 });
 
+// --- Fetch Strategy ---
 self.addEventListener("fetch", (event) => {
-  // Only intercept GET requests
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
 
-  // --- OFFLINE NAVIGATION SUPPORT ---
+  // 1. Navigation requests: Network-first, fall back to cached page shell
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
+        .then(response => {
+          // Cache the page for offline use
+          const clone = response.clone();
+          caches.open(PAGE_CACHE).then(cache => cache.put(event.request, clone));
+          return response;
+        })
         .catch(() => {
-          // If the network fails, serve the cached root (our App Shell)
-          return caches.match("/"); 
+          // Try cached version of this exact page
+          return caches.match(event.request).then(cached => {
+            if (cached) return cached;
+            // Fall back to app shell (index page)
+            return caches.match("/");
+          });
         })
     );
     return;
   }
 
-  // Cache-First with Network Update for static assets (images, styles, local scripts)
-  if (url.origin === self.origin && (url.pathname.startsWith('/_next/static/') || url.pathname.includes('/icons/') || url.pathname.includes('/sounds/'))) {
+  // 2. Next.js static chunks: Cache-first (these are versioned/hashed)
+  if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
       caches.match(event.request).then(cached => {
-        return cached || fetch(event.request).then(response => {
-          const clone = response.clone();
-          caches.open("app-cache").then(cache => cache.put(event.request, clone));
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(APP_CACHE).then(cache => cache.put(event.request, clone));
+          }
           return response;
         });
       })
@@ -78,87 +86,75 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Ignore Socket.io, API calls, and Next.js HMR
-  if (url.pathname.includes('/socket.io/')) return;
+  // 3. Static assets (icons, sounds, images): Cache-first
+  if (url.origin === self.origin && (
+    url.pathname.includes('/icons/') ||
+    url.pathname.includes('/sounds/') ||
+    url.pathname.match(/\.(png|jpg|jpeg|svg|gif|woff2?|css|js)$/)
+  )) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(APP_CACHE).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // 4. API calls: Network-only (socket handles realtime)
   if (url.pathname.includes('/api/')) return;
+
+  // 5. Socket.io: Network-only
+  if (url.pathname.includes('/socket.io/')) return;
+
+  // 6. HMR: Skip
   if (url.pathname.includes('/_next/webpack-hmr')) return;
 
-  // Ignore range requests (audio, video) to avoid 206 Partial Content caching errors
+  // 7. Range requests: Skip
   if (event.request.headers.has('range')) return;
 
-  // Only aggressively cache specific static assets (images, Next.js static chunks)
-  const isStaticAsset = url.pathname.includes('/_next/static/') || 
-                        url.pathname.includes('/icons/') || 
-                        url.pathname.match(/\.(png|jpg|jpeg|svg|gif|woff2?|css|js)$/);
-
-  // Bypass SERVICE WORKER for high-load media assets and partial stream content (audio/video)
-  // This prevents ERR_CACHE_OPERATION_NOT_SUPPORTED and 408 Timeouts
-  const isExcludedMedia = (url.pathname.includes('/uploads/') && !url.pathname.match(/\.(png|jpg|jpeg|webp)$/i)) || 
-                          url.pathname.includes('/sounds/') ||
-                          url.pathname.endsWith('.mp3');
-
-  if (!isStaticAsset || isExcludedMedia) return;
-
+  // 8. Everything else: Stale-while-revalidate
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      // Return cached asset if found
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+    caches.match(event.request).then(cached => {
+      const fetchPromise = fetch(event.request).then(response => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(DYNAMIC_CACHE).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => cached);
 
-      // Otherwise fetch from network and catch potential errors safely
-      return fetch(event.request)
-        .then(res => {
-          // Only cache valid 200 OK responses
-          if (!res || res.status !== 200 || res.type === 'opaque') {
-            return res;
-          }
-          
-          const clone = res.clone();
-          caches.open("dynamic-cache").then(cache => {
-            // Safely put in cache
-            cache.put(event.request, clone).catch(err => console.error("Cache put error:", err));
-          });
-          return res;
-        })
-        .catch(err => {
-          console.error("Fetch failed for static asset:", event.request.url, err);
-          // Return a safe fallback rather than crashing
-          return new Response("", { status: 408, statusText: "Request Timeout" });
-        });
+      return cached || fetchPromise;
     })
   );
 });
 
-// ─── BACKGROUND SYNC ──────────────────────────────────────────────────────────
-// Handles deferred message sending when connectivity returns
+// --- Background Push (handled by firebase-messaging-sw.js) ---
+
+// --- Background Sync for offline messages ---
 self.addEventListener('sync', (event) => {
-  console.log('[SW] Sync event:', event.tag);
   if (event.tag === 'sync-messages') {
     event.waitUntil(syncMessages());
   }
 });
 
-/**
- * Iterates through the 'outbox' in IndexedDB and attempts to POST pending messages.
- */
 async function syncMessages() {
   try {
     const db = await openIndexedDB();
     const outbox = await getAllFromStore(db, 'outbox');
-    
     if (outbox.length === 0) return;
 
     for (const msg of outbox) {
-      if (msg.fileUrl) continue; // Attachments still require manual handling in foreground for now
-
+      if (msg.fileUrl) continue;
       try {
-        // We need the auth token which should be stored in 'meta' or similar store
         const authData = await getFromStore(db, 'auth', 'current');
-        if (!authData?.token) {
-           console.warn('[SW] No auth token found for background sync');
-           continue; 
-        }
+        if (!authData?.token) continue;
 
         const response = await fetch('/api/chat/messages', {
           method: 'POST',
@@ -176,12 +172,9 @@ async function syncMessages() {
 
         if (response.ok) {
           await deleteFromStore(db, 'outbox', msg.tempId);
-          console.log('[SW] Background sync successful for:', msg.tempId);
         }
       } catch (err) {
         console.error('[SW] Message sync failed:', err);
-        // We don't throw here to allow other messages to try, 
-        // but if it's a network error, the browser will retry the whole 'sync' event anyway.
       }
     }
   } catch (err) {
@@ -189,7 +182,7 @@ async function syncMessages() {
   }
 }
 
-// ─── INDEXEDDB HELPERS (RAW API) ──────────────────────────────────────────────
+// --- IndexedDB Helpers ---
 function openIndexedDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('campus_chat_db', 2);
