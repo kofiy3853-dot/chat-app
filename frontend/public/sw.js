@@ -1,12 +1,67 @@
-// App Service Worker — handles caching, offline support, and background sync.
-// Firebase Cloud Messaging is handled separately by firebase-messaging-sw.js.
+// App Service Worker — handles caching, offline support, background sync, AND Firebase push.
+// Single SW to avoid conflicts between multiple service workers.
 
-const CACHE_VERSION = 'v2';
+importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyAOtUMkW1zGB1OJKpfUqU2QzHrcqJWxGZg",
+  authDomain: "acoustic-arch-373523.firebaseapp.com",
+  projectId: "acoustic-arch-373523",
+  storageBucket: "acoustic-arch-373523.firebasestorage.app",
+  messagingSenderId: "165706271744",
+  appId: "1:165706271744:web:4d1f86939d13ddb2479ce5"
+});
+
+const messaging = firebase.messaging();
+
+// ─── FIREBASE PUSH NOTIFICATIONS ──────────────────────────────────────────────
+messaging.onBackgroundMessage((payload) => {
+  console.log('[SW] Background push received:', payload);
+
+  const title = payload.data?.title || 'Campus Hub';
+  const body = payload.data?.body || 'New message received!';
+  const url = payload.data?.url || '/';
+
+  return self.registration.showNotification(title, {
+    body,
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    vibrate: [0, 300, 200, 300, 200, 300],
+    tag: url,
+    renotify: true,
+    requireInteraction: true,
+    data: { url },
+    actions: [
+      { action: 'open', title: 'Open' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ]
+  });
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  if (event.action === 'dismiss') return;
+
+  const urlToOpen = event.notification.data?.url || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      for (const client of windowClients) {
+        if ('navigate' in client) {
+          return client.navigate(urlToOpen).then(c => c && c.focus());
+        }
+      }
+      return clients.openWindow(urlToOpen);
+    })
+  );
+});
+
+// ─── CACHING ──────────────────────────────────────────────────────────────────
+const CACHE_VERSION = 'v3';
 const APP_CACHE = `app-cache-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-cache-${CACHE_VERSION}`;
 const PAGE_CACHE = `page-cache-${CACHE_VERSION}`;
 
-// Core assets to pre-cache on install
 const PRECACHE_URLS = [
   '/',
   '/manifest.json',
@@ -41,27 +96,24 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// --- Fetch Strategy ---
+// ─── FETCH STRATEGY ───────────────────────────────────────────────────────────
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
 
-  // 1. Navigation requests: Network-first, fall back to cached page shell
+  // 1. Navigation: Network-first, fall back to cache
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          // Cache the page for offline use
           const clone = response.clone();
           caches.open(PAGE_CACHE).then(cache => cache.put(event.request, clone));
           return response;
         })
         .catch(() => {
-          // Try cached version of this exact page
           return caches.match(event.request).then(cached => {
             if (cached) return cached;
-            // Fall back to app shell (index page)
             return caches.match("/");
           });
         })
@@ -69,7 +121,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 2. Next.js static chunks: Cache-first (these are versioned/hashed)
+  // 2. Next.js static chunks: Cache-first
   if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
       caches.match(event.request).then(cached => {
@@ -86,7 +138,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3. Static assets (icons, sounds, images): Cache-first
+  // 3. Static assets: Cache-first
   if (url.origin === self.origin && (
     url.pathname.includes('/icons/') ||
     url.pathname.includes('/sounds/') ||
@@ -107,19 +159,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 4. API calls: Network-only (socket handles realtime)
-  if (url.pathname.includes('/api/')) return;
+  // 4. API & Socket: Network-only
+  if (url.pathname.includes('/api/') || url.pathname.includes('/socket.io/')) return;
 
-  // 5. Socket.io: Network-only
-  if (url.pathname.includes('/socket.io/')) return;
-
-  // 6. HMR: Skip
+  // 5. HMR: Skip
   if (url.pathname.includes('/_next/webpack-hmr')) return;
 
-  // 7. Range requests: Skip
+  // 6. Range requests: Skip
   if (event.request.headers.has('range')) return;
 
-  // 8. Everything else: Stale-while-revalidate
+  // 7. Everything else: Stale-while-revalidate
   event.respondWith(
     caches.match(event.request).then(cached => {
       const fetchPromise = fetch(event.request).then(response => {
@@ -129,15 +178,12 @@ self.addEventListener("fetch", (event) => {
         }
         return response;
       }).catch(() => cached);
-
       return cached || fetchPromise;
     })
   );
 });
 
-// --- Background Push (handled by firebase-messaging-sw.js) ---
-
-// --- Background Sync for offline messages ---
+// ─── BACKGROUND SYNC ──────────────────────────────────────────────────────────
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-messages') {
     event.waitUntil(syncMessages());
@@ -182,7 +228,7 @@ async function syncMessages() {
   }
 }
 
-// --- IndexedDB Helpers ---
+// ─── INDEXEDDB HELPERS ────────────────────────────────────────────────────────
 function openIndexedDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('campus_chat_db', 2);

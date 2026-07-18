@@ -98,18 +98,11 @@ function AppContent({ Component, pageProps }) {
       if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
       try {
-        // Register app SW for caching/offline
+        // Register single app SW (handles caching + Firebase push)
         let appReg = await navigator.serviceWorker.getRegistration('/sw.js');
         if (!appReg) {
           await navigator.serviceWorker.register('/sw.js');
           console.log('[SW] App SW registered');
-        }
-
-        // Register Firebase messaging SW (separate from app SW)
-        let fcmReg = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
-        if (!fcmReg) {
-          await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-          console.log('[SW] FCM SW registered');
         }
 
         // Handle push token if authenticated

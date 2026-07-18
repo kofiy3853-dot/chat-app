@@ -27,14 +27,15 @@ if (isFirebaseConfigured) {
 /** FCM needs its own SW — we register firebase-messaging-sw.js for messaging. */
 async function getFirebaseMessagingServiceWorkerRegistration() {
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return undefined;
-
   try {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    // Look for the dedicated Firebase messaging SW first
-    const fcmSw = regs.find((r) => {
-      const url = (r.active || r.waiting || r.installing)?.scriptURL || '';
-      return url.includes('firebase-messaging-sw.js');
-    });
+    // Our single sw.js handles both caching AND Firebase messaging
+    const reg = await navigator.serviceWorker.getRegistration('/sw.js');
+    if (reg) return reg;
+    return await navigator.serviceWorker.register('/sw.js');
+  } catch {
+    return undefined;
+  }
+});
     if (fcmSw) return fcmSw;
 
     // Fallback: register it
