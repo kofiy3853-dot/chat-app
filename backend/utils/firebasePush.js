@@ -50,6 +50,13 @@ async function sendPushNotification(fcmTokens, payload) {
         tokens: chunk,
         android: {
           priority: 'high',
+          notification: {
+            channelId: 'campus-chat-messages',
+            vibrateTimingsMillis: [0, 250, 250, 250],
+            defaultVibrateTimings: false,
+            defaultSound: true,
+            clickAction: { action: 'OPEN', intentAction: 'android.intent.action.VIEW' }
+          }
         },
         webpush: {
           headers: {
@@ -58,7 +65,9 @@ async function sendPushNotification(fcmTokens, payload) {
           notification: {
             badge: badgeCount > 0 ? badgeCount : undefined,
             tag: payload.url || '/',
-            renotify: true
+            renotify: true,
+            vibrate: [0, 250, 250, 250],
+            requireInteraction: true
           },
           fcmOptions: {
             link: payload.url || '/'

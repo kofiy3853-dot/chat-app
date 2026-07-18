@@ -29,9 +29,11 @@ messaging.onBackgroundMessage((payload) => {
     body,
     icon: "/icons/icon-192.png",
     badge: "/icons/icon-192.png",
-    vibrate: [200, 100, 200],
+    vibrate: [0, 300, 200, 300, 200, 300],
     tag: url,
     renotify: true,
+    requireInteraction: true,
+    silent: false,
     data: { url },
     actions: [
       { action: 'open', title: 'Open' },
