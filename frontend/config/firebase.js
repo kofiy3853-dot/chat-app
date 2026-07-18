@@ -24,19 +24,21 @@ if (isFirebaseConfigured) {
   }
 }
 
-/** FCM needs its own SW; your app may also register /sw.js — we try to attach to the messaging SW. */
+/** FCM needs its own SW — we register firebase-messaging-sw.js for messaging. */
 async function getFirebaseMessagingServiceWorkerRegistration() {
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return undefined;
 
   try {
     const regs = await navigator.serviceWorker.getRegistrations();
-    const existing = regs.find((r) => {
+    // Look for the dedicated Firebase messaging SW first
+    const fcmSw = regs.find((r) => {
       const url = (r.active || r.waiting || r.installing)?.scriptURL || '';
-      return url.includes('sw.js');
+      return url.includes('firebase-messaging-sw.js');
     });
-    if (existing) return existing;
+    if (fcmSw) return fcmSw;
 
-    return await navigator.serviceWorker.register('/sw.js');
+    // Fallback: register it
+    return await navigator.serviceWorker.register('/firebase-messaging-sw.js');
   } catch {
     return undefined;
   }

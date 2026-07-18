@@ -1,20 +1,5 @@
-importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-compat.js');
-
-// Firebase config is injected at build time via __FIREBASE_CONFIG__
-// Falls back to hardcoded values for service worker context
-const FIREBASE_CONFIG = self.__FIREBASE_CONFIG__ || {
-  apiKey: "AIzaSyAOtUMkW1zGB1OJKpfUqU2QzHrcqJWxGZg",
-  authDomain: "acoustic-arch-373523.firebaseapp.com",
-  projectId: "acoustic-arch-373523",
-  storageBucket: "acoustic-arch-373523.firebasestorage.app",
-  messagingSenderId: "165706271744",
-  appId: "1:165706271744:web:4d1f86939d13ddb2479ce5"
-};
-
-firebase.initializeApp(FIREBASE_CONFIG);
-
-const messaging = firebase.messaging();
+// App Service Worker — handles caching, offline support, and background sync.
+// Firebase Cloud Messaging is handled separately by firebase-messaging-sw.js.
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -141,80 +126,6 @@ self.addEventListener("fetch", (event) => {
           // Return a safe fallback rather than crashing
           return new Response("", { status: 408, statusText: "Request Timeout" });
         });
-    })
-  );
-});
-
-// ─── BACKGROUND PUSH NOTIFICATIONS ──────────────────────────────────────────
-// Handled by Firebase Messaging for data-only messages. 
-// We use data-only payloads for maximum reliability across browsers.
-messaging.onBackgroundMessage((payload) => {
-  console.log('[SW] Received background message:', payload);
-
-  // Extract data from the payload (backend now sends data-only)
-  const title = payload.data?.title || 'Campus Hub';
-  const body = payload.data?.body || 'New message received!';
-  const url = payload.data?.url || '/';
-  const unreadCount = parseInt(payload.data?.unreadCount || '0');
-
-  const options = {
-    body,
-    icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png", // URL to alpha-only image
-    vibrate: [200, 100, 200],
-    tag: url, // Groups notifications by URL (e.g. same chat room)
-    renotify: true,
-    data: { url },
-    actions: [
-      { action: 'open', title: '💬 Open' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ]
-  };
-
-  // Skip showing notification if a client is already focused in the foreground
-  return clients.matchAll({ type: 'window', includeUncontrolled: true }).then(allClients => {
-    const isVisible = allClients.some(client => client.visibilityState === 'visible' && client.focused);
-    
-    // REQUIREMENT: Manual display is MANDATORY for data-only payloads.
-    // We do NOT check for payload.notification here because we want full control.
-    const tasks = [];
-    
-    if (!isVisible) {
-      tasks.push(self.registration.showNotification(title, options));
-    }
-
-    // Update app badge if supported (iOS/Android/Desktop Chrome)
-    const reg = self.registration;
-    if (reg && 'setAppBadge' in reg && unreadCount > 0) {
-      tasks.push(reg.setAppBadge(unreadCount).catch(() => {}));
-    } else if (reg && 'clearAppBadge' in reg && unreadCount === 0) {
-      tasks.push(reg.clearAppBadge().catch(() => {}));
-    }
-    
-    return Promise.all(tasks);
-  });
-});
-
-
-// ─── NOTIFICATION CLICK ───────────────────────────────────────────────────────
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-
-  // Handle action buttons
-  if (event.action === 'dismiss') return;
-
-  const urlToOpen = event.notification.data?.url || '/';
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      // If app is already open in some tab, navigate it and focus
-      for (const client of windowClients) {
-        if ('navigate' in client) {
-          return client.navigate(urlToOpen).then(c => c && c.focus());
-        }
-      }
-      // Otherwise open a fresh tab pointing to the chat room
-      return clients.openWindow(urlToOpen);
     })
   );
 });
